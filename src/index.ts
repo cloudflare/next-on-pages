@@ -1,4 +1,4 @@
-import { readFile, writeFile, mkdir, stat, readdir } from "fs/promises";
+import { readFile, writeFile, mkdir, stat, readdir, access } from "fs/promises";
 import { exit } from "process";
 import { spawn } from "child_process";
 import { dirname, join, relative, resolve } from "path";
@@ -38,7 +38,23 @@ const prepVercel = async () => {
   console.log("⚡️ Installing 'vercel' CLI...");
   console.log("⚡️");
 
-  const vercelBuild = spawn("npm", ["install", "-D", "vercel"]);
+  const pkgManager = await getPkgManager();
+  let vercelBuild;
+
+  switch (pkgManager) {
+    case "pnpm":
+      console.log('⚡️ Detected "pnpm", running pnpm add -D vercel');
+      console.log("⚡️");
+      vercelBuild = spawn("pnpm", ["add", "-D", "vercel"]);
+      break;
+    case "yarn":
+      console.log('⚡️ Detected "yarn", running yarn add -D vercel');
+      console.log("⚡️");
+      vercelBuild = spawn("yarn", ["add", "-D", "vercel"]);
+      break;
+    default:
+      vercelBuild = spawn("pnpm", ["add", "-D", "vercel"]);
+  }
 
   vercelBuild.stdout.on("data", (data) => {
     const lines: string[] = data.toString().split("\n");
@@ -569,3 +585,40 @@ const main = async ({
     })
   );
 })();
+
+type PackageManager = "npm" | "pnpm" | "yarn";
+
+async function exists(path) {
+  try {
+    await access(path);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function getPkgManager(): Promise<PackageManager> {
+  // Use npm_config_user_agent if it's set
+  const userAgent = process.env.npm_config_user_agent;
+
+  if (userAgent) {
+    if (userAgent.startsWith("yarn")) {
+      return "yarn";
+    } else if (userAgent.startsWith("pnpm")) {
+      return "pnpm";
+    } else {
+      return "npm";
+    }
+  }
+
+  const hasYarnLock = await exists("yarn.lock");
+  const hasPnpmLock = await exists("pnpm-lock.yaml");
+
+  if (hasYarnLock) {
+    return "yarn";
+  } else if (hasPnpmLock) {
+    return "pnpm";
+  } else {
+    return "npm";
+  }
+}
