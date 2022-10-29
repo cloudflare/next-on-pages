@@ -223,8 +223,8 @@ const transform = async ({
           let contents = await readFile(functionFile, "utf8");
           contents = contents.replace(
             // TODO: This hack is not good. We should replace this with something less brittle ASAP
-            /Object.defineProperty\(globalThis,\s*"__import_unsupported",\s*{[\s\S]*configurable:\s*([^,}]*).*}\s*\)/gm,
-            "true"
+            /(Object.defineProperty\(globalThis,\s*"__import_unsupported",\s*{[\s\S]*?configurable:\s*)([^,}]*)(.*}\s*\))/gm,
+            "$1true$3"
           );
 
           if (experimentalMinify) {
