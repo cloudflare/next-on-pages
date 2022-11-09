@@ -53,7 +53,7 @@ const prepVercel = async () => {
       vercelBuild = spawn("yarn", ["add", "-D", "vercel"]);
       break;
     default:
-      vercelBuild = spawn("pnpm", ["add", "-D", "vercel"]);
+      vercelBuild = spawn("npm", ["install", "-D", "vercel"]);
   }
 
   vercelBuild.stdout.on("data", (data) => {
