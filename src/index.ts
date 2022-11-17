@@ -378,13 +378,23 @@ const transform = async ({
     }
 
     for (const entry of functionsEntries) {
-      if (`pages/${name}` === entry?.name) {
+      if (
+        `pages/${name}` === entry?.name ||
+        `app${name !== "index" ? `/${name}` : ""}/page` === entry?.name
+      ) {
         hydratedFunctions.set(name, { matchers: entry.matchers, filepath });
       }
     }
   }
 
-  if (hydratedMiddleware.size + hydratedFunctions.size !== functionsMap.size) {
+  const rscFunctions = [...functionsMap.keys()].filter((name) =>
+    name.endsWith(".rsc")
+  );
+
+  if (
+    hydratedMiddleware.size + hydratedFunctions.size !==
+    functionsMap.size - rscFunctions.length
+  ) {
     console.error(
       "⚡️ ERROR: Could not map all functions to an entry in the manifest."
     );
