@@ -128,7 +128,7 @@ Add the following to `next.config.js`:
 const nextConfig = {
   experimental: {
     runtime: "experimental-edge",
-  + appDir: true,
++   appDir: true,
   },
   reactStrictMode: true,
   swcMinify: true,
