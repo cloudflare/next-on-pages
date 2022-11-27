@@ -611,7 +611,6 @@ const main = async ({
 	skipBuild: boolean;
 	experimentalMinify: boolean;
 }) => {
-	packageManager = await getPkgManager();
 	if (!skipBuild) {
 		await prepVercel();
 		await buildVercel();
@@ -621,6 +620,7 @@ const main = async ({
 };
 
 (async () => {
+	packageManager = await getPkgManager();
 	console.log("⚡️ @cloudflare/next-to-pages CLI");
 
 	if (process.argv.includes("--help")) {
