@@ -11,9 +11,11 @@ Reference:
 
    Note that if you elect to use eslint, there are a couple of places you need to add return types to make the default template pass the pre-build checks.
 
-1. `cd` into the new directory (e.g. `cd my-app`)
+   If you using yarn v3, run `yarn create next-app@latest my-app`
+   
+   If you using pnpm, run `pnpx create-next-app@latest my-app`
 
-1. `npm install -D @cloudflare/next-on-pages vercel`
+1. `cd` into the new directory (e.g. `cd my-app`)
 
 1. Configure the project to use the Edge Runtime:
 
@@ -58,12 +60,34 @@ Reference:
 
 1. Create a Pages project, connect that repository, and select "Next.js" from the framework preset list.
 
+   <br><br>
+   For npm:
+
    | Option                 | Value                                                 |
    | ---------------------- | ----------------------------------------------------- |
    | Build command          | `npx @cloudflare/next-on-pages --experimental-minify` |
    | Build output directory | `.vercel/output/static`                               |
 
+   <br><br>
+   For yarn v3:
+
+   | Option                 | Value                                                      |
+   | ---------------------- | ---------------------------------------------------------- |
+   | Build command          | `yarn dlx @cloudflare/next-on-pages --experimental-minify` |
+   | Build output directory | `.vercel/output/static`                                    |
+
+   <br><br>
+   For pnpm:
+
+   | Option                 | Value                                                      |
+   | ---------------------- | ---------------------------------------------------------- |
+   | Build command          | `pnpx dlx @cloudflare/next-on-pages --experimental-minify` |
+   | Build output directory | `.vercel/output/static`                                    |
+   <br>
+
 1. Add a `NODE_VERSION` environment variable set to `14` or greater.
+
+   Note that if you are using Next.js v13 you need to set to `16`
 
 1. In the Pages project **Settings** > **Functions** > **Compatibility Flags**, add the `transformstream_enable_standard_constructor` and `streams_enable_constructors` flags. These will not be necessary once they graduate to be on by default on 2022-11-30's compatibility date.
 
@@ -93,7 +117,7 @@ Reference:
 
 **Local testing**
 
-In one terminal, run `npx @cloudflare/next-on-pages --watch`, and in another `npx wrangler pages dev .vercel/output/static --compatibility-flags=streams_enable_constructors`. We hope to soon make improvements to the refersh speed.
+In one terminal, run `npx @cloudflare/next-on-pages --watch`, and in another `npx wrangler pages dev .vercel/output/static --compatibility-flags=streams_enable_constructors`. We hope to soon make improvements to the refresh speed.
 
 ### Build Output Configuration
 
