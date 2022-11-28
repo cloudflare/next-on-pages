@@ -1,31 +1,35 @@
 {
-  "name": "@cloudflare/next-on-pages",
-  "version": "0.2.0",
-  "bin": "./bin/index.js",
-  "scripts": {
-    "build": "npx esbuild --bundle --platform=node ./src/index.ts --external:esbuild --external:chokidar --outfile=./dist/index.js"
-  },
-  "files": [
-    "./bin/index.js",
-    "./dist/index.js",
-    "./templates/"
-  ],
-  "dependencies": {
-    "acorn": "^8.8.0",
-    "astring": "^1.8.3",
-    "chokidar": "^3.5.3",
-    "cookie": "^0.5.0",
-    "esbuild": "^0.15.3"
-  },
-  "peerDependencies": {
-    "vercel": "^28.0.2"
-  },
-  "devDependencies": {
-    "@cloudflare/workers-types": "^3.14.1",
-    "@types/cookie": "^0.5.1",
-    "p-limit": "^4.0.0",
-    "prettier": "^2.7.1",
-    "typescript": "^4.7.4",
-    "vitest": "^0.24.3"
-  }
+	"name": "@cloudflare/next-on-pages",
+	"version": "0.2.0",
+	"bin": {
+		"next-on-pages": "./bin/index.js"
+	},
+	"scripts": {
+		"build": "npx esbuild --bundle --platform=node ./src/index.ts --external:esbuild --external:chokidar --outfile=./dist/index.js"
+	},
+	"files": [
+		"./bin/index.js",
+		"./dist/index.js",
+		"./templates/"
+	],
+	"dependencies": {
+		"acorn": "^8.8.0",
+		"astring": "^1.8.3",
+		"chokidar": "^3.5.3",
+		"cookie": "^0.5.0",
+		"esbuild": "^0.15.3",
+		"js-yaml": "^4.1.0"
+	},
+	"peerDependencies": {
+		"vercel": "^28.0.2"
+	},
+	"devDependencies": {
+		"@cloudflare/workers-types": "^3.14.1",
+		"@types/cookie": "^0.5.1",
+		"@types/js-yaml": "^4.0.5",
+		"p-limit": "^4.0.0",
+		"prettier": "^2.7.1",
+		"typescript": "^4.7.4",
+		"vitest": "^0.24.3"
+	}
 }
