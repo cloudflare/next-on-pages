@@ -285,7 +285,6 @@ const transform = async ({
 					let functionConfig: {
 						runtime: "edge";
 						entrypoint: string;
-						experimentalResponseStreaming?: boolean;
 					};
 					try {
 						let contents = await readFile(
@@ -299,8 +298,7 @@ const transform = async ({
 					}
 
 					if (
-						functionConfig.runtime !== "edge" &&
-						functionConfig.experimentalResponseStreaming
+						functionConfig.runtime !== "edge"
 					) {
 						invalidFunctions.push(name);
 						return;
