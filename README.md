@@ -117,6 +117,10 @@ In one terminal, run `npx @cloudflare/next-on-pages --watch`, and in another `np
 | overrides               | 🔄                                                                                                                                                |
 | cache                   | ❌                                                                                                                                                |
 
+- ✅: Supported
+- 🔄: Not currently supported, but it's probably possible and we may add support in the future
+- ❌: Not supported and unlikely we ever will support this
+
 ## Examples
 
 ### [Next.js 13's `app` Directory](https://beta.nextjs.org/docs/routing/fundamentals#the-app-directory)
