@@ -93,7 +93,7 @@ Reference:
 
 **Local testing**
 
-In one terminal, run `npx @cloudflare/next-on-pages --watch`, and in another `npx wrangler pages dev .vercel/output/static --compatibility-flags=streams_enable_constructors`. We hope to soon make improvements to the refersh speed.
+In one terminal, run `npx @cloudflare/next-on-pages --watch`, and in another `npx wrangler pages dev .vercel/output/static --compatibility-flags=streams_enable_constructors`. We hope to soon make improvements to the refresh speed.
 
 ### Build Output Configuration
 
