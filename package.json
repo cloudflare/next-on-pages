@@ -5,7 +5,8 @@
 		"next-on-pages": "./bin/index.js"
 	},
 	"scripts": {
-		"build": "npx esbuild --bundle --platform=node ./src/index.ts --external:esbuild --external:chokidar --outfile=./dist/index.js"
+		"build": "npx esbuild --bundle --platform=node ./src/index.ts --external:esbuild --external:chokidar --outfile=./dist/index.js",
+		"publish": "npm run build && npx changeset publish"
 	},
 	"files": [
 		"./bin/index.js",
@@ -24,6 +25,7 @@
 		"vercel": "^28.0.2"
 	},
 	"devDependencies": {
+		"@changesets/cli": "^2.26.0",
 		"@cloudflare/workers-types": "^3.14.1",
 		"@types/cookie": "^0.5.1",
 		"@types/js-yaml": "^4.0.5",
