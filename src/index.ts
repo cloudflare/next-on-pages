@@ -133,7 +133,52 @@ const transform = async ({
     exit(1);
   }
 
-  const functionsDir = resolve(".vercel/output/functions");
+  interface RoutesManifest {
+    version: 3;
+    pages404: boolean;
+    basePath: string;
+    // TODO type these?
+    redirects: unknown;
+    headers: unknown;
+    dynamicRoutes: unknown;
+    staticRoutes: unknown;
+    dataRoutes: unknown;
+    rsc: unknown;
+    rewrites: unknown;
+  }
+
+  let routesManifest: RoutesManifest;
+
+  try {
+    routesManifest = JSON.parse(
+      await readFile(".next/routes-manifest.json", "utf8")
+    );
+  } catch {
+    console.error(
+      "⚡️ ERROR: Could not read ./next/routes-manifest.json files"
+    );
+    console.error(
+      "⚡️ Please report this at https://github.com/cloudflare/next-on-pages/issues."
+    );
+    exit(1);
+  }
+
+  if (routesManifest.version !== 3) {
+    console.error(
+      `⚡️ ERROR: Unknown functions manifest version. Expected 3 but found ${routesManifest.version}.`
+    );
+    console.error(
+      "⚡️ Please report this at https://github.com/cloudflare/next-on-pages/issues."
+    );
+    exit(1);
+  }
+
+  const basePath = routesManifest.basePath ?? "";
+  if (basePath !== "") {
+    console.log("⚡️ Using basePath ", basePath);
+  }
+
+  const functionsDir = resolve(".vercel/output/functions" + basePath);
   let functionsExist = false;
   try {
     await stat(functionsDir);
@@ -455,6 +500,7 @@ const transform = async ({
     platform: "neutral",
     define: {
       __CONFIG__: JSON.stringify(config),
+      __BASE_PATH__: JSON.stringify(basePath),
     },
     outfile: ".vercel/output/static/_worker.js",
   });

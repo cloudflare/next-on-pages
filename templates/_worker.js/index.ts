@@ -126,6 +126,8 @@ declare const __FUNCTIONS__: EdgeFunctions;
 
 declare const __MIDDLEWARE__: EdgeFunctions;
 
+declare const __BASE_PATH__: string;
+
 export default {
   async fetch(request, env, context) {
     globalThis.process.env = { ...globalThis.process.env, ...env };
@@ -149,7 +151,8 @@ export default {
           const regexp = new RegExp(matcher?.regexp);
           if (
             pathname.match(regexp) ||
-            `${pathname}/page`.replace("//page", "/page").match(regexp)
+            `${pathname}/page`.replace("//page", "/page").match(regexp) ||
+            pathname.replace(__BASE_PATH__, "").match(regexp)
           ) {
             found = true;
             break;
