@@ -149,10 +149,19 @@ export default {
       for (const matcher of matchers) {
         if (matcher.regexp) {
           const regexp = new RegExp(matcher?.regexp);
+          const nextPathname = __BASE_PATH__
+            ? // Remove basePath from URL, also squish `//` into `/`
+              // If the baseUrl is set to "/docs" the following will happen:
+              // `/docs/profile/settings` -> `/profile/settings`
+              // `/docs` -> `/`
+              // `/docs/` -> `/`
+              // `/docs/_next/static/main.js` -> `/_next/static/main.js`
+              pathname.replace(__BASE_PATH__, "/").replace("//", "/")
+            : pathname;
+
           if (
-            pathname.match(regexp) ||
-            `${pathname}/page`.replace("//page", "/page").match(regexp) ||
-            pathname.replace(__BASE_PATH__, "").match(regexp)
+            nextPathname.match(regexp) ||
+            `${nextPathname}/page`.replace("//page", "/page").match(regexp)
           ) {
             found = true;
             break;
