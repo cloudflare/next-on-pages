@@ -108,10 +108,12 @@ const prepVercel = async () => {
 
 	if (packageManager === "yarn" && yarnVersion.startsWith("1.")) {
 		console.log("⚡️");
-		console.log("⚡️ As you are using yarn v1, it doesn't support download and execute, we need to install the vercel cli first...");
+		console.log(
+			"⚡️ As you are using yarn v1, it doesn't support download and execute, we need to install the vercel cli first..."
+		);
 		console.log("⚡️");
 
-		const prepCommand = "yarn add vercel -D"
+		const prepCommand = "yarn add vercel -D";
 
 		const vercelBuild = exec(prepCommand);
 
@@ -151,7 +153,9 @@ const buildVercel = async () => {
 		(packageManager === "npm"
 			? "npx"
 			: packageManager === "yarn"
-			? "yarn"
+			? yarnVersion.startsWith("1.")
+				? "yarn"
+				: "yarn dlx"
 			: "pnpx") + " vercel build";
 	console.log("⚡️");
 	console.log(`⚡️ Building project with '${buildCommand}'...`);
@@ -595,15 +599,18 @@ const transform = async ({
 			.join(",")}};`
 	);
 
-	const entryPoints = join(__dirname, "../templates/_worker.js").replaceAll("\\", "/")
-	const inject = join(__dirname, "../templates/_worker.js/globals.js").replaceAll("\\", "/")
+	const entryPoints = join(__dirname, "../templates/_worker.js").replaceAll(
+		"\\",
+		"/"
+	);
+	const inject = join(
+		__dirname,
+		"../templates/_worker.js/globals.js"
+	).replaceAll("\\", "/");
 	await build({
 		entryPoints: [entryPoints],
 		bundle: true,
-		inject: [
-			inject,
-			functionsFile,
-		],
+		inject: [inject, functionsFile],
 		target: "es2021",
 		platform: "neutral",
 		define: {
