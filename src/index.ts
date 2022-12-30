@@ -133,17 +133,37 @@ const transform = async ({
     exit(1);
   }
 
+  // RoutesManifest.version and RoutesManifest.basePath are the only fields accessed
   interface RoutesManifest {
     version: 3;
-    pages404: boolean;
     basePath: string;
-    // TODO type these?
-    redirects: unknown;
+    pages404: boolean;
+    redirects: {
+      source: string;
+      destination: string;
+      basePath: boolean | undefined;
+      internal: boolean;
+      statusCode: number;
+      regex: string;
+    }[];
+    dynamicRoutes: {
+      page: string;
+      regex: string;
+      routeKeys: any; // object of dynamic parameters;
+      namedRegex: string;
+    };
+    staticRoutes: {
+      page: string;
+      regex: string;
+      routeKeys: any; // object of dynamic parameters;
+      namedRegex: string;
+    }[];
+    rsc: {
+      header: string;
+      varyHeader: string;
+    };
     headers: unknown;
-    dynamicRoutes: unknown;
-    staticRoutes: unknown;
     dataRoutes: unknown;
-    rsc: unknown;
     rewrites: unknown;
   }
 
