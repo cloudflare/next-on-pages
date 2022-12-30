@@ -9,11 +9,11 @@ Reference:
 
 1. `npx create-next-app@latest my-app`
 
-   Note that if you elect to use eslint, there are a couple of places you need to add return types to make the default template pass the pre-build checks.
+   Note that if you select to use eslint, there are a couple of places you need to add return types to make the default template pass the pre-build checks.
 
-   If you using yarn v3, run `yarn create next-app@latest my-app`
+   If you using yarn, run `yarn create next-app@latest my-app`
    
-   If you using pnpm, run `pnpx create-next-app@latest my-app`
+   If you using pnpm, run `pnpm create next-app@latest my-app`
 
 1. `cd` into the new directory (e.g. `cd my-app`)
 
@@ -69,7 +69,7 @@ Reference:
    | Build output directory | `.vercel/output/static`                               |
 
    <br><br>
-   For yarn v3:
+   For yarn v3 (berry):
 
    | Option                 | Value                                                      |
    | ---------------------- | ---------------------------------------------------------- |
@@ -77,12 +77,39 @@ Reference:
    | Build output directory | `.vercel/output/static`                                    |
 
    <br><br>
-   For pnpm:
+   For yarn v1 (classic):
+   
+   Since yarn v1 doesn't support download and execute (dlx in yarn v3, npx in npm and pnpx in pnpm), 
+   
+   You need to first add a script to your package.json (in this example, we will add `build:cf`)
+   
+      ```json
+      {
+         ...
+         "scripts": {
+            "build": "next build",
+            "build:cf": "next-on-pages --experimental-minify"
+         }
+         ...
+      }
+      ```
+   then install this package by running `yarn add @cloudflare/next-on-pages -D`
+   
+   and use the following settings in your pages project
+   
 
    | Option                 | Value                                                      |
    | ---------------------- | ---------------------------------------------------------- |
-   | Build command          | `pnpx dlx @cloudflare/next-on-pages --experimental-minify` |
+   | Build command          | `yarn build:cf`                                            |
    | Build output directory | `.vercel/output/static`                                    |
+
+   <br><br>
+   For pnpm:
+
+   | Option                 | Value                                                                                       |
+   | ---------------------- | ------------------------------------------------------------------------------------------- |
+   | Build command          | `npm i -g pnpm && pnpm install && pnpx dlx @cloudflare/next-on-pages --experimental-minify` |
+   | Build output directory | `.vercel/output/static`                                                                     |
    <br>
 
 1. Add a `NODE_VERSION` environment variable set to `14` or greater.
