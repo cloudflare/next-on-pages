@@ -31,7 +31,7 @@ let yarnVersion: string = "3.";
 
 let nodeLinkerIsNodeModules = false;
 
-async function exists(path) {
+async function exists(path: string) {
 	try {
 		await access(path);
 		return true;
@@ -47,7 +47,7 @@ async function getPkgManager(): Promise<"yarn" | "pnpm" | "npm"> {
 		const getYarnVersionExec = exec("yarn -v");
 		getYarnVersionExec.stdout!.on("data", (data) => {
 			yarnVersion = data;
-			yarnVersion = yarnVersion.trimEnd()
+			yarnVersion = yarnVersion.trimEnd();
 		});
 		getYarnVersionExec.stderr!.on("data", (data) => {
 			console.log(data);
@@ -96,12 +96,6 @@ async function getPkgManager(): Promise<"yarn" | "pnpm" | "npm"> {
 }
 
 const prepVercel = async () => {
-	const prepCommand =
-		packageManager === "npm"
-			? "npm install vercel -D"
-			: packageManager === "yarn"
-			? "yarn add vercel -D"
-			: "pnpm add vercel -D";
 	try {
 		await stat(".vercel/project.json");
 	} catch {
@@ -111,40 +105,45 @@ const prepVercel = async () => {
 			JSON.stringify({ projectId: "_", orgId: "_", settings: {} })
 		);
 	}
-	console.log("⚡️");
-	console.log("⚡️ Installing 'vercel' CLI...");
-	console.log("⚡️");
 
-	const vercelBuild = exec(prepCommand);
+	if (packageManager === "yarn" && yarnVersion.startsWith("1.")) {
+		console.log("⚡️");
+		console.log("⚡️ As you are using yarn v1, it doesn't support download and execute, we need to install the vercel cli first...");
+		console.log("⚡️");
 
-	vercelBuild.stdout!.on("data", (data) => {
-		const lines: string[] = data.toString().split("\n");
-		lines.map((line) => {
-			console.log(`▲ ${line}`);
+		const prepCommand = "yarn add vercel -D"
+
+		const vercelBuild = exec(prepCommand);
+
+		vercelBuild.stdout!.on("data", (data) => {
+			const lines: string[] = data.toString().split("\n");
+			lines.map((line) => {
+				console.log(`▲ ${line}`);
+			});
 		});
-	});
 
-	vercelBuild.stderr!.on("data", (data) => {
-		const lines: string[] = data.toString().split("\n");
-		lines.map((line) => {
-			console.log(`▲ ${line}`);
+		vercelBuild.stderr!.on("data", (data) => {
+			const lines: string[] = data.toString().split("\n");
+			lines.map((line) => {
+				console.log(`▲ ${line}`);
+			});
 		});
-	});
 
-	await new Promise((resolve, reject) => {
-		vercelBuild.on("close", (code) => {
-			if (code === 0) {
-				resolve(null);
-			} else {
-				reject();
-			}
+		await new Promise((resolve, reject) => {
+			vercelBuild.on("close", (code) => {
+				if (code === 0) {
+					resolve(null);
+				} else {
+					reject();
+				}
+			});
 		});
-	});
 
-	console.log("⚡️");
-	console.log("⚡️");
-	console.log(`⚡️ Completed '${prepCommand}'.`);
-	console.log("⚡️");
+		console.log("⚡️");
+		console.log("⚡️");
+		console.log(`⚡️ Completed '${prepCommand}'.`);
+		console.log("⚡️");
+	}
 };
 
 const buildVercel = async () => {
@@ -297,9 +296,7 @@ const transform = async ({
 						return;
 					}
 
-					if (
-						functionConfig.runtime !== "edge"
-					) {
+					if (functionConfig.runtime !== "edge") {
 						invalidFunctions.push(name);
 						return;
 					}
@@ -574,7 +571,7 @@ const transform = async ({
 	const functionsFile = join(
 		tmpdir(),
 		`functions-${Math.random().toString(36).slice(2)}.js`
-	);
+	).replaceAll("\\", "/");
 
 	await writeFile(
 		functionsFile,
@@ -584,7 +581,7 @@ const transform = async ({
 			([name, { matchers, filepath }]) =>
 				`"${name}": { matchers: ${JSON.stringify(
 					matchers
-				)}, entrypoint: require('${filepath}')}`
+				)}, entrypoint: require('${filepath.replaceAll("\\", "/")}')}`
 		)
 		.join(",")}};
       
@@ -598,11 +595,13 @@ const transform = async ({
 			.join(",")}};`
 	);
 
+	const entryPoints = join(__dirname, "../templates/_worker.js").replaceAll("\\", "/")
+	const inject = join(__dirname, "../templates/_worker.js/globals.js").replaceAll("\\", "/")
 	await build({
-		entryPoints: [join(__dirname, "../templates/_worker.js")],
+		entryPoints: [entryPoints],
 		bundle: true,
 		inject: [
-			join(__dirname, "../templates/_worker.js/globals.js"),
+			inject,
 			functionsFile,
 		],
 		target: "es2021",
@@ -669,6 +668,7 @@ const main = async ({
 (async () => {
 	packageManager = await getPkgManager();
 	console.log("⚡️ @cloudflare/next-to-pages CLI");
+
 	const detectedPkgManager =
 		packageManager === "npm"
 			? "npm"

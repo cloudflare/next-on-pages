@@ -4,6 +4,7 @@
 	"bin": "./bin/index.js",
 	"scripts": {
 		"build": "npx esbuild --bundle --platform=node ./src/index.ts --external:esbuild --external:chokidar --outfile=./dist/index.js",
+		"build:test": "tsc",
 		"publish": "npm run build && npx changeset publish"
 	},
 	"files": [
@@ -18,9 +19,6 @@
 		"cookie": "^0.5.0",
 		"esbuild": "^0.15.3",
 		"js-yaml": "^4.1.0"
-	},
-	"peerDependencies": {
-		"vercel": "^28.0.2"
 	},
 	"devDependencies": {
 		"@changesets/cli": "^2.26.0",
