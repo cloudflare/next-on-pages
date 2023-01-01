@@ -142,20 +142,21 @@ export default {
 
     for (const { matchers, entrypoint } of Object.values(__FUNCTIONS__)) {
       let found = false;
+      let params = undefined;
       for (const matcher of matchers) {
         if (matcher.regexp) {
           const regexp = new RegExp(matcher?.regexp);
-          if (
-            pathname.match(regexp) ||
-            `${pathname}/page`.replace("//page", "/page").match(regexp)
-          ) {
+          const m = pathname.match(regexp) || `${pathname}/page`.replace("//page", "/page").match(regexp);
+          if (m) {
             found = true;
+            params = m.groups;
             break;
           }
         }
       }
 
       if (found) {
+        context.params = params;
         return entrypoint.default(request, context);
       }
     }
