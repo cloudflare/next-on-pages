@@ -1,13 +1,14 @@
-import { readFile, writeFile, mkdir, stat, readdir } from "fs/promises";
+import { readFile, writeFile, mkdir, stat, readdir, access } from "fs/promises";
 import { exit } from "process";
-import { spawn } from "child_process";
+import { exec } from "child_process";
 import { dirname, join, relative, resolve } from "path";
 import { build } from "esbuild";
 import { tmpdir } from "os";
 import { watch } from "chokidar";
 import pLimit from "p-limit";
-import acorn, { parse, Node } from "acorn";
+import { parse, Node } from "acorn";
 import { generate } from "astring";
+import YAML from "js-yaml";
 
 type LooseNode = Node & {
   expression?: LooseNode;
@@ -24,6 +25,75 @@ type LooseNode = Node & {
   value: any;
 };
 
+let packageManager: "yarn" | "pnpm" | "npm" = "npm";
+
+let yarnVersion: string = "3.";
+
+let nodeLinkerIsNodeModules = false;
+
+async function exists(path: string) {
+  try {
+    await access(path);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function getPkgManager(): Promise<"yarn" | "pnpm" | "npm"> {
+  const userAgent = process.env.npm_config_user_agent;
+
+  try {
+    const getYarnVersionExec = exec("yarn -v");
+    getYarnVersionExec.stdout!.on("data", (data) => {
+      yarnVersion = data;
+      yarnVersion = yarnVersion.trimEnd();
+    });
+    getYarnVersionExec.stderr!.on("data", (data) => {
+      console.log(data);
+    });
+    await new Promise((resolve, reject) => {
+      getYarnVersionExec.on("close", (code) => {
+        if (code === 0) {
+          resolve(null);
+        } else {
+          reject();
+        }
+      });
+    });
+    if (!yarnVersion.startsWith("1.")) {
+      try {
+        await stat(".yarnrc.yml");
+        const yarnYAML = YAML.load(await readFile(".yarnrc.yml", "utf-8")) as {
+          nodeLinker: "node-modules" | string;
+        };
+        nodeLinkerIsNodeModules = yarnYAML.nodeLinker === "node-modules";
+      } catch {}
+    }
+  } catch (err) {}
+
+  if (userAgent) {
+    if (userAgent.startsWith("yarn")) {
+      return "yarn";
+    } else if (userAgent.startsWith("pnpm")) {
+      return "pnpm";
+    } else {
+      return "npm";
+    }
+  }
+
+  const hasYarnLock = await exists("yarn.lock");
+  const hasPnpmLock = await exists("pnpm-lock.yaml");
+
+  if (hasYarnLock) {
+    return "yarn";
+  } else if (hasPnpmLock) {
+    return "pnpm";
+  } else {
+    return "npm";
+  }
+}
+
 const prepVercel = async () => {
   try {
     await stat(".vercel/project.json");
@@ -34,57 +104,72 @@ const prepVercel = async () => {
       JSON.stringify({ projectId: "_", orgId: "_", settings: {} })
     );
   }
-  console.log("⚡️");
-  console.log("⚡️ Installing 'vercel' CLI...");
-  console.log("⚡️");
 
-  const vercelBuild = spawn("npm", ["install", "-D", "vercel"]);
+  if (packageManager === "yarn" && yarnVersion.startsWith("1.")) {
+    console.log("⚡️");
+    console.log(
+      "⚡️ As you are using yarn v1, it doesn't support download and execute, we need to install the vercel cli first..."
+    );
+    console.log("⚡️");
 
-  vercelBuild.stdout.on("data", (data) => {
-    const lines: string[] = data.toString().split("\n");
-    lines.map((line) => {
-      console.log(`▲ ${line}`);
+    const prepCommand = "yarn add vercel -D";
+
+    const vercelBuild = exec(prepCommand);
+
+    vercelBuild.stdout!.on("data", (data) => {
+      const lines: string[] = data.toString().split("\n");
+      lines.map((line) => {
+        console.log(`▲ ${line}`);
+      });
     });
-  });
 
-  vercelBuild.stderr.on("data", (data) => {
-    const lines: string[] = data.toString().split("\n");
-    lines.map((line) => {
-      console.log(`▲ ${line}`);
+    vercelBuild.stderr!.on("data", (data) => {
+      const lines: string[] = data.toString().split("\n");
+      lines.map((line) => {
+        console.log(`▲ ${line}`);
+      });
     });
-  });
 
-  await new Promise((resolve, reject) => {
-    vercelBuild.on("close", (code) => {
-      if (code === 0) {
-        resolve(null);
-      } else {
-        reject();
-      }
+    await new Promise((resolve, reject) => {
+      vercelBuild.on("close", (code) => {
+        if (code === 0) {
+          resolve(null);
+        } else {
+          reject();
+        }
+      });
     });
-  });
 
-  console.log("⚡️");
-  console.log("⚡️");
-  console.log("⚡️ Completed 'npx vercel build'.");
-  console.log("⚡️");
+    console.log("⚡️");
+    console.log("⚡️");
+    console.log(`⚡️ Completed '${prepCommand}'.`);
+    console.log("⚡️");
+  }
 };
 
 const buildVercel = async () => {
+  const buildCommand =
+    (packageManager === "npm"
+      ? "npx"
+      : packageManager === "yarn"
+      ? yarnVersion.startsWith("1.")
+        ? "yarn"
+        : "yarn dlx"
+      : "pnpx") + " vercel build";
   console.log("⚡️");
-  console.log("⚡️ Building project with 'npx vercel build'...");
+  console.log(`⚡️ Building project with '${buildCommand}'...`);
   console.log("⚡️");
 
-  const vercelBuild = spawn("npx", ["vercel", "build"]);
+  const vercelBuild = exec(buildCommand);
 
-  vercelBuild.stdout.on("data", (data) => {
+  vercelBuild.stdout!.on("data", (data) => {
     const lines: string[] = data.toString().split("\n");
     lines.map((line) => {
       console.log(`▲ ${line}`);
     });
   });
 
-  vercelBuild.stderr.on("data", (data) => {
+  vercelBuild.stderr!.on("data", (data) => {
     const lines: string[] = data.toString().split("\n");
     lines.map((line) => {
       console.log(`▲ ${line}`);
@@ -103,7 +188,7 @@ const buildVercel = async () => {
 
   console.log("⚡️");
   console.log("⚡️");
-  console.log("⚡️ Completed 'npx vercel build'.");
+  console.log(`⚡️ Completed '${buildCommand}'.`);
   console.log("⚡️");
 };
 
@@ -194,7 +279,10 @@ const transform = async ({
           const name = relativePath.replace(/\.func$/, "");
 
           const functionConfigFile = join(filepath, ".vc-config.json");
-          let functionConfig: { runtime: "edge"; entrypoint: string };
+          let functionConfig: {
+            runtime: "edge";
+            entrypoint: string;
+          };
           try {
             let contents = await readFile(functionConfigFile, "utf8");
             functionConfig = JSON.parse(contents);
@@ -291,7 +379,10 @@ const transform = async ({
                       },
                     ],
                   },
-                  property: { type: "Identifier", name: "default" },
+                  property: {
+                    type: "Identifier",
+                    name: "default",
+                  },
                 };
 
                 chunkExpression.value = newValue;
@@ -372,7 +463,10 @@ const transform = async ({
     if (name === "middleware" && middlewareEntries.length > 0) {
       for (const entry of middlewareEntries) {
         if ("middleware" === entry?.name) {
-          hydratedMiddleware.set(name, { matchers: entry.matchers, filepath });
+          hydratedMiddleware.set(name, {
+            matchers: entry.matchers,
+            filepath,
+          });
         }
       }
     }
@@ -382,7 +476,10 @@ const transform = async ({
         `pages/${name}` === entry?.name ||
         `app${name !== "index" ? `/${name}` : ""}/page` === entry?.name
       ) {
-        hydratedFunctions.set(name, { matchers: entry.matchers, filepath });
+        hydratedFunctions.set(name, {
+          matchers: entry.matchers,
+          filepath,
+        });
       }
     }
   }
@@ -447,7 +544,7 @@ const transform = async ({
   const functionsFile = join(
     tmpdir(),
     `functions-${Math.random().toString(36).slice(2)}.js`
-  );
+  ).replaceAll("\\", "/");
 
   await writeFile(
     functionsFile,
@@ -457,7 +554,7 @@ const transform = async ({
         ([name, { matchers, filepath }]) =>
           `"${name}": { matchers: ${JSON.stringify(
             matchers
-          )}, entrypoint: require('${filepath}')}`
+          )}, entrypoint: require('${filepath.replaceAll("\\", "/")}')}`
       )
       .join(",")}};
       
@@ -471,13 +568,18 @@ const transform = async ({
         .join(",")}};`
   );
 
+  const entryPoints = join(__dirname, "../templates/_worker.js").replaceAll(
+    "\\",
+    "/"
+  );
+  const inject = join(
+    __dirname,
+    "../templates/_worker.js/globals.js"
+  ).replaceAll("\\", "/");
   await build({
-    entryPoints: [join(__dirname, "../templates/_worker.js")],
+    entryPoints: [entryPoints],
     bundle: true,
-    inject: [
-      join(__dirname, "../templates/_worker.js/globals.js"),
-      functionsFile,
-    ],
+    inject: [inject, functionsFile],
     target: "es2021",
     platform: "neutral",
     define: {
@@ -490,8 +592,16 @@ const transform = async ({
 };
 
 const help = () => {
+  const command =
+    packageManager === "npm"
+      ? "npx @cloudflare/next-to-page"
+      : packageManager === "yarn"
+      ? yarnVersion.startsWith("1.")
+        ? "yarn next-to-pages"
+        : "yarn dlx next-to-pages"
+      : "pnpx @cloudflare/next-to-pages";
   console.log("⚡️");
-  console.log("⚡️ Usage: npx @cloudflare/next-to-pages [options]");
+  console.log(`⚡️ Usage: ${command} [options]`);
   console.log("⚡️");
   console.log("⚡️ Options:");
   console.log("⚡️");
@@ -532,7 +642,27 @@ const main = async ({
 };
 
 (async () => {
+  packageManager = await getPkgManager();
   console.log("⚡️ @cloudflare/next-to-pages CLI");
+
+  const detectedPkgManager =
+    packageManager === "npm"
+      ? "npm"
+      : packageManager === "yarn"
+      ? `yarn v${yarnVersion}`
+      : `pnpm`;
+  console.log("⚡️");
+  console.log("⚡️ Detected Package Manager: " + detectedPkgManager);
+  console.log("⚡️");
+
+  if (
+    packageManager === "yarn" &&
+    !yarnVersion.startsWith("1.") &&
+    !nodeLinkerIsNodeModules
+  ) {
+    console.log(`⚡️ Next-On-Pages currently doesn't support yarn Plug'n'Play`);
+    return;
+  }
 
   if (process.argv.includes("--help")) {
     help();
