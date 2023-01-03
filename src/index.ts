@@ -24,6 +24,39 @@ type LooseNode = Node & {
   value: any;
 };
 
+const generateHeaders = async () => {
+  await writeFile(
+    ".vercel/output/static/_headers",
+    `\n/_next/static/*\n  Cache-Control: public,max-age=31536000,immutable\n`,
+    {
+      // in case someone configured redirects already, append to the end
+      flag: "a",
+    }
+  );
+};
+
+const generateRoutes = async () => {
+  try {
+    await writeFile(
+      ".vercel/output/static/_routes.json",
+      JSON.stringify({
+        version: 1,
+        include: ["/*"],
+        exclude: ["/_next/static/*"],
+      }),
+      { flag: "ax" } // don't generate file if it's already manually maintained
+    );
+  } catch (e) {
+    if (e.code != "EEXIST") {
+      throw e;
+    }
+  }
+};
+
+const generateMetadataFromConfig = async () => {
+  await Promise.all([generateHeaders(), generateRoutes()]);
+};
+
 const prepVercel = async () => {
   try {
     await stat(".vercel/project.json");
@@ -528,7 +561,10 @@ const main = async ({
     await buildVercel();
   }
 
-  await transform({ experimentalMinify });
+  await Promise.all([
+    transform({ experimentalMinify }),
+    generateMetadataFromConfig(),
+  ]);
 };
 
 (async () => {
