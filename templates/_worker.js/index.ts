@@ -140,7 +140,8 @@ export default {
       }
     }
 
-    for (const { matchers, entrypoint } of Object.values(__FUNCTIONS__)) {
+    for (const [key, value] of Object.entries(__FUNCTIONS__)) {
+      const { matchers, entrypoint } = value;
       let found = false;
       for (const matcher of matchers) {
         if (matcher.regexp) {
@@ -156,10 +157,20 @@ export default {
       }
 
       if (found) {
-        return entrypoint.default(request, context);
+        return entrypoint.default(cloneRequest(request, key), context);
       }
     }
 
     return env.ASSETS.fetch(request);
   },
 } as ExportedHandler<{ ASSETS: Fetcher }>;
+
+function cloneRequest(request: Request, matchedPath: string): Request {
+  const requestInit = {
+    ...request,
+    // Ensure `x-matched-path` is set so Next.js#handleRequest can properly recognize dynamic routes
+    headers: { ...request.headers, "x-matched-path": matchedPath },
+  };
+
+  return new Request(request.url, requestInit);
+}
