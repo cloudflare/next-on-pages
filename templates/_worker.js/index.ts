@@ -128,6 +128,8 @@ declare const __MIDDLEWARE__: EdgeFunctions;
 
 export default {
   async fetch(request, env, context) {
+    globalThis.process.env = { ...globalThis.process.env, ...env };
+
     const { pathname } = new URL(request.url);
     const routes = routesMatcher({ request }, __CONFIG__.routes);
 
