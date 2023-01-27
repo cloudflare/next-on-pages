@@ -128,38 +128,40 @@ declare const __MIDDLEWARE__: EdgeFunctions;
 
 export default {
 	async fetch(request, env, context) {
-		const { pathname } = new URL(request.url);
-		const routes = routesMatcher({ request }, __CONFIG__.routes);
+    globalThis.process.env = { ...globalThis.process.env, ...env };
 
-		for (const route of routes) {
-			if ("middlewarePath" in route && route.middlewarePath in __MIDDLEWARE__) {
-				return await __MIDDLEWARE__[route.middlewarePath].entrypoint.default(
-					request,
-					context
-				);
-			}
-		}
+    const { pathname } = new URL(request.url);
+    const routes = routesMatcher({ request }, __CONFIG__.routes);
 
-		for (const { matchers, entrypoint } of Object.values(__FUNCTIONS__)) {
-			let found = false;
-			for (const matcher of matchers) {
-				if (matcher.regexp) {
-					const regexp = new RegExp(matcher?.regexp);
-					if (
-						pathname.match(regexp) ||
-						`${pathname}/page`.replace("//page", "/page").match(regexp)
-					) {
-						found = true;
-						break;
-					}
-				}
-			}
+    for (const route of routes) {
+      if ("middlewarePath" in route && route.middlewarePath in __MIDDLEWARE__) {
+        return await __MIDDLEWARE__[route.middlewarePath].entrypoint.default(
+          request,
+          context
+        );
+      }
+    }
 
-			if (found) {
-				return entrypoint.default(request, context);
-			}
-		}
+    for (const { matchers, entrypoint } of Object.values(__FUNCTIONS__)) {
+      let found = false;
+      for (const matcher of matchers) {
+        if (matcher.regexp) {
+          const regexp = new RegExp(matcher?.regexp);
+          if (
+            pathname.match(regexp) ||
+            `${pathname}/page`.replace("//page", "/page").match(regexp)
+          ) {
+            found = true;
+            break;
+          }
+        }
+      }
 
-		return env.ASSETS.fetch(request);
-	},
+      if (found) {
+        return entrypoint.default(request, context);
+      }
+    }
+
+    return env.ASSETS.fetch(request);
+  },
 } as ExportedHandler<{ ASSETS: Fetcher }>;

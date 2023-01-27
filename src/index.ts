@@ -594,12 +594,12 @@ const transform = async ({
 const help = () => {
 	const command =
 		packageManager === "npm"
-			? "npx @cloudflare/next-to-page"
+			? "npx @cloudflare/next-on-pages"
 			: packageManager === "yarn"
 			? yarnVersion.startsWith("1.")
-				? "yarn next-to-pages"
-				: "yarn dlx next-to-pages"
-			: "pnpx @cloudflare/next-to-pages";
+				? "yarn next-on-pages"
+				: "yarn dlx next-on-pages"
+			: "pnpx @cloudflare/next-on-pages";
 	console.log("⚡️");
 	console.log(`⚡️ Usage: ${command} [options]`);
 	console.log("⚡️");
@@ -643,7 +643,7 @@ const main = async ({
 
 (async () => {
 	packageManager = await getPkgManager();
-	console.log("⚡️ @cloudflare/next-to-pages CLI");
+	console.log("⚡️ @cloudflare/next-on-pages CLI");
 
 	const detectedPkgManager =
 		packageManager === "npm"
