@@ -491,7 +491,7 @@ const transform = async ({
 
 const help = () => {
   console.log("⚡️");
-  console.log("⚡️ Usage: npx @cloudflare/next-to-pages [options]");
+  console.log("⚡️ Usage: npx @cloudflare/next-on-pages [options]");
   console.log("⚡️");
   console.log("⚡️ Options:");
   console.log("⚡️");
@@ -532,7 +532,7 @@ const main = async ({
 };
 
 (async () => {
-  console.log("⚡️ @cloudflare/next-to-pages CLI");
+  console.log("⚡️ @cloudflare/next-on-pages CLI");
 
   if (process.argv.includes("--help")) {
     help();
