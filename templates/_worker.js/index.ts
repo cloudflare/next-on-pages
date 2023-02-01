@@ -135,10 +135,24 @@ export default {
 
     for (const route of routes) {
       if ("middlewarePath" in route && route.middlewarePath in __MIDDLEWARE__) {
-        return await __MIDDLEWARE__[route.middlewarePath].entrypoint.default(
+        const response = await __MIDDLEWARE__[route.middlewarePath].entrypoint.default(
           request,
           context
         );
+
+        console.log(JSON.stringify(response))
+
+        if (response.headers.has('x-middleware-next')) {
+          break;
+        }
+
+        if (response.headers.has('x-middleware-rewrite')) {
+          const rewriteUrl = response.headers.get('x-middleware-rewrite');
+          request = new Request(rewriteUrl, request);
+          break;
+        }
+
+        return response;
       }
     }
 
