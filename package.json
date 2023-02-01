@@ -4,7 +4,7 @@
   "bin": "./bin/index.js",
   "scripts": {
     "build": "npx esbuild --bundle --platform=node ./src/index.ts --external:esbuild --external:chokidar --outfile=./dist/index.js",
-    "prepare": "npx esbuild --bundle --platform=node ./src/index.ts --external:esbuild --external:chokidar --outfile=./dist/index.js",
+    "prepare": "npm run build",
     "publish": "npm run build && npx changeset publish"
   },
   "files": [
