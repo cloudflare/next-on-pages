@@ -25,6 +25,9 @@ type LooseNode = Node & {
 };
 
 const prepVercel = async () => {
+  console.log("⚡️");
+  console.log("⚡️ Preparing project for 'npx vercel build'...");
+  console.log("⚡️");
   try {
     await stat(".vercel/project.json");
   } catch {
@@ -35,38 +38,8 @@ const prepVercel = async () => {
     );
   }
   console.log("⚡️");
-  console.log("⚡️ Installing 'vercel' CLI...");
   console.log("⚡️");
-
-  const vercelBuild = spawn("npm", ["install", "-D", "vercel"]);
-
-  vercelBuild.stdout.on("data", (data) => {
-    const lines: string[] = data.toString().split("\n");
-    lines.map((line) => {
-      console.log(`▲ ${line}`);
-    });
-  });
-
-  vercelBuild.stderr.on("data", (data) => {
-    const lines: string[] = data.toString().split("\n");
-    lines.map((line) => {
-      console.log(`▲ ${line}`);
-    });
-  });
-
-  await new Promise((resolve, reject) => {
-    vercelBuild.on("close", (code) => {
-      if (code === 0) {
-        resolve(null);
-      } else {
-        reject();
-      }
-    });
-  });
-
-  console.log("⚡️");
-  console.log("⚡️");
-  console.log("⚡️ Completed 'npx vercel build'.");
+  console.log("⚡️ Project ready for 'npx vercel build'...");
   console.log("⚡️");
 };
 
