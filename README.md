@@ -7,11 +7,15 @@ Reference:
 
 ## Quick Start
 
-1. `npx create-next-app@latest my-app`
+1. `npx create-next-app@13.1.5 my-app`
 
    Note that if you elect to use eslint, there are a couple of places you need to add return types to make the default template pass the pre-build checks.
 
 1. `cd` into the new directory (e.g. `cd my-app`)
+
+1. `npm install --save next@13.1.5`
+
+   This will pin the version of Next to the latest validated version.
 
 1. `npm install -D @cloudflare/next-on-pages vercel`
 
@@ -63,9 +67,7 @@ Reference:
    | Build command          | `npx @cloudflare/next-on-pages --experimental-minify` |
    | Build output directory | `.vercel/output/static`                               |
 
-1. Add a `NODE_VERSION` environment variable set to `14` or greater.
-
-1. In the Pages project **Settings** > **Functions** > **Compatibility Flags**, add the `transformstream_enable_standard_constructor` and `streams_enable_constructors` flags. These will not be necessary once they graduate to be on by default on 2022-11-30's compatibility date.
+1. Add a `NODE_VERSION` environment variable set to `16` or greater.
 
 1. The project should now be ready to deploy. Create a new deployment.
 
