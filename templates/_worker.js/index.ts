@@ -97,7 +97,7 @@ export const routesMatcher = (
       if (match) {
         matchingRoutes.push(route);
 
-        // if (!("continue" in route) || !route.continue) return matchingRoutes;
+        if (!("continue" in route) || !route.continue) return matchingRoutes;
       }
     } else {
       matchingRoutes.push(route);
