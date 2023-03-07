@@ -1,0 +1,40 @@
+name: Create Pull Request Prerelease
+
+on: pull_request
+
+jobs:
+  build:
+    name: Build & Publish a Prerelease to the Adhoc Registry
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Use Node.js 16.13
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16.13
+          cache: "npm" # cache ~/.npm in case 'npm ci' needs to run
+
+      - name: Install NPM Dependencies
+        run: npm ci
+
+      - name: Modify package.json version
+        run: node .github/version-script.js
+
+      - name: Build
+        run: npm run build
+        env:
+          NODE_ENV: "production"
+
+      - name: Create package
+        run: npm pack
+
+      - name: Upload packaged next-on-pages artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: npm-package-next-on-pages-${{ github.event.number }} # encode the PR number into the artifact name
+          path: cloudflare-next-on-pages-*.tgz
