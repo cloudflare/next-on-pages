@@ -241,7 +241,7 @@ const transform = async ({
                   expression.callee?.type === "MemberExpression" &&
                   expression.callee.object?.type === "AssignmentExpression" &&
                   expression.callee.object.left?.object?.name === "self" &&
-                  expression.callee.object.left.property?.value ===
+                  expression.callee.object.left.property?.name ===
                     "webpackChunk_N_E" &&
                   expression.arguments?.[0]?.elements?.[1]?.type ===
                     "ObjectExpression"
