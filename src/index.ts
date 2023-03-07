@@ -490,6 +490,7 @@ const transform = async ({
       __CONFIG__: JSON.stringify(config),
     },
     outfile: ".vercel/output/static/_worker.js",
+    minify: experimentalMinify,
   });
 
   console.log("⚡️ Generated '.vercel/output/static/_worker.js'.");
