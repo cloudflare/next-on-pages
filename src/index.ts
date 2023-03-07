@@ -227,6 +227,13 @@ const transform = async ({
             "$1true$3"
           );
 
+          // The workers runtime does not implement certain properties like `mode` or `credentials`.
+          // Due to this, we need to replace them with null so that request deduping cache key generation will work.
+          contents = contents.replace(
+            /(?:(JSON\.stringify\(\[\w+\.method\S+,)\w+\.mode(,\S+,)\w+\.credentials(,\S+,)\w+\.integrity(\]\)))/gm,
+            "$1null$2null$3null$4"
+          );
+
           if (experimentalMinify) {
             const parsedContents = parse(contents, {
               ecmaVersion: "latest",
