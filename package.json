@@ -7,9 +7,9 @@
     "publish": "npm run build && npx changeset publish"
   },
   "files": [
-    "./bin/index.js",
-    "./dist/index.js",
-    "./templates/"
+    "bin",
+    "dist",
+    "templates"
   ],
   "dependencies": {
     "acorn": "^8.8.0",
