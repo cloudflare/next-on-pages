@@ -165,7 +165,7 @@ export default {
 						nextPathnameMatcher ||
 						`${nextPathname}/page`.replace('//page', '/page').match(regexp)
 					) {
-						if (nextPathnameMatcher.groups) {
+						if (nextPathnameMatcher?.groups) {
 							const params = new URLSearchParams(nextPathnameMatcher.groups);
 							const urlWithParams = new URL(request.url);
 							for (const [key, value] of params) {
