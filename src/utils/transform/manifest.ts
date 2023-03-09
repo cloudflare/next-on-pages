@@ -6,14 +6,14 @@
  * @returns Whether the function file name matches the manifest entry name.
  */
 export const matchFunctionEntry = (entryName: string, fileName: string) => {
-  // app directory
-  if (entryName.startsWith('app/')) {
-    const type = entryName.endsWith('/route') ? '/route' : '/page';
-    return (
-      `app${fileName !== 'index' ? `/${fileName}` : ''}${type}` === entryName
-    );
-  }
+	// app directory
+	if (entryName.startsWith('app/')) {
+		const type = entryName.endsWith('/route') ? '/route' : '/page';
+		return (
+			`app${fileName !== 'index' ? `/${fileName}` : ''}${type}` === entryName
+		);
+	}
 
-  // pages directory
-  return entryName.startsWith('pages/') && `pages/${fileName}` === entryName;
+	// pages directory
+	return entryName.startsWith('pages/') && `pages/${fileName}` === entryName;
 };
