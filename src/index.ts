@@ -306,7 +306,6 @@ const transform = async ({
           await mkdir(dirname(newFilePath), { recursive: true });
           await writeFile(newFilePath, contents);
 
-          // `\\` needs to be replaced with `/` for Windows so that it can match the path correctly in the middleware manifest.
           functionsMap.set(
             normalizePath(relative(functionsDir, filepath).slice(0, -".func".length)),
             normalizePath(newFilePath)
