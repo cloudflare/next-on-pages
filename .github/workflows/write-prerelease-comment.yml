@@ -39,7 +39,11 @@ jobs:
         with:
           number: ${{ env.WORKFLOW_RUN_PR }}
           message: |
-            A prerelease is available for testing. You can install this latest build in your project with:
+            🧪 A prerelease is available for testing 🧪
+
+            <details>
+
+            You can install this latest build in your project with:
 
             ```sh
             npm install --save-dev https://prerelease-registry.devprod.cloudflare.dev/next-on-pages/runs/${{ env.WORKFLOW_RUN_ID }}/npm-package-next-on-pages-${{ env.WORKFLOW_RUN_PR }}
@@ -51,16 +55,4 @@ jobs:
             npm install --save-dev https://prerelease-registry.devprod.cloudflare.dev/next-on-pages/prs/${{ env.WORKFLOW_RUN_PR }}/npm-package-next-on-pages-${{ env.WORKFLOW_RUN_PR }}
             ```
 
-            Or you can use `npx` with this latest build directly:
-
-            ```sh
-            npx https://prerelease-registry.devprod.cloudflare.dev/next-on-pages/runs/${{ env.WORKFLOW_RUN_ID }}/npm-package-next-on-pages-${{ env.WORKFLOW_RUN_PR }} dev path/to/script.js
-            ```
-
-            <details><summary>Additional artifacts:</summary>
-
-            ```sh
-            npm install https://prerelease-registry.devprod.cloudflare.dev/next-on-pages/runs/${{ env.WORKFLOW_RUN_ID }}/npm-package-cloudflare-pages-shared-${{ env.WORKFLOW_RUN_PR }}
-            ```
-
-            Note that these links will no longer work once [the GitHub Actions artifact expires](https://docs.github.com/en/organizations/managing-organization-settings/configuring-the-retention-period-for-github-actions-artifacts-and-logs-in-your-organization).
+            </details>
