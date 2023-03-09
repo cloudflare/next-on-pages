@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { readFile, writeFile, mkdir, stat, readdir } from "fs/promises";
 import { exit } from "process";
 import { spawn } from "child_process";
@@ -6,7 +7,7 @@ import { build } from "esbuild";
 import { tmpdir } from "os";
 import { watch } from "chokidar";
 import pLimit from "p-limit";
-import acorn, { parse, Node } from "acorn";
+import { parse, Node } from "acorn";
 import { generate } from "astring";
 import { matchFunctionEntry, normalizePath } from "./utils";
 
@@ -24,6 +25,10 @@ type LooseNode = Node & {
   properties?: LooseNode[];
   key?: LooseNode;
   name?: string;
+  /*
+    eslint-disable-next-line @typescript-eslint/no-explicit-any 
+    -- TODO: improve the type of value
+  */
   value: any;
 };
 
@@ -178,7 +183,9 @@ const transform = async ({
   try {
     await stat(functionsDir);
     functionsExist = true;
-  } catch {}
+  } catch {
+    /* empty */
+  }
 
   if (!functionsExist) {
     console.log("⚡️ No functions detected.");
@@ -209,7 +216,7 @@ const transform = async ({
           const functionConfigFile = join(filepath, ".vc-config.json");
           let functionConfig: { runtime: "edge"; entrypoint: string };
           try {
-            let contents = await readFile(functionConfigFile, "utf8");
+            const contents = await readFile(functionConfigFile, "utf8");
             functionConfig = JSON.parse(contents);
           } catch {
             invalidFunctions.push(file);
@@ -226,7 +233,9 @@ const transform = async ({
           try {
             await stat(functionFile);
             functionFileExists = true;
-          } catch {}
+          } catch {
+            /* empty */
+          }
 
           if (!functionFileExists) {
             invalidFunctions.push(name);
