@@ -1,5 +1,5 @@
 import { describe, test, expect } from "vitest";
-import { normalizePath } from '../src/utils';
+import { normalizePath } from "../src/utils";
 
 describe("normalizePath", () => {
   test("windows long path name format should not normalize", () => {

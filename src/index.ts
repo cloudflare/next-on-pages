@@ -8,7 +8,7 @@ import { watch } from "chokidar";
 import pLimit from "p-limit";
 import acorn, { parse, Node } from "acorn";
 import { generate } from "astring";
-import { normalizePath } from './utils';
+import { normalizePath } from "./utils";
 
 type LooseNode = Node & {
   expression?: LooseNode;

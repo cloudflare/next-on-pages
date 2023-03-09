@@ -19,4 +19,4 @@
  * ```
  */
 export const normalizePath = (path: string) =>
-  path.startsWith('\\\\?\\') ? path : path.replace(/\\/g, '/');
+  path.startsWith("\\\\?\\") ? path : path.replace(/\\/g, "/");
