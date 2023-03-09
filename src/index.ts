@@ -8,6 +8,7 @@ import { watch } from "chokidar";
 import pLimit from "p-limit";
 import acorn, { parse, Node } from "acorn";
 import { generate } from "astring";
+import { normalizePath } from './utils';
 
 type LooseNode = Node & {
   expression?: LooseNode;
@@ -307,8 +308,8 @@ const transform = async ({
 
           // `\\` needs to be replaced with `/` for Windows so that it can match the path correctly in the middleware manifest.
           functionsMap.set(
-            relative(functionsDir, filepath).slice(0, -".func".length).replace(/\\/g, "/"),
-            newFilePath.replace(/\\/g, "/")
+            normalizePath(relative(functionsDir, filepath).slice(0, -".func".length)),
+            normalizePath(newFilePath)
           );
         } else if (isDirectory) {
           await walk(filepath);
