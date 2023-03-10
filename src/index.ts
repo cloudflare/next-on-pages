@@ -137,34 +137,6 @@ const transform = async ({
   interface RoutesManifest {
     version: 3;
     basePath: string;
-    pages404: boolean;
-    redirects: {
-      source: string;
-      destination: string;
-      basePath: boolean | undefined;
-      internal: boolean;
-      statusCode: number;
-      regex: string;
-    }[];
-    dynamicRoutes: {
-      page: string;
-      regex: string;
-      routeKeys: any; // object of dynamic parameters;
-      namedRegex: string;
-    };
-    staticRoutes: {
-      page: string;
-      regex: string;
-      routeKeys: any; // object of dynamic parameters;
-      namedRegex: string;
-    }[];
-    rsc: {
-      header: string;
-      varyHeader: string;
-    };
-    headers: unknown;
-    dataRoutes: unknown;
-    rewrites: unknown;
   }
 
   let routesManifest: RoutesManifest;
