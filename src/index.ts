@@ -170,7 +170,7 @@ const transform = async ({
     console.log("⚡️ Using basePath ", basePath);
   }
 
-  const functionsDir = resolve(".vercel/output/functions" + basePath);
+  const functionsDir = resolve(`.vercel/output/functions${basePath}`);
   let functionsExist = false;
   try {
     await stat(functionsDir);
