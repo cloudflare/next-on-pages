@@ -149,7 +149,7 @@ export default {
       for (const matcher of matchers) {
         if (matcher.regexp) {
           const regexp = new RegExp(matcher?.regexp);
-          const nextPathname = __BASE_PATH__
+          const nextPathname = pathname.startsWith(__BASE_PATH__)
             ? // Remove basePath from URL, also squish `//` into `/`
               // If the baseUrl is set to "/docs" the following will happen:
               // `/docs/profile/settings` -> `/profile/settings`
