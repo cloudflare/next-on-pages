@@ -228,6 +228,12 @@ const transform = async ({
           );
 
           if (experimentalMinify) {
+            // TODO: Investigate alternatives or a real fix for this. Maybe a PR is needed in Next.js?
+            // This is a hack to fix an issue with --experimental-minify where compiled next/server/web/adapter.ts throws:
+            // `Unhandled Promise Rejection: TypeError: undefined is not iterable (cannot read property Symbol(Symbol.iterator))`
+            // Source code: https://github.com/vercel/next.js/blob/canary/packages/next/src/server/web/adapter.ts#L237
+            contents = contents.replace(/(?:(return{response:\w+,waitUntil:Promise\.all\(\w+\[\w+\])(\)}))/gm, "$1??[]$2");
+
             const parsedContents = parse(contents, {
               ecmaVersion: "latest",
               sourceType: "module",
