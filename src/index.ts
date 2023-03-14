@@ -1,6 +1,6 @@
 import { readFile, writeFile, mkdir, stat, readdir } from "fs/promises";
 import { exit } from "process";
-import { spawn } from "child_process";
+import { exec } from "child_process";
 import { dirname, join, relative, resolve } from "path";
 import { build } from "esbuild";
 import { tmpdir } from "os";
@@ -48,16 +48,16 @@ const buildVercel = async () => {
   console.log("⚡️ Building project with 'npx vercel build'...");
   console.log("⚡️");
 
-  const vercelBuild = spawn("npx", ["vercel", "build"]);
+  const vercelBuild = exec("npx vercel build");
 
-  vercelBuild.stdout.on("data", (data) => {
+  vercelBuild.stdout!.on("data", (data) => {
     const lines: string[] = data.toString().split("\n");
     lines.map((line) => {
       console.log(`▲ ${line}`);
     });
   });
 
-  vercelBuild.stderr.on("data", (data) => {
+  vercelBuild.stderr!.on("data", (data) => {
     const lines: string[] = data.toString().split("\n");
     lines.map((line) => {
       console.log(`▲ ${line}`);
@@ -420,7 +420,7 @@ const transform = async ({
   const functionsFile = join(
     tmpdir(),
     `functions-${Math.random().toString(36).slice(2)}.js`
-  );
+  ).replaceAll("\\", "/");
 
   await writeFile(
     functionsFile,
@@ -430,7 +430,7 @@ const transform = async ({
         ([name, { matchers, filepath }]) =>
           `"${name}": { matchers: ${JSON.stringify(
             matchers
-          )}, entrypoint: require('${filepath}')}`
+          )}, entrypoint: require('${filepath.replaceAll("\\", "/")}')}`
       )
       .join(",")}};
       
@@ -439,16 +439,25 @@ const transform = async ({
           ([name, { matchers, filepath }]) =>
             `"${name}": { matchers: ${JSON.stringify(
               matchers
-            )}, entrypoint: require('${filepath}')}`
+            )}, entrypoint: require('${filepath.replaceAll("\\", "/")}')}`
         )
         .join(",")}};`
   );
 
+	const entryPoints = join(__dirname, "../templates/_worker.js").replaceAll(
+		"\\",
+		"/"
+	);
+	const inject = join(
+		__dirname,
+		"../templates/_worker.js/globals.js"
+	).replaceAll("\\", "/");
+
   await build({
-    entryPoints: [join(__dirname, "../templates/_worker.js")],
+    entryPoints: [entryPoints],
     bundle: true,
     inject: [
-      join(__dirname, "../templates/_worker.js/globals.js"),
+      inject,
       functionsFile,
     ],
     target: "es2021",
