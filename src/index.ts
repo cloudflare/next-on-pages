@@ -202,6 +202,15 @@ const transform = async ({
             "$1true$3"
           );
 
+          // TODO: Investigate alternatives or a real fix. This hack is rather brittle.
+          // The workers runtime does not implement certain properties like `mode` or `credentials`.
+          // Due to this, we need to replace them with null so that request deduping cache key generation will work.
+          // https://github.com/vercel/next.js/blob/canary/packages/next/src/compiled/react/cjs/react.shared-subset.development.js#L198
+          contents = contents.replace(
+            /(?:(JSON\.stringify\(\[\w+\.method\S+,)\w+\.mode(,\S+,)\w+\.credentials(,\S+,)\w+\.integrity(\]\)))/gm,
+            "$1null$2null$3null$4"
+          );
+
           if (experimentalMinify) {
             const parsedContents = parse(contents, {
               ecmaVersion: "latest",
