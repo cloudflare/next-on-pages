@@ -444,14 +444,14 @@ const transform = async ({
         .join(",")}};`
   );
 
-	const entryPoints = join(__dirname, "../templates/_worker.js").replaceAll(
-		"\\",
-		"/"
-	);
-	const inject = join(
-		__dirname,
-		"../templates/_worker.js/globals.js"
-	).replaceAll("\\", "/");
+  const entryPoints = join(
+    __dirname,
+    "../templates/_worker.js"
+  ).replaceAll("\\", "/");
+  const inject = join(
+    __dirname,
+    "../templates/_worker.js/globals.js"
+  ).replaceAll("\\", "/");
 
   await build({
     entryPoints: [entryPoints],
