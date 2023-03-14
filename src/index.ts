@@ -1,6 +1,6 @@
 import { readFile, writeFile, mkdir, stat, readdir } from "fs/promises";
 import { exit } from "process";
-import { exec } from "child_process";
+import { spawn } from "child_process";
 import { dirname, join, relative, resolve } from "path";
 import { build } from "esbuild";
 import { tmpdir } from "os";
@@ -48,16 +48,16 @@ const buildVercel = async () => {
   console.log("⚡️ Building project with 'npx vercel build'...");
   console.log("⚡️");
 
-  const vercelBuild = exec("npx vercel build");
-
-  vercelBuild.stdout!.on("data", (data) => {
+  const npx = process.platform === "win32" ? "npx.cmd" : "npx";
+  const vercelBuild = spawn(npx, ["vercel", "build"]);
+  vercelBuild.stdout.on("data", (data) => {
     const lines: string[] = data.toString().split("\n");
     lines.map((line) => {
       console.log(`▲ ${line}`);
     });
   });
 
-  vercelBuild.stderr!.on("data", (data) => {
+  vercelBuild.stderr.on("data", (data) => {
     const lines: string[] = data.toString().split("\n");
     lines.map((line) => {
       console.log(`▲ ${line}`);
