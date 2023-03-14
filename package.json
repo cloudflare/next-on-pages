@@ -1,6 +1,6 @@
 {
   "name": "@cloudflare/next-on-pages",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "bin": "./bin/index.js",
   "scripts": {
     "build": "npx esbuild --bundle --platform=node ./src/index.ts --external:esbuild --external:chokidar --outfile=./dist/index.js",
