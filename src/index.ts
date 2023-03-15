@@ -8,6 +8,7 @@ import { watch } from "chokidar";
 import pLimit from "p-limit";
 import acorn, { parse, Node } from "acorn";
 import { generate } from "astring";
+import { normalizePath } from "./utils";
 
 import { version as nextOnPagesVersion } from "../package.json";
 
@@ -290,8 +291,8 @@ const transform = async ({
           await writeFile(newFilePath, contents);
 
           functionsMap.set(
-            relative(functionsDir, filepath).slice(0, -".func".length),
-            newFilePath
+            normalizePath(relative(functionsDir, filepath).slice(0, -".func".length)),
+            normalizePath(newFilePath)
           );
         } else if (isDirectory) {
           await walk(filepath);
