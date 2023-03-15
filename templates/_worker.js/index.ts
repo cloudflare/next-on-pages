@@ -126,6 +126,8 @@ declare const __FUNCTIONS__: EdgeFunctions;
 
 declare const __MIDDLEWARE__: EdgeFunctions;
 
+declare const __BASE_PATH__: string;
+
 export default {
   async fetch(request, env, context) {
     globalThis.process.env = { ...globalThis.process.env, ...env };
@@ -147,9 +149,19 @@ export default {
       for (const matcher of matchers) {
         if (matcher.regexp) {
           const regexp = new RegExp(matcher?.regexp);
+          const nextPathname = pathname.startsWith(__BASE_PATH__)
+            ? // Remove basePath from URL, also squish `//` into `/`
+              // If the baseUrl is set to "/docs" the following will happen:
+              // `/docs/profile/settings` -> `/profile/settings`
+              // `/docs` -> `/`
+              // `/docs/` -> `/`
+              // `/docs/_next/static/main.js` -> `/_next/static/main.js`
+              pathname.replace(__BASE_PATH__, "/").replace("//", "/")
+            : pathname;
+
           if (
-            pathname.match(regexp) ||
-            `${pathname}/page`.replace("//page", "/page").match(regexp)
+            nextPathname.match(regexp) ||
+            `${nextPathname}/page`.replace("//page", "/page").match(regexp)
           ) {
             found = true;
             break;
@@ -158,10 +170,29 @@ export default {
       }
 
       if (found) {
-        return entrypoint.default(request, context);
+        const adjustedRequest = adjustRequestForVercel(request);
+        return entrypoint.default(adjustedRequest, context);
       }
     }
 
     return env.ASSETS.fetch(request);
   },
 } as ExportedHandler<{ ASSETS: Fetcher }>;
+
+/**
+ * Adjusts the request so that it is formatted as if it were provided by Vercel
+ *
+ * @param request the original request received by the worker
+ * @returns the adjusted request to pass to Next
+ */
+function adjustRequestForVercel(request: Request): Request {
+  const adjustedHeaders = new Headers(request.headers);
+
+  adjustedHeaders.append("x-vercel-ip-city", request.cf?.city);
+  adjustedHeaders.append("x-vercel-ip-country", request.cf?.country);
+  adjustedHeaders.append("x-vercel-ip-country-region", request.cf?.region);
+  adjustedHeaders.append("x-vercel-ip-latitude", request.cf?.latitude);
+  adjustedHeaders.append("x-vercel-ip-longitude", request.cf?.longitude);
+
+  return new Request(request, { headers: adjustedHeaders });
+}
