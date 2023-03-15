@@ -1,5 +1,14 @@
 # @cloudflare/next-on-pages
 
+## 0.4.1
+
+### Patch Changes
+
+- 7bb0c55: Fix fetch requests.
+- 72bd20c: add support for middleware in src dir
+- b4b4ed0: Fix Webpack minification and toggle esbuild minification.
+- 8a14ee3: adjust request so that it contains geo headers
+
 ## 0.4.0
 
 ### Minor Changes
