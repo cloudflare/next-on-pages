@@ -51,8 +51,8 @@ const buildVercel = async () => {
   console.log("⚡️ Building project with 'npx vercel build'...");
   console.log("⚡️");
 
-  const vercelBuild = spawn("npx", ["vercel", "build"]);
-
+  const npx = process.platform === "win32" ? "npx.cmd" : "npx";
+  const vercelBuild = spawn(npx, ["vercel", "build"]);
   vercelBuild.stdout.on("data", (data) => {
     const lines: string[] = data.toString().split("\n");
     lines.map((line) => {
@@ -496,10 +496,7 @@ const transform = async ({
   await build({
     entryPoints: [join(__dirname, "../templates/_worker.js")],
     bundle: true,
-    inject: [
-      join(__dirname, "../templates/_worker.js/globals.js"),
-      functionsFile,
-    ],
+    inject: [join(__dirname, "../templates/_worker.js/globals.js"), functionsFile],
     target: "es2021",
     platform: "neutral",
     define: {
