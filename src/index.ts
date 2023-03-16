@@ -466,11 +466,9 @@ const transform = async ({
     exit(1);
   }
 
-  const functionsFile = normalizePath(
-    join(
-      tmpdir(),
-      `functions-${Math.random().toString(36).slice(2)}.js`
-    )
+  const functionsFile = join(
+    tmpdir(),
+    `functions-${Math.random().toString(36).slice(2)}.js`
   );
 
   await writeFile(
@@ -481,7 +479,7 @@ const transform = async ({
         ([name, { matchers, filepath }]) =>
           `"${name}": { matchers: ${JSON.stringify(
             matchers
-          )}, entrypoint: require('${normalizePath(filepath)}')}`
+          )}, entrypoint: require('${filepath}')}`
       )
       .join(",")}};
 
@@ -490,31 +488,15 @@ const transform = async ({
           ([name, { matchers, filepath }]) =>
             `"${name}": { matchers: ${JSON.stringify(
               matchers
-            )}, entrypoint: require('${normalizePath(filepath)}')}`
+            )}, entrypoint: require('${filepath}')}`
         )
         .join(",")}};`
   );
 
-  const entryPoints = normalizePath(
-    join(
-      __dirname,
-      "../templates/_worker.js"
-    )
-  );
-  const inject = normalizePath(
-    join(
-      __dirname,
-      "../templates/_worker.js/globals.js"
-    )
-  );
-
   await build({
-    entryPoints: [entryPoints],
+    entryPoints: [join(__dirname,"../templates/_worker.js")],
     bundle: true,
-    inject: [
-      inject,
-      functionsFile,
-    ],
+    inject: [join(__dirname,"../templates/_worker.js/globals.js"), functionsFile],
     target: "es2021",
     platform: "neutral",
     define: {
