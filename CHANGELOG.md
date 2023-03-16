@@ -1,5 +1,13 @@
 # @cloudflare/next-on-pages
 
+## 0.4.2
+
+### Patch Changes
+
+- a937040: fixed npx not working on windows
+- bcceaf0: Fix Windows file paths not matching entries in the middleware manifest.
+- da15971: Add support for Next.js [basepath](https://nextjs.org/docs/api-reference/next.config.js/basepath)
+
 ## 0.4.1
 
 ### Patch Changes
