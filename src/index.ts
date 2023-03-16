@@ -494,9 +494,9 @@ const transform = async ({
   );
 
   await build({
-    entryPoints: [join(__dirname,"../templates/_worker.js")],
+    entryPoints: [join(__dirname, "../templates/_worker.js")],
     bundle: true,
-    inject: [join(__dirname,"../templates/_worker.js/globals.js"), functionsFile],
+    inject: [join(__dirname, "../templates/_worker.js/globals.js"), functionsFile],
     target: "es2021",
     platform: "neutral",
     define: {
