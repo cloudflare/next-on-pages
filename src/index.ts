@@ -466,10 +466,12 @@ const transform = async ({
     exit(1);
   }
 
-  const functionsFile = join(
-    tmpdir(),
-    `functions-${Math.random().toString(36).slice(2)}.js`
-  ).replaceAll("\\", "/");
+  const functionsFile = normalizePath(
+    join(
+      tmpdir(),
+      `functions-${Math.random().toString(36).slice(2)}.js`
+    )
+  );
 
   await writeFile(
     functionsFile,
@@ -479,7 +481,7 @@ const transform = async ({
         ([name, { matchers, filepath }]) =>
           `"${name}": { matchers: ${JSON.stringify(
             matchers
-          )}, entrypoint: require('${filepath.replaceAll("\\", "/")}')}`
+          )}, entrypoint: require('${normalizePath(filepath)}')}`
       )
       .join(",")}};
 
@@ -488,19 +490,23 @@ const transform = async ({
           ([name, { matchers, filepath }]) =>
             `"${name}": { matchers: ${JSON.stringify(
               matchers
-            )}, entrypoint: require('${filepath.replaceAll("\\", "/")}')}`
+            )}, entrypoint: require('${normalizePath(filepath)}')}`
         )
         .join(",")}};`
   );
 
-  const entryPoints = join(
-    __dirname,
-    "../templates/_worker.js"
-  ).replaceAll("\\", "/");
-  const inject = join(
-    __dirname,
-    "../templates/_worker.js/globals.js"
-  ).replaceAll("\\", "/");
+  const entryPoints = normalizePath(
+    join(
+      __dirname,
+      "../templates/_worker.js"
+    )
+  );
+  const inject = normalizePath(
+    join(
+      __dirname,
+      "../templates/_worker.js/globals.js"
+    )
+  );
 
   await build({
     entryPoints: [entryPoints],
