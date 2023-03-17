@@ -48,6 +48,8 @@ Reference:
 
 1. Add a `NODE_VERSION` environment variable set to `16` or greater (`18` is not supported yet, See [Build Image Update Discussion](https://github.com/cloudflare/pages-build-image/discussions/1).
 
+1. In the Pages project **Settings** > **Functions** > **Compatibility Flags**, add the `nodejs_compat` and ensure the **Compatibility Date** is set to at least `2022-11-30`.
+
 1. The project should now be ready to deploy. Create a new deployment.
 
 ## `@cloudflare/next-on-pages` CLI
