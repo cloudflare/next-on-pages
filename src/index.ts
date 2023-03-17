@@ -8,7 +8,7 @@ import { watch } from "chokidar";
 import pLimit from "p-limit";
 import acorn, { parse, Node } from "acorn";
 import { generate } from "astring";
-import { normalizePath } from "./utils";
+import { matchFunctionEntry, normalizePath } from "./utils";
 
 import { version as nextOnPagesVersion } from "../package.json";
 
@@ -400,10 +400,7 @@ const transform = async ({
     }
 
     for (const entry of functionsEntries) {
-      if (
-        `pages/${name}` === entry?.name ||
-        `app${name !== "index" ? `/${name}` : ""}/page` === entry?.name
-      ) {
+      if (matchFunctionEntry(entry.name, name)) {
         hydratedFunctions.set(name, { matchers: entry.matchers, filepath });
       }
     }
