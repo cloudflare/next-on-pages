@@ -30,4 +30,3 @@ jobs:
         run: npm run publish -- --tag beta
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-        working-directory: packages/wrangler
