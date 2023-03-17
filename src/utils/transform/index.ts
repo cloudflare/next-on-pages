@@ -1,0 +1,1 @@
+export { matchFunctionEntry } from './manifest';
