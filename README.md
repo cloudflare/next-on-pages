@@ -63,9 +63,9 @@ Reference:
    | Build command          | `npx @cloudflare/next-on-pages --experimental-minify` |
    | Build output directory | `.vercel/output/static`                               |
 
-1. Add a `NODE_VERSION` environment variable set to `14` or greater.
+1. Add a `NODE_VERSION` environment variable set to `16` or greater.
 
-1. In the Pages project **Settings** > **Functions** > **Compatibility Flags**, add the `transformstream_enable_standard_constructor` and `streams_enable_constructors` flags. These will not be necessary once they graduate to be on by default on 2022-11-30's compatibility date.
+1. In the Pages project **Settings** > **Functions** > **Compatibility Flags**, add the `nodejs_compat` and ensure the **Compatibility Date** is set to at least `2022-11-30`.
 
 1. The project should now be ready to deploy. Create a new deployment.
 

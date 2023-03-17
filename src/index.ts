@@ -488,12 +488,16 @@ const transform = async ({
 	await writeFile(
 		functionsFile,
 		`
+		export const AsyncLocalStoragePromise = import('node:async_hooks').then(({ AsyncLocalStorage }) => {
+			globalThis.AsyncLocalStorage = AsyncLocalStorage;
+		}).catch(() => undefined);
+
     export const __FUNCTIONS__ = {${[...hydratedFunctions.entries()]
 			.map(
 				([name, { matchers, filepath }]) =>
 					`"${name}": { matchers: ${JSON.stringify(
 						matchers
-					)}, entrypoint: require('${filepath}')}`
+					)}, entrypoint: AsyncLocalStoragePromise.then(() => import('${filepath}'))}`
 			)
 			.join(',')}};
 
@@ -502,7 +506,7 @@ const transform = async ({
 					([name, { matchers, filepath }]) =>
 						`"${name}": { matchers: ${JSON.stringify(
 							matchers
-						)}, entrypoint: require('${filepath}')}`
+						)}, entrypoint: AsyncLocalStoragePromise.then(() => import('${filepath}'))}`
 				)
 				.join(',')}};`
 	);
@@ -514,8 +518,9 @@ const transform = async ({
 			join(__dirname, '../templates/_worker.js/globals.js'),
 			functionsFile,
 		],
-		target: 'es2021',
+		target: 'es2022',
 		platform: 'neutral',
+		external: ['node:async_hooks'],
 		define: {
 			__CONFIG__: JSON.stringify(config),
 			__BASE_PATH__: JSON.stringify(basePath),
