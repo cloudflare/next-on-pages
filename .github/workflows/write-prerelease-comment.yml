@@ -2,7 +2,7 @@ name: Write prerelease comment
 
 on:
   workflow_run:
-    workflows: ["Create Pull Request Prerelease"]
+    workflows: ['Create Pull Request Prerelease']
     types:
       - completed
 
@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     name: Write comment to the PR
     steps:
-      - name: "Put PR and workflow ID on the environment"
+      - name: 'Put PR and workflow ID on the environment'
         uses: actions/github-script@v5
         with:
           script: |
@@ -34,7 +34,7 @@ jobs:
               }
             }
 
-      - name: "Comment on PR with Link"
+      - name: 'Comment on PR with Link'
         uses: marocchino/sticky-pull-request-comment@v2
         with:
           number: ${{ env.WORKFLOW_RUN_PR }}
@@ -47,12 +47,6 @@ jobs:
 
             ```sh
             npm install --save-dev https://prerelease-registry.devprod.cloudflare.dev/next-on-pages/runs/${{ env.WORKFLOW_RUN_ID }}/npm-package-next-on-pages-${{ env.WORKFLOW_RUN_PR }}
-            ```
-
-            You can reference the automatically updated head of this PR with:
-
-            ```sh
-            npm install --save-dev https://prerelease-registry.devprod.cloudflare.dev/next-on-pages/prs/${{ env.WORKFLOW_RUN_PR }}/npm-package-next-on-pages-${{ env.WORKFLOW_RUN_PR }}
             ```
 
             </details>
