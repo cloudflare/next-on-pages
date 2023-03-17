@@ -21,21 +21,21 @@ Reference:
 
       ```typescript
       // Next.js Edge API Routes: https://nextjs.org/docs/api-routes/edge-api-routes
-      import type { NextRequest } from "next/server";
+      import type { NextRequest } from 'next/server';
 
       export const config = {
-        runtime: "experimental-edge",
+      	runtime: 'experimental-edge',
       };
 
       export default async function handler(
-        req: NextRequest
+      	req: NextRequest
       ): Promise<Response> {
-        return new Response(JSON.stringify({ name: "John Doe" }), {
-          status: 200,
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
+      	return new Response(JSON.stringify({ name: 'John Doe' }), {
+      		status: 200,
+      		headers: {
+      			'Content-Type': 'application/json',
+      		},
+      	});
       }
       ```
 
@@ -145,21 +145,21 @@ If you're following the [Next.js 12 → 13 Upgrade Guide](https://beta.nextjs.or
 
 ```typescript
 // ./app/layout.tsx
-import "../styles/globals.css";
-import { FC } from "react";
+import '../styles/globals.css';
+import { FC } from 'react';
 
 const RootLayout: FC<{
-  children: React.ReactNode;
+	children: React.ReactNode;
 }> = ({
-  // Layouts must accept a children prop.
-  // This will be populated with nested layouts or pages
-  children,
+	// Layouts must accept a children prop.
+	// This will be populated with nested layouts or pages
+	children,
 }) => {
-  return (
-    <html lang="en">
-      <body>{children}</body>
-    </html>
-  );
+	return (
+		<html lang="en">
+			<body>{children}</body>
+		</html>
+	);
 };
 
 export default RootLayout;
@@ -167,33 +167,33 @@ export default RootLayout;
 
 ```typescript
 // ./app/page.tsx
-import { FC } from "react";
-import styles from "../styles/Home.module.css";
+import { FC } from 'react';
+import styles from '../styles/Home.module.css';
 
 const Home = async (): Promise<ReturnType<FC>> => {
-  const uuid = await fetch("https://uuid.rocks/plain").then(
-    async (response) => await response.text()
-  );
+	const uuid = await fetch('https://uuid.rocks/plain').then(
+		async response => await response.text()
+	);
 
-  return (
-    <div className={styles.container}>
-      <main className={styles.main}>
-        <h1 className={styles.title}>
-          Welcome to <a href="https://nextjs.org">Next.js!</a>
-        </h1>
+	return (
+		<div className={styles.container}>
+			<main className={styles.main}>
+				<h1 className={styles.title}>
+					Welcome to <a href="https://nextjs.org">Next.js!</a>
+				</h1>
 
-        <p className={styles.description}>
-          Get started by editing{" "}
-          <code className={styles.code}>pages/index.tsx</code>
-        </p>
+				<p className={styles.description}>
+					Get started by editing{' '}
+					<code className={styles.code}>pages/index.tsx</code>
+				</p>
 
-        <p className={styles.description}>
-          Here&apos;s a server-side UUID:
-          <code className={styles.code}>{uuid}</code>
-        </p>
-      </main>
-    </div>
-  );
+				<p className={styles.description}>
+					Here&apos;s a server-side UUID:
+					<code className={styles.code}>{uuid}</code>
+				</p>
+			</main>
+		</div>
+	);
 };
 
 export default Home;
@@ -204,24 +204,24 @@ export default Home;
 ```typescript
 // ./pages/api/some_route.ts
 
-import type { NextRequest } from "next/server";
+import type { NextRequest } from 'next/server';
 
 export const config = {
-  runtime: "experimental-edge",
+	runtime: 'experimental-edge',
 };
 
 export default async function handler(req: NextRequest) {
-  return new Response(
-    JSON.stringify({
-      name: process.env.NEXT_RUNTIME,
-    }),
-    {
-      status: 200,
-      headers: {
-        "content-type": "application/json",
-      },
-    }
-  );
+	return new Response(
+		JSON.stringify({
+			name: process.env.NEXT_RUNTIME,
+		}),
+		{
+			status: 200,
+			headers: {
+				'content-type': 'application/json',
+			},
+		}
+	);
 }
 ```
 
@@ -230,55 +230,55 @@ export default async function handler(req: NextRequest) {
 ```typescript
 // ./pages/ssr.tsx
 
-import type { NextPage } from "next";
-import Head from "next/head";
-import styles from "../styles/Home.module.css";
+import type { NextPage } from 'next';
+import Head from 'next/head';
+import styles from '../styles/Home.module.css';
 
 export const config = {
-  runtime: "experimental-edge",
+	runtime: 'experimental-edge',
 };
 
 export const getServerSideProps = async () => {
-  return {
-    props: {
-      runtime: process.env.NEXT_RUNTIME,
-      uuid: await fetch("https://uuid.rocks/plain").then((response) =>
-        response.text()
-      ),
-    },
-  };
+	return {
+		props: {
+			runtime: process.env.NEXT_RUNTIME,
+			uuid: await fetch('https://uuid.rocks/plain').then(response =>
+				response.text()
+			),
+		},
+	};
 };
 
 const Home: NextPage<{ runtime: string; uuid: string }> = ({
-  runtime,
-  uuid,
+	runtime,
+	uuid,
 }) => {
-  return (
-    <div className={styles.container}>
-      <Head>
-        <title>Create Next App</title>
-        <meta name="description" content="Generated by create next app" />
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
+	return (
+		<div className={styles.container}>
+			<Head>
+				<title>Create Next App</title>
+				<meta name="description" content="Generated by create next app" />
+				<link rel="icon" href="/favicon.ico" />
+			</Head>
 
-      <main className={styles.main}>
-        <h1 className={styles.title}>
-          Welcome to{" "}
-          <a href="https://nextjs.org">Next.js, running at the {runtime}!</a>
-        </h1>
+			<main className={styles.main}>
+				<h1 className={styles.title}>
+					Welcome to{' '}
+					<a href="https://nextjs.org">Next.js, running at the {runtime}!</a>
+				</h1>
 
-        <p className={styles.description}>
-          Get started by editing{" "}
-          <code className={styles.code}>pages/index.tsx</code>
-        </p>
+				<p className={styles.description}>
+					Get started by editing{' '}
+					<code className={styles.code}>pages/index.tsx</code>
+				</p>
 
-        <p className={styles.description}>
-          Here&apos;s a server-side UUID:
-          <code className={styles.code}>{uuid}</code>
-        </p>
-      </main>
-    </div>
-  );
+				<p className={styles.description}>
+					Here&apos;s a server-side UUID:
+					<code className={styles.code}>{uuid}</code>
+				</p>
+			</main>
+		</div>
+	);
 };
 
 export default Home;
@@ -287,15 +287,15 @@ export default Home;
 ### [Middleware](https://nextjs.org/docs/advanced-features/middleware)
 
 ```typescript
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
 
 // This function can be marked `async` if using `await` inside
 export function middleware(request: NextRequest) {
-  return NextResponse.redirect(new URL("/about-2", request.url));
+	return NextResponse.redirect(new URL('/about-2', request.url));
 }
 
 export const config = {
-  matcher: "/about/:path*",
+	matcher: '/about/:path*',
 };
 ```
