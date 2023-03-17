@@ -17,7 +17,7 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 16.13
-          cache: "npm" # cache ~/.npm in case 'npm ci' needs to run
+          cache: 'npm' # cache ~/.npm in case 'npm ci' needs to run
 
       - name: Install NPM Dependencies
         run: npm ci
@@ -28,7 +28,7 @@ jobs:
       - name: Build
         run: npm run build
         env:
-          NODE_ENV: "production"
+          NODE_ENV: 'production'
 
       - name: Create package
         run: npm pack
