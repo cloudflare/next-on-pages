@@ -1,17 +1,19 @@
 /**
  * Check if a function file name matches an entry in the manifest.
  *
- * @param entry Manifest entry name.
- * @param file Function file name.
+ * @param entryName Manifest entry name.
+ * @param fileName Function file name.
  * @returns Whether the function file name matches the manifest entry name.
  */
-export const matchFunctionEntry = (entry: string, file: string) => {
+export const matchFunctionEntry = (entryName: string, fileName: string) => {
   // app directory
-  if (entry.startsWith('app/')) {
-    const type = entry.endsWith('/route') ? '/route' : '/page';
-    return `app${file !== 'index' ? `/${file}` : ''}${type}` === entry;
+  if (entryName.startsWith('app/')) {
+    const type = entryName.endsWith('/route') ? '/route' : '/page';
+    return (
+      `app${fileName !== 'index' ? `/${fileName}` : ''}${type}` === entryName
+    );
   }
 
   // pages directory
-  return entry.startsWith('pages/') && `pages/${file}` === entry;
+  return entryName.startsWith('pages/') && `pages/${fileName}` === entryName;
 };
