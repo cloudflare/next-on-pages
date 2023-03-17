@@ -1,4 +1,5 @@
 import { parse } from 'cookie';
+import type { AsyncLocalStorage as ALS } from 'node:async_hooks';
 
 const hasField = (
 	{
@@ -128,9 +129,29 @@ declare const __MIDDLEWARE__: EdgeFunctions;
 
 declare const __BASE_PATH__: string;
 
+declare const AsyncLocalStorage: undefined | typeof ALS;
+
 export default {
 	async fetch(request, env, context) {
-		globalThis.process.env = { ...globalThis.process.env, ...env };
+		if (typeof AsyncLocalStorage === 'undefined') {
+			(globalThis.process.env as Record<string, unknown>) = {
+				...globalThis.process.env,
+				...env,
+			};
+		} else {
+			const als = new AsyncLocalStorage<typeof env>();
+			als.enterWith(env);
+			globalThis.process.env = new Proxy(globalThis.process.env, {
+				get(processEnv, key) {
+					const store = als.getStore();
+					if (key in store) {
+						return store[key];
+					} else {
+						return processEnv[key as string];
+					}
+				},
+			});
+		}
 
 		const { pathname } = new URL(request.url);
 		const routes = routesMatcher({ request }, __CONFIG__.routes);
