@@ -3,6 +3,9 @@
   "version": "0.4.2",
   "bin": "./bin/index.js",
   "scripts": {
+    "prettier:check": "prettier src --check",
+    "prettier": "prettier src --write",
+    "lint": "eslint src",
     "build": "npx esbuild --bundle --platform=node ./src/index.ts --external:esbuild --external:chokidar --outfile=./dist/index.js",
     "publish": "npm run build && npx changeset publish"
   },
@@ -25,8 +28,11 @@
     "@changesets/cli": "^2.26.0",
     "@cloudflare/workers-types": "^3.14.1",
     "@types/cookie": "^0.5.1",
+    "@typescript-eslint/eslint-plugin": "^5.54.1",
+    "@typescript-eslint/parser": "^5.54.1",
+    "eslint": "^8.35.0",
     "p-limit": "^4.0.0",
-    "prettier": "^2.7.1",
+    "prettier": "^2.8.4",
     "typescript": "^4.7.4",
     "vitest": "^0.24.3"
   }
