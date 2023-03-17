@@ -12,8 +12,10 @@ const manifestEntries = [
 
 suite('manifest utils', () => {
   describe('match function entries', () => {
-    test.each(manifestEntries)('$name', ({ entry, file }) => {
-      expect(matchFunctionEntry(entry, file)).toEqual(true);
+    manifestEntries.forEach(({ name, entry, file }) => {
+      test(name, () => {
+        expect(matchFunctionEntry(entry, file)).toEqual(true);
+      });
     });
   });
 });
