@@ -17,42 +17,25 @@ Reference:
 
 1. Configure the project to use the Edge Runtime:
 
-   1. Replace `pages/api/hello.ts` with the following:
+   Replace `pages/api/hello.ts` with the following:
 
-      ```typescript
-      // Next.js Edge API Routes: https://nextjs.org/docs/api-routes/edge-api-routes
-      import type { NextRequest } from 'next/server';
+   ```typescript
+   // Next.js Edge API Routes: https://nextjs.org/docs/api-routes/edge-api-routes
+   import type { NextRequest } from 'next/server';
 
-      export const config = {
-      	runtime: 'experimental-edge',
-      };
+   export const config = {
+   	runtime: 'experimental-edge',
+   };
 
-      export default async function handler(
-      	req: NextRequest
-      ): Promise<Response> {
-      	return new Response(JSON.stringify({ name: 'John Doe' }), {
-      		status: 200,
-      		headers: {
-      			'Content-Type': 'application/json',
-      		},
-      	});
-      }
-      ```
-
-   1. Add the following to `next.config.js`:
-
-      ```diff
-      /** @type {import('next').NextConfig} */
-      const nextConfig = {
-      + experimental: {
-      +   runtime: "experimental-edge",
-      + },
-        reactStrictMode: true,
-        swcMinify: true,
-      };
-
-      module.exports = nextConfig;
-      ```
+   export default async function handler(req: NextRequest) {
+   	return new Response(JSON.stringify({ name: 'John Doe' }), {
+   		status: 200,
+   		headers: {
+   			'Content-Type': 'application/json',
+   		},
+   	});
+   }
+   ```
 
 1. `git commit` and `git push` to a GitHub/GitLab repository.
 
@@ -63,9 +46,7 @@ Reference:
    | Build command          | `npx @cloudflare/next-on-pages --experimental-minify` |
    | Build output directory | `.vercel/output/static`                               |
 
-1. Add a `NODE_VERSION` environment variable set to `14` or greater.
-
-1. In the Pages project **Settings** > **Functions** > **Compatibility Flags**, add the `transformstream_enable_standard_constructor` and `streams_enable_constructors` flags. These will not be necessary once they graduate to be on by default on 2022-11-30's compatibility date.
+1. Add a `NODE_VERSION` environment variable set to `16` or greater (`18` is not supported yet, See [Build Image Update Discussion](https://github.com/cloudflare/pages-build-image/discussions/1).
 
 1. The project should now be ready to deploy. Create a new deployment.
 
@@ -91,9 +72,9 @@ Reference:
 ⚡️ Docs: https://developers.cloudflare.com/pages/framework-guides/deploy-a-nextjs-site/
 ```
 
-**Local testing**
+### Local development
 
-In one terminal, run `npx @cloudflare/next-on-pages --watch`, and in another `npx wrangler pages dev .vercel/output/static --compatibility-flags=streams_enable_constructors`. We hope to soon make improvements to the refresh speed.
+In one terminal, run `npx @cloudflare/next-on-pages --watch`, and in another `npx wrangler pages dev .vercel/output/static`. We hope to soon make improvements to the refresh speed.
 
 ### Build Output Configuration
 
