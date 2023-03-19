@@ -166,11 +166,11 @@ export default {
 						`${nextPathname}/page`.replace('//page', '/page').match(regexp)
 					) {
 						if (nextPathnameMatcher?.groups) {
-              const params = Object.entries(nextPathnameMatcher.groups);
+							const params = Object.entries(nextPathnameMatcher.groups);
 							const urlWithParams = new URL(request.url);
-              for (const [key, value] of params) {
-                urlWithParams.searchParams.set(key, value);
-              }
+							for (const [key, value] of params) {
+								urlWithParams.searchParams.set(key, value);
+							}
 							request = new Request(urlWithParams.toString(), request);
 						}
 
