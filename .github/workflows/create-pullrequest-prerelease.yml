@@ -4,6 +4,7 @@ on: pull_request
 
 jobs:
   build:
+    if: ${{ github.repository_owner == 'cloudflare' }}
     name: Build & Publish a Prerelease to the Adhoc Registry
     runs-on: ubuntu-latest
 
