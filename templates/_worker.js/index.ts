@@ -117,7 +117,7 @@ type EdgeFunction = {
 
 type EdgeFunctions = {
 	matchers: { regexp: string }[];
-	entrypoint: EdgeFunction;
+	entrypoint: Promise<EdgeFunction>;
 }[];
 
 declare const __CONFIG__: Config;
@@ -137,10 +137,9 @@ export default {
 
 		for (const route of routes) {
 			if ('middlewarePath' in route && route.middlewarePath in __MIDDLEWARE__) {
-				return await __MIDDLEWARE__[route.middlewarePath].entrypoint.default(
-					request,
-					context
-				);
+				return await (
+					await __MIDDLEWARE__[route.middlewarePath].entrypoint
+				).default(request, context);
 			}
 		}
 
@@ -182,7 +181,7 @@ export default {
 
 			if (found) {
 				const adjustedRequest = adjustRequestForVercel(request);
-				return entrypoint.default(adjustedRequest, context);
+				return (await entrypoint).default(adjustedRequest, context);
 			}
 		}
 
