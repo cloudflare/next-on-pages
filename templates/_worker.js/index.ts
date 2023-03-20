@@ -159,10 +159,21 @@ export default {
 						  pathname.replace(__BASE_PATH__, '/').replace('//', '/')
 						: pathname;
 
+					const nextPathnameMatcher = nextPathname.match(regexp);
+
 					if (
-						nextPathname.match(regexp) ||
+						nextPathnameMatcher ||
 						`${nextPathname}/page`.replace('//page', '/page').match(regexp)
 					) {
+						if (nextPathnameMatcher?.groups) {
+							const params = Object.entries(nextPathnameMatcher.groups);
+							const urlWithParams = new URL(request.url);
+							for (const [key, value] of params) {
+								urlWithParams.searchParams.set(key, value);
+							}
+							request = new Request(urlWithParams.toString(), request);
+						}
+
 						found = true;
 						break;
 					}
