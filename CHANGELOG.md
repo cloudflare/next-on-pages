@@ -1,5 +1,16 @@
 # @cloudflare/next-on-pages
 
+## 0.5.0
+
+### Minor Changes
+
+- 5e575bf: feat: Add support for current 13.X versions of Next.js
+
+### Patch Changes
+
+- e2c4350: Add support for dynamic route params
+- c6c8818: Handle route handler function entries.
+
 ## 0.4.2
 
 ### Patch Changes
