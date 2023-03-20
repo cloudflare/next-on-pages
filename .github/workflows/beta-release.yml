@@ -26,7 +26,10 @@ jobs:
       - name: Modify package.json version
         run: node .github/version-script.js
 
+      - name: Build
+        run: npm run build
+
       - name: Publish Beta to NPM
-        run: npm run publish -- --tag beta
+        run: npm publish --tag beta
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
