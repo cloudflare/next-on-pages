@@ -14,8 +14,9 @@ module.exports = {
 	rules: {
 		'@typescript-eslint/no-explicit-any': 'error',
 		'no-case-declarations': 'error',
-		'no-console': ['error', { allow: ['warn', 'error'] }],
-		'@typescript-eslint/no-unused-vars': ['error'],
+		'no-console': 'error',
+		'@typescript-eslint/no-unused-vars': 'error',
 		'prefer-const': 'error',
+		'no-mixed-spaces-and-tabs': 'off', // off because it conflicts with prettier
 	},
 };
