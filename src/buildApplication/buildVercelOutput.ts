@@ -1,6 +1,7 @@
 import { writeFile, mkdir, stat } from 'fs/promises';
 import { spawn } from 'child_process';
 import { cliError, cliLog } from '../cli';
+import { getCurrentPackageManager } from '../utils/packageManager';
 
 /**
  * Builds the Next.js output via the Vercel CLI
@@ -44,9 +45,25 @@ async function generateProjectJsonFileIfNeeded(): Promise<void> {
 	}
 }
 
+function spawnVercelBuild() {
+	const windowsSuffix = process.platform === 'win32' ? '.cmp' : '';
+	const packageManager = getCurrentPackageManager();
+
+	if (packageManager === 'yarn') {
+		throw new Error('yarn is not supported');
+	}
+
+	if (packageManager === 'pnpm') {
+		const vercelBuild = spawn(`pnpx${windowsSuffix}`, ['vercel', 'build']);
+		return vercelBuild;
+	}
+
+	const vercelBuild = spawn(`npx${windowsSuffix}`, ['vercel', 'build']);
+	return vercelBuild;
+}
+
 async function runVercelBuild(): Promise<void> {
-	const npx = process.platform === 'win32' ? 'npx.cmd' : 'npx';
-	const vercelBuild = spawn(npx, ['vercel', 'build']);
+	const vercelBuild = spawnVercelBuild();
 
 	vercelBuild.stdout.on('data', data => cliLog(`\n${data}`, true));
 	vercelBuild.stderr.on('data', data => cliError(`\n${data}`, false, true));
