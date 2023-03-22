@@ -7,7 +7,6 @@
 import { readFile } from 'fs/promises';
 
 export type MiddlewareManifest = {
-	sortedMiddleware: string[];
 	middleware: Record<
 		string,
 		{
