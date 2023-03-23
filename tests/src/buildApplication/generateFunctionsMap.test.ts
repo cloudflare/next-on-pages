@@ -36,14 +36,10 @@ describe('generateFunctionsMap', async () => {
 			false
 		);
 		expect(invalidFunctions.size).toEqual(0);
-		const expectedFunctions = ['index', 'index.rsc', 'api/hello'];
-		expect(functionsMap.size).toEqual(expectedFunctions.length);
-		expectedFunctions.forEach(fn => {
-			expect(functionsMap.has(fn)).toBe(true);
-			const path = functionsMap.get(fn);
-			const expectedFnPathRegex = new RegExp(`/${fn}.func.js$`);
-			expect(path).toMatch(expectedFnPathRegex);
-		});
+		expect(functionsMap.size).toEqual(3);
+		expect(functionsMap.get('index')).toMatch(/\/index.func.js$/);
+		expect(functionsMap.get('index.rsc')).toMatch(/\/index.rsc.func.js$/);
+		expect(functionsMap.get('api/hello')).toMatch(/\/api\/hello.func.js$/);
 	});
 
 	// TODO: add tests that also test the functions map with the experimentalMinify flag
