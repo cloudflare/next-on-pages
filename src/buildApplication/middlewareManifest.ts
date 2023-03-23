@@ -38,9 +38,9 @@ export type MiddlewareManifestData = Awaited<
 >;
 
 /**
- * Parses the middleware manifest and validates it against the existing functions map.
+ * gets the parsed middleware manifest and validates it against the existing functions map.
  */
-export async function parseMiddlewareManifest(
+export async function getParsedMiddlewareManifest(
 	functionsMap: Map<string, string>
 ) {
 	let middlewareManifest: MiddlewareManifest;
@@ -54,6 +54,13 @@ export async function parseMiddlewareManifest(
 		throw new Error('Could not read the functions manifest.');
 	}
 
+	return parseMiddlewareManifest(middlewareManifest, functionsMap);
+}
+
+export function parseMiddlewareManifest(
+	middlewareManifest: MiddlewareManifest,
+	functionsMap: Map<string, string>
+) {
 	if (middlewareManifest.version !== 2) {
 		throw new Error(
 			`Unknown functions manifest version. Expected 2 but found ${middlewareManifest.version}.`

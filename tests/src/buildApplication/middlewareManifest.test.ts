@@ -1,43 +1,41 @@
-import { describe, test, expect, vi, beforeEach } from 'vitest';
-import { parseMiddlewareManifest } from '../../../src/buildApplication/middlewareManifest';
-
-let mockedManifest: unknown = { version: 35 };
-vi.mock('node:fs/promises', async () => {
-	return {
-		readFile: () => Promise.resolve(JSON.stringify(mockedManifest)),
-	};
-});
+import { describe, test, expect } from 'vitest';
+import {
+	MiddlewareManifest,
+	parseMiddlewareManifest,
+} from '../../../src/buildApplication/middlewareManifest';
 
 describe('parseMiddlewareManifest', () => {
-	beforeEach(() => {
-		mockedManifest = {};
-	});
-
 	[-1, 3, 'v4'].forEach(invalidVersion => {
-		test(`should throw if the manifest version is not 2 (but is ${invalidVersion})`, async () => {
-			mockedManifest = { version: invalidVersion };
-			await expect(async () =>
-				parseMiddlewareManifest(new Map())
-			).rejects.toThrow(
+		test(`should throw if the manifest version is not 2 (but is ${invalidVersion})`, () => {
+			expect(() =>
+				parseMiddlewareManifest(
+					{ version: invalidVersion } as MiddlewareManifest,
+					new Map()
+				)
+			).toThrow(
 				`Unknown functions manifest version. Expected 2 but found ${invalidVersion}.`
 			);
 		});
 	});
 
-	test(`should not produce any function/middleware if none are present in the manifest`, async () => {
-		mockedManifest = {
-			version: 2,
-			middleware: {},
-			functions: {},
-		};
-		expect(await parseMiddlewareManifest(new Map())).deep.equals({
+	test(`should not produce any function/middleware if none are present in the manifest`, () => {
+		expect(
+			parseMiddlewareManifest(
+				{
+					version: 2,
+					middleware: {},
+					functions: {},
+				},
+				new Map()
+			)
+		).deep.equals({
 			hydratedMiddleware: new Map(),
 			hydratedFunctions: new Map(),
 		});
 	});
 
-	test('should produce appropriate hydratedFunctions', async () => {
-		mockedManifest = {
+	test('should produce appropriate hydratedFunctions', () => {
+		const mockedManifest = {
 			version: 2,
 			middleware: {},
 			functions: {
@@ -63,7 +61,7 @@ describe('parseMiddlewareManifest', () => {
 					matchers: [{ regexp: 'regexpF' }],
 				},
 			},
-		};
+		} as unknown as MiddlewareManifest;
 
 		const functionsMap = new Map(
 			['test', '[id]', '1/2/3', 'index', 'test', 'api/hello'].map(fn => [
@@ -108,7 +106,7 @@ describe('parseMiddlewareManifest', () => {
 			],
 		]);
 
-		expect(await parseMiddlewareManifest(functionsMap)).deep.equals({
+		expect(parseMiddlewareManifest(mockedManifest, functionsMap)).deep.equals({
 			hydratedMiddleware: new Map(),
 			hydratedFunctions: expectedHydratedFunction,
 		});
