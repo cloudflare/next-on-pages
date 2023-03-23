@@ -34,6 +34,7 @@
 		"@types/cookie": "^0.5.1",
 		"@typescript-eslint/eslint-plugin": "^5.54.1",
 		"@typescript-eslint/parser": "^5.54.1",
+		"dedent-tabs": "^0.10.3",
 		"eslint": "^8.35.0",
 		"p-limit": "^4.0.0",
 		"prettier": "^2.8.4",

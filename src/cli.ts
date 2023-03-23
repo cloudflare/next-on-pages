@@ -1,3 +1,5 @@
+import dedent from 'dedent-tabs';
+
 export type CliOptions = {
 	help: boolean;
 	watch: boolean;
@@ -76,13 +78,12 @@ export function cliWarn(message: string, fromVercelCli = false): void {
 /**
  * prepares a message for Cli printing (simple prefixes each line with the appropriate prefix)
  *
- * the function also removes leading tabs from each line, this allows us to indent the messages
- * in the code as we please (for actual indentation in the message we can use spaces instead)
+ * the function also removes extra indentation on the message allowing us to indent the messages
+ * in the code as we please (see https://www.npmjs.com/package/dedent-tabs)
  */
 function prepareCliMessage(message: string, fromVercelCli: boolean): string {
-	return message
+	return dedent(message)
 		.split('\n')
-		.map(line => line.replace(/^\t+/, ''))
 		.map(line => `${getCliPrefix(fromVercelCli)} ${line}`)
 		.join('\n');
 }
