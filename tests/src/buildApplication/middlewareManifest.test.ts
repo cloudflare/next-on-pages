@@ -4,8 +4,7 @@ import { parseMiddlewareManifest } from '../../../src/buildApplication/middlewar
 let mockedManifest: unknown = { version: 35 };
 vi.mock('node:fs/promises', async () => {
 	return {
-		readFile: () =>
-			new Promise(resolve => resolve(JSON.stringify(mockedManifest))),
+		readFile: () => Promise.resolve(JSON.stringify(mockedManifest)),
 	};
 });
 
