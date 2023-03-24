@@ -6,9 +6,9 @@ No contribution is too small and all help moving the project forward!
 
 ## Submitting an issue or feature request
 
-If you find an bug or want to request a feature open a [new issue](https://github.com/cloudflare/next-on-pages/issues/new) documenting it, but first please check that:
+If you find an bug or want to request a feature, open a [new issue](https://github.com/cloudflare/next-on-pages/issues/new) documenting it, but first please check that:
 
-- there isn't already an issue describing the same bug of feature request, if there is please contribute to the conversation there (as this helps keeping all the information in a single place and also shows which bugs/features people are most interested in).
+- there isn't already an issue describing the same bug of feature request. If there is, please contribute to the conversation there (as this helps keeping all the information in a single place and also shows which bugs/features people are most interested in).
 - if you've found a Next.js missing feature, make sure that it is not already documented in the [Supported Versions and Features document](./supported.md).
 
 If you end up opening the issue make it as descriptive as possible, the more details you can provide the easier it will be for us to understand and handle it.
@@ -28,21 +28,21 @@ When opening a new PR make sure to set up an informative title for it and provid
 
 If your PR is addressing an existing issue make sure that it references the issue (as per the [Github PR Issues linking documentation](https://docs.github.com/en/issues/tracking-your-work-with-issues/linking-a-pull-request-to-an-issue)) so that the two can be linked correctly (and the issue gets automatically closed on merge).
 
-Smaller PRs are preferred since they are easier to review and merge quickly, if you're planning to make multiple unrelated (or loosely related) changes please consider splitting them in multiple PRs.
+Smaller PRs are preferred since they are easier to review and merge quickly. If you're planning to make multiple unrelated (or loosely related) changes please consider splitting them in multiple PRs.
 
 <!-- TODO: add section (or a link to a separate document) on how develop the package locally -->
 
 ### Not sure what to contribute on?
 
-If you're looking for something to help us with what we believe would be most valuable to us is to either try to implement Next.js functionality which we currently don't support (which you can see in the [Supported Versions and Features document](./supported.md)) or help us fix existing [issues](https://github.com/cloudflare/next-on-pages/issues).
+If you're looking for something to help us with, what we believe would be most valuable to us is to either: try to implement Next.js functionality which we currently don't support (which you can see in the [Supported Versions and Features document](./supported.md)), or help us fix existing [issues](https://github.com/cloudflare/next-on-pages/issues).
 
-> For first time contributors, we currently don't have issues marked as `good first issue` but keep an eye of on those are will try to introduce them when we can (same with `help wanted`).
+> For first time contributors, we currently don't have issues marked as `good first issue` or `help wanted` but keep an eye out for those labels in the future.
 
 ### Changeset
 
-The repository relies on [changesets](https://github.com/changesets/changesets/tree/main#readme) in order to automate the versioning of the package and changelog.
+The repository uses [Changesets](https://github.com/changesets/changesets) to automate the versioning of the package and its changelog.
 
-If you open a PR which contains functional changes (so anything except documentation, testing, linting, CI, etc...) please provide a changeset by running
+If you open a PR which contains functional changes (anything except documentation, testing, linting, CI, etc...) please provide a changeset by running:
 
 ```sh
 npm run changeset
@@ -55,6 +55,6 @@ The command will prompt you to choose the kind of changes you're making, select:
 - or `major` if your changes (bug fixes or functionality) aren't backward compatible.
 
 > **Warning**
-> In the current stage we're wary of making breaking changes as that would move the package to a stable first release, so try not to fall in the latter category if possible otherwise your PR's merge might get significantly delayed.
+> We're currently very wary of making any breaking changes, so try not to fall in the latter category if possible, otherwise your PR's merge might get significantly delayed.
 
-The command will generate a randomly named markdown file inside `.changeset` to commit and include in your PR.
+The command will generate a randomly named markdown file inside the `.changeset` directory. Commit this file and include it in your PR.

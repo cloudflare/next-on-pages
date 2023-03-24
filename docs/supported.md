@@ -36,8 +36,7 @@ Earlier and Later versions might be only partially supported, we don't fully kno
     - 🔄: Not currently supported, but it's probably possible and we may add support in the future
     - ❌: Not supported and unlikely we ever will support this
 
-- _1_ - **images**: If you want to use Next.js images you can provide your own [custom loader](https://nextjs.org/docs/api-reference/next/image#loader) which can also use Cloudflare images as indicated in the [Cloudflare's Image Integration documentation](https://developers.cloudflare.com/images/image-resizing/integration-with-frameworks/#nextjs).
-  We hope to streamline this by adding a Cloudflare custom loader to next-on-pages at some point in the future.
+- _1_ - **images**: If you want to use `next/image`, you can provide your own [custom loader](https://nextjs.org/docs/api-reference/next/image#loader) and use Cloudflare Image Resizing, as per [Cloudflare's Image Resizing documentation](https://developers.cloudflare.com/images/image-resizing/integration-with-frameworks/#nextjs).
 
 ## next.config.js Properties
 
@@ -75,18 +74,18 @@ Earlier and Later versions might be only partially supported, we don't fully kno
     - 🔄: Not currently supported, but it's probably possible and we may add support in the future
     - ❌: Not supported and unlikely we ever will support this
 
-- _1_ - **compression**: Locally no compression is applied, when deployed to Pages [Cloudflare applies gzip or brotli compression](https://developers.cloudflare.com/support/speed/optimization-file-size/what-will-cloudflare-compress) automatically.
+- _1_ - **compression**: [Cloudflare applies gzip or brotli compression](https://developers.cloudflare.com/support/speed/optimization-file-size/what-will-cloudflare-compress) automatically. When developing locally with Wrangler, no compression is applied.
 
 - _2_ - **runtime configuration**: We could look into implementing the runtime configuration but it is probably not worth it since it is a legacy configuration and environment variables should be used instead.
 
 - _3_ - **setting custom build directory**: Applications built using next-on-pages don't rely on the `.next` directory so this option isn't really applicable.
 
-- _4_ - **configuring onDemandEntries**: Not applicable since its an option for the Next.js server during development which we don't rely on.
+- _4_ - **configuring onDemandEntries**: Not applicable since it's an option for the Next.js server during development which we don't rely on.
 
-- _5_ - **React strict mode**: Currently we build the application so React strict mode doesn't work either way, if we can make strict mode work this option will most likely work straight away.
+- _5_ - **React strict mode**: Currently we build the application so React strict mode doesn't work either way. If we can make strict mode work, this option will most likely work straight away.
 
 - _6_ - **exportPathMap**: Option used for SSG not applicable for next-on-pages apps.
 
-- _7_ - **build indicator**: If you're developing using `wrangler pages dev` we do hard refreshes so the indicator doesn't appear, if you run your app locally using `next dev` this option works fine.
+- _7_ - **build indicator**: If you're developing using `wrangler pages dev`, we do hard refreshes so the indicator doesn't appear. If you run your app locally using `next dev`, this option works fine.
 
 - _8_ - **Turbopack-specific options**: Turbopack is not currently supported on next-on-pages (this might change in the future so we might reconsider the addition of this option).
