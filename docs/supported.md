@@ -82,9 +82,9 @@ Earlier and Later versions might be only partially supported, we don't fully kno
 
 - _4_ - **configuring onDemandEntries**: Not applicable since it's an option for the Next.js server during development which we don't rely on.
 
-- _5_ - **React strict mode**: Currently we build the application so React strict mode doesn't work either way. If we can make strict mode work, this option will most likely work straight away.
+- _5_ - **exportPathMap**: Option used for SSG not applicable for apps built using `@cloudflare/next-on-pages`.
 
-- _6_ - **exportPathMap**: Option used for SSG not applicable for apps built using `@cloudflare/next-on-pages`.
+- _6_ - **React strict mode**: Currently we build the application so React strict mode doesn't work either way. If we can make strict mode work, this option will most likely work straight away.
 
 - _7_ - **build indicator**: If you're developing using `wrangler pages dev`, we do hard refreshes so the indicator doesn't appear. If you run your app locally using `next dev`, this option works fine.
 
