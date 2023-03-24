@@ -1,6 +1,6 @@
 # Contributing
 
-We're thrilled that you're considering contributing to next-on-pages, all contributions are greatly appreciated, regardless if they are simple issue reporting, bug fixes, documentation changes, etc...
+We're thrilled that you're considering contributing to `@cloudflare/next-on-pages`, all contributions are greatly appreciated, regardless if they are simple issue reporting, bug fixes, documentation changes, etc...
 
 No contribution is too small and all help moving the project forward!
 
@@ -16,7 +16,7 @@ If you end up opening the issue make it as descriptive as possible, the more det
 In case of bugs very useful things to add are:
 
 - a minimal reproduction for it (both the steps to perform and the source code if possible)
-- what version of next-on-pages ad Next.js you're using
+- what version of `@cloudflare/next-on-pages` ad Next.js you're using
 - your operative system and Node version
 - what behavior you expected vs what behavior you got
 

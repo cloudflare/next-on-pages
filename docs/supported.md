@@ -78,14 +78,14 @@ Earlier and Later versions might be only partially supported, we don't fully kno
 
 - _2_ - **runtime configuration**: We could look into implementing the runtime configuration but it is probably not worth it since it is a legacy configuration and environment variables should be used instead.
 
-- _3_ - **setting custom build directory**: Applications built using next-on-pages don't rely on the `.next` directory so this option isn't really applicable.
+- _3_ - **setting custom build directory**: Applications built using `@cloudflare/next-on-pages` don't rely on the `.next` directory so this option isn't really applicable.
 
 - _4_ - **configuring onDemandEntries**: Not applicable since it's an option for the Next.js server during development which we don't rely on.
 
 - _5_ - **React strict mode**: Currently we build the application so React strict mode doesn't work either way. If we can make strict mode work, this option will most likely work straight away.
 
-- _6_ - **exportPathMap**: Option used for SSG not applicable for next-on-pages apps.
+- _6_ - **exportPathMap**: Option used for SSG not applicable for apps built using `@cloudflare/next-on-pages`.
 
 - _7_ - **build indicator**: If you're developing using `wrangler pages dev`, we do hard refreshes so the indicator doesn't appear. If you run your app locally using `next dev`, this option works fine.
 
-- _8_ - **Turbopack-specific options**: Turbopack is not currently supported on next-on-pages (this might change in the future so we might reconsider the addition of this option).
+- _8_ - **Turbopack-specific options**: Turbopack is not currently supported on `@cloudflare/next-on-pages` (this might change in the future so we might reconsider the addition of this option).

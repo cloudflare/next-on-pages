@@ -1,12 +1,12 @@
-# ⚡▲ next-on-pages ▲⚡
+# ⚡▲ `@cloudflare/next-on-pages` ▲⚡
 
-next-on-pages is a CLI tool that you can use to build and develop [Next.js](https://nextjs.org/) applications so that they can run on the [Cloudflare Pages](https://pages.cloudflare.com/) platform (and integrate with Cloudflare's various other product offerings such as KV, D1, R2 and Durable Objects).
+`@cloudflare/next-on-pages` is a CLI tool that you can use to build and develop [Next.js](https://nextjs.org/) applications so that they can run on the [Cloudflare Pages](https://pages.cloudflare.com/) platform (and integrate with Cloudflare's various other product offerings such as KV, D1, R2 and Durable Objects).
 
 This tool is a best-effort library implemented by the Cloudflare team and the community. As such, most, but not all, Next.js features are supported. See the [Supported Versions and Features document](./docs/supported.md) for more details.
 
 ## Quick Start
 
-This section describes how to bundle and deploy a (new or existing) Next.js application and using next-on-pages.
+This section describes how to bundle and deploy a (new or existing) Next.js application and using `@cloudflare/next-on-pages`.
 
 > Note: this readme uses `npm`, but nothing relies on it, you can instead use `yarn` or `pnpm` if you want.
 
@@ -87,7 +87,7 @@ Running `npx @cloudflare/next-on-pages --help` will display a useful help messag
 
 ### Local development in watch mode
 
-If you want to work on your Next.js application while using next-on-pages, run the CLI in watch mode with:
+If you want to work on your Next.js application while using `@cloudflare/next-on-pages`, run the CLI in watch mode with:
 
 ```sh
 npx @cloudflare/next-on-pages --watch
@@ -99,7 +99,7 @@ Then in a separate terminal run:
 npx wrangler pages dev .vercel/output/static --compatibility-flag=nodejs_compat
 ```
 
-### Install next-on-pages and vercel (optional)
+### Install `@cloudflare/next-on-pages` and vercel (optional)
 
 To speed up local development (especially the refresh speed when running in watch mode) you can optionally choose to install `@cloudflare/next-on-pages` and `vercel` as dev dependencies of your project:
 
@@ -109,7 +109,7 @@ npm install -D @cloudflare/next-on-pages vercel
 
 ## Examples
 
-To see some examples on how to use Next.js features with next-on-pages see the [Examples document](./docs/examples.md).
+To see some examples on how to use Next.js features with `@cloudflare/next-on-pages` see the [Examples document](./docs/examples.md).
 
 ## Contributing
 
@@ -121,8 +121,8 @@ Extra references you might be interested in:
 
 - [Blog post](https://blog.cloudflare.com/next-on-pages)
 
-  The original blog post introducing next-on-pages (24/10/2022), it goes into details on the inspiration for this package and provides some details on how it works.
+  The original blog post introducing `@cloudflare/next-on-pages` (24/10/2022), it goes into details on the inspiration for this package and provides some details on how it works.
 
 - [Cloudflare Next.js Guide](https://developers.cloudflare.com/pages/framework-guides/deploy-a-nextjs-site/)
 
-  Cloudflare guide on how to create and deploy a Next.js application. The application can be either static (and deployed as simple static assets) or dynamic using the edge runtime (via next-on-pages).
+  Cloudflare guide on how to create and deploy a Next.js application. The application can be either static (and deployed as simple static assets) or dynamic using the edge runtime (using `@cloudflare/next-on-pages`).
