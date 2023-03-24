@@ -6,30 +6,20 @@
 
 import { readFile } from 'fs/promises';
 
+export interface EdgeFunctionDefinition {
+	name: string;
+	matchers: { regexp: string }[];
+	env?: string[];
+	files?: string[];
+	page?: string;
+	wasm?: [];
+	assets?: [];
+	regions?: string[] | string;
+}
+
 export type MiddlewareManifest = {
-	middleware: Record<
-		string,
-		{
-			env: string[];
-			files: string[];
-			name: string;
-			matchers: { regexp: string }[];
-			wasm: [];
-			assets: [];
-		}
-	>;
-	functions: Record<
-		string,
-		{
-			env: string[];
-			files: string[];
-			name: string;
-			page: string;
-			matchers: { regexp: string }[];
-			wasm: [];
-			assets: [];
-		}
-	>;
+	middleware: Record<string, EdgeFunctionDefinition>;
+	functions: Record<string, EdgeFunctionDefinition>;
 	version: 2;
 };
 

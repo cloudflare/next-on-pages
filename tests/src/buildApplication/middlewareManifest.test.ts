@@ -35,7 +35,7 @@ describe('parseMiddlewareManifest', () => {
 	});
 
 	test('should produce appropriate hydratedFunctions', () => {
-		const mockedManifest = {
+		const mockedManifest: MiddlewareManifest = {
 			version: 2,
 			middleware: {},
 			functions: {
@@ -61,7 +61,7 @@ describe('parseMiddlewareManifest', () => {
 					matchers: [{ regexp: 'regexpF' }],
 				},
 			},
-		} as unknown as MiddlewareManifest;
+		};
 
 		const functionsMap = new Map(
 			['test', '[id]', '1/2/3', 'index', 'test', 'api/hello'].map(fn => [
