@@ -36,7 +36,7 @@ cd my-next-app
 
 ### 2. Configure the application to use the Edge Runtime
 
-In order for the application to run on Cloudflare Pages it needs to be set to run on the edge runtime, in order to do so make sure that all the files in your application containing server side code (as your api routes and pages using `getServerSideProps`) export a config object specifying the use of the edge runtime:
+In order for your application to run on Cloudflare Pages, it needs to be set to use the Edge Runtime. Make sure that all the files in your application containing server-side code (e.g. any API Routes and any pages which use `getServerSideProps`) export a `config` object specifying the use of the Edge Runtime:
 
 ```ts
 export const config = {
@@ -44,18 +44,18 @@ export const config = {
 };
 ```
 
-Make also sure that your application is not using [unsupported APIs](https://nextjs.org/docs/api-reference/edge-runtime#unsupported-apis) and its API routes are defined as [Edge API Routes](https://nextjs.org/docs/api-routes/edge-api-routes).
+Additionally, ensure that your application is not using any [unsupported APIs](https://nextjs.org/docs/api-reference/edge-runtime#unsupported-apis) and that its API routes are defined as [Edge API Routes](https://nextjs.org/docs/api-routes/edge-api-routes).
 
-For example if you've created a Next.js application and opted out of both the `src` and `app` directory options, the only file you need to modify is the `pages/api/hello.ts` one.
+For example, if you've created a Next.js application with `create-next-app` and opted out of both the `src` and `app` directory options, the only file you need to modify is `pages/api/hello.ts`.
 
 ### 3. Deploy your application to Cloudflare Pages
 
-You can easily deploy to Cloudflare Pages via the [automatic git integration](https://developers.cloudflare.com/pages/platform/git-integration/), to do so, start by committing and pushing your application's code to a Github/GitLab repository.
+You can easily deploy to Cloudflare Pages via the [automatic Git integration](https://developers.cloudflare.com/pages/platform/git-integration/). To do so, start by committing and pushing your application's code to a GitHub/GitLab repository.
 
-Next in the [Cloudflare Dashboard](dash.cloudflare.com) to create a new Pages project:
+Next, in the [Cloudflare Dashboard](https://dash.cloudflare.com/?to=/:account/pages), create a new Pages project:
 
 - Navigate to the project creation pages (_Your account Home_ > _Pages_ > _Create a project_ > _Connect to Git_)
-- Select the Github/GitLab repository you pushed your code to
+- Select the GitHub/GitLab repository you pushed your code to
 - Choose a project name and your production branch
 - Select _Next.js_ as the _Framework preset_
 - Provide the following options:
@@ -67,7 +67,7 @@ Next in the [Cloudflare Dashboard](dash.cloudflare.com) to create a new Pages pr
 - Click on _Save and Deploy_ to start the deployment (this first deployment won't be fully functional as the next step is also necessary)
 - Go to the Pages project settings page (_Settings_ > _Functions_ > _Compatibility Flags_), add the `nodejs_compat` for both the production and preview and make sure that the **Compatibility Date** for both production and preview is set to at least `2022-11-30`.
 
-> If you don't want to set up a git repository, you can build your `_worker.js` file (as indicated in [Local Development](#local-development)) and publish your application manually via the [wrangler's pages publish command](https://developers.cloudflare.com/workers/wrangler/commands/#publish-1) instead (but you'll still need to set the `NODE_VERSION` environment variable and the `nodejs_compat` flag for your project in the Cloudflare dashboard).
+> If you don't want to set up a Git repository, you can build your `_worker.js` file (as indicated in [Local Development](#local-development)) and publish your application manually via the [wrangler's pages publish command](https://developers.cloudflare.com/workers/wrangler/commands/#publish-1) instead (but you'll still need to set the `nodejs_compat` flag for your project in the Cloudflare dashboard).
 
 ## Local development
 
@@ -77,13 +77,17 @@ To locally run the CLI simply run:
 npx @cloudflare/next-on-pages
 ```
 
-This command will build your Next.js application and bundle a `_worker.js` file for you to use.
+This command will build your Next.js application and produce a `.vercel/output/static` directory which you can then use with Wrangler:
 
-If you provide the `--help` flag a useful help message will be displayed showing you the various options the CLI offers.
+```sh
+npx wrangler pages dev .vercel/output/static --compatibility-flag=nodejs_compat
+```
+
+Running `npx @cloudflare/next-on-pages --help` will display a useful help message which will detail the various additional options the CLI offers.
 
 ### Local development in watch mode
 
-If you want to work on your Next.js application while using next-on-pages, run the CLI in watch mode via:
+If you want to work on your Next.js application while using next-on-pages, run the CLI in watch mode with:
 
 ```sh
 npx @cloudflare/next-on-pages --watch
@@ -95,11 +99,10 @@ Then in a separate terminal run:
 npx wrangler pages dev .vercel/output/static --compatibility-flag=nodejs_compat
 ```
 
-to view the application and having it refresh when you make changes to your code.
 
 ### Install next-on-pages and vercel (optional)
 
-To speed up local development (especially the refresh speed in watch mode) you can install next-on-pages and `vercel` as dev dependencies of your project, note that this is optional and if you decide to install only one of them or neither everything will still run correctly anyways:
+To speed up local development (especially the refresh speed when running in watch mode) you can optionally choose to install `@cloudflare/next-on-pages` and `vercel` as dev dependencies of your project:
 
 ```sh
 npm install -D @cloudflare/next-on-pages vercel
@@ -111,7 +114,7 @@ To see some examples on how to use Next.js features with next-on-pages see the [
 
 ## Contributing
 
-If you want to contribute to the project please refer to the [Contributing document](./docs/contributing.md).
+If you want to contribute to this project please refer to the [Contributing document](./docs/contributing.md).
 
 ## References
 
@@ -119,7 +122,7 @@ Extra references you might be interested in:
 
 - [Blog post](https://blog.cloudflare.com/next-on-pages)
 
-  The original blog post introducing next-on-pages (24/10/2022), it goes into details on how the package came to be and provides details on how it works.
+  The original blog post introducing next-on-pages (24/10/2022), it goes into details on the inspiration for this package and provides some details on how it works.
 
 - [Cloudflare Next.js Guide](https://developers.cloudflare.com/pages/framework-guides/deploy-a-nextjs-site/)
 
