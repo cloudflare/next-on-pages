@@ -1,8 +1,8 @@
 # ⚡▲ next-on-pages ▲⚡
 
-next-on-pages is a CLI tool that you can use to build and develop [Next.js](https://nextjs.org/) applications so that they can run on the [Cloudflare Pages](https://pages.cloudflare.com/) platform (and integrate with the various Cloudflare offerings such as KV stores, and Durable Objects).
+next-on-pages is a CLI tool that you can use to build and develop [Next.js](https://nextjs.org/) applications so that they can run on the [Cloudflare Pages](https://pages.cloudflare.com/) platform (and integrate with Cloudflare's various other product offerings such as KV, D1, R2 and Durable Objects).
 
-This tool is a best-effort library implemented by the Cloudflare team and the community since Vercel doesn't and likely won't support Next.js running on Cloudflare officially. As such most but not all Next.js features are yet supported, see the [Supported Versions and Features document](./docs/supported.md) for more details.
+This tool is a best-effort library implemented by the Cloudflare team and the community. As such, most, but not all, Next.js features are supported. See the [Supported Versions and Features document](./docs/supported.md) for more details.
 
 ## Quick Start
 
@@ -12,23 +12,23 @@ This section describes how to bundle and deploy a (new or existing) Next.js appl
 
 ### 1. Create Next App
 
-To start creating a Next.js application using next-on-pages, start by creating a standard Next.js application using the create-next-app command (skip this step if you already have an existing Next.js application that you want to port to Cloudflare using next-on-pages):
+To start using `@cloudflare/next-on-pages`, you must first have a Next.js project you wish to deploy. If you don't already have a project, you can use the `create-next-app` command:
 
 ```sh
-npx create-next-app@13.2.4 my-next-app
+npx create-next-app@latest my-next-app
 ```
 
 <details>
 
 <summary>Note on the Next.js version</summary>
 
-The above command suggests to use Next's `13.2.4` version, that is the latest at the time of writing, older versions are also supported (but they might be only partially), newer versions might not be so be wary of that. The team will soon test various versions and document more clearly which are supported to what degree.
+We have confirmed support for to the current version of Next.js, at the time of writing, `13.2.4`. Although we'll endeavor to keep support for newer versions, we cannot guarantee that we'll always be up-to-date with the latest version. If you experience any problems with `@cloudflare/next-on-pages`, you may wish to try pinning to `13.2.4` while we work on supporting any recent breaking changes.
 
 </details>
 
 &NewLine;
 
-Change your current directory to the newly created one, as the following step require you to be in it:
+Change your current directory to the newly created one:
 
 ```sh
 cd my-next-app
