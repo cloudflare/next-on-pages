@@ -3,6 +3,7 @@ import { exit } from 'process';
 import { resolve } from 'path';
 import { cliError, cliLog, CliOptions } from '../cli';
 import {
+	getParsedMiddlewareManifest,
 	MiddlewareManifestData,
 	parseMiddlewareManifest,
 } from './middlewareManifest';
@@ -78,7 +79,7 @@ async function prepareAndBuildWorker(
 	let middlewareManifestData: MiddlewareManifestData;
 
 	try {
-		middlewareManifestData = await parseMiddlewareManifest(functionsMap);
+		middlewareManifestData = await getParsedMiddlewareManifest(functionsMap);
 	} catch (e: unknown) {
 		if (e instanceof Error) {
 			cliError(e.message, true);
