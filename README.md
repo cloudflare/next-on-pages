@@ -8,8 +8,6 @@ This tool is a best-effort library implemented by the Cloudflare team and the co
 
 This section describes how to bundle and deploy a (new or existing) Next.js application and using `@cloudflare/next-on-pages`.
 
-> Note: this readme uses `npm`, but nothing relies on it, you can instead use `yarn` or `pnpm` if you want.
-
 ### 1. Create Next App
 
 To start using `@cloudflare/next-on-pages`, you must first have a Next.js project you wish to deploy. If you don't already have a project, you can use the `create-next-app` command:
