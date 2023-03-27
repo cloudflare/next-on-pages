@@ -1,284 +1,126 @@
-# `@cloudflare/next-on-pages`
+# ⚡▲ `@cloudflare/next-on-pages` ▲⚡
 
-Reference:
+`@cloudflare/next-on-pages` is a CLI tool that you can use to build and develop [Next.js](https://nextjs.org/) applications so that they can run on the [Cloudflare Pages](https://pages.cloudflare.com/) platform (and integrate with Cloudflare's various other product offerings such as KV, D1, R2 and Durable Objects).
 
-- [Blog](https://blog.cloudflare.com/next-on-pages)
-- [Documentation](https://developers.cloudflare.com/pages/framework-guides/deploy-a-nextjs-site/)
+This tool is a best-effort library implemented by the Cloudflare team and the community. As such, most, but not all, Next.js features are supported. See the [Supported Versions and Features document](./docs/supported.md) for more details.
 
 ## Quick Start
 
-1. `npx create-next-app@latest my-app`
+This section describes how to bundle and deploy a (new or existing) Next.js application and using `@cloudflare/next-on-pages`.
 
-   Note that if you elect to use eslint, there are a couple of places you need to add return types to make the default template pass the pre-build checks.
+### 1. Create Next App
 
-1. `cd` into the new directory (e.g. `cd my-app`)
+To start using `@cloudflare/next-on-pages`, you must first have a Next.js project you wish to deploy. If you don't already have a project, you can use the `create-next-app` command:
 
-1. `npm install -D @cloudflare/next-on-pages vercel`
-
-1. Configure the project to use the Edge Runtime:
-
-   Replace `pages/api/hello.ts` with the following:
-
-   ```typescript
-   // Next.js Edge API Routes: https://nextjs.org/docs/api-routes/edge-api-routes
-   import type { NextRequest } from 'next/server';
-
-   export const config = {
-   	runtime: 'experimental-edge',
-   };
-
-   export default async function handler(req: NextRequest) {
-   	return new Response(JSON.stringify({ name: 'John Doe' }), {
-   		status: 200,
-   		headers: {
-   			'Content-Type': 'application/json',
-   		},
-   	});
-   }
-   ```
-
-1. `git commit` and `git push` to a GitHub/GitLab repository.
-
-1. Create a Pages project, connect that repository, and select "Next.js" from the framework preset list.
-
-   | Option                 | Value                                                 |
-   | ---------------------- | ----------------------------------------------------- |
-   | Build command          | `npx @cloudflare/next-on-pages --experimental-minify` |
-   | Build output directory | `.vercel/output/static`                               |
-
-1. Add a `NODE_VERSION` environment variable set to `16` or greater (`18` is not supported yet, See [Build Image Update Discussion](https://github.com/cloudflare/pages-build-image/discussions/1).
-
-1. In the Pages project **Settings** > **Functions** > **Compatibility Flags**, add the `nodejs_compat` and ensure the **Compatibility Date** is set to at least `2022-11-30`.
-
-1. The project should now be ready to deploy. Create a new deployment.
-
-## `@cloudflare/next-on-pages` CLI
-
-```
-⚡️ @cloudflare/next-to-pages CLI
-⚡️
-⚡️ Usage: npx @cloudflare/next-to-pages [options]
-⚡️
-⚡️ Options:
-⚡️
-⚡️   --help:                Shows this help message
-⚡️
-⚡️   --skip-build:          Doesn't run 'vercel build' automatically
-⚡️
-⚡️   --experimental-minify: Attempts to minify the functions of a project (by de-duping webpack chunks)
-⚡️
-⚡️   --watch:               Automatically rebuilds when the project is edited
-⚡️
-⚡️
-⚡️ GitHub: https://github.com/cloudflare/next-on-pages
-⚡️ Docs: https://developers.cloudflare.com/pages/framework-guides/deploy-a-nextjs-site/
+```sh
+npx create-next-app@latest my-next-app
 ```
 
-### Local development
+<details>
 
-In one terminal, run `npx @cloudflare/next-on-pages --watch`, and in another `npx wrangler pages dev .vercel/output/static`. We hope to soon make improvements to the refresh speed.
+<summary>Note on the Next.js version</summary>
 
-### Build Output Configuration
+We have confirmed support for to the current version of Next.js, at the time of writing, `13.2.4`. Although we'll endeavor to keep support for newer versions, we cannot guarantee that we'll always be up-to-date with the latest version. If you experience any problems with `@cloudflare/next-on-pages`, you may wish to try pinning to `13.2.4` while we work on supporting any recent breaking changes.
 
-| `config.json` property  | Support                                                                                                                                           |
-| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| version                 | `3`                                                                                                                                               |
-| routes `src`            | ✅                                                                                                                                                |
-| routes `dest`           | 🔄                                                                                                                                                |
-| routes `headers`        | 🔄                                                                                                                                                |
-| routes `methods`        | ✅                                                                                                                                                |
-| routes `continue`       | 🔄                                                                                                                                                |
-| routes `caseSensitive`  | ✅                                                                                                                                                |
-| routes `check`          | 🔄                                                                                                                                                |
-| routes `status`         | 🔄                                                                                                                                                |
-| routes `has`            | ✅                                                                                                                                                |
-| routes `missing`        | ✅                                                                                                                                                |
-| routes `locale`         | 🔄                                                                                                                                                |
-| routes `middlewarePath` | ✅                                                                                                                                                |
-| images                  | ❌ (see [Cloudflare's Image Resizing documentation](https://developers.cloudflare.com/images/image-resizing/integration-with-frameworks/#nextjs)) |
-| wildcard                | 🔄                                                                                                                                                |
-| overrides               | 🔄                                                                                                                                                |
-| cache                   | ❌                                                                                                                                                |
+</details>
 
-- ✅: Supported
-- 🔄: Not currently supported, but it's probably possible and we may add support in the future
-- ❌: Not supported and unlikely we ever will support this
+&NewLine;
+
+Change your current directory to the newly created one:
+
+```sh
+cd my-next-app
+```
+
+### 2. Configure the application to use the Edge Runtime
+
+In order for your application to run on Cloudflare Pages, it needs to be set to use the Edge Runtime. Make sure that all the files in your application containing server-side code (e.g. any API Routes and any pages which use `getServerSideProps`) export a `config` object specifying the use of the Edge Runtime:
+
+```ts
+export const config = {
+	runtime: 'edge',
+};
+```
+
+Additionally, ensure that your application is not using any [unsupported APIs](https://nextjs.org/docs/api-reference/edge-runtime#unsupported-apis) and that its API routes are defined as [Edge API Routes](https://nextjs.org/docs/api-routes/edge-api-routes).
+
+For example, if you've created a Next.js application with `create-next-app` and opted out of both the `src` and `app` directory options, the only file you need to modify is `pages/api/hello.ts`.
+
+### 3. Deploy your application to Cloudflare Pages
+
+You can easily deploy to Cloudflare Pages via the [automatic Git integration](https://developers.cloudflare.com/pages/platform/git-integration/). To do so, start by committing and pushing your application's code to a GitHub/GitLab repository.
+
+Next, in the [Cloudflare Dashboard](https://dash.cloudflare.com/?to=/:account/pages), create a new Pages project:
+
+- Navigate to the project creation pages (_Your account Home_ > _Pages_ > _Create a project_ > _Connect to Git_)
+- Select the GitHub/GitLab repository you pushed your code to
+- Choose a project name and your production branch
+- Select _Next.js_ as the _Framework preset_
+- Provide the following options:
+  | Option | Value |
+  | ---------------------- | ----------------------------------------------------- |
+  | Build command | `npx @cloudflare/next-on-pages --experimental-minify` |
+  | Build output directory | `.vercel/output/static` |
+- In the _Environment variables (advanced)_ section add a new variable named `NODE_VERSION` set to `16` or greater (`18` is not supported yet, See [Build Image Update Discussion](https://github.com/cloudflare/pages-build-image/discussions/1)).
+- Click on _Save and Deploy_ to start the deployment (this first deployment won't be fully functional as the next step is also necessary)
+- Go to the Pages project settings page (_Settings_ > _Functions_ > _Compatibility Flags_), add the `nodejs_compat` for both the production and preview and make sure that the **Compatibility Date** for both production and preview is set to at least `2022-11-30`.
+
+> If you don't want to set up a Git repository, you can build your `_worker.js` file (as indicated in [Local Development](#local-development)) and publish your application manually via the [wrangler's pages publish command](https://developers.cloudflare.com/workers/wrangler/commands/#publish-1) instead (but you'll still need to set the `nodejs_compat` flag for your project in the Cloudflare dashboard).
+
+## Local development
+
+To locally run the CLI simply run:
+
+```sh
+npx @cloudflare/next-on-pages
+```
+
+This command will build your Next.js application and produce a `.vercel/output/static` directory which you can then use with Wrangler:
+
+```sh
+npx wrangler pages dev .vercel/output/static --compatibility-flag=nodejs_compat
+```
+
+Running `npx @cloudflare/next-on-pages --help` will display a useful help message which will detail the various additional options the CLI offers.
+
+### Local development in watch mode
+
+If you want to work on your Next.js application while using `@cloudflare/next-on-pages`, run the CLI in watch mode with:
+
+```sh
+npx @cloudflare/next-on-pages --watch
+```
+
+Then in a separate terminal run:
+
+```sh
+npx wrangler pages dev .vercel/output/static --compatibility-flag=nodejs_compat
+```
+
+### Install `@cloudflare/next-on-pages` and vercel (optional)
+
+To speed up local development (especially the refresh speed when running in watch mode) you can optionally choose to install `@cloudflare/next-on-pages` and `vercel` as dev dependencies of your project:
+
+```sh
+npm install -D @cloudflare/next-on-pages vercel
+```
 
 ## Examples
 
-### [Next.js 13's `app` Directory](https://beta.nextjs.org/docs/routing/fundamentals#the-app-directory)
+To see some examples on how to use Next.js features with `@cloudflare/next-on-pages` see the [Examples document](./docs/examples.md).
 
-Add the following to `next.config.js`:
+## Contributing
 
-```diff
-/** @type {import('next').NextConfig} */
-const nextConfig = {
-  experimental: {
-    runtime: "experimental-edge",
-+   appDir: true,
-  },
-  reactStrictMode: true,
-  swcMinify: true,
-};
+If you want to contribute to this project please refer to the [Contributing document](./docs/contributing.md).
 
-module.exports = nextConfig;
-```
+## References
 
-If you're following the [Next.js 12 → 13 Upgrade Guide](https://beta.nextjs.org/docs/upgrade-guide#step-4-migrating-pages), delete any `./pages/_app.tsx` and `./pages/index.tsx` files and replace with `./app/layout.tsx` and `./app/page.tsx`:
+Extra references you might be interested in:
 
-```typescript
-// ./app/layout.tsx
-import '../styles/globals.css';
-import { FC } from 'react';
+- [Blog post](https://blog.cloudflare.com/next-on-pages)
 
-const RootLayout: FC<{
-	children: React.ReactNode;
-}> = ({
-	// Layouts must accept a children prop.
-	// This will be populated with nested layouts or pages
-	children,
-}) => {
-	return (
-		<html lang="en">
-			<body>{children}</body>
-		</html>
-	);
-};
+  The original blog post introducing `@cloudflare/next-on-pages` (24/10/2022), it goes into details on the inspiration for this package and provides some details on how it works.
 
-export default RootLayout;
-```
+- [Cloudflare Next.js Guide](https://developers.cloudflare.com/pages/framework-guides/deploy-a-nextjs-site/)
 
-```typescript
-// ./app/page.tsx
-import { FC } from 'react';
-import styles from '../styles/Home.module.css';
-
-const Home = async (): Promise<ReturnType<FC>> => {
-	const uuid = await fetch('https://uuid.rocks/plain').then(
-		async response => await response.text()
-	);
-
-	return (
-		<div className={styles.container}>
-			<main className={styles.main}>
-				<h1 className={styles.title}>
-					Welcome to <a href="https://nextjs.org">Next.js!</a>
-				</h1>
-
-				<p className={styles.description}>
-					Get started by editing{' '}
-					<code className={styles.code}>pages/index.tsx</code>
-				</p>
-
-				<p className={styles.description}>
-					Here&apos;s a server-side UUID:
-					<code className={styles.code}>{uuid}</code>
-				</p>
-			</main>
-		</div>
-	);
-};
-
-export default Home;
-```
-
-### [Edge API Routes](https://nextjs.org/docs/api-routes/edge-api-routes)
-
-```typescript
-// ./pages/api/some_route.ts
-
-import type { NextRequest } from 'next/server';
-
-export const config = {
-	runtime: 'experimental-edge',
-};
-
-export default async function handler(req: NextRequest) {
-	return new Response(
-		JSON.stringify({
-			name: process.env.NEXT_RUNTIME,
-		}),
-		{
-			status: 200,
-			headers: {
-				'content-type': 'application/json',
-			},
-		}
-	);
-}
-```
-
-### Server-side rendering (SSR) pages with [`getServerSideProps()`](https://nextjs.org/docs/basic-features/data-fetching/get-server-side-props)
-
-```typescript
-// ./pages/ssr.tsx
-
-import type { NextPage } from 'next';
-import Head from 'next/head';
-import styles from '../styles/Home.module.css';
-
-export const config = {
-	runtime: 'experimental-edge',
-};
-
-export const getServerSideProps = async () => {
-	return {
-		props: {
-			runtime: process.env.NEXT_RUNTIME,
-			uuid: await fetch('https://uuid.rocks/plain').then(response =>
-				response.text()
-			),
-		},
-	};
-};
-
-const Home: NextPage<{ runtime: string; uuid: string }> = ({
-	runtime,
-	uuid,
-}) => {
-	return (
-		<div className={styles.container}>
-			<Head>
-				<title>Create Next App</title>
-				<meta name="description" content="Generated by create next app" />
-				<link rel="icon" href="/favicon.ico" />
-			</Head>
-
-			<main className={styles.main}>
-				<h1 className={styles.title}>
-					Welcome to{' '}
-					<a href="https://nextjs.org">Next.js, running at the {runtime}!</a>
-				</h1>
-
-				<p className={styles.description}>
-					Get started by editing{' '}
-					<code className={styles.code}>pages/index.tsx</code>
-				</p>
-
-				<p className={styles.description}>
-					Here&apos;s a server-side UUID:
-					<code className={styles.code}>{uuid}</code>
-				</p>
-			</main>
-		</div>
-	);
-};
-
-export default Home;
-```
-
-### [Middleware](https://nextjs.org/docs/advanced-features/middleware)
-
-```typescript
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
-
-// This function can be marked `async` if using `await` inside
-export function middleware(request: NextRequest) {
-	return NextResponse.redirect(new URL('/about-2', request.url));
-}
-
-export const config = {
-	matcher: '/about/:path*',
-};
-```
+  Cloudflare guide on how to create and deploy a Next.js application. The application can be either static (and deployed as simple static assets) or dynamic using the edge runtime (using `@cloudflare/next-on-pages`).
