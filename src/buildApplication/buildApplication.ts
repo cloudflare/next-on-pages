@@ -5,7 +5,6 @@ import { cliError, cliLog, CliOptions } from '../cli';
 import {
 	getParsedMiddlewareManifest,
 	MiddlewareManifestData,
-	parseMiddlewareManifest,
 } from './middlewareManifest';
 import { getNextConfigs } from './nextConfigs';
 import { getVercelConfig, VercelConfig } from './vercelConfig';
