@@ -10,7 +10,8 @@
 		"build": "npx esbuild --bundle --platform=node ./src/index.ts --external:esbuild --external:chokidar --outfile=./dist/index.js",
 		"prepare": "npm run build",
 		"publish": "npm run build && npx changeset publish",
-		"changeset": "npx changeset"
+		"changeset": "npx changeset",
+		"test:unit": "npx vitest --config vitest.config.ts"
 	},
 	"files": [
 		"bin",
@@ -33,10 +34,11 @@
 		"@types/cookie": "^0.5.1",
 		"@typescript-eslint/eslint-plugin": "^5.54.1",
 		"@typescript-eslint/parser": "^5.54.1",
+		"dedent-tabs": "^0.10.3",
 		"eslint": "^8.35.0",
 		"p-limit": "^4.0.0",
 		"prettier": "^2.8.4",
 		"typescript": "^4.7.4",
-		"vitest": "^0.24.3"
+		"vitest": "^0.24.5"
 	}
 }

@@ -18,5 +18,6 @@
  * // normalized === "D:/path/with/backslashes"
  * ```
  */
-export const normalizePath = (path: string) =>
-	path.startsWith('\\\\?\\') ? path : path.replace(/\\/g, '/');
+export function normalizePath(path: string) {
+	return path.startsWith('\\\\?\\') ? path : path.replace(/\\/g, '/');
+}

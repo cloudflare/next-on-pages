@@ -1,5 +1,5 @@
 import { describe, test, expect } from 'vitest';
-import { routesMatcher } from '../templates/_worker.js';
+import { routesMatcher } from '../../templates/_worker.js/index.js';
 
 describe('routesMatcher', () => {
 	const requestGenerator = (
