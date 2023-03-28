@@ -148,7 +148,7 @@ export default {
 			for (const matcher of matchers) {
 				if (matcher.regexp) {
 					const regexp = new RegExp(matcher?.regexp);
-					const nextPathname = pathname.startsWith(__BASE_PATH__)
+					const nextJsPathname = pathname.startsWith(__BASE_PATH__)
 						? // Remove basePath from URL, also squish `//` into `/`
 						  // If the baseUrl is set to "/docs" the following will happen:
 						  // `/docs/profile/settings` -> `/profile/settings`
@@ -158,14 +158,14 @@ export default {
 						  pathname.replace(__BASE_PATH__, '/').replace('//', '/')
 						: pathname;
 
-					const nextPathnameMatcher = nextPathname.match(regexp);
+					const nextJsPathnameMatcher = nextJsPathname.match(regexp);
 
 					if (
-						nextPathnameMatcher ||
-						`${nextPathname}/page`.replace('//page', '/page').match(regexp)
+						nextJsPathnameMatcher ||
+						`${nextJsPathname}/page`.replace('//page', '/page').match(regexp)
 					) {
-						if (nextPathnameMatcher?.groups) {
-							const params = Object.entries(nextPathnameMatcher.groups);
+						if (nextJsPathnameMatcher?.groups) {
+							const params = Object.entries(nextJsPathnameMatcher.groups);
 							const urlWithParams = new URL(request.url);
 							for (const [key, value] of params) {
 								urlWithParams.searchParams.set(key, value);

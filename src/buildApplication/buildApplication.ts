@@ -6,7 +6,7 @@ import {
 	getParsedMiddlewareManifest,
 	MiddlewareManifestData,
 } from './middlewareManifest';
-import { getNextConfigs } from './nextConfigs';
+import { getNextJsConfigs } from './nextJsConfigs';
 import { getVercelConfig, VercelConfig } from './vercelConfig';
 import { buildWorkerFile } from './buildWorkerFile';
 import { generateFunctionsMap } from './generateFunctionsMap';
@@ -43,14 +43,14 @@ async function prepareAndBuildWorker(
 		exit(1);
 	}
 
-	const nextConfigs = await getNextConfigs();
+	const nextJsConfigs = await getNextJsConfigs();
 
-	if (nextConfigs.basePath) {
-		cliLog(`Using basePath ${nextConfigs.basePath}`);
+	if (nextJsConfigs.basePath) {
+		cliLog(`Using basePath ${nextJsConfigs.basePath}`);
 	}
 
 	const functionsDir = resolve(
-		`.vercel/output/functions${nextConfigs.basePath ?? ''}`
+		`.vercel/output/functions${nextJsConfigs.basePath ?? ''}`
 	);
 	let functionsExist = false;
 	try {
@@ -94,7 +94,7 @@ async function prepareAndBuildWorker(
 	await buildWorkerFile(
 		middlewareManifestData,
 		vercelConfig,
-		nextConfigs,
+		nextJsConfigs,
 		options
 	);
 }

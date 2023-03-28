@@ -1,6 +1,6 @@
 import { getBasePath } from './getBasePath';
 
-export type NextConfigs = {
+export type NextJsConfigs = {
 	basePath?: string;
 };
 
@@ -11,7 +11,7 @@ export type NextConfigs = {
  * For the list of supported options see:
  *     https://github.com/cloudflare/next-on-pages/blob/main/docs/supported.md#nextconfigjs-properties
  */
-export async function getNextConfigs(): Promise<NextConfigs> {
+export async function getNextJsConfigs(): Promise<NextJsConfigs> {
 	const basePath = await getBasePath();
 	return {
 		...(basePath ? { basePath } : {}),

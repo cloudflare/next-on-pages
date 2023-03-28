@@ -4,13 +4,13 @@ import { build } from 'esbuild';
 import { tmpdir } from 'os';
 import { cliLog, CliOptions } from '../cli';
 import { VercelConfig } from './vercelConfig';
-import { NextConfigs } from './nextConfigs';
+import { NextJsConfigs } from './nextJsConfigs';
 import { MiddlewareManifestData } from './middlewareManifest';
 
 export async function buildWorkerFile(
 	{ hydratedMiddleware, hydratedFunctions }: MiddlewareManifestData,
 	vercelConfig: VercelConfig,
-	nextConfigs: NextConfigs,
+	nextJsConfigs: NextJsConfigs,
 	experimentalMinify: Pick<CliOptions, 'experimentalMinify'>
 ) {
 	const functionsFile = join(
@@ -56,7 +56,7 @@ export async function buildWorkerFile(
 		external: ['node:async_hooks'],
 		define: {
 			__CONFIG__: JSON.stringify(vercelConfig),
-			__BASE_PATH__: JSON.stringify(nextConfigs.basePath ?? ''),
+			__BASE_PATH__: JSON.stringify(nextJsConfigs.basePath ?? ''),
 		},
 		outfile: '.vercel/output/static/_worker.js',
 		minify: !!experimentalMinify,

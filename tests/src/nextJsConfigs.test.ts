@@ -1,5 +1,5 @@
 import { describe, test, expect, vi } from 'vitest';
-import { getNextConfigs } from '../../src/buildApplication/nextConfigs';
+import { getNextJsConfigs } from '../../src/buildApplication/nextJsConfigs';
 
 vi.mock('node:fs/promises', async () => {
 	return {
@@ -15,9 +15,9 @@ vi.mock('node:fs/promises', async () => {
 	};
 });
 
-describe('getNextConfigs', async () => {
+describe('getNextJsConfigs', async () => {
 	test('should produce an appropriate configs object', async () => {
-		const configs = await getNextConfigs();
+		const configs = await getNextJsConfigs();
 		expect(configs.basePath).toEqual('/test');
 	});
 });
