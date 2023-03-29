@@ -1,1 +1,1 @@
-export { normalizePath } from './paths';
+export * from './fs';

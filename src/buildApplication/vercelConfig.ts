@@ -1,4 +1,4 @@
-import { readFile } from 'fs/promises';
+import { readJsonFile } from '../utils';
 
 const supportedConfigVersion = 3;
 
@@ -26,13 +26,7 @@ export type VercelConfig = {
  * @returns the object parsed from the config file
  */
 export async function getVercelConfig(): Promise<VercelConfig> {
-	let config: VercelConfig | null = null;
-	try {
-		config = JSON.parse(await readFile('.vercel/output/config.json', 'utf8'));
-	} catch {
-		/* empty */
-	}
-
+	const config = await readJsonFile<VercelConfig>('.vercel/output/config.json');
 	if (!config) {
 		throw new Error("Could not read the '.vercel/output/config.json' file.");
 	}

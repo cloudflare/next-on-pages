@@ -1,33 +1,5 @@
-import { describe, test, expect, vi } from 'vitest';
+import { describe, test, expect } from 'vitest';
 import { generateFunctionsMap } from '../../../src/buildApplication/generateFunctionsMap';
-
-vi.mock('node:fs/promises', async () => {
-	return {
-		readFile: async (file: string) => {
-			if (/invalidTest\/functions\/index.*\/\.vc-config\.json/.test(file)) {
-				return JSON.stringify({ runtime: 'nodejs', entrypoint: '' });
-			}
-			if (/validTest\/functions\/.*\/\.vc-config\.json/.test(file)) {
-				return JSON.stringify({ runtime: 'edge', entrypoint: '' });
-			}
-			return '';
-		},
-		mkdir: async () => null,
-		writeFile: async () => null,
-		stat: async () => ({ isDirectory: () => true }),
-		readdir: async (dir: string) => {
-			if (['validTest/functions', 'invalidTest/functions'].includes(dir)) {
-				return ['api', 'index.func', 'index.rsc.func'];
-			}
-			if (
-				['validTest/functions/api', 'invalidTest/functions/api'].includes(dir)
-			) {
-				return ['hello.func'];
-			}
-			return [];
-		},
-	};
-});
 
 describe('generateFunctionsMap', async () => {
 	test('should generate a valid functions map (without experimentalMinify)', async () => {
@@ -52,6 +24,7 @@ describe('generateFunctionsMap', async () => {
 		expect(Array.from(invalidFunctions.values())).toEqual([
 			'index.func',
 			'index.rsc.func',
+			'hello.func',
 		]);
 	});
 });

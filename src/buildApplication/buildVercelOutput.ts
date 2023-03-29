@@ -1,6 +1,7 @@
-import { writeFile, mkdir, stat } from 'fs/promises';
+import { writeFile, mkdir } from 'fs/promises';
 import { spawn } from 'child_process';
 import { cliError, cliLog } from '../cli';
+import { validatePathType } from '../utils';
 
 /**
  * Builds the Next.js output via the Vercel CLI
@@ -33,9 +34,7 @@ export async function buildVercelOutput(): Promise<void> {
  * so we create a dummy one just to satisfy Vercel
  */
 async function generateProjectJsonFileIfNeeded(): Promise<void> {
-	try {
-		await stat('.vercel/project.json');
-	} catch {
+	if (!(await validatePathType('.vercel/project.json', 'file'))) {
 		await mkdir('.vercel', { recursive: true });
 		await writeFile(
 			'.vercel/project.json',

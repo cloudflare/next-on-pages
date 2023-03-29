@@ -1,5 +1,11 @@
-import { readFile } from 'fs/promises';
 import { cliWarn } from '../../cli';
+import { readJsonFile } from '../../utils';
+
+// RoutesManifest.version and RoutesManifest.basePath are the only fields accessed
+interface RoutesManifest {
+	version: 3;
+	basePath: string;
+}
 
 /**
  * gets the basePath set by the developer in the next.config.js file
@@ -12,21 +18,9 @@ import { cliWarn } from '../../cli';
  *          the function was unable to read it
  */
 export async function getBasePath(): Promise<string | null> {
-	// RoutesManifest.version and RoutesManifest.basePath are the only fields accessed
-	interface RoutesManifest {
-		version: 3;
-		basePath: string;
-	}
-
-	let routesManifest: RoutesManifest | null = null;
-
-	try {
-		routesManifest = JSON.parse(
-			await readFile('.next/routes-manifest.json', 'utf8')
-		);
-	} catch {
-		/* empty */
-	}
+	const routesManifest = await readJsonFile<RoutesManifest>(
+		'.next/routes-manifest.json'
+	);
 
 	if (!routesManifest || routesManifest.version !== 3) {
 		cliWarn(

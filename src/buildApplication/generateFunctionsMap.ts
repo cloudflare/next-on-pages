@@ -1,9 +1,9 @@
-import { readFile, writeFile, mkdir, stat, readdir } from 'fs/promises';
+import { readFile, writeFile, mkdir, readdir } from 'fs/promises';
 import { exit } from 'process';
 import { dirname, join, relative } from 'path';
 import { parse, Node } from 'acorn';
 import { generate } from 'astring';
-import { normalizePath } from '../utils';
+import { normalizePath, readJsonFile, validatePathType } from '../utils';
 import { cliError, CliOptions } from '../cli';
 import { tmpdir } from 'os';
 
@@ -61,8 +61,7 @@ async function processDirectoryRecursively(
 	await Promise.all(
 		files.map(async file => {
 			const filepath = join(dir, file);
-			const isDirectory = (await stat(filepath)).isDirectory();
-			if (isDirectory) {
+			if (await validatePathType(filepath, 'directory')) {
 				const dirResultsPromise = file.endsWith('.func')
 					? processFuncDirectory(setup, file, filepath)
 					: processDirectoryRecursively(setup, filepath);
@@ -85,6 +84,15 @@ async function processDirectoryRecursively(
 	};
 }
 
+type FunctionConfig = {
+	runtime: 'edge';
+	name: string;
+	deploymentTarget: 'v8-worker' | string;
+	entrypoint: string;
+	envVarsInUse: string[];
+	assets: unknown[];
+};
+
 async function processFuncDirectory(
 	setup: ProcessingSetup,
 	file: string,
@@ -92,14 +100,9 @@ async function processFuncDirectory(
 ): Promise<Partial<DirectoryProcessingResults>> {
 	const relativePath = relative(setup.functionsDir, filepath);
 
-	const functionConfigFile = join(filepath, '.vc-config.json');
-	let functionConfig: { runtime: 'edge'; entrypoint: string } | null = null;
-	try {
-		const contents = await readFile(functionConfigFile, 'utf8');
-		functionConfig = JSON.parse(contents);
-	} catch {
-		functionConfig = null;
-	}
+	const functionConfig = await readJsonFile<FunctionConfig>(
+		join(filepath, '.vc-config.json')
+	);
 
 	if (functionConfig?.runtime !== 'edge') {
 		return {
@@ -108,15 +111,7 @@ async function processFuncDirectory(
 	}
 
 	const functionFile = join(filepath, functionConfig.entrypoint);
-	let functionFileExists = false;
-	try {
-		await stat(functionFile);
-		functionFileExists = true;
-	} catch {
-		/* empty */
-	}
-
-	if (!functionFileExists) {
+	if (!(await validatePathType(functionFile, 'file'))) {
 		return {
 			invalidFunctions: new Set([file]),
 		};
