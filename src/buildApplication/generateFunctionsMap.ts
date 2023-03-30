@@ -94,8 +94,10 @@ type FunctionConfig = {
 	name: string;
 	deploymentTarget: 'v8-worker' | string;
 	entrypoint: string;
-	envVarsInUse: string[];
-	assets: unknown[];
+	envVarsInUse?: string[];
+	assets?: { name: string; path: string }[];
+	regions?: string | string[];
+	framework?: { slug: string; version?: string };
 };
 
 async function processFuncDirectory(
