@@ -2,10 +2,10 @@ import { cliWarn } from '../../cli';
 import { readJsonFile } from '../../utils';
 
 // RoutesManifest.version and RoutesManifest.basePath are the only fields accessed
-interface RoutesManifest {
+type RoutesManifest = {
 	version: 3;
 	basePath: string;
-}
+};
 
 /**
  * gets the basePath set by the developer in the next.config.js file

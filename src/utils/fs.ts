@@ -24,13 +24,21 @@ export function normalizePath(path: string) {
 	return path.startsWith('\\\\?\\') ? path : path.replace(/\\/g, '/');
 }
 
+type JSONValue =
+	| string
+	| number
+	| boolean
+	| null
+	| { [key: string]: JSONValue | unknown }
+	| JSONValue[];
+
 /**
  * Read and parse a JSON file.
  *
  * @param path File path to try and parse as JSON.
  * @returns Parsed JSON file.
  */
-export async function readJsonFile<T = object>(path: string) {
+export async function readJsonFile<T extends JSONValue>(path: string) {
 	let parsed: T | null = null;
 	try {
 		const contents = await readFile(path, 'utf8');

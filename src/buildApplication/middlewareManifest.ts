@@ -6,7 +6,7 @@
 
 import { readJsonFile } from '../utils';
 
-export interface EdgeFunctionDefinition {
+export type EdgeFunctionDefinition = {
 	name: string;
 	matchers: { regexp: string }[];
 	env?: string[];
@@ -15,7 +15,7 @@ export interface EdgeFunctionDefinition {
 	wasm?: [];
 	assets?: [];
 	regions?: string[] | string;
-}
+};
 
 export type MiddlewareManifest = {
 	middleware: Record<string, EdgeFunctionDefinition>;
