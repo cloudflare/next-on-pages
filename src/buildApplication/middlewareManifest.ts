@@ -4,9 +4,9 @@
  *  should be refactored to use .vercel/output instead as soon as possible
  */
 
-import { readFile } from 'fs/promises';
+import { readJsonFile } from '../utils';
 
-export interface EdgeFunctionDefinition {
+export type EdgeFunctionDefinition = {
 	name: string;
 	matchers: { regexp: string }[];
 	env?: string[];
@@ -15,7 +15,7 @@ export interface EdgeFunctionDefinition {
 	wasm?: [];
 	assets?: [];
 	regions?: string[] | string;
-}
+};
 
 export type MiddlewareManifest = {
 	middleware: Record<string, EdgeFunctionDefinition>;
@@ -33,14 +33,12 @@ export type MiddlewareManifestData = Awaited<
 export async function getParsedMiddlewareManifest(
 	functionsMap: Map<string, string>
 ) {
-	let middlewareManifest: MiddlewareManifest;
-	try {
-		// Annoying that we don't get this from the `.vercel` directory.
-		// Maybe we eventually just construct something similar from the `.vercel/output/functions` directory with the same magic filename/precendence rules?
-		middlewareManifest = JSON.parse(
-			await readFile('.next/server/middleware-manifest.json', 'utf8')
-		);
-	} catch {
+	// Annoying that we don't get this from the `.vercel` directory.
+	// Maybe we eventually just construct something similar from the `.vercel/output/functions` directory with the same magic filename/precendence rules?
+	const middlewareManifest = await readJsonFile<MiddlewareManifest>(
+		'.next/server/middleware-manifest.json'
+	);
+	if (!middlewareManifest) {
 		throw new Error('Could not read the functions manifest.');
 	}
 
