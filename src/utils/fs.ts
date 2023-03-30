@@ -85,6 +85,6 @@ export function validateFile(path: string) {
  * @param path Path to check.
  * @returns Whether a directory exists at the given path.
  */
-export async function validateDir(path: string) {
+export function validateDir(path: string) {
 	return validatePathType(path, 'directory');
 }
