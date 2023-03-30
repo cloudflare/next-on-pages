@@ -85,7 +85,7 @@ async function processDirectoryRecursively(
 }
 
 type FunctionConfig = {
-	runtime: 'edge';
+	runtime: 'edge' | 'nodejs';
 	name: string;
 	deploymentTarget: 'v8-worker' | string;
 	entrypoint: string;
