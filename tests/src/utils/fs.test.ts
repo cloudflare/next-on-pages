@@ -1,10 +1,34 @@
-import { describe, test, expect } from 'vitest';
+import { describe, test, expect, vi, beforeAll, afterAll } from 'vitest';
 import {
 	normalizePath,
 	readJsonFile,
 	validateDir,
 	validateFile,
 } from '../../../src/utils';
+
+beforeAll(() => {
+	vi.mock('node:fs/promises', () => ({
+		stat: (path: string) =>
+			new Promise((res, rej) =>
+				path.startsWith('validTest')
+					? res({
+							isDirectory: () => !path.endsWith('.js'),
+							isFile: () => path.endsWith('.js'),
+					  })
+					: rej('invalid path')
+			),
+		readFile: (path: string) =>
+			new Promise((res, rej) =>
+				path === '.vc-config.json'
+					? res(JSON.stringify({ runtime: 'edge', entrypoint: 'index.js' }))
+					: rej('invalid file')
+			),
+	}));
+});
+
+afterAll(() => {
+	vi.clearAllMocks();
+});
 
 describe('normalizePath', () => {
 	test('windows short path name format normalizes', () => {
@@ -29,15 +53,14 @@ describe('normalizePath', () => {
 
 describe('readJsonFile', () => {
 	test('should read a valid JSON file', async () => {
-		await expect(
-			readJsonFile('validTest/functions/index.func/.vc-config.json')
-		).resolves.toEqual({ runtime: 'edge', entrypoint: 'index.js' });
+		await expect(readJsonFile('.vc-config.json')).resolves.toEqual({
+			runtime: 'edge',
+			entrypoint: 'index.js',
+		});
 	});
 
 	test('should return null with invalid json file', async () => {
-		await expect(
-			readJsonFile('invalidTest/functions/test/.invalid-config.json')
-		).resolves.toEqual(null);
+		await expect(readJsonFile('.invalid-config.json')).resolves.toEqual(null);
 	});
 });
 
