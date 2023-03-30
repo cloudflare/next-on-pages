@@ -49,10 +49,7 @@ export async function readJsonFile<T = object>(path: string) {
  * @param type Whether to check for a `file` or `directory`.
  * @returns Boolean representing whether the path matched the expected type.
  */
-export async function validatePathType(
-	path: string,
-	type: 'file' | 'directory'
-) {
+async function validatePathType(path: string, type: 'file' | 'directory') {
 	try {
 		const stats = await stat(path);
 		if (type === 'file' && stats.isFile()) return true;
@@ -62,4 +59,24 @@ export async function validatePathType(
 	}
 
 	return false;
+}
+
+/**
+ * Check that the path exists and that it is a file.
+ *
+ * @param path Path to check.
+ * @returns Whether a file exists at the given path.
+ */
+export async function validateFile(path: string) {
+	return validatePathType(path, 'file');
+}
+
+/**
+ * Check that the path exists and that it is a directory.
+ *
+ * @param path Path to check.
+ * @returns Whether a directory exists at the given path.
+ */
+export async function validateDir(path: string) {
+	return validatePathType(path, 'directory');
 }

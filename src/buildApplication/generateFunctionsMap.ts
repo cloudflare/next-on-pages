@@ -3,7 +3,12 @@ import { exit } from 'process';
 import { dirname, join, relative } from 'path';
 import { parse, Node } from 'acorn';
 import { generate } from 'astring';
-import { normalizePath, readJsonFile, validatePathType } from '../utils';
+import {
+	normalizePath,
+	readJsonFile,
+	validateDir,
+	validateFile,
+} from '../utils';
 import { cliError, CliOptions } from '../cli';
 import { tmpdir } from 'os';
 
@@ -61,7 +66,7 @@ async function processDirectoryRecursively(
 	await Promise.all(
 		files.map(async file => {
 			const filepath = join(dir, file);
-			if (await validatePathType(filepath, 'directory')) {
+			if (await validateDir(filepath)) {
 				const dirResultsPromise = file.endsWith('.func')
 					? processFuncDirectory(setup, file, filepath)
 					: processDirectoryRecursively(setup, filepath);
@@ -111,7 +116,7 @@ async function processFuncDirectory(
 	}
 
 	const functionFile = join(filepath, functionConfig.entrypoint);
-	if (!(await validatePathType(functionFile, 'file'))) {
+	if (!(await validateFile(functionFile))) {
 		return {
 			invalidFunctions: new Set([file]),
 		};

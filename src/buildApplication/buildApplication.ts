@@ -11,7 +11,7 @@ import { buildWorkerFile } from './buildWorkerFile';
 import { generateFunctionsMap } from './generateFunctionsMap';
 import { buildVercelOutput } from './buildVercelOutput';
 import { buildMetadataFiles } from './buildMetadataFiles';
-import { validatePathType } from '../utils';
+import { validateDir } from '../utils';
 
 /**
  * Builds the _worker.js with static assets implementing the Next.js application
@@ -52,7 +52,7 @@ async function prepareAndBuildWorker(
 	const functionsDir = resolve(
 		`.vercel/output/functions${nextJsConfigs.basePath ?? ''}`
 	);
-	if (!(await validatePathType(functionsDir, 'directory'))) {
+	if (!(await validateDir(functionsDir))) {
 		cliLog('No functions detected.');
 		return;
 	}

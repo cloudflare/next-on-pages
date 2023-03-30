@@ -2,7 +2,8 @@ import { describe, test, expect } from 'vitest';
 import {
 	normalizePath,
 	readJsonFile,
-	validatePathType,
+	validateDir,
+	validateFile,
 } from '../../../src/utils';
 
 describe('normalizePath', () => {
@@ -40,44 +41,42 @@ describe('readJsonFile', () => {
 	});
 });
 
-describe('validatePathType', () => {
-	describe('`file` type', () => {
-		test('valid file returns true', async () => {
-			await expect(
-				validatePathType('validTest/functions/index.func/index.js', 'file')
-			).resolves.toEqual(true);
-		});
-
-		test('valid directory returns false', async () => {
-			await expect(
-				validatePathType('validTest/functions/index.func/index.js', 'directory')
-			).resolves.toEqual(false);
-		});
-
-		test('invalid path returns false', async () => {
-			await expect(
-				validatePathType('invalidTest/invalidPath', 'file')
-			).resolves.toEqual(false);
-		});
+describe('validateFile', () => {
+	test('valid file returns true', async () => {
+		await expect(
+			validateFile('validTest/functions/index.func/index.js')
+		).resolves.toEqual(true);
 	});
 
-	describe('`directory` type', () => {
-		test('valid directory returns true', async () => {
-			await expect(
-				validatePathType('validTest/functions/index.func', 'directory')
-			).resolves.toEqual(true);
-		});
+	test('valid directory returns false', async () => {
+		await expect(
+			validateFile('validTest/functions/index.func')
+		).resolves.toEqual(false);
+	});
 
-		test('valid file returns false', async () => {
-			await expect(
-				validatePathType('validTest/functions/index.func/index.js', 'directory')
-			).resolves.toEqual(false);
-		});
+	test('invalid path returns false', async () => {
+		await expect(validateFile('invalidTest/invalidPath')).resolves.toEqual(
+			false
+		);
+	});
+});
 
-		test('invalid path returns false', async () => {
-			await expect(
-				validatePathType('invalidTest/invalidPath', 'directory')
-			).resolves.toEqual(false);
-		});
+describe('validateDir', () => {
+	test('valid directory returns true', async () => {
+		await expect(
+			validateDir('validTest/functions/index.func')
+		).resolves.toEqual(true);
+	});
+
+	test('valid file returns false', async () => {
+		await expect(
+			validateDir('validTest/functions/index.func/index.js')
+		).resolves.toEqual(false);
+	});
+
+	test('invalid path returns false', async () => {
+		await expect(validateDir('invalidTest/invalidPath')).resolves.toEqual(
+			false
+		);
 	});
 });
