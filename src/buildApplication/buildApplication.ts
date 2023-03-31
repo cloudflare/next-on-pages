@@ -6,7 +6,7 @@ import {
 	MiddlewareManifestData,
 } from './middlewareManifest';
 import { getNextJsConfigs } from './nextJsConfigs';
-import { getVercelConfig, VercelConfig } from './vercelConfig';
+import { getVercelConfig } from './vercelConfig';
 import { buildWorkerFile } from './buildWorkerFile';
 import { generateFunctionsMap } from './generateFunctionsMap';
 import { buildVercelOutput } from './buildVercelOutput';

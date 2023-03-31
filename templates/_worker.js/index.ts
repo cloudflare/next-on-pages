@@ -6,7 +6,7 @@ const hasField = (
 		url,
 		cookies,
 	}: { request: Request; url: URL; cookies: Record<string, string> },
-	has: Source['has'][0]
+	has: VercelSource['has'][0]
 ) => {
 	switch (has.type) {
 		case 'host': {
@@ -41,13 +41,13 @@ const hasField = (
 
 export const routesMatcher = (
 	{ request }: { request: Request },
-	routes?: Config['routes']
-): Config['routes'] => {
+	routes?: VercelConfig['routes']
+): VercelConfig['routes'] => {
 	// https://vercel.com/docs/build-output-api/v3#build-output-configuration/supported-properties/routes
 	const url = new URL(request.url);
 	const cookies = parse(request.headers.get('cookie') || '');
 
-	const matchingRoutes: Config['routes'] = [];
+	const matchingRoutes: VercelConfig['routes'] = [];
 
 	for (const route of routes || []) {
 		// https://vercel.com/docs/build-output-api/v3#build-output-configuration/supported-properties/routes/source-route
@@ -120,7 +120,7 @@ type EdgeFunctions = {
 	entrypoint: Promise<EdgeFunction>;
 }[];
 
-declare const __CONFIG__: Config;
+declare const __CONFIG__: VercelConfig;
 
 declare const __FUNCTIONS__: EdgeFunctions;
 
@@ -130,7 +130,7 @@ declare const __BASE_PATH__: string;
 
 export default {
 	async fetch(request, env, context) {
-		globalThis.process.env = { ...globalThis.process.env, ...env };
+		(globalThis.process.env as unknown) = { ...globalThis.process.env, ...env };
 
 		const { pathname } = new URL(request.url);
 		const routes = routesMatcher({ request }, __CONFIG__.routes);
@@ -196,13 +196,16 @@ export default {
  * @returns the adjusted request to pass to Next
  */
 function adjustRequestForVercel(request: Request): Request {
+	const { cf } = request as unknown as { cf?: IncomingRequestCfProperties };
 	const adjustedHeaders = new Headers(request.headers);
 
-	adjustedHeaders.append('x-vercel-ip-city', request.cf?.city);
-	adjustedHeaders.append('x-vercel-ip-country', request.cf?.country);
-	adjustedHeaders.append('x-vercel-ip-country-region', request.cf?.region);
-	adjustedHeaders.append('x-vercel-ip-latitude', request.cf?.latitude);
-	adjustedHeaders.append('x-vercel-ip-longitude', request.cf?.longitude);
+	if (cf) {
+		adjustedHeaders.append('x-vercel-ip-city', cf.city);
+		adjustedHeaders.append('x-vercel-ip-country', cf.country);
+		adjustedHeaders.append('x-vercel-ip-country-region', cf.region);
+		adjustedHeaders.append('x-vercel-ip-latitude', cf.latitude);
+		adjustedHeaders.append('x-vercel-ip-longitude', cf.longitude);
+	}
 
 	return new Request(request, { headers: adjustedHeaders });
 }

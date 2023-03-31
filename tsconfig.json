@@ -1,0 +1,13 @@
+{
+	"include": ["src", "templates", "tests", "vercel.types.d.ts"],
+	"compilerOptions": {
+		"checkJs": false,
+		"target": "ES2021",
+		"module": "CommonJS",
+		"resolveJsonModule": true,
+		"lib": ["ES2021", "DOM"],
+		"types": ["@cloudflare/workers-types"],
+		"skipLibCheck": true,
+		"esModuleInterop": true
+	}
+}

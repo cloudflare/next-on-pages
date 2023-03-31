@@ -94,7 +94,7 @@ describe('routesMatcher', () => {
 				has: [{ type: 'host', value: 'fakehost' }],
 				continue: true,
 			};
-			const routes = [hostRoute, otherHostRoute];
+			const routes = [hostRoute, otherHostRoute] as VercelRoute[];
 
 			const request = (...args: Parameters<typeof requestGenerator>) =>
 				routesMatcher({ request: requestGenerator(...args) }, routes);
@@ -115,7 +115,7 @@ describe('routesMatcher', () => {
 				has: [{ type: 'header', key: 'x-header', value: 'foo' }],
 				continue: true,
 			};
-			const routes = [headerRoute, headerValueRoute];
+			const routes = [headerRoute, headerValueRoute] as VercelRoute[];
 
 			const request = (...args: Parameters<typeof requestGenerator>) =>
 				routesMatcher({ request: requestGenerator(...args) }, routes);
@@ -141,7 +141,7 @@ describe('routesMatcher', () => {
 				has: [{ type: 'cookie', key: 'mycookie', value: 'jar' }],
 				continue: true,
 			};
-			const routes = [cookieRoute, cookieValueRoute];
+			const routes = [cookieRoute, cookieValueRoute] as VercelRoute[];
 
 			const request = (...args: Parameters<typeof requestGenerator>) =>
 				routesMatcher({ request: requestGenerator(...args) }, routes);
@@ -166,7 +166,7 @@ describe('routesMatcher', () => {
 				has: [{ type: 'query', key: 'param', value: 'value' }],
 				continue: true,
 			};
-			const routes = [queryRoute, queryValueRoute];
+			const routes = [queryRoute, queryValueRoute] as VercelRoute[];
 
 			const request = (...args: Parameters<typeof requestGenerator>) =>
 				routesMatcher({ request: requestGenerator(...args) }, routes);
@@ -188,7 +188,7 @@ describe('routesMatcher', () => {
 				],
 				continue: true,
 			};
-			const routes = [multipleHasRoute];
+			const routes = [multipleHasRoute] as VercelRoute[];
 
 			const request = (...args: Parameters<typeof requestGenerator>) =>
 				routesMatcher({ request: requestGenerator(...args) }, routes);
@@ -215,7 +215,7 @@ describe('routesMatcher', () => {
 				missing: [{ type: 'host', value: 'fakehost' }],
 				continue: true,
 			};
-			const routes = [hostRoute, otherHostRoute];
+			const routes = [hostRoute, otherHostRoute] as VercelRoute[];
 
 			const request = (...args: Parameters<typeof requestGenerator>) =>
 				routesMatcher({ request: requestGenerator(...args) }, routes);
@@ -236,7 +236,7 @@ describe('routesMatcher', () => {
 				missing: [{ type: 'header', key: 'x-header', value: 'foo' }],
 				continue: true,
 			};
-			const routes = [headerRoute, headerValueRoute];
+			const routes = [headerRoute, headerValueRoute] as VercelRoute[];
 
 			const request = (...args: Parameters<typeof requestGenerator>) =>
 				routesMatcher({ request: requestGenerator(...args) }, routes);
@@ -259,7 +259,7 @@ describe('routesMatcher', () => {
 				missing: [{ type: 'cookie', key: 'mycookie', value: 'jar' }],
 				continue: true,
 			};
-			const routes = [cookieRoute, cookieValueRoute];
+			const routes = [cookieRoute, cookieValueRoute] as VercelRoute[];
 
 			const request = (...args: Parameters<typeof requestGenerator>) =>
 				routesMatcher({ request: requestGenerator(...args) }, routes);
@@ -284,7 +284,7 @@ describe('routesMatcher', () => {
 				missing: [{ type: 'query', key: 'param', value: 'value' }],
 				continue: true,
 			};
-			const routes = [queryRoute, queryValueRoute];
+			const routes = [queryRoute, queryValueRoute] as VercelRoute[];
 
 			const request = (...args: Parameters<typeof requestGenerator>) =>
 				routesMatcher({ request: requestGenerator(...args) }, routes);
@@ -303,7 +303,7 @@ describe('routesMatcher', () => {
 				],
 				continue: true,
 			};
-			const routes = [multipleMissingRoute];
+			const routes = [multipleMissingRoute] as VercelRoute[];
 
 			const request = (...args: Parameters<typeof requestGenerator>) =>
 				routesMatcher({ request: requestGenerator(...args) }, routes);

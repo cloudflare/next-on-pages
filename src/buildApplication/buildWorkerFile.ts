@@ -3,7 +3,6 @@ import { join } from 'path';
 import { build } from 'esbuild';
 import { tmpdir } from 'os';
 import { cliLog, CliOptions } from '../cli';
-import { VercelConfig } from './vercelConfig';
 import { NextJsConfigs } from './nextJsConfigs';
 import { MiddlewareManifestData } from './middlewareManifest';
 
