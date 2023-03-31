@@ -196,15 +196,14 @@ export default {
  * @returns the adjusted request to pass to Next
  */
 function adjustRequestForVercel(request: Request): Request {
-	const { cf } = request as unknown as { cf?: IncomingRequestCfProperties };
 	const adjustedHeaders = new Headers(request.headers);
 
-	if (cf) {
-		adjustedHeaders.append('x-vercel-ip-city', cf.city);
-		adjustedHeaders.append('x-vercel-ip-country', cf.country);
-		adjustedHeaders.append('x-vercel-ip-country-region', cf.region);
-		adjustedHeaders.append('x-vercel-ip-latitude', cf.latitude);
-		adjustedHeaders.append('x-vercel-ip-longitude', cf.longitude);
+	if (request.cf) {
+		adjustedHeaders.append('x-vercel-ip-city', request.cf.city);
+		adjustedHeaders.append('x-vercel-ip-country', request.cf.country);
+		adjustedHeaders.append('x-vercel-ip-country-region', request.cf.region);
+		adjustedHeaders.append('x-vercel-ip-latitude', request.cf.latitude);
+		adjustedHeaders.append('x-vercel-ip-longitude', request.cf.longitude);
 	}
 
 	return new Request(request, { headers: adjustedHeaders });

@@ -3,11 +3,11 @@ import { routesMatcher } from '../../templates/_worker.js/index.js';
 
 describe('routesMatcher', () => {
 	const requestGenerator = (
-		input: RequestInfo | URL,
+		input: Request | string,
 		init?: RequestInit
 	): Request => {
 		if (typeof input === 'string' && input.startsWith('/')) {
-			input = new URL(input, 'https://example.com/');
+			input = `${new URL(input, 'https://example.com/')}`;
 		}
 		return new Request(input, init);
 	};
@@ -26,7 +26,10 @@ describe('routesMatcher', () => {
 		const routes = [fooRoute, barRoute, catchAllRoute];
 
 		const request = (...args: Parameters<typeof requestGenerator>) =>
-			routesMatcher({ request: requestGenerator(...args) }, routes);
+			routesMatcher(
+				{ request: requestGenerator(...args) },
+				routes as VercelRoute[]
+			);
 
 		expect(request('/foo')).toEqual([fooRoute, catchAllRoute]);
 		expect(request('/bar')).toEqual([barRoute, catchAllRoute]);
@@ -52,7 +55,10 @@ describe('routesMatcher', () => {
 		];
 
 		const request = (...args: Parameters<typeof requestGenerator>) =>
-			routesMatcher({ request: requestGenerator(...args) }, routes);
+			routesMatcher(
+				{ request: requestGenerator(...args) },
+				routes as VercelRoute[]
+			);
 
 		expect(request('/foo')).toEqual([
 			caseSensitiveRoute,
@@ -72,7 +78,10 @@ describe('routesMatcher', () => {
 		const routes = [getRoute, postRoute, noMethodRoute];
 
 		const request = (...args: Parameters<typeof requestGenerator>) =>
-			routesMatcher({ request: requestGenerator(...args) }, routes);
+			routesMatcher(
+				{ request: requestGenerator(...args) },
+				routes as VercelRoute[]
+			);
 
 		expect(request('/', { method: 'get' })).toEqual([getRoute, noMethodRoute]);
 		expect(request('/', { method: 'POST' })).toEqual([
@@ -94,10 +103,13 @@ describe('routesMatcher', () => {
 				has: [{ type: 'host', value: 'fakehost' }],
 				continue: true,
 			};
-			const routes = [hostRoute, otherHostRoute] as VercelRoute[];
+			const routes = [hostRoute, otherHostRoute];
 
 			const request = (...args: Parameters<typeof requestGenerator>) =>
-				routesMatcher({ request: requestGenerator(...args) }, routes);
+				routesMatcher(
+					{ request: requestGenerator(...args) },
+					routes as VercelRoute[]
+				);
 
 			expect(request('https://example.com/')).toEqual([hostRoute]);
 			expect(request('https://fakehost/')).toEqual([otherHostRoute]);
@@ -115,10 +127,13 @@ describe('routesMatcher', () => {
 				has: [{ type: 'header', key: 'x-header', value: 'foo' }],
 				continue: true,
 			};
-			const routes = [headerRoute, headerValueRoute] as VercelRoute[];
+			const routes = [headerRoute, headerValueRoute];
 
 			const request = (...args: Parameters<typeof requestGenerator>) =>
-				routesMatcher({ request: requestGenerator(...args) }, routes);
+				routesMatcher(
+					{ request: requestGenerator(...args) },
+					routes as VercelRoute[]
+				);
 
 			expect(request('/', { headers: { 'X-HEADER': 'bar' } })).toEqual([
 				headerRoute,
@@ -141,10 +156,13 @@ describe('routesMatcher', () => {
 				has: [{ type: 'cookie', key: 'mycookie', value: 'jar' }],
 				continue: true,
 			};
-			const routes = [cookieRoute, cookieValueRoute] as VercelRoute[];
+			const routes = [cookieRoute, cookieValueRoute];
 
 			const request = (...args: Parameters<typeof requestGenerator>) =>
-				routesMatcher({ request: requestGenerator(...args) }, routes);
+				routesMatcher(
+					{ request: requestGenerator(...args) },
+					routes as VercelRoute[]
+				);
 
 			expect(
 				request('/', { headers: { Cookie: 'mycookie=foo; other=val' } })
@@ -166,10 +184,13 @@ describe('routesMatcher', () => {
 				has: [{ type: 'query', key: 'param', value: 'value' }],
 				continue: true,
 			};
-			const routes = [queryRoute, queryValueRoute] as VercelRoute[];
+			const routes = [queryRoute, queryValueRoute];
 
 			const request = (...args: Parameters<typeof requestGenerator>) =>
-				routesMatcher({ request: requestGenerator(...args) }, routes);
+				routesMatcher(
+					{ request: requestGenerator(...args) },
+					routes as VercelRoute[]
+				);
 
 			expect(request('/?param=foo&other=val')).toEqual([queryRoute]);
 			expect(request('/?other=val&param=value')).toEqual([
@@ -188,10 +209,13 @@ describe('routesMatcher', () => {
 				],
 				continue: true,
 			};
-			const routes = [multipleHasRoute] as VercelRoute[];
+			const routes = [multipleHasRoute];
 
 			const request = (...args: Parameters<typeof requestGenerator>) =>
-				routesMatcher({ request: requestGenerator(...args) }, routes);
+				routesMatcher(
+					{ request: requestGenerator(...args) },
+					routes as VercelRoute[]
+				);
 
 			expect(request('/?param=foo&other=val')).toEqual([]);
 			expect(
@@ -215,10 +239,13 @@ describe('routesMatcher', () => {
 				missing: [{ type: 'host', value: 'fakehost' }],
 				continue: true,
 			};
-			const routes = [hostRoute, otherHostRoute] as VercelRoute[];
+			const routes = [hostRoute, otherHostRoute];
 
 			const request = (...args: Parameters<typeof requestGenerator>) =>
-				routesMatcher({ request: requestGenerator(...args) }, routes);
+				routesMatcher(
+					{ request: requestGenerator(...args) },
+					routes as VercelRoute[]
+				);
 
 			expect(request('https://example.com/')).toEqual([otherHostRoute]);
 			expect(request('https://fakehost/')).toEqual([hostRoute]);
@@ -236,10 +263,13 @@ describe('routesMatcher', () => {
 				missing: [{ type: 'header', key: 'x-header', value: 'foo' }],
 				continue: true,
 			};
-			const routes = [headerRoute, headerValueRoute] as VercelRoute[];
+			const routes = [headerRoute, headerValueRoute];
 
 			const request = (...args: Parameters<typeof requestGenerator>) =>
-				routesMatcher({ request: requestGenerator(...args) }, routes);
+				routesMatcher(
+					{ request: requestGenerator(...args) },
+					routes as VercelRoute[]
+				);
 
 			expect(request('/', { headers: { 'X-HEADER': 'bar' } })).toEqual([
 				headerValueRoute,
@@ -259,10 +289,13 @@ describe('routesMatcher', () => {
 				missing: [{ type: 'cookie', key: 'mycookie', value: 'jar' }],
 				continue: true,
 			};
-			const routes = [cookieRoute, cookieValueRoute] as VercelRoute[];
+			const routes = [cookieRoute, cookieValueRoute];
 
 			const request = (...args: Parameters<typeof requestGenerator>) =>
-				routesMatcher({ request: requestGenerator(...args) }, routes);
+				routesMatcher(
+					{ request: requestGenerator(...args) },
+					routes as VercelRoute[]
+				);
 
 			expect(
 				request('/', { headers: { Cookie: 'mycookie=foo; other=val' } })
@@ -284,10 +317,13 @@ describe('routesMatcher', () => {
 				missing: [{ type: 'query', key: 'param', value: 'value' }],
 				continue: true,
 			};
-			const routes = [queryRoute, queryValueRoute] as VercelRoute[];
+			const routes = [queryRoute, queryValueRoute];
 
 			const request = (...args: Parameters<typeof requestGenerator>) =>
-				routesMatcher({ request: requestGenerator(...args) }, routes);
+				routesMatcher(
+					{ request: requestGenerator(...args) },
+					routes as VercelRoute[]
+				);
 
 			expect(request('/?param=foo&other=val')).toEqual([queryValueRoute]);
 			expect(request('/?other=val&param=value')).toEqual([]);
@@ -303,10 +339,13 @@ describe('routesMatcher', () => {
 				],
 				continue: true,
 			};
-			const routes = [multipleMissingRoute] as VercelRoute[];
+			const routes = [multipleMissingRoute];
 
 			const request = (...args: Parameters<typeof requestGenerator>) =>
-				routesMatcher({ request: requestGenerator(...args) }, routes);
+				routesMatcher(
+					{ request: requestGenerator(...args) },
+					routes as VercelRoute[]
+				);
 
 			expect(request('/?param=foo&other=val')).toEqual([]);
 			expect(
@@ -335,7 +374,10 @@ describe('routesMatcher', () => {
 		const routes = [continueRoute, dontContinueRoute, terminalRoute];
 
 		const request = (...args: Parameters<typeof requestGenerator>) =>
-			routesMatcher({ request: requestGenerator(...args) }, routes);
+			routesMatcher(
+				{ request: requestGenerator(...args) },
+				routes as VercelRoute[]
+			);
 
 		expect(request('/')).toEqual([continueRoute, dontContinueRoute]);
 	});
