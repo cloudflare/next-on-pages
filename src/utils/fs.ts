@@ -29,7 +29,7 @@ type JSONValue =
 	| number
 	| boolean
 	| null
-	| { [key: string]: JSONValue | unknown }
+	| { [key: string]: JSONValue }
 	| JSONValue[];
 
 /**

@@ -1,15 +1,15 @@
-type Config = {
+type VercelConfig = {
 	version: 3;
-	routes?: Route[];
-	images?: ImagesConfig;
-	wildcard?: WildcardConfig;
-	overrides?: OverrideConfig;
+	routes?: VercelRoute[];
+	images?: VercelImagesConfig;
+	wildcard?: VercelWildcardConfig;
+	overrides?: VercelOverrideConfig;
 	cache?: string[];
 };
 
-type Route = Source | Handler;
+type VercelRoute = VercelSource | VercelHandler;
 
-type Source = {
+type VercelSource = {
 	src: string;
 	dest?: string;
 	headers?: Record<string, string>;
@@ -18,43 +18,48 @@ type Source = {
 	caseSensitive?: boolean;
 	check?: boolean;
 	status?: number;
-	has?: Array<HostHasField | HeaderHasField | CookieHasField | QueryHasField>;
-	missing?: Array<
-		HostHasField | HeaderHasField | CookieHasField | QueryHasField
-	>;
-	locale?: Locale;
+	has?: VercelHasFields;
+	missing?: VercelHasFields;
+	locale?: VercelLocale;
 	middlewarePath?: string;
 };
 
-type Locale = {
+type VercelHasFields = Array<
+	| VercelHostHasField
+	| VercelHeaderHasField
+	| VercelCookieHasField
+	| VercelQueryHasField
+>;
+
+type VercelLocale = {
 	redirect?: Record<string, string>;
 	cookie?: string;
 };
 
-type HostHasField = {
+type VercelHostHasField = {
 	type: 'host';
 	value: string;
 };
 
-type HeaderHasField = {
+type VercelHeaderHasField = {
 	type: 'header';
 	key: string;
 	value?: string;
 };
 
-type CookieHasField = {
+type VercelCookieHasField = {
 	type: 'cookie';
 	key: string;
 	value?: string;
 };
 
-type QueryHasField = {
+type VercelQueryHasField = {
 	type: 'query';
 	key: string;
 	value?: string;
 };
 
-type HandleValue =
+type VercelHandleValue =
 	| 'rewrite'
 	| 'filesystem' // check matches after the filesystem misses
 	| 'resource'
@@ -62,34 +67,34 @@ type HandleValue =
 	| 'hit'
 	| 'error'; //  check matches after error (500, 404, etc.)
 
-type Handler = {
-	handle: HandleValue;
+type VercelHandler = {
+	handle: VercelHandleValue;
 	src?: string;
 	dest?: string;
 	status?: number;
 };
 
-type ImageFormat = 'image/avif' | 'image/webp';
+type VercelImageFormat = 'image/avif' | 'image/webp';
 
-type ImagesConfig = {
+type VercelImagesConfig = {
 	sizes: number[];
 	domains: string[];
 	minimumCacheTTL?: number; // seconds
-	formats?: ImageFormat[];
+	formats?: VercelImageFormat[];
 	dangerouslyAllowSVG?: boolean;
 	contentSecurityPolicy?: string;
 };
 
-type WildCard = {
+type VercelWildCard = {
 	domain: string;
 	value: string;
 };
 
-type WildcardConfig = Array<WildCard>;
+type VercelWildcardConfig = Array<VercelWildCard>;
 
-type Override = {
+type VercelOverride = {
 	path?: string;
 	contentType?: string;
 };
 
-type OverrideConfig = Record<string, Override>;
+type VercelOverrideConfig = Record<string, VercelOverride>;
