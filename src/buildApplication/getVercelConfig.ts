@@ -17,7 +17,7 @@ export async function getVercelConfig(): Promise<VercelConfig> {
 		throw new Error("Could not read the '.vercel/output/config.json' file.");
 	}
 
-	if (config.version !== 3) {
+	if (config.version !== supportedConfigVersion) {
 		throw new Error(
 			`Unknown '.vercel/output/config.json' version. Expected ${supportedConfigVersion} but found ${config.version}.`
 		);
