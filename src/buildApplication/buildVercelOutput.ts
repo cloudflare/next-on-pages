@@ -1,7 +1,8 @@
-import { writeFile, mkdir } from 'fs/promises';
+import { writeFile, mkdir, rm, readdir } from 'fs/promises';
 import { spawn } from 'child_process';
+import { join, resolve } from 'path';
 import { cliError, cliLog } from '../cli';
-import { validateFile } from '../utils';
+import { validateDir, validateFile } from '../utils';
 
 /**
  * Builds the Next.js output via the Vercel CLI
@@ -59,4 +60,25 @@ async function runVercelBuild(): Promise<void> {
 			}
 		});
 	});
+}
+
+/**
+ * Vercel and Next.js generate *private* files for telemetry purposes that are accessible as static assets (`.vercel/output/static/_next/__private/...`).
+ *
+ * The routing system for the build output *should* prevent these files from being accessible, but if someone were to exclude all static assets in an `_routes.json` file, they would be accessible.
+ *
+ * We do not need these files, nor do we want to run the risk of them being available. Therefore, we should purge them instead of uploading them to Cloudflare Pages.
+ */
+export async function purgePrivateFiles(): Promise<void> {
+	const nextDir = resolve('.vercel/output/static/_next');
+	const privateDir = join(nextDir, '__private');
+
+	if (await validateDir(privateDir)) {
+		await rm(privateDir, { recursive: true, force: true });
+
+		// Remove the `_next` directory if it's now empty
+		if ((await readdir(nextDir)).length === 0) {
+			await rm(nextDir, { recursive: true, force: true });
+		}
+	}
 }
