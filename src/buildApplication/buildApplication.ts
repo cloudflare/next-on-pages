@@ -24,19 +24,20 @@ import { validateDir } from '../utils';
 export async function buildApplication({
 	skipBuild,
 	experimentalMinify,
-}: Pick<CliOptions, 'skipBuild' | 'experimentalMinify'>) {
+	nodEnv,
+}: Pick<CliOptions, 'skipBuild' | 'experimentalMinify' | 'nodEnv'>) {
 	if (!skipBuild) {
 		await buildVercelOutput();
 	}
 
 	await deleteNextTelemetryFiles();
 
-	await prepareAndBuildWorker({ experimentalMinify });
+	await prepareAndBuildWorker({ experimentalMinify, nodEnv });
 	await buildMetadataFiles();
 }
 
 async function prepareAndBuildWorker(
-	options: Pick<CliOptions, 'experimentalMinify'>
+	options: Pick<CliOptions, 'experimentalMinify' | 'nodEnv'>
 ): Promise<void> {
 	let vercelConfig: VercelConfig;
 	try {
@@ -92,7 +93,8 @@ async function prepareAndBuildWorker(
 		middlewareManifestData,
 		vercelConfig,
 		nextJsConfigs,
-		options
+		options.experimentalMinify,
+		options.nodEnv
 	);
 }
 

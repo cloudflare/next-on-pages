@@ -1,10 +1,15 @@
 import dedent from 'dedent-tabs';
 
+const allowedNodeEnvs = ['production', 'development', 'test'] as const;
+
+export type NodeEnv = (typeof allowedNodeEnvs)[number];
+
 export type CliOptions = {
 	help: boolean;
 	watch: boolean;
 	skipBuild: boolean;
 	experimentalMinify: boolean;
+	nodEnv: NodeEnv;
 };
 
 /**
@@ -20,7 +25,30 @@ export function getCliOptions(): CliOptions {
 		watch: process.argv.includes('--watch'),
 		skipBuild: process.argv.includes('--skip-build'),
 		experimentalMinify: process.argv.includes('--experimental-minify'),
+		nodEnv: getNodeEnv(),
 	};
+}
+
+function getNodeEnv(): NodeEnv {
+	const nodeEnvIdx = process.argv.findIndex(arg => arg === '--node-env');
+	if (nodeEnvIdx === -1) {
+		return 'production';
+	}
+	const nextArg = process.argv.at(nodeEnvIdx + 1);
+	if (!nextArg || nextArg.startsWith('--')) {
+		cliError('Error: Provided --node-env option without an argument.');
+		process.exit(1);
+	}
+	const nodeEnv = nextArg as NodeEnv;
+	if (!allowedNodeEnvs.includes(nodeEnv)) {
+		cliError(
+			`Error: Provided --node-env with the wrong argument, the only available options are: ${allowedNodeEnvs.join(
+				', '
+			)}`
+		);
+		process.exit(1);
+	}
+	return nodeEnv;
 }
 
 /**
@@ -38,6 +66,11 @@ export function printCliHelpMessage(): void {
 
 		--skip-build:          Doesn't run 'vercel build' automatically
 
+
+		--node-env:            The NODE_ENV that should be applied to the built worker,
+                         the available values are ${allowedNodeEnvs.join(', ')}
+                         (default: production)
+                         (usage example: \`--node-env development\`)
 
 		--experimental-minify: Attempts to minify the functions of a project (by de-duping webpack chunks)
 

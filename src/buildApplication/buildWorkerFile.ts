@@ -2,15 +2,17 @@ import { writeFile } from 'fs/promises';
 import { join } from 'path';
 import { build } from 'esbuild';
 import { tmpdir } from 'os';
-import { cliLog, CliOptions } from '../cli';
+import { cliLog, NodeEnv } from '../cli';
 import { NextJsConfigs } from './nextJsConfigs';
 import { MiddlewareManifestData } from './middlewareManifest';
+import { generateGlobalJs } from './buildGlobalContext';
 
 export async function buildWorkerFile(
 	{ hydratedMiddleware, hydratedFunctions }: MiddlewareManifestData,
 	vercelConfig: VercelConfig,
 	nextJsConfigs: NextJsConfigs,
-	experimentalMinify: Pick<CliOptions, 'experimentalMinify'>
+	experimentalMinify: boolean,
+	nodeEnv: NodeEnv
 ) {
 	const functionsFile = join(
 		tmpdir(),
@@ -45,11 +47,11 @@ export async function buildWorkerFile(
 
 	await build({
 		entryPoints: [join(__dirname, '../templates/_worker.js')],
+		banner: {
+			js: generateGlobalJs(nodeEnv),
+		},
 		bundle: true,
-		inject: [
-			join(__dirname, '../templates/_worker.js/globals.js'),
-			functionsFile,
-		],
+		inject: [functionsFile],
 		target: 'es2022',
 		platform: 'neutral',
 		external: ['node:async_hooks'],
