@@ -1,5 +1,5 @@
 import { writeFile } from 'fs/promises';
-import { version as nextOnPagesVersion } from '../../package.json';
+import { nextOnPagesVersion } from '../utils';
 
 /**
  * Builds metadata files needed for the worker to correctly run.
