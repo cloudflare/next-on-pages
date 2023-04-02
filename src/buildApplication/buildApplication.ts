@@ -9,7 +9,10 @@ import { getNextJsConfigs } from './nextJsConfigs';
 import { getVercelConfig } from './getVercelConfig';
 import { buildWorkerFile } from './buildWorkerFile';
 import { generateFunctionsMap } from './generateFunctionsMap';
-import { buildVercelOutput } from './buildVercelOutput';
+import {
+	buildVercelOutput,
+	deleteNextTelemetryFiles,
+} from './buildVercelOutput';
 import { buildMetadataFiles } from './buildMetadataFiles';
 import { validateDir } from '../utils';
 
@@ -25,6 +28,8 @@ export async function buildApplication({
 	if (!skipBuild) {
 		await buildVercelOutput();
 	}
+
+	await deleteNextTelemetryFiles();
 
 	await prepareAndBuildWorker({ experimentalMinify });
 	await buildMetadataFiles();
