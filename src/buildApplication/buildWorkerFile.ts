@@ -5,6 +5,7 @@ import { tmpdir } from 'os';
 import { cliLog, CliOptions } from '../cli';
 import { NextJsConfigs } from './nextJsConfigs';
 import { MiddlewareManifestData } from './middlewareManifest';
+import { generateGlobalJs } from './generateGlobalJs';
 
 export async function buildWorkerFile(
 	{ hydratedMiddleware, hydratedFunctions }: MiddlewareManifestData,
@@ -45,11 +46,11 @@ export async function buildWorkerFile(
 
 	await build({
 		entryPoints: [join(__dirname, '../templates/_worker.js')],
+		banner: {
+			js: generateGlobalJs(),
+		},
 		bundle: true,
-		inject: [
-			join(__dirname, '../templates/_worker.js/globals.js'),
-			functionsFile,
-		],
+		inject: [functionsFile],
 		target: 'es2022',
 		platform: 'neutral',
 		external: ['node:async_hooks'],
