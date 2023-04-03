@@ -1,5 +1,18 @@
 # @cloudflare/next-on-pages
 
+## 0.6.0
+
+### Minor Changes
+
+- 70b2e80: show the CLI version and also add the --version flag
+- 8b4f6d5: allow setting of NODE_ENV
+
+### Patch Changes
+
+- dcbbb9a: Parses cli arguments with the `zodcli` package
+- e0c53fe: fix experimental minification always on
+- 057baa0: Remove private/telemetry files from the build output.
+
 ## 0.5.0
 
 ### Minor Changes
