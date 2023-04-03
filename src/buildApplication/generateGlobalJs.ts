@@ -11,17 +11,21 @@ export function generateGlobalJs(): string {
 	return `globalThis.process = { env: { NODE_ENV: '${nodeEnv}' } };`;
 }
 
-function getNodeEnv(): string {
-	const nextJsNodeEnvs = ['production', 'development', 'test'];
-	const defaultNodeEnv = nextJsNodeEnvs[0];
+enum NextJsNodeEnv {
+	PRODUCTION = 'production',
+	DEVELOPMENT = 'development',
+	TEST = 'test',
+}
 
+function getNodeEnv(): string {
 	const processNodeEnv = process.env.NODE_ENV;
 
 	if (!processNodeEnv) {
-		return defaultNodeEnv;
+		return NextJsNodeEnv.PRODUCTION;
 	}
 
-	if (!nextJsNodeEnvs.includes(processNodeEnv)) {
+	const nextJsNodeEnvs = Object.values(NextJsNodeEnv);
+	if (!(nextJsNodeEnvs as string[]).includes(processNodeEnv)) {
 		cliWarn('');
 		cliWarn(`
 			WARNING:
