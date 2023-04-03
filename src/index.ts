@@ -27,7 +27,7 @@ function runNextOnPages(): void {
 	// Run the build once
 	runBuild(args);
 
-	// If the watch flag is thrown, run in watch mode
+	// If the watch flag is set, run in watch mode
 	if (args.watch) {
 		setWatchMode(() => runBuild(args));
 	}
