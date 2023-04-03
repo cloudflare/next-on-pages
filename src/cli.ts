@@ -5,6 +5,7 @@ export type CliOptions = {
 	watch: boolean;
 	skipBuild: boolean;
 	experimentalMinify: boolean;
+	version: boolean;
 };
 
 /**
@@ -20,6 +21,7 @@ export function getCliOptions(): CliOptions {
 		watch: process.argv.includes('--watch'),
 		skipBuild: process.argv.includes('--skip-build'),
 		experimentalMinify: process.argv.includes('--experimental-minify'),
+		version: process.argv.includes('--version'),
 	};
 }
 
@@ -35,6 +37,8 @@ export function printCliHelpMessage(): void {
 		Options:
 
 		--help:                Shows this help message
+
+		--version:             Shows the version of the package
 
 		--skip-build:          Doesn't run 'vercel build' automatically
 

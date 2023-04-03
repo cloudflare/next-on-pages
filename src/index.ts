@@ -2,6 +2,7 @@ import { watch } from 'chokidar';
 import pLimit from 'p-limit';
 import { cliLog, CliOptions, getCliOptions, printCliHelpMessage } from './cli';
 import { buildApplication } from './buildApplication';
+import { nextOnPagesVersion } from './utils';
 
 const limit = pLimit(1);
 
@@ -9,14 +10,18 @@ const cliOptions = getCliOptions();
 runNextOnPages(cliOptions);
 
 function runNextOnPages(options: CliOptions): void {
-	cliLog('@cloudflare/next-on-pages CLI');
+	if (options.version) {
+		// eslint-disable-next-line no-console -- for the version lets simply print it plainly
+		console.log(nextOnPagesVersion);
+		return;
+	}
+
+	cliLog(`@cloudflare/next-on-pages CLI v.${nextOnPagesVersion}`);
 
 	if (options.help) {
 		printCliHelpMessage();
 		return;
 	}
-
-	runBuild(options);
 
 	if (options.watch) {
 		setWatchMode(() => runBuild(options));
