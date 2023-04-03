@@ -9,6 +9,7 @@
 		"lint": "eslint src",
 		"types-check": "tsc --noEmit",
 		"build": "npx esbuild --bundle --platform=node ./src/index.ts --external:esbuild --external:chokidar --outfile=./dist/index.js",
+		"build:watch": "npm run build -- --watch",
 		"prepare": "npm run build",
 		"publish": "npm run build && npx changeset publish",
 		"changeset": "npx changeset",
@@ -24,7 +25,9 @@
 		"astring": "^1.8.4",
 		"chokidar": "^3.5.3",
 		"cookie": "^0.5.0",
-		"esbuild": "^0.15.3"
+		"esbuild": "^0.15.3",
+		"zod": "^3.21.4",
+		"zodcli": "^0.0.4"
 	},
 	"peerDependencies": {
 		"vercel": "^28.0.2"
