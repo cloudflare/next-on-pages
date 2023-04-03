@@ -29,7 +29,13 @@ export type CliOptions = z.infer<typeof cliOptions>;
  * @returns the provided options
  */
 export function parseCliArgs() {
-	return argumentParser({ options: cliOptions }).parse(process.argv.slice(2));
+	return argumentParser({
+		options: cliOptions,
+		aliases: {
+			h: 'help',
+			v: 'version',
+		},
+	}).parse(process.argv.slice(2));
 }
 
 /**
