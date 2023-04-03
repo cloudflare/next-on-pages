@@ -66,9 +66,9 @@ export function printCliHelpMessage(): void {
 
 		Options:
 
-		--help:                Shows this help message
+		--help, -h:                Shows this help message
 
-		--version:             Shows the version of the package
+		--version, -v:             Shows the version of the package
 
 		--skip-build:          Doesn't run 'vercel build' automatically
 
