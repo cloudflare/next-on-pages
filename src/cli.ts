@@ -1,12 +1,36 @@
 import dedent from 'dedent-tabs';
+import { z } from 'zod';
+import { argumentParser } from 'zodcli';
 
-export type CliOptions = {
-	help: boolean;
-	watch: boolean;
-	skipBuild: boolean;
-	experimentalMinify: boolean;
-	version: boolean;
-};
+// A helper type to handle command line flags. Defaults to false
+const flag = z
+	.union([
+		z.literal('true').transform(() => true),
+		z.literal('false').transform(() => false),
+		z.null().transform(() => true),
+	])
+	.default('false');
+
+const cliOptions = z
+	.object({
+		help: flag,
+		watch: flag,
+		skipBuild: flag,
+		experimentalMinify: flag,
+		version: flag,
+	})
+	.strict();
+
+export type CliOptions = z.infer<typeof cliOptions>;
+
+/**
+ * parses the options provided to the CLI
+ *
+ * @returns the provided options
+ */
+export function parseCliArgs() {
+	return argumentParser({ options: cliOptions }).parse(process.argv.slice(2));
+}
 
 /**
  * parses the options provided to the CLI

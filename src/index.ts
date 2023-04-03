@@ -1,16 +1,17 @@
 import { watch } from 'chokidar';
 import pLimit from 'p-limit';
-import { cliLog, CliOptions, getCliOptions, printCliHelpMessage } from './cli';
+import { cliLog, CliOptions, parseCliArgs, printCliHelpMessage } from './cli';
 import { buildApplication } from './buildApplication';
 import { nextOnPagesVersion } from './utils';
 
 const limit = pLimit(1);
 
-const cliOptions = getCliOptions();
-runNextOnPages(cliOptions);
+runNextOnPages();
 
-function runNextOnPages(options: CliOptions): void {
-	if (options.version) {
+function runNextOnPages(): void {
+	const args = parseCliArgs();
+
+	if (args.version) {
 		// eslint-disable-next-line no-console -- for the version lets simply print it plainly
 		console.log(nextOnPagesVersion);
 		return;
@@ -18,13 +19,17 @@ function runNextOnPages(options: CliOptions): void {
 
 	cliLog(`@cloudflare/next-on-pages CLI v.${nextOnPagesVersion}`);
 
-	if (options.help) {
+	if (args.help) {
 		printCliHelpMessage();
 		return;
 	}
 
-	if (options.watch) {
-		setWatchMode(() => runBuild(options));
+	// Run the build once
+	runBuild(args);
+
+	// If the watch flag is thrown, run in watch mode
+	if (args.watch) {
+		setWatchMode(() => runBuild(args));
 	}
 }
 
