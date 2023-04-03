@@ -92,7 +92,7 @@ async function prepareAndBuildWorker(
 		middlewareManifestData,
 		vercelConfig,
 		nextJsConfigs,
-		options
+		options.experimentalMinify
 	);
 }
 
