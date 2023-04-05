@@ -4,6 +4,7 @@ import { join, resolve } from 'path';
 import { cliError, cliLog } from '../cli';
 import { validateDir, validateFile } from '../utils';
 import { checkPackageManager } from './checkPackageManager';
+import { getSpawnCommand } from '../utils/getSpawnCommand';
 
 /**
  * Builds the Next.js output via the Vercel CLI
@@ -19,9 +20,9 @@ import { checkPackageManager } from './checkPackageManager';
 export async function buildVercelOutput(): Promise<void> {
 	const pkgMng = await checkPackageManager();
 	cliLog(`Detected Package Manager: ${pkgMng}\n`);
-	cliLog(`Preparing project...`);
+	cliLog('Preparing project...');
 	await generateProjectJsonFileIfNeeded();
-	cliLog(`Project is ready`);
+	cliLog('Project is ready');
 	await runVercelBuild(pkgMng);
 	cliLog('Building Completed.\n');
 }
@@ -40,21 +41,15 @@ async function generateProjectJsonFileIfNeeded(): Promise<void> {
 	}
 }
 
-async function runVercelBuild(
-	pkgMng: 'pnpm' | 'yarn (berry)' | 'yarn (classic)' | 'npm'
-): Promise<void> {
-	cliLog(`Building project...`);
-
-	let cmd = '',
-		args = [];
-	const winCMD = process.platform === 'win32' ? '.cmd' : '';
+async function runVercelBuild(pkgMng: packageManager): Promise<void> {
+	const pkgMngCMD = getSpawnCommand(pkgMng);
 
 	if (pkgMng === 'yarn (classic)') {
 		cliLog(
 			`Installing vercel as dev dependencies with 'yarn add vercel -D'...`
 		);
 
-		const installVercel = spawn(`yarn${winCMD}`, ['add', 'vercel', '-D']);
+		const installVercel = spawn(pkgMngCMD, ['add', 'vercel', '-D']);
 
 		installVercel.stdout.on('data', data => cliLog(`\n${data}`, true));
 		installVercel.stderr.on('data', data => cliError(`\n${data}`, false, true));
@@ -70,18 +65,15 @@ async function runVercelBuild(
 		});
 
 		cliLog(`Install completed`);
-
-		(cmd = `yarn${winCMD}`), (args = ['vercel', 'build']);
 	}
+	
+	cliLog('Building project...');
 
-	if (pkgMng === 'pnpm') (cmd = `pnpx${winCMD}`), (args = ['vercel', 'build']);
-	if (pkgMng === 'npm') (cmd = `npx${winCMD}`), (args = ['vercel', 'build']);
-	if (pkgMng === 'yarn (berry)')
-		(cmd = `yarn${winCMD}`), (args = ['dlx', 'vercel', 'build']);
-
-	cliLog(`Building project with '${cmd} ${args.join(' ')}'...`);
-
-	const vercelBuild = spawn(cmd, args);
+	const vercelBuild = spawn(pkgMngCMD, [
+		...(pkgMng === 'yarn (berry)' ? ['dlx'] : []),
+		'vercel',
+		'build',
+	]);
 
 	vercelBuild.stdout.on('data', data => cliLog(`\n${data}`, true));
 	vercelBuild.stderr.on('data', data => cliError(`\n${data}`, false, true));

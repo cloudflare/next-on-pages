@@ -1,10 +1,10 @@
 import YAML from 'js-yaml';
 import { spawn } from 'child_process';
 import { readFile } from 'fs/promises';
-import { validateFile } from '../utils';
+import { validateFile, getSpawnCommand } from '../utils';
 import { cliError } from '../cli';
 
-export async function checkPackageManager() {
+export async function checkPackageManager(): Promise<packageManager> {
 	const userAgent = process.env.npm_config_user_agent;
 
 	const hasYarnLock = await validateFile('yarn.lock');
@@ -13,7 +13,7 @@ export async function checkPackageManager() {
 	if ((userAgent && userAgent.startsWith('pnpm')) || hasPnpmLock) return 'pnpm';
 
 	if ((userAgent && userAgent.startsWith('yarn')) || hasYarnLock) {
-		const yarn = process.platform === 'win32' ? 'yarn.cmd' : 'yarn';
+		const yarn = getSpawnCommand("yarn");
 		const getYarnV = spawn(yarn, ['-v']);
 		let yarnV = '';
 		getYarnV.stdout.on('data', data => {
@@ -32,19 +32,21 @@ export async function checkPackageManager() {
 			});
 		});
 		if (!yarnV.startsWith('1.')) {
-			await validateFile('.yarnrc.yml');
-			const yarnYAML = YAML.load(await readFile('.yarnrc.yml', 'utf-8')) as {
-				nodeLinker: 'node-modules' | string;
+			const yarnrc = await readFile('.yarnrc.yml', 'utf-8')
+			const {nodeLinker} = YAML.load(yarnrc) as {
+				nodeLinker: string;
 			};
-			if (yarnYAML.nodeLinker !== 'node-modules')
+			if (nodeLinker !== 'node-modules')
 				throw new Error(`
-				Next-On-Pages doesn't support Plug'n'Play features from yarn berry.
+				@cloudflare/next-on-pages doesn't support Plug'n'Play features from yarn berry.
 
-				If you want to use Next-On-Pages with yarn berry,
+				If you want to use @cloudflare/next-on-pages with yarn berry,
 				please add "nodeLinker: node-modules" to your .yarnrc.yml
 				`);
 			return 'yarn (berry)';
-		} else return 'yarn (classic)';
+		} else {
+			return 'yarn (classic)';
+		}
 	}
 	return 'npm';
 }
