@@ -1,11 +1,12 @@
 import { describe, expect, vi, it, afterEach } from 'vitest';
-import { checkPackageManager } from '../../../src/buildApplication/checkPackageManager';
+import { getCurrentPackageManager } from '../../../src/buildApplication/getCurrentPackageManager';
 import { EventEmitter } from 'events';
+import { PackageManager } from '../../../src/utils';
 
-let testStep = 0;
+let targetPkgMng: PackageManager = "yarn (berry)";
 
-describe('checkPackageManager', async () => {
-	// Initialize for Test Step - 0
+describe('getCurrentPackageManager', async () => {
+	// yarn berry test environment
 	vi.stubEnv('npm_config_user_agent', 'yarn');
 	vi.mock('child_process', async () => {
 		return {
@@ -17,7 +18,7 @@ describe('checkPackageManager', async () => {
 				event.stdout = new EventEmitter();
 				event.stderr = new EventEmitter();
 				setTimeout(() => {
-					event.stdout.emit('data', testStep === 0 ? '3.0.0': '1.0.0');
+					event.stdout.emit('data', targetPkgMng === "yarn (berry)" ? '3.0.0' : '1.0.0');
 					event.emit('close', 0);
 				}, 100);
 				return event;
@@ -34,36 +35,34 @@ describe('checkPackageManager', async () => {
 	afterEach(async () => {
 		vi.clearAllMocks();
 		vi.unstubAllEnvs();
-		if (testStep === 0) {
+		if (targetPkgMng === "yarn (berry)") {
 			// yarn classic test environment
 			vi.stubEnv('npm_config_user_agent', 'yarn');
-		} else if (testStep === 1) {
+			targetPkgMng = "yarn (classic)"
+		} else if (targetPkgMng === "yarn (classic)") {
 			// pnpm test environment
 			vi.stubEnv('npm_config_user_agent', 'pnpm');
-		} else if (testStep === 2) {
+			targetPkgMng = "pnpm"
+		} else if (targetPkgMng === "pnpm") {
 			// npm test environment
 			vi.stubEnv('npm_config_user_agent', 'npm');
+			targetPkgMng = "npm"
 		}
-		testStep++;
 	});
-	// check if it return yarn (berry) - Test Step: 0
 	it('should detected yarn (berry)', async () => {
-		const pkgMng = await checkPackageManager();
-		expect(pkgMng).toEqual('yarn (berry)');
+		const pkgMng = await getCurrentPackageManager();
+		expect(pkgMng).toEqual(targetPkgMng);
 	});
-	// check if it return yarn (classic) - Test Step: 1
 	it('should detected yarn (classic)', async () => {
-		const pkgMng = await checkPackageManager();
-		expect(pkgMng).toEqual('yarn (classic)');
+		const pkgMng = await getCurrentPackageManager();
+		expect(pkgMng).toEqual(targetPkgMng);
 	});
-	// check if it return pnpm - Test Step: 2
 	it('should detected pnpm', async () => {
-		const pkgMng = await checkPackageManager();
-		expect(pkgMng).toEqual('pnpm');
+		const pkgMng = await getCurrentPackageManager();
+		expect(pkgMng).toEqual(targetPkgMng);
 	});
-	// check if it return npm - Test Step: 3
 	it('should detected npm', async () => {
-		const pkgMng = await checkPackageManager();
-		expect(pkgMng).toEqual('npm');
+		const pkgMng = await getCurrentPackageManager();
+		expect(pkgMng).toEqual(targetPkgMng);
 	});
 });

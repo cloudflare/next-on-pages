@@ -1,1 +1,0 @@
-declare type packageManager = 'pnpm' | 'yarn (berry)' | 'yarn (classic)' | 'npm';

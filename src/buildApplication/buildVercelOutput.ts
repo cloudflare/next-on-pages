@@ -3,8 +3,8 @@ import { spawn } from 'child_process';
 import { join, resolve } from 'path';
 import { cliError, cliLog } from '../cli';
 import { validateDir, validateFile } from '../utils';
-import { checkPackageManager } from './checkPackageManager';
-import { getSpawnCommand } from '../utils/getSpawnCommand';
+import { getCurrentPackageManager } from './getCurrentPackageManager';
+import { PackageManager, getSpawnCommand } from '../utils/getSpawnCommand';
 
 /**
  * Builds the Next.js output via the Vercel CLI
@@ -18,7 +18,7 @@ import { getSpawnCommand } from '../utils/getSpawnCommand';
  *
  */
 export async function buildVercelOutput(): Promise<void> {
-	const pkgMng = await checkPackageManager();
+	const pkgMng = await getCurrentPackageManager();
 	cliLog(`Detected Package Manager: ${pkgMng}\n`);
 	cliLog('Preparing project...');
 	await generateProjectJsonFileIfNeeded();
@@ -41,7 +41,7 @@ async function generateProjectJsonFileIfNeeded(): Promise<void> {
 	}
 }
 
-async function runVercelBuild(pkgMng: packageManager): Promise<void> {
+async function runVercelBuild(pkgMng: PackageManager): Promise<void> {
 	const pkgMngCMD = getSpawnCommand(pkgMng);
 
 	if (pkgMng === 'yarn (classic)') {
@@ -64,9 +64,9 @@ async function runVercelBuild(pkgMng: packageManager): Promise<void> {
 			});
 		});
 
-		cliLog(`Install completed`);
+		cliLog('Install completed');
 	}
-	
+
 	cliLog('Building project...');
 
 	const vercelBuild = spawn(pkgMngCMD, [
