@@ -22,10 +22,17 @@ body:
     validations:
       required: true
 
-  - type: checkboxes
+  - type: textarea
     id: additional-info
     attributes:
-      label: Additional information
-      description: Additional information regarding the feature.
+      label: Additional Information
+      description: Is there anything else you'd like to add?
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: help
+    attributes:
+      label: Would you like to help?
       options:
         - label: Would you like to help implement this feature?
