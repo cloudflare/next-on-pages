@@ -25,9 +25,17 @@ export async function buildApplication({
 	skipBuild,
 	experimentalMinify,
 }: Pick<CliOptions, 'skipBuild' | 'experimentalMinify'>) {
+	let buildSuccess = true;
 	if (!skipBuild) {
-		await buildVercelOutput();
+		try {
+			await buildVercelOutput();
+		} catch (err) {
+			cliError(err.message);
+			buildSuccess = false;
+		}
 	}
+
+	if (!buildSuccess) return;
 
 	await deleteNextTelemetryFiles();
 
