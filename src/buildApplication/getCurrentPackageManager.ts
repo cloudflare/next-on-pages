@@ -13,7 +13,7 @@ export async function getCurrentPackageManager(): Promise<PackageManager> {
 	if ((userAgent && userAgent.startsWith('pnpm')) || hasPnpmLock) return 'pnpm';
 
 	if ((userAgent && userAgent.startsWith('yarn')) || hasYarnLock) {
-		const yarn = getSpawnCommand("yarn");
+		const yarn = getSpawnCommand('yarn');
 		const getYarnV = spawn(yarn, ['-v']);
 		let yarnV = '';
 		getYarnV.stdout.on('data', data => {
@@ -32,8 +32,8 @@ export async function getCurrentPackageManager(): Promise<PackageManager> {
 			});
 		});
 		if (!yarnV.startsWith('1.')) {
-			const yarnrc = await readFile('.yarnrc.yml', 'utf-8')
-			const {nodeLinker} = YAML.load(yarnrc) as {
+			const yarnrc = await readFile('.yarnrc.yml', 'utf-8');
+			const { nodeLinker } = YAML.load(yarnrc) as {
 				nodeLinker: string;
 			};
 			if (nodeLinker !== 'node-modules')

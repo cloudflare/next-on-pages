@@ -6,7 +6,7 @@ const packageManagers = {
 	npm: 'npx',
 };
 
-export type PackageManager = keyof typeof packageManagers
+export type PackageManager = keyof typeof packageManagers;
 
 export function getSpawnCommand(pkgMng: keyof typeof packageManagers): string {
 	const winCMD = process.platform === 'win32' ? '.cmd' : '';

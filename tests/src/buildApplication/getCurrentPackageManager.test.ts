@@ -3,7 +3,7 @@ import { getCurrentPackageManager } from '../../../src/buildApplication/getCurre
 import { EventEmitter } from 'events';
 import { PackageManager } from '../../../src/utils';
 
-let targetPkgMng: PackageManager = "yarn (berry)";
+let targetPkgMng: PackageManager = 'yarn (berry)';
 
 describe('getCurrentPackageManager', async () => {
 	// yarn berry test environment
@@ -18,7 +18,10 @@ describe('getCurrentPackageManager', async () => {
 				event.stdout = new EventEmitter();
 				event.stderr = new EventEmitter();
 				setTimeout(() => {
-					event.stdout.emit('data', targetPkgMng === "yarn (berry)" ? '3.0.0' : '1.0.0');
+					event.stdout.emit(
+						'data',
+						targetPkgMng === 'yarn (berry)' ? '3.0.0' : '1.0.0'
+					);
 					event.emit('close', 0);
 				}, 100);
 				return event;
@@ -35,18 +38,18 @@ describe('getCurrentPackageManager', async () => {
 	afterEach(async () => {
 		vi.clearAllMocks();
 		vi.unstubAllEnvs();
-		if (targetPkgMng === "yarn (berry)") {
+		if (targetPkgMng === 'yarn (berry)') {
 			// yarn classic test environment
 			vi.stubEnv('npm_config_user_agent', 'yarn');
-			targetPkgMng = "yarn (classic)"
-		} else if (targetPkgMng === "yarn (classic)") {
+			targetPkgMng = 'yarn (classic)';
+		} else if (targetPkgMng === 'yarn (classic)') {
 			// pnpm test environment
 			vi.stubEnv('npm_config_user_agent', 'pnpm');
-			targetPkgMng = "pnpm"
-		} else if (targetPkgMng === "pnpm") {
+			targetPkgMng = 'pnpm';
+		} else if (targetPkgMng === 'pnpm') {
 			// npm test environment
 			vi.stubEnv('npm_config_user_agent', 'npm');
-			targetPkgMng = "npm"
+			targetPkgMng = 'npm';
 		}
 	});
 	it('should detected yarn (berry)', async () => {
