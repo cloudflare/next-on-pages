@@ -24,7 +24,7 @@ jobs:
         run: npm ci
 
       - name: Modify package.json version
-        run: node .github/version-script.js
+        run: node .github/version-script.js PR=${{ github.event.number }}
 
       - name: Build
         run: npm run build
