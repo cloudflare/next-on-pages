@@ -4,23 +4,9 @@ We're thrilled that you're considering contributing to `@cloudflare/next-on-page
 
 No contribution is too small and all help moving the project forward!
 
-## Submitting an issue or feature request
+## Submitting an bug report or feature request
 
-If you find an bug or want to request a feature, open a [new issue](https://github.com/cloudflare/next-on-pages/issues/new) documenting it, but first please check that:
-
-- there isn't already an issue describing the same bug of feature request. If there is, please contribute to the conversation there (as this helps keeping all the information in a single place and also shows which bugs/features people are most interested in).
-- if you've found a Next.js missing feature, make sure that it is not already documented in the [Supported Versions and Features document](./supported.md).
-
-If you end up opening the issue make it as descriptive as possible, the more details you can provide the easier it will be for us to understand and handle it.
-
-In case of bugs very useful things to add are:
-
-- a minimal reproduction for it (both the steps to perform and the source code if possible)
-- what version of `@cloudflare/next-on-pages` ad Next.js you're using
-- your operative system and Node version
-- what behavior you expected vs what behavior you got
-
-<!-- TODO: add a template for issues and simplify the above -->
+If you find an bug or want to request a feature, open a [new issue](https://github.com/cloudflare/next-on-pages/issues/new) documenting it, please try to fill as much of the requested information as possible as that will help us dealing with the issue more effectively.
 
 ## Pull Requests
 

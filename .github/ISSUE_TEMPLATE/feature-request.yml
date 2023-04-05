@@ -1,0 +1,31 @@
+name: ⚡ Feature Request
+description: Request a new feature
+title: '[⚡ Feature]: '
+labels: ['enhancement']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you very much for taking the time to fill out this feature request!
+
+        Before creating the issue please make sure that:
+
+         - There isn't already an existing issue covering the feature request, if there is, please add a comment there instead.
+
+         - What you are suggesting is a new feature and not one that should be present but is missing, in that case open an bug report instead.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Please provide a detailed description of the new feature.
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: additional-info
+    attributes:
+      label: Additional information
+      description: Additional information regarding the feature.
+      options:
+        - label: Would you like to help implement this feature?

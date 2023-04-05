@@ -1,0 +1,80 @@
+name: 🐛 Bug Report
+description: File a bug report
+title: '[🐛 Bug]: '
+labels: ['bug']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you very much for taking the time to fill out this bug report!
+
+        Before creating the issue please make sure that:
+
+         - There isn't already an existing issue covering the same bug, if there is, please add a comment there instead.
+
+         - If the issue concerns a missing Next.js feature, such is not already present in our [Supported Versions and Features document](https://github.com/cloudflare/next-on-pages/blob/main/docs/supported.md).
+  - type: input
+    id: next-on-pages-version
+    attributes:
+      label: cli version
+      description: In which version (or versions) of `@cloudflare/next-on-pages` have you seen this bug?
+    validations:
+      required: true
+
+  - type: input
+    id: nextjs-version
+    attributes:
+      label: Next.js version
+      description: In which version (or versions) of Next.js have you seen this bug?
+    validations:
+      required: false
+
+  - type: input
+    id: vercel-version
+    attributes:
+      label: Vercel version
+      description: In which version (or versions) of the Vercel CLI have you seen this bug?
+    validations:
+      required: false
+
+  - type: input
+    id: node-version
+    attributes:
+      label: Node version
+      description: In which version (or versions) of node have you seen this bug?
+    validations:
+      required: false
+
+  - type: input
+    id: os
+    attributes:
+      label: Operating System
+      description: In which operating system (or operating systems) have you seen this bug?
+    validations:
+      required: false
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Please provide a detailed description of the bug, the more details you can include the more likely it is that it can be quickly addressed.
+      value: |
+        ### Current Behavior vs Expected Behavior
+
+        <!-- Please let us know what is the current behavior you're experiencing and how it differs from what you expected -->
+
+        ### Reproduction steps
+
+        <!-- Please provide steps that indicate how to reproduce the issue -->
+
+        <!--
+          Important Note:
+            Providing a GitHub repository that can present the bug is usually by far the most helpful thing that an issue can supply
+            please try to provide one if you can as that will likely help addressing the issue much much quicker
+        -->
+
+        ### Additional Information
+
+        <!-- Anything else you'd like to add -->
+    validations:
+      required: true
