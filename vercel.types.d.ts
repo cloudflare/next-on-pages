@@ -1,3 +1,7 @@
+/**
+ * Types for the Vercel build output configuration file.
+ */
+
 type VercelConfig = {
 	version: 3;
 	routes?: VercelRoute[];
@@ -98,3 +102,52 @@ type VercelOverride = {
 };
 
 type VercelOverrideConfig = Record<string, VercelOverride>;
+
+/**
+ * Types for the processed Vercel build output (config, functions + static assets).
+ */
+
+type ProcessedVercelRoutes = {
+	none: VercelSource[];
+	filesystem: VercelSource[];
+	miss: VercelSource[];
+	rewrite: VercelSource[];
+	resource: VercelSource[];
+	hit: VercelSource[];
+	error: VercelSource[];
+};
+type ProcessedVercelConfig = Override<
+	VercelConfig,
+	'routes',
+	ProcessedVercelRoutes
+>;
+
+type BuildOutputStaticAsset = { type: 'static' };
+type BuildOutputFunction = {
+	type: 'function' | 'middleware';
+	entrypoint: string;
+	// NOTE: Will be removed in the new routing system.
+	matchers: { regexp: string }[];
+};
+
+type BuildOutputItem = BuildOutputFunction | BuildOutputStaticAsset;
+type ProcessedVercelBuildOutput = Map<string, BuildOutputItem>;
+
+type Override<T, K extends keyof T, V> = Omit<T, K> & { [key in K]: V };
+
+type EdgeFunction = {
+	default: (
+		request: Request,
+		context: ExecutionContext
+	) => Response | Promise<Response>;
+};
+
+type AdjustedBuildOutputFunction = Override<
+	BuildOutputFunction,
+	'entrypoint',
+	Promise<EdgeFunction>
+>;
+
+type VercelBuildOutput = {
+	[key: string]: AdjustedBuildOutputFunction | BuildOutputStaticAsset;
+};

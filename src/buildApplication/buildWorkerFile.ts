@@ -4,12 +4,28 @@ import { build } from 'esbuild';
 import { tmpdir } from 'os';
 import { cliLog } from '../cli';
 import { NextJsConfigs } from './nextJsConfigs';
-import { MiddlewareManifestData } from './middlewareManifest';
 import { generateGlobalJs } from './generateGlobalJs';
+import { ProcessedVercelOutput } from './processVercelOutput';
 
+/**
+ * Construct a record for the build output map.
+ *
+ * @param item The build output item to construct a record for.
+ * @returns Record for the build output map.
+ */
+function constructBuildOutputRecord(item: BuildOutputItem) {
+	return item.type === 'static'
+		? `{ type: ${JSON.stringify(item.type)} }`
+		: `{
+				type: ${JSON.stringify(item.type)},
+				entrypoint: AsyncLocalStoragePromise.then(() => import('${item.entrypoint}')),
+				matchers: ${JSON.stringify(item.matchers)}
+			}`;
+}
+
+// NOTE: `nextJsConfigs`, and accompanying logic will be removed in the new routing system.
 export async function buildWorkerFile(
-	{ hydratedMiddleware, hydratedFunctions }: MiddlewareManifestData,
-	vercelConfig: VercelConfig,
+	{ vercelConfig, functionsMap }: ProcessedVercelOutput,
 	nextJsConfigs: NextJsConfigs,
 	experimentalMinify: boolean
 ) {
@@ -25,22 +41,8 @@ export async function buildWorkerFile(
 			globalThis.AsyncLocalStorage = AsyncLocalStorage;
 		}).catch(() => undefined);
 
-		export const __FUNCTIONS__ = {${[...hydratedFunctions.entries()]
-			.map(
-				([name, { matchers, filepath }]) =>
-					`"${name}": { matchers: ${JSON.stringify(
-						matchers
-					)}, entrypoint: AsyncLocalStoragePromise.then(() => import('${filepath}'))}`
-			)
-			.join(',')}};
-
-		export const __MIDDLEWARE__ = {${[...hydratedMiddleware.entries()]
-			.map(
-				([name, { matchers, filepath }]) =>
-					`"${name}": { matchers: ${JSON.stringify(
-						matchers
-					)}, entrypoint: AsyncLocalStoragePromise.then(() => import('${filepath}'))}`
-			)
+		export const __BUILD_OUTPUT__ = {${[...functionsMap.entries()]
+			.map(([name, item]) => `"${name}": ${constructBuildOutputRecord(item)}`)
 			.join(',')}};`
 	);
 

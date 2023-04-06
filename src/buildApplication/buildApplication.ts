@@ -15,6 +15,10 @@ import {
 } from './buildVercelOutput';
 import { buildMetadataFiles } from './buildMetadataFiles';
 import { validateDir } from '../utils';
+import {
+	getVercelStaticAssets,
+	processVercelOutput,
+} from './processVercelOutput';
 
 /**
  * Builds the _worker.js with static assets implementing the Next.js application
@@ -62,9 +66,7 @@ async function prepareAndBuildWorker(
 		cliLog(`Using basePath ${nextJsConfigs.basePath}`);
 	}
 
-	const functionsDir = resolve(
-		`.vercel/output/functions${nextJsConfigs.basePath ?? ''}`
-	);
+	const functionsDir = resolve(`.vercel/output/functions`);
 	if (!(await validateDir(functionsDir))) {
 		cliLog('No functions detected.');
 		return;
@@ -80,10 +82,14 @@ async function prepareAndBuildWorker(
 		return;
 	}
 
+	// NOTE: Middleware manifest logic will be removed in the new routing system.
 	let middlewareManifestData: MiddlewareManifestData;
 
 	try {
-		middlewareManifestData = await getParsedMiddlewareManifest(functionsMap);
+		middlewareManifestData = await getParsedMiddlewareManifest(
+			functionsMap,
+			nextJsConfigs
+		);
 	} catch (e: unknown) {
 		if (e instanceof Error) {
 			cliError(e.message, true);
@@ -96,9 +102,16 @@ async function prepareAndBuildWorker(
 		exit(1);
 	}
 
-	await buildWorkerFile(
-		middlewareManifestData,
+	const staticAssets = await getVercelStaticAssets();
+
+	const processedVercelOutput = processVercelOutput(
 		vercelConfig,
+		staticAssets,
+		middlewareManifestData
+	);
+
+	await buildWorkerFile(
+		processedVercelOutput,
 		nextJsConfigs,
 		options.experimentalMinify
 	);
