@@ -1,4 +1,4 @@
-// NOTE: Will be refined in the new routing system.
+// NOTE: Will be refined in the new routing system. (see issue #129)
 export const hasField = (
 	{
 		request,

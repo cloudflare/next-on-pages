@@ -126,7 +126,7 @@ type BuildOutputStaticAsset = { type: 'static' };
 type BuildOutputFunction = {
 	type: 'function' | 'middleware';
 	entrypoint: string;
-	// NOTE: Will be removed in the new routing system.
+	// NOTE: Will be removed in the new routing system. (see issue #129)
 	matchers: { regexp: string }[];
 };
 

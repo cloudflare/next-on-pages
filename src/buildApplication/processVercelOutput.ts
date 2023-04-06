@@ -51,12 +51,12 @@ export function processVercelOutput(
 		staticAssets.map(path => [path, { type: 'static' }])
 	);
 
-	// NOTE: The middleware manifest output is used temporarily to match routes + dynamic args. It will be replaced with the regular `functionsMap` in the final routing system.
+	// NOTE: The middleware manifest output is used temporarily to match routes + dynamic args. It will be replaced with the regular `functionsMap` in the final routing system. (see issue #129)
 	hydratedFunctions.forEach(({ matchers, filepath }, key) => {
 		functionsMap.set(key, {
 			type: 'function',
 			entrypoint: filepath,
-			// NOTE: Usage of matchers will be removed in the final routing system.
+			// NOTE: Usage of matchers will be removed in the final routing system. (see issue #129)
 			matchers,
 		});
 	});
@@ -64,7 +64,7 @@ export function processVercelOutput(
 		functionsMap.set(key, {
 			type: 'function',
 			entrypoint: filepath,
-			// NOTE: Usage of matchers will be removed in the final routing system.
+			// NOTE: Usage of matchers will be removed in the final routing system. (see issue #129)
 			matchers,
 		});
 	});

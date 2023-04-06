@@ -4,7 +4,7 @@
  *  should be refactored to use .vercel/output instead as soon as possible
  */
 
-// NOTE: This file and the corresponding logic will be removed in the new routing system.
+// NOTE: This file and the corresponding logic will be removed in the new routing system. (see issue #129)
 
 import { readJsonFile, stripIndexRoute, stripRouteGroups } from '../utils';
 import type { NextJsConfigs } from './nextJsConfigs';

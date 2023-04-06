@@ -1,7 +1,7 @@
 import { parse } from 'cookie';
 import { adjustRequestForVercel, hasField } from './utils';
 
-// NOTE: Will be replaced in the new routing system.
+// NOTE: Will be replaced in the new routing system. (see issue #129)
 export const routesMatcher = (
 	{ request }: { request: Request },
 	routes?: VercelConfig['routes']
@@ -75,7 +75,7 @@ declare const __CONFIG__: ProcessedVercelConfig;
 
 declare const __BUILD_OUTPUT__: VercelBuildOutput;
 
-// NOTE: Will be removed in the new routing system.
+// NOTE: Will be removed in the new routing system. (see issue #129)
 declare const __BASE_PATH__: string;
 
 export default {
@@ -83,11 +83,11 @@ export default {
 		(globalThis.process.env as unknown) = { ...globalThis.process.env, ...env };
 
 		const { pathname } = new URL(request.url);
-		// NOTE: Will be removed in the new routing system.
+		// NOTE: Will be removed in the new routing system. (see issue #129)
 		// middleware only occur in the `none` routing phase (i.e. before all other phases).
 		const routes = routesMatcher({ request }, __CONFIG__.routes.none);
 
-		// NOTE: Will be removed in the new routing system.
+		// NOTE: Will be removed in the new routing system. (see issue #129)
 		for (const route of routes) {
 			if (
 				'middlewarePath' in route &&
@@ -101,7 +101,7 @@ export default {
 			}
 		}
 
-		// NOTE: Will be replaced in the new routing system.
+		// NOTE: Will be replaced in the new routing system. (see issue #129)
 		// Filtering for type `function` is temporary while the new routing system is being implemented.
 		for (const { matchers, entrypoint } of Object.values(
 			__BUILD_OUTPUT__

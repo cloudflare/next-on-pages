@@ -82,7 +82,7 @@ async function prepareAndBuildWorker(
 		return;
 	}
 
-	// NOTE: Middleware manifest logic will be removed in the new routing system.
+	// NOTE: Middleware manifest logic will be removed in the new routing system. (see issue #129)
 	let middlewareManifestData: MiddlewareManifestData;
 
 	try {

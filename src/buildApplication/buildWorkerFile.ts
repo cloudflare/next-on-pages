@@ -23,7 +23,7 @@ function constructBuildOutputRecord(item: BuildOutputItem) {
 			}`;
 }
 
-// NOTE: `nextJsConfigs`, and accompanying logic will be removed in the new routing system.
+// NOTE: `nextJsConfigs`, and accompanying logic will be removed in the new routing system. (see issue #129)
 export async function buildWorkerFile(
 	{ vercelConfig, functionsMap }: ProcessedVercelOutput,
 	nextJsConfigs: NextJsConfigs,
