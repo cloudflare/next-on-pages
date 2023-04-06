@@ -18,7 +18,7 @@ function getVersionExtraInfo(): string {
 	}
 
 	if (beta) {
-		return ' (beta/canary package)';
+		return ' (beta/canary release)';
 	}
 
 	return '';
