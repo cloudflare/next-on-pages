@@ -68,6 +68,8 @@ beforeAll(() => {
 						'(is-valid)/should-be-valid.func', // valid
 						'should-be-valid.func', // invalid
 						'should-be-valid-alt.func', // invalid
+						'rsc/(is-valid)/should-be-valid.func', // valid
+						'rsc/should-be-valid.rsc.func', // invalid
 					];
 				}
 				if (
@@ -99,7 +101,7 @@ describe('generateFunctionsMap', async () => {
 			'should-be-valid-alt.func',
 		]);
 
-		expect(functionsMap.size).toEqual(8);
+		expect(functionsMap.size).toEqual(10);
 		// index
 		expect(functionsMap.get('/')).toMatch(/\/index\.func\.js$/);
 		expect(functionsMap.get('/index')).toMatch(/\/index\.func\.js$/);
@@ -119,6 +121,12 @@ describe('generateFunctionsMap', async () => {
 		);
 		expect(functionsMap.get('/should-be-valid')).toMatch(
 			/\(is-valid\)\/should-be-valid\.func\.js$/
+		);
+		expect(functionsMap.get('/rsc/should-be-valid')).toMatch(
+			/rsc\/\(is-valid\)\/should-be-valid\.func\.js$/
+		);
+		expect(functionsMap.get('/rsc/should-be-valid.rsc')).toMatch(
+			/rsc\/\(is-valid\)\/should-be-valid\.func\.js$/
 		);
 	});
 
