@@ -43,6 +43,7 @@ beforeAll(() => {
 			mkdir: async () => null,
 			writeFile: async () => null,
 			stat: async (path: string) => {
+				// NOTE: Invalid file is used to (in a hacky way) simulate an function called `middlewarejs` that has an entry point of `middleware.js` being changed to `index.js`, and that new entry point not existing in the file system. Hence, it would be an invalid file, and `isDirectory()` and `isFile()` will then be false.
 				const invalidFile =
 					path.includes('invalidTest') &&
 					path.includes('middlewarejs') &&
@@ -85,12 +86,14 @@ afterAll(() => {
 });
 
 describe('generateFunctionsMap', async () => {
-	test('should generate a valid functions map (without experimentalMinify)', async () => {
+	test('should generate a valid functions map (without experimentalMinify), accounting for invalid root-level functions', async () => {
 		const { invalidFunctions, functionsMap } = await generateFunctionsMap(
 			'validTest/functions',
 			false
 		);
 
+		// NOTE: The invalid function here is used to test that invalid functions on the root-level are considered invalid, while a valid squashed function (in a route group) replaces an equivalent invalid function that exists on the root-level.
+		// i.e. `(is-valid)/should-be-valid.func` replaces the invalid `should-be-valid.func` on the root-level, and `should-be-valid-alt.func` is still invalid.
 		expect(invalidFunctions.size).toEqual(1);
 		expect(Array.from(invalidFunctions.values())).toEqual([
 			'should-be-valid-alt.func',

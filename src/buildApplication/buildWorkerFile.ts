@@ -25,7 +25,7 @@ function constructBuildOutputRecord(item: BuildOutputItem) {
 
 // NOTE: `nextJsConfigs`, and accompanying logic will be removed in the new routing system. (see issue #129)
 export async function buildWorkerFile(
-	{ vercelConfig, functionsMap }: ProcessedVercelOutput,
+	{ vercelConfig, vercelOutput }: ProcessedVercelOutput,
 	nextJsConfigs: NextJsConfigs,
 	experimentalMinify: boolean
 ) {
@@ -41,7 +41,7 @@ export async function buildWorkerFile(
 			globalThis.AsyncLocalStorage = AsyncLocalStorage;
 		}).catch(() => undefined);
 
-		export const __BUILD_OUTPUT__ = {${[...functionsMap.entries()]
+		export const __BUILD_OUTPUT__ = {${[...vercelOutput.entries()]
 			.map(([name, item]) => `"${name}": ${constructBuildOutputRecord(item)}`)
 			.join(',')}};`
 	);

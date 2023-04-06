@@ -47,7 +47,7 @@ describe('processVercelOutput', () => {
 					error: [],
 				},
 			},
-			functionsMap: new Map([
+			vercelOutput: new Map([
 				['/static/test.png', { type: 'static' }],
 				[
 					'/use-middleware',

@@ -44,7 +44,7 @@ export async function generateFunctionsMap(
 		functionsDir
 	);
 
-	await checkInvalidFunctions(processingResults);
+	await tryToFixInvalidFunctions(processingResults);
 
 	if (experimentalMinify) {
 		await buildWebpackChunkFiles(

@@ -22,13 +22,13 @@ export async function getVercelStaticAssets(): Promise<string[]> {
 	}
 
 	return (await readPathsRecursively(dir)).map(file =>
-		normalizePath(file.replace(dir, ''))
+		normalizePath(file.replace(new RegExp(`^${dir}`), ''))
 	);
 }
 
 export type ProcessedVercelOutput = {
 	vercelConfig: ProcessedVercelConfig;
-	functionsMap: ProcessedVercelBuildOutput;
+	vercelOutput: ProcessedVercelBuildOutput;
 };
 
 /**
@@ -47,13 +47,13 @@ export function processVercelOutput(
 ): ProcessedVercelOutput {
 	const processedConfig = processVercelConfig(config);
 
-	const functionsMap = new Map<string, BuildOutputItem>(
+	const processedOutput = new Map<string, BuildOutputItem>(
 		staticAssets.map(path => [path, { type: 'static' }])
 	);
 
 	// NOTE: The middleware manifest output is used temporarily to match routes + dynamic args. It will be replaced with the regular `functionsMap` in the final routing system. (see issue #129)
 	hydratedFunctions.forEach(({ matchers, filepath }, key) => {
-		functionsMap.set(key, {
+		processedOutput.set(key, {
 			type: 'function',
 			entrypoint: filepath,
 			// NOTE: Usage of matchers will be removed in the final routing system. (see issue #129)
@@ -61,7 +61,7 @@ export function processVercelOutput(
 		});
 	});
 	hydratedMiddleware.forEach(({ matchers, filepath }, key) => {
-		functionsMap.set(key, {
+		processedOutput.set(key, {
 			type: 'function',
 			entrypoint: filepath,
 			// NOTE: Usage of matchers will be removed in the final routing system. (see issue #129)
@@ -70,13 +70,13 @@ export function processVercelOutput(
 	});
 
 	rewriteMiddlewarePaths(
-		functionsMap,
+		processedOutput,
 		collectMiddlewarePaths(processedConfig.routes.none)
 	);
 
 	return {
 		vercelConfig: processedConfig,
-		functionsMap,
+		vercelOutput: processedOutput,
 	};
 }
 
@@ -90,7 +90,7 @@ function collectMiddlewarePaths(routes: VercelSource[]): Set<string> {
 	const paths = new Set<string>();
 
 	for (const route of routes) {
-		if (!!route.middlewarePath) {
+		if (route.middlewarePath) {
 			paths.add(route.middlewarePath);
 		}
 	}
@@ -101,25 +101,33 @@ function collectMiddlewarePaths(routes: VercelSource[]): Set<string> {
 /**
  * Rewrite middleware paths in the functions map to match the build output config.
  *
- * Request path names will no longer accidentally match middleware functions as the leading slash is
- * removed from the path name for middleware in the build output config.
+ * In the build output config, the `middlewarePath` value is used to denote where the entry point
+ * for a middleware function is located. This path does not have a leading slash.
  *
- * @param functionsMap Map of path names to function entries.
+ * For matching requests in the routing system, we use the path name from the request and check
+ * against the map of functions. The path name from the request will have a leading slash.
+ *
+ * It might be possible to accidentally call a middleware function if the request path name matches
+ * the middleware path name in the functions map, so to avoid accidental calls, and to match the
+ * value in the build output config, we remove the leading slash from the key in the map for each
+ * middleware path.
+ *
+ * @param processedOutput Map of path names to function entries.
  * @param middlewarePaths Set of middleware paths.
  */
 function rewriteMiddlewarePaths(
-	functionsMap: Map<string, BuildOutputItem>,
+	processedOutput: Map<string, BuildOutputItem>,
 	middlewarePaths: Set<string>
 ): void {
 	for (const middlewarePath of middlewarePaths) {
 		const withLeadingSlash = addLeadingSlash(middlewarePath);
-		const entry = functionsMap.get(withLeadingSlash);
+		const entry = processedOutput.get(withLeadingSlash);
 
 		if (entry?.type === 'function') {
-			functionsMap.set(middlewarePath, { ...entry, type: 'middleware' });
-		        functionsMap.delete(withLeadingSlash);
+			processedOutput.set(middlewarePath, { ...entry, type: 'middleware' });
+			processedOutput.delete(withLeadingSlash);
 		} else {
-		        cliWarn(`Middleware path '${middlewarePath}' does not have a function.`);
+			cliWarn(`Middleware path '${middlewarePath}' does not have a function.`);
 		}
 	}
 }
