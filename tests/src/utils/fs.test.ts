@@ -2,6 +2,7 @@ import { describe, test, expect, vi, beforeAll, afterAll } from 'vitest';
 import {
 	normalizePath,
 	readJsonFile,
+	readPathsRecursively,
 	validateDir,
 	validateFile,
 } from '../../../src/utils';
@@ -23,6 +24,22 @@ beforeAll(() => {
 					? res(JSON.stringify({ runtime: 'edge', entrypoint: 'index.js' }))
 					: rej('invalid file')
 			),
+		readdir: (path: string) =>
+			new Promise(res =>
+				res(
+					{
+						'validTest/functions': ['(route-group)', 'index.func', 'home.func'],
+						'validTest/functions/index.func': ['index.js'],
+						'validTest/functions/home.func': ['index.js'],
+						'validTest/functions/(route-group)': ['page.func'],
+						'validTest/functions/(route-group)/page.func': ['index.js'],
+					}[path] ?? []
+				)
+			),
+	}));
+
+	vi.mock('node:path', () => ({
+		resolve: (dir: string, file: string) => `${dir}/${file}`,
 	}));
 });
 
@@ -101,5 +118,21 @@ describe('validateDir', () => {
 		await expect(validateDir('invalidTest/invalidPath')).resolves.toEqual(
 			false
 		);
+	});
+});
+
+describe('readPathsRecursively', () => {
+	test('should read all paths recursively', async () => {
+		await expect(readPathsRecursively('validTest/functions')).resolves.toEqual([
+			'validTest/functions/(route-group)/page.func/index.js',
+			'validTest/functions/index.func/index.js',
+			'validTest/functions/home.func/index.js',
+		]);
+	});
+
+	test('invalid directory, returns empty array', async () => {
+		await expect(
+			readPathsRecursively('invalidTest/functions')
+		).resolves.toEqual([]);
 	});
 });
