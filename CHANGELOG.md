@@ -1,5 +1,12 @@
 # @cloudflare/next-on-pages
 
+## 0.7.0
+
+### Minor Changes
+
+- 2d72906: Added support to utilize the package manager used in the project for local development
+- f58f76f: add prerelease and beta details to cli package version
+
 ## 0.6.0
 
 ### Minor Changes
