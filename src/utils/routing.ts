@@ -6,13 +6,6 @@ import { normalizePath } from './fs';
  * The build output config does not rewrite requests to route groups, so we need to strip route
  * groups from the path name for file system matching.
  *
- * @example
- * ```ts
- * stripRouteGroups('(route-group)/path') // '/path'
- * stripRouteGroups('/path/(route-group)/name') // '/path/name'
- * stripRouteGroups('/path/name') // '/path/name'
- * ```
- *
  * @param path Path name to strip route groups from.
  * @returns Path name with route groups stripped.
  */
@@ -25,13 +18,6 @@ export function stripRouteGroups(path: string) {
  *
  * The build output config does not rewrite `/` to `/index`, so we need to strip `/index` from the
  * path name for request matching.
- *
- * @example
- * ```ts
- * stripIndexRoute('/index') // '/'
- * stripIndexRoute('/path/index') // '/path'
- * stripIndexRoute('/path') // '/path'
- * ```
  *
  * @param path Path name to strip `/index` from.
  * @returns Path name with `/index` stripped.
@@ -46,12 +32,6 @@ export function stripIndexRoute(path: string) {
  *
  * Used to ensure that the path name starts with a `/` for matching in the routing system.
  *
- * @example
- * ```ts
- * addLeadingSlash('path') // '/path'
- * addLeadingSlash('/path') // '/path'
- * ```
- *
  * @param path Path name to add a leading slash to.
  * @returns Path name with a leading slash added.
  */
@@ -61,12 +41,6 @@ export function addLeadingSlash(path: string) {
 
 /**
  * Strip the `.func` extension from a path name.
- *
- * @example
- * ```ts
- * stripFuncExtension('path.func') // 'path'
- * stripFuncExtension('path') // 'path'
- * ```
  *
  * @param path Path name to strip the `.func` extension from.
  * @returns Path name with the `.func` extension stripped.
@@ -82,14 +56,6 @@ export function stripFuncExtension(path: string) {
  * - Normalize the path name.
  * - Strip route groups (the build output config does not rewrite requests to route groups).
  * - Add a leading slash.
- *
- * @example
- * ```ts
- * formatRoutePath('\\path') // '/path'
- * formatRoutePath('path') // '/path'
- * formatRoutePath('/(group)/path') // '/path'
- * formatRoutePath('/path.func') // '/path'
- * ```
  *
  * @param path Route path name to format.
  * @returns Formatted route path name.
