@@ -36,7 +36,7 @@ Smaller PRs are preferred since they are easier to review and merge quickly. If 
 
 If you're looking for something to help us with, what we believe would be most valuable to us is to either: try to implement Next.js functionality which we currently don't support (which you can see in the [Supported Versions and Features document](./supported.md)), or help us fix existing [issues](https://github.com/cloudflare/next-on-pages/issues).
 
-> For first time contributors, we currently don't have issues marked as `good first issue` or `help wanted` but keep an eye out for those labels in the future.
+> For first time contributors, check out issues labeled as `good first issue` or `help wanted`.
 
 ### Changeset
 
