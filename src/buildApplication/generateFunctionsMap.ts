@@ -70,7 +70,9 @@ export async function generateFunctionsMap(
  * set if it was.
  *
  * If the invalid function is an RSC function (e.g. `path.rsc`) and doesn't have a valid squashed
- * version, we check if a squashed non-RSC function exists (e.g. `path`) and use this instead.
+ * version, we check if a squashed non-RSC function exists (e.g. `path`) and use this instead. RSC
+ * functions are the same as non-RSC functions, per the Vercel source code.
+ * https://github.com/vercel/vercel/blob/main/packages/next/src/server-build.ts#L1193
  *
  * @param processingResults Object containing the results of processing the current function directory.
  */
@@ -88,9 +90,6 @@ async function tryToFixInvalidFunctions({
 			) {
 				invalidFunctions.delete(rawPath);
 			} else if (formattedPath.endsWith('.rsc')) {
-				// If the invalid function is an RSC function (e.g. `path.rsc`) and doesn't have a valid squashed version, we check if a squashed non-RSC function exists (e.g. `path`) and use this instead.
-				// RSC functions are the same as non-RSC functions, per the Vercel source code.
-				// https://github.com/vercel/vercel/blob/main/packages/next/src/server-build.ts#L1193
 				const value = functionsMap.get(formattedPath.replace(/\.rsc$/, ''));
 
 				if (value) {
