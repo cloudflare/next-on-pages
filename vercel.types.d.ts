@@ -147,7 +147,9 @@ type AdjustedBuildOutputFunction = Override<
 	'entrypoint',
 	Promise<EdgeFunction>
 >;
-type VercelBuildOutputItem = AdjustedBuildOutputFunction | BuildOutputStaticAsset;
+type VercelBuildOutputItem =
+	| AdjustedBuildOutputFunction
+	| BuildOutputStaticAsset;
 
 type VercelBuildOutput = {
 	[key: string]: VercelBuildOutputItem;
