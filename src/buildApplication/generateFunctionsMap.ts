@@ -154,6 +154,7 @@ async function processFuncDirectory(
 	}
 
 	// There are instances where the build output will generate an uncompiled `middleware.js` file that is used as the entrypoint.
+	// TODO: investigate when and where the file is generated.
 	// This file is not able to be used as it is uncompiled, so we try to instead use the compiled `index.js` if it exists.
 	let isMiddleware = false;
 	if (functionConfig.entrypoint === 'middleware.js') {
