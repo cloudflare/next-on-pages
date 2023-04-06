@@ -90,7 +90,7 @@ function collectMiddlewarePaths(routes: VercelSource[]): Set<string> {
 	const paths = new Set<string>();
 
 	for (const route of routes) {
-		if ('middlewarePath' in route && !!route.middlewarePath) {
+		if (!!route.middlewarePath) {
 			paths.add(route.middlewarePath);
 		}
 	}
@@ -101,7 +101,7 @@ function collectMiddlewarePaths(routes: VercelSource[]): Set<string> {
 /**
  * Rewrite middleware paths in the functions map to match the build output config.
  *
- * Request path names will no longer accidently match middleware functions as the leading slash is
+ * Request path names will no longer accidentally match middleware functions as the leading slash is
  * removed from the path name for middleware in the build output config.
  *
  * @param functionsMap Map of path names to function entries.
@@ -115,12 +115,11 @@ function rewriteMiddlewarePaths(
 		const withLeadingSlash = addLeadingSlash(middlewarePath);
 		const entry = functionsMap.get(withLeadingSlash);
 
-		if (!entry || entry.type !== 'function') {
-			cliWarn(`Middleware path '${middlewarePath}' does not have a function.`);
-			continue;
+		if (entry?.type === 'function') {
+			functionsMap.set(middlewarePath, { ...entry, type: 'middleware' });
+		        functionsMap.delete(withLeadingSlash);
+		} else {
+		        cliWarn(`Middleware path '${middlewarePath}' does not have a function.`);
 		}
-
-		functionsMap.set(middlewarePath, { ...entry, type: 'middleware' });
-		functionsMap.delete(withLeadingSlash);
 	}
 }

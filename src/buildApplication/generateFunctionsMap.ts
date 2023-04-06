@@ -69,9 +69,9 @@ export async function generateFunctionsMap(
  * invalid one, so we need to check if the invalid one was added to the map and remove it from the
  * set if it was.
  *
- * @param processingResults Object containing the results of processing a directory.
+ * @param processingResults Object containing the results of processing the current function directory.
  */
-async function checkInvalidFunctions({
+async function tryToFixInvalidFunctions({
 	functionsMap,
 	invalidFunctions,
 }: DirectoryProcessingResults): Promise<void> {
