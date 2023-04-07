@@ -127,7 +127,7 @@ describe('processVercelOutput', () => {
 					{
 						contentType: 'text/html; charset=utf-8',
 						path: '/404.html',
-						type: 'static',
+						type: 'override',
 					},
 				],
 				[
@@ -135,7 +135,7 @@ describe('processVercelOutput', () => {
 					{
 						contentType: 'text/html; charset=utf-8',
 						path: '/500.html',
-						type: 'static',
+						type: 'override',
 					},
 				],
 				[
@@ -143,14 +143,12 @@ describe('processVercelOutput', () => {
 					{
 						contentType: 'text/html; charset=utf-8',
 						path: '/index.html',
-						type: 'static',
+						type: 'override',
 					},
 				],
 				[
 					'/test.html',
 					{
-						contentType: 'text/html; charset=utf-8',
-						path: '/test.html',
 						type: 'static',
 					},
 				],
@@ -167,7 +165,7 @@ describe('processVercelOutput', () => {
 					{
 						contentType: 'text/html; charset=utf-8',
 						path: '/404.html',
-						type: 'static',
+						type: 'override',
 					},
 				],
 				[
@@ -175,7 +173,7 @@ describe('processVercelOutput', () => {
 					{
 						contentType: 'text/html; charset=utf-8',
 						path: '/500.html',
-						type: 'static',
+						type: 'override',
 					},
 				],
 				[
@@ -183,7 +181,7 @@ describe('processVercelOutput', () => {
 					{
 						contentType: 'text/html; charset=utf-8',
 						path: '/index.html',
-						type: 'static',
+						type: 'override',
 					},
 				],
 				[
@@ -191,7 +189,7 @@ describe('processVercelOutput', () => {
 					{
 						contentType: 'text/html; charset=utf-8',
 						path: '/index.html',
-						type: 'static',
+						type: 'override',
 					},
 				],
 			]),
