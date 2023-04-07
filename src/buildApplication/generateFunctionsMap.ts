@@ -1,8 +1,9 @@
 import { readFile, writeFile, mkdir, readdir } from 'fs/promises';
 import { exit } from 'process';
 import { dirname, join, relative } from 'path';
-import { parse, Node } from 'acorn';
-import { generate } from 'astring';
+import { parse, print } from 'recast';
+import * as acornParser from 'recast/parsers/babel';
+import type { ExpressionStatementKind, NumericLiteralKind, ObjectPropertyKind, ProgramKind } from 'ast-types/gen/kinds';
 import {
 	formatRoutePath,
 	normalizePath,
@@ -274,32 +275,40 @@ function extractWebpackChunks(
 } {
 	const webpackChunks = new Map<number, string>();
 
-	const parsedContents = parse(functionContents, {
-		ecmaVersion: 'latest',
-		sourceType: 'module',
-	}) as Node & { body: LooseNode[] };
+	const parsedContents = parse(functionContents, { parser: acornParser }).program as ProgramKind;
 
-	const expressions = parsedContents.body
-		.filter(
-			({ type, expression }) =>
-				type === 'ExpressionStatement' &&
-				expression?.type === 'CallExpression' &&
-				expression.callee?.type === 'MemberExpression' &&
-				expression.callee.object?.type === 'AssignmentExpression' &&
-				expression.callee.object.left?.object?.name === 'self' &&
-				expression.callee.object.left.property?.name === 'webpackChunk_N_E' &&
-				expression.arguments?.[0]?.elements?.[1]?.type === 'ObjectExpression'
-		)
-		.map(
-			node => node?.expression?.arguments?.[0]?.elements?.[1]?.properties
-		) as LooseNode[][];
+	const chunksProperties = parsedContents.body
+		.map((statement: ExpressionStatementKind) => {
+			if(
+				statement.type === 'ExpressionStatement' &&
+				statement.expression?.type === 'CallExpression' &&
+				statement.expression.callee?.type === 'MemberExpression' &&
+				statement.expression.callee.object.type === 'AssignmentExpression' &&
+				statement.expression.callee.object.left.type === 'MemberExpression' &&
+				statement.expression.callee.object.left.object.type === 'Identifier' &&
+				statement.expression.callee.object.left.object.name === 'self' &&
+				statement.expression.callee.object.left.property.type === 'Identifier' &&
+				statement.expression.callee.object.left.property.name === 'webpackChunk_N_E' &&
+				statement.expression.arguments?.[0]?.type === 'ArrayExpression' &&
+				statement.expression.arguments?.[0].elements?.[1]?.type === 'ObjectExpression'
+			) {
+				return (statement.expression.arguments?.[0].elements?.[1]?.properties ?? []).filter(
+					prop => prop.type === 'ObjectProperty'
+				) as ObjectPropertyKind[];
+			}
+			return [];
+		});
 
-	for (const objectOfChunks of expressions) {
-		for (const chunkExpression of objectOfChunks) {
-			const key = chunkExpression?.key?.value;
+	for (const properties of chunksProperties) {
+		const chunksExpressions = properties.filter(
+			prop => prop.key.type === 'NumericLiteral'
+		);
+
+		for (const chunkExpression of chunksExpressions) {
+			const key = (chunkExpression.key as NumericLiteralKind).value;
 			if (key in existingWebpackChunks) {
 				if (
-					existingWebpackChunks.get(key) !== generate(chunkExpression.value)
+					existingWebpackChunks.get(key) !== print(chunkExpression.value).code
 				) {
 					cliError("ERROR: Detected a collision with '--experimental-minify'.");
 					cliError("Try removing the '--experimental-minify' argument.", true);
@@ -307,7 +316,7 @@ function extractWebpackChunks(
 				}
 			}
 
-			webpackChunks.set(key, generate(chunkExpression.value));
+			webpackChunks.set(key, print(chunkExpression.value).code);
 
 			const chunkFilePath = join(tmpWebpackDir, `${key}.js`);
 
@@ -333,12 +342,12 @@ function extractWebpackChunks(
 				},
 			};
 
-			chunkExpression.value = newValue;
+			(chunkExpression as {value: unknown}).value = newValue;
 		}
 	}
 
 	return {
-		updatedFunctionContents: generate(parsedContents),
+		updatedFunctionContents: print(parsedContents).code,
 		extractedWebpackChunks: webpackChunks,
 	};
 }
@@ -365,23 +374,4 @@ type DirectoryProcessingResults = {
 	invalidFunctions: Set<string>;
 	functionsMap: Map<string, string>;
 	webpackChunks: Map<number, string>;
-};
-
-type LooseNode = Node & {
-	expression?: LooseNode;
-	callee?: LooseNode;
-	object?: LooseNode;
-	left?: LooseNode;
-	right?: LooseNode;
-	property?: LooseNode;
-	arguments?: LooseNode[];
-	elements?: LooseNode[];
-	properties?: LooseNode[];
-	key?: LooseNode;
-	name?: string;
-	/*
-    eslint-disable-next-line @typescript-eslint/no-explicit-any 
-    -- TODO: improve the type of value
-  */
-	value: any;
 };

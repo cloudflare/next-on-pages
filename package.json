@@ -21,12 +21,13 @@
 		"templates"
 	],
 	"dependencies": {
-		"acorn": "^8.8.0",
-		"astring": "^1.8.4",
+		"@babel/parser": "^7.21.4",
+		"ast-types": "^0.15.2",
 		"chokidar": "^3.5.3",
 		"cookie": "^0.5.0",
 		"esbuild": "^0.15.3",
 		"js-yaml": "^4.1.0",
+		"recast": "^0.22.0",
 		"zod": "^3.21.4",
 		"zodcli": "^0.0.4"
 	},
