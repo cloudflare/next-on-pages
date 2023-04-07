@@ -1,4 +1,4 @@
-import { resolve } from 'path';
+import { relative, resolve } from 'path';
 import {
 	addLeadingSlash,
 	normalizePath,
@@ -22,7 +22,7 @@ export async function getVercelStaticAssets(): Promise<string[]> {
 	}
 
 	return (await readPathsRecursively(dir)).map(file =>
-		normalizePath(file.replace(new RegExp(`^${dir}`), ''))
+		addLeadingSlash(normalizePath(relative(dir, file)))
 	);
 }
 
