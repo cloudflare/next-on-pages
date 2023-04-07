@@ -16,6 +16,12 @@ import { ProcessedVercelOutput } from './processVercelOutput';
 function constructBuildOutputRecord(item: BuildOutputItem) {
 	return item.type === 'static'
 		? `{ type: ${JSON.stringify(item.type)} }`
+		: item.type === 'override'
+		? `{
+				type: ${JSON.stringify(item.type)},
+				path: ${item.path ? JSON.stringify(item.path) : undefined},
+				contentType: ${item.contentType ? JSON.stringify(item.contentType) : undefined}
+			}`
 		: `{
 				type: ${JSON.stringify(item.type)},
 				entrypoint: AsyncLocalStoragePromise.then(() => import('${item.entrypoint}')),
