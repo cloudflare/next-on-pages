@@ -165,8 +165,8 @@ function applyVercelOverrides(
 			const assetPath = addLeadingSlash(rawAssetPath);
 			const servedPath = addLeadingSlash(rawServedPath);
 
-			const newValue: BuildOutputStaticAsset = {
-				type: 'static',
+			const newValue: BuildOutputStaticOverride = {
+				type: 'override',
 				path: assetPath,
 				contentType,
 			};

@@ -122,8 +122,9 @@ type ProcessedVercelConfig = Override<
 	ProcessedVercelRoutes
 >;
 
-type BuildOutputStaticAsset = {
-	type: 'static';
+type BuildOutputStaticAsset = { type: 'static' };
+type BuildOutputStaticOverride = {
+	type: 'override';
 	path?: string;
 	contentType?: string;
 };
@@ -134,7 +135,10 @@ type BuildOutputFunction = {
 	matchers: { regexp: string }[];
 };
 
-type BuildOutputItem = BuildOutputFunction | BuildOutputStaticAsset;
+type BuildOutputItem =
+	| BuildOutputFunction
+	| BuildOutputStaticAsset
+	| BuildOutputStaticOverride;
 type ProcessedVercelBuildOutput = Map<string, BuildOutputItem>;
 
 type Override<T, K extends keyof T, V> = Omit<T, K> & { [key in K]: V };
