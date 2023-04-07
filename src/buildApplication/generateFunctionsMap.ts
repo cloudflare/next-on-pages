@@ -276,11 +276,12 @@ function extractWebpackChunks(
 } {
 	const webpackChunks = new Map<number, string>();
 
-	const parsedContents = recast.parse(functionContents, { parser: acornParser }).program as AstTypes.ProgramKind;
+	const parsedContents = recast.parse(functionContents, { parser: acornParser })
+		.program as AstTypes.ProgramKind;
 
-	const chunksProperties = parsedContents.body
-		.map((statement: AstTypes.ExpressionStatementKind) => {
-			if(
+	const chunksProperties = parsedContents.body.map(
+		(statement: AstTypes.ExpressionStatementKind) => {
+			if (
 				statement.type === 'ExpressionStatement' &&
 				statement.expression?.type === 'CallExpression' &&
 				statement.expression.callee?.type === 'MemberExpression' &&
@@ -288,17 +289,23 @@ function extractWebpackChunks(
 				statement.expression.callee.object.left.type === 'MemberExpression' &&
 				statement.expression.callee.object.left.object.type === 'Identifier' &&
 				statement.expression.callee.object.left.object.name === 'self' &&
-				statement.expression.callee.object.left.property.type === 'Identifier' &&
-				statement.expression.callee.object.left.property.name === 'webpackChunk_N_E' &&
+				statement.expression.callee.object.left.property.type ===
+					'Identifier' &&
+				statement.expression.callee.object.left.property.name ===
+					'webpackChunk_N_E' &&
 				statement.expression.arguments?.[0]?.type === 'ArrayExpression' &&
-				statement.expression.arguments?.[0].elements?.[1]?.type === 'ObjectExpression'
+				statement.expression.arguments?.[0].elements?.[1]?.type ===
+					'ObjectExpression'
 			) {
-				return (statement.expression.arguments?.[0].elements?.[1]?.properties ?? []).filter(
+				return (
+					statement.expression.arguments?.[0].elements?.[1]?.properties ?? []
+				).filter(
 					prop => prop.type === 'ObjectProperty'
 				) as AstTypes.ObjectPropertyKind[];
 			}
 			return [];
-		});
+		}
+	);
 
 	for (const properties of chunksProperties) {
 		const chunksExpressions = properties.filter(
@@ -309,7 +316,8 @@ function extractWebpackChunks(
 			const key = (chunkExpression.key as AstTypes.NumericLiteralKind).value;
 			if (key in existingWebpackChunks) {
 				if (
-					existingWebpackChunks.get(key) !== recast.print(chunkExpression.value).code
+					existingWebpackChunks.get(key) !==
+					recast.print(chunkExpression.value).code
 				) {
 					cliError("ERROR: Detected a collision with '--experimental-minify'.");
 					cliError("Try removing the '--experimental-minify' argument.", true);
@@ -363,10 +371,7 @@ type DirectoryProcessingResults = {
  */
 function getRequireDefault(path: string): AstTypes.MemberExpressionKind {
 	return astB.memberExpression(
-		astB.callExpression(
-			astB.identifier('require'),
-			[astB.literal(path)]
-		),
+		astB.callExpression(astB.identifier('require'), [astB.literal(path)]),
 		astB.identifier('default')
-	)
+	);
 }
