@@ -4,6 +4,7 @@ import { dirname, join, relative } from 'path';
 import * as recast from 'recast';
 import * as acornParser from 'recast/parsers/babel';
 import type * as AstTypes from 'ast-types/gen/kinds';
+import { builders as astB } from 'ast-types';
 import {
 	formatRoutePath,
 	normalizePath,
@@ -322,7 +323,7 @@ function extractWebpackChunks(
 
 			const newValue = getRequireDefault(chunkFilePath);
 
-			(chunkExpression as {value: unknown}).value = newValue;
+			chunkExpression.value = newValue;
 		}
 	}
 
@@ -356,23 +357,16 @@ type DirectoryProcessingResults = {
 	webpackChunks: Map<number, string>;
 };
 
-const requireDefaultPathPlaceholder = '__PATH__'
-const parsedRequireDefaultBase = (recast.parse(`require(${requireDefaultPathPlaceholder}).default`).program as AstTypes.ProgramKind).body[0];
-
 /**
  * Given a path to a js file returns a MemberExpressionKind node that represents
  * the following piece of code: `require(path).default`
  */
 function getRequireDefault(path: string): AstTypes.MemberExpressionKind {
-	recast.visit(parsedRequireDefaultBase, {
-		visitIdentifier(astPath) {
-			const identifier = (astPath.value as AstTypes.IdentifierKind);
-			if (identifier.type === 'Identifier' && identifier.name === requireDefaultPathPlaceholder) {
-				identifier.name = JSON.stringify(path);
-				return false; // path updated stop traversing tree
-			}
-			this.traverse(astPath);
-		}
-	})
-	return parsedRequireDefaultBase as unknown as AstTypes.MemberExpressionKind;
+	return astB.memberExpression(
+		astB.callExpression(
+			astB.identifier('require'),
+			[astB.literal(path)]
+		),
+		astB.identifier('default')
+	)
 }
