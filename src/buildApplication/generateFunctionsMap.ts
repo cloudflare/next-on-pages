@@ -1,9 +1,10 @@
 import { readFile, writeFile, mkdir, readdir } from 'fs/promises';
 import { exit } from 'process';
 import { dirname, join, relative } from 'path';
-import { parse, print } from 'recast';
+import { parse, print, visit } from 'recast';
 import * as acornParser from 'recast/parsers/babel';
-import type { ExpressionStatementKind, NumericLiteralKind, ObjectPropertyKind, ProgramKind } from 'ast-types/gen/kinds';
+import { builders as astBulders } from "ast-types";
+import type { ExpressionStatementKind, IdentifierKind, MemberExpressionKind, NumericLiteralKind, ObjectPropertyKind, ProgramKind, StatementKind } from 'ast-types/gen/kinds';
 import {
 	formatRoutePath,
 	normalizePath,
@@ -320,27 +321,7 @@ function extractWebpackChunks(
 
 			const chunkFilePath = join(tmpWebpackDir, `${key}.js`);
 
-			const newValue = {
-				type: 'MemberExpression',
-				object: {
-					type: 'CallExpression',
-					callee: {
-						type: 'Identifier',
-						name: 'require',
-					},
-					arguments: [
-						{
-							type: 'Literal',
-							value: chunkFilePath,
-							raw: JSON.stringify(chunkFilePath),
-						},
-					],
-				},
-				property: {
-					type: 'Identifier',
-					name: 'default',
-				},
-			};
+			const newValue = getRequireDefault(chunkFilePath);
 
 			(chunkExpression as {value: unknown}).value = newValue;
 		}
@@ -375,3 +356,24 @@ type DirectoryProcessingResults = {
 	functionsMap: Map<string, string>;
 	webpackChunks: Map<number, string>;
 };
+
+const requireDefaultPathPlaceholder = '__PATH__'
+const parsedRequireDefaultBase = (parse(`require(${requireDefaultPathPlaceholder}).default`).program as ProgramKind).body[0];
+
+/**
+ * Given a path to a js file returns a MemberExpressionKind node that represents
+ * the following piece of code: `require(path).default`
+ */
+function getRequireDefault(path: string): MemberExpressionKind {
+	visit(parsedRequireDefaultBase, {
+		visitIdentifier(astPath) {
+			const identifier = (astPath.value as IdentifierKind);
+			if (identifier.type === 'Identifier' && identifier.name === requireDefaultPathPlaceholder) {
+				identifier.name = JSON.stringify(path);
+				return false; // path updated stop traversing tree
+			}
+			this.traverse(astPath);
+		}
+	})
+	return parsedRequireDefaultBase as unknown as MemberExpressionKind;
+}
