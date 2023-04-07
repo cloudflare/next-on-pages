@@ -1,10 +1,9 @@
 import { readFile, writeFile, mkdir, readdir } from 'fs/promises';
 import { exit } from 'process';
 import { dirname, join, relative } from 'path';
-import { parse, print, visit } from 'recast';
+import * as recast from 'recast';
 import * as acornParser from 'recast/parsers/babel';
-import { builders as astBulders } from "ast-types";
-import type { ExpressionStatementKind, IdentifierKind, MemberExpressionKind, NumericLiteralKind, ObjectPropertyKind, ProgramKind, StatementKind } from 'ast-types/gen/kinds';
+import type * as AstTypes from 'ast-types/gen/kinds';
 import {
 	formatRoutePath,
 	normalizePath,
@@ -276,10 +275,10 @@ function extractWebpackChunks(
 } {
 	const webpackChunks = new Map<number, string>();
 
-	const parsedContents = parse(functionContents, { parser: acornParser }).program as ProgramKind;
+	const parsedContents = recast.parse(functionContents, { parser: acornParser }).program as AstTypes.ProgramKind;
 
 	const chunksProperties = parsedContents.body
-		.map((statement: ExpressionStatementKind) => {
+		.map((statement: AstTypes.ExpressionStatementKind) => {
 			if(
 				statement.type === 'ExpressionStatement' &&
 				statement.expression?.type === 'CallExpression' &&
@@ -295,7 +294,7 @@ function extractWebpackChunks(
 			) {
 				return (statement.expression.arguments?.[0].elements?.[1]?.properties ?? []).filter(
 					prop => prop.type === 'ObjectProperty'
-				) as ObjectPropertyKind[];
+				) as AstTypes.ObjectPropertyKind[];
 			}
 			return [];
 		});
@@ -306,10 +305,10 @@ function extractWebpackChunks(
 		);
 
 		for (const chunkExpression of chunksExpressions) {
-			const key = (chunkExpression.key as NumericLiteralKind).value;
+			const key = (chunkExpression.key as AstTypes.NumericLiteralKind).value;
 			if (key in existingWebpackChunks) {
 				if (
-					existingWebpackChunks.get(key) !== print(chunkExpression.value).code
+					existingWebpackChunks.get(key) !== recast.print(chunkExpression.value).code
 				) {
 					cliError("ERROR: Detected a collision with '--experimental-minify'.");
 					cliError("Try removing the '--experimental-minify' argument.", true);
@@ -317,7 +316,7 @@ function extractWebpackChunks(
 				}
 			}
 
-			webpackChunks.set(key, print(chunkExpression.value).code);
+			webpackChunks.set(key, recast.print(chunkExpression.value).code);
 
 			const chunkFilePath = join(tmpWebpackDir, `${key}.js`);
 
@@ -328,7 +327,7 @@ function extractWebpackChunks(
 	}
 
 	return {
-		updatedFunctionContents: print(parsedContents).code,
+		updatedFunctionContents: recast.print(parsedContents).code,
 		extractedWebpackChunks: webpackChunks,
 	};
 }
@@ -358,16 +357,16 @@ type DirectoryProcessingResults = {
 };
 
 const requireDefaultPathPlaceholder = '__PATH__'
-const parsedRequireDefaultBase = (parse(`require(${requireDefaultPathPlaceholder}).default`).program as ProgramKind).body[0];
+const parsedRequireDefaultBase = (recast.parse(`require(${requireDefaultPathPlaceholder}).default`).program as AstTypes.ProgramKind).body[0];
 
 /**
  * Given a path to a js file returns a MemberExpressionKind node that represents
  * the following piece of code: `require(path).default`
  */
-function getRequireDefault(path: string): MemberExpressionKind {
-	visit(parsedRequireDefaultBase, {
+function getRequireDefault(path: string): AstTypes.MemberExpressionKind {
+	recast.visit(parsedRequireDefaultBase, {
 		visitIdentifier(astPath) {
-			const identifier = (astPath.value as IdentifierKind);
+			const identifier = (astPath.value as AstTypes.IdentifierKind);
 			if (identifier.type === 'Identifier' && identifier.name === requireDefaultPathPlaceholder) {
 				identifier.name = JSON.stringify(path);
 				return false; // path updated stop traversing tree
@@ -375,5 +374,5 @@ function getRequireDefault(path: string): MemberExpressionKind {
 			this.traverse(astPath);
 		}
 	})
-	return parsedRequireDefaultBase as unknown as MemberExpressionKind;
+	return parsedRequireDefaultBase as unknown as AstTypes.MemberExpressionKind;
 }
