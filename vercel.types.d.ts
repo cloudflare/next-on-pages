@@ -122,7 +122,11 @@ type ProcessedVercelConfig = Override<
 	ProcessedVercelRoutes
 >;
 
-type BuildOutputStaticAsset = { type: 'static' };
+type BuildOutputStaticAsset = {
+	type: 'static';
+	path?: string;
+	contentType?: string;
+};
 type BuildOutputFunction = {
 	type: 'function' | 'middleware';
 	entrypoint: string;

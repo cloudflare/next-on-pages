@@ -3,6 +3,7 @@ import {
 	addLeadingSlash,
 	normalizePath,
 	readPathsRecursively,
+	stripIndexRoute,
 	validateDir,
 } from '../utils';
 import { cliLog, cliWarn } from '../cli';
@@ -69,6 +70,9 @@ export function processVercelOutput(
 		});
 	});
 
+	// Apply the overrides from the build output config to the processed output map.
+	applyVercelOverrides(processedConfig, processedOutput);
+
 	rewriteMiddlewarePaths(
 		processedOutput,
 		collectMiddlewarePaths(processedConfig.routes.none)
@@ -128,6 +132,61 @@ function rewriteMiddlewarePaths(
 			processedOutput.delete(withLeadingSlash);
 		} else {
 			cliWarn(`Middleware path '${middlewarePath}' does not have a function.`);
+		}
+	}
+}
+
+/**
+ * Apply the overrides from the Vercel build output config to the processed output map.
+ *
+ * The overrides are used to override the output of a static asset. This includes the path name it
+ * will be served from, and the content type.
+ *
+ * @example
+ * ```
+ * // Serve the static file `500.html` from the path `/500` with the content type `text/html`.
+ * { '500.html': { path: '500', contentType: 'text/html' } }
+ * ```
+ *
+ * @link https://vercel.com/docs/build-output-api/v3/configuration#overrides
+ *
+ * @param vercelConfig Processed Vercel build output config.
+ * @param vercelOutput Map of path names to function entries.
+ */
+function applyVercelOverrides(
+	{ overrides }: ProcessedVercelConfig,
+	vercelOutput: Map<string, BuildOutputItem>
+): void {
+	if (overrides) {
+		for (const [
+			rawAssetPath,
+			{ path: rawServedPath, contentType },
+		] of Object.entries(overrides)) {
+			const assetPath = addLeadingSlash(rawAssetPath);
+			const servedPath = addLeadingSlash(rawServedPath);
+
+			const newValue: BuildOutputStaticAsset = {
+				type: 'static',
+				path: assetPath,
+				contentType,
+			};
+
+			// Update the existing static record to contain the new `contentType` and `assetPath`.
+			const existingStaticRecord = vercelOutput.get(assetPath);
+			if (existingStaticRecord?.type === 'static') {
+				vercelOutput.set(assetPath, newValue);
+			}
+
+			// Add the new served path to the map, overriding the existing record if it exists.
+			if (servedPath) {
+				vercelOutput.set(servedPath, newValue);
+			}
+
+			// If the served path is an index route, add a squashed version of the path to the map.
+			const strippedServedPath = stripIndexRoute(servedPath);
+			if (strippedServedPath !== servedPath) {
+				vercelOutput.set(strippedServedPath, newValue);
+			}
 		}
 	}
 }
