@@ -91,15 +91,11 @@ export function processVercelOutput(
  * @returns Set of middleware paths.
  */
 function collectMiddlewarePaths(routes: VercelSource[]): Set<string> {
-	const paths = new Set<string>();
-
-	for (const route of routes) {
-		if (route.middlewarePath) {
-			paths.add(route.middlewarePath);
-		}
-	}
-
-	return paths;
+	return new Set(
+	    routes
+                .map(route => route.middlewarePath)
+                .filter(Boolean)
+        );
 }
 
 /**
@@ -157,11 +153,11 @@ function applyVercelOverrides(
 	{ overrides }: ProcessedVercelConfig,
 	vercelOutput: Map<string, BuildOutputItem>
 ): void {
-	if (overrides) {
-		for (const [
+        
+        Object.entries(overrides ?? []).forEach(([
 			rawAssetPath,
-			{ path: rawServedPath, contentType },
-		] of Object.entries(overrides)) {
+			{ path: rawServedPath, contentType },        
+        ]) => {
 			const assetPath = addLeadingSlash(rawAssetPath);
 			const servedPath = addLeadingSlash(rawServedPath);
 
@@ -187,6 +183,5 @@ function applyVercelOverrides(
 			if (strippedServedPath !== servedPath) {
 				vercelOutput.set(strippedServedPath, newValue);
 			}
-		}
-	}
+	});
 }
