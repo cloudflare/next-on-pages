@@ -313,21 +313,20 @@ function extractWebpackChunks(
 		);
 
 		for (const chunkExpression of chunksExpressions) {
-			const key = (chunkExpression.key as AstTypes.NumericLiteralKind).value;
-			if (key in existingWebpackChunks) {
-				if (
-					existingWebpackChunks.get(key) !==
-					recast.print(chunkExpression.value).code
-				) {
+			const chunkKey = (chunkExpression.key as AstTypes.NumericLiteralKind)
+				.value;
+			const chunkCode = recast.print(chunkExpression.value).code;
+			if (chunkKey in existingWebpackChunks) {
+				if (existingWebpackChunks.get(chunkKey) !== chunkCode) {
 					cliError("ERROR: Detected a collision with '--experimental-minify'.");
 					cliError("Try removing the '--experimental-minify' argument.", true);
 					exit(1);
 				}
 			}
 
-			webpackChunks.set(key, recast.print(chunkExpression.value).code);
+			webpackChunks.set(chunkKey, chunkCode);
 
-			const chunkFilePath = join(tmpWebpackDir, `${key}.js`);
+			const chunkFilePath = join(tmpWebpackDir, `${chunkKey}.js`);
 
 			const newValue = getRequireDefault(chunkFilePath);
 
