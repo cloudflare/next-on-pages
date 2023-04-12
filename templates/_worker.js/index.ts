@@ -124,7 +124,10 @@ export default {
 
 					const nextJsPathnameMatcher = nextJsPathname.match(regexp);
 
-					if (nextJsPathnameMatcher) {
+					if (
+						nextJsPathnameMatcher ||
+						`${nextJsPathname}/page`.replace('//page', '/page').match(regexp)
+					) {
 						if (nextJsPathnameMatcher?.groups) {
 							const params = Object.entries(nextJsPathnameMatcher.groups);
 							const urlWithParams = new URL(request.url);
