@@ -1,5 +1,11 @@
 # @cloudflare/next-on-pages
 
+## 0.8.0
+
+### Minor Changes
+
+- 3387ac9: New routing system build time processing + integration with worker script.
+
 ## 0.7.0
 
 ### Minor Changes
