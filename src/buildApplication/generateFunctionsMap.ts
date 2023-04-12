@@ -80,22 +80,24 @@ async function tryToFixInvalidFunctions({
 	functionsMap,
 	invalidFunctions,
 }: DirectoryProcessingResults): Promise<void> {
-	if (invalidFunctions.size > 0) {
-		for (const rawPath of invalidFunctions) {
-			const formattedPath = formatRoutePath(rawPath);
+	if (invalidFunctions.size === 0) {
+		return;
+	}
 
-			if (
-				functionsMap.has(formattedPath) ||
-				functionsMap.has(stripIndexRoute(formattedPath))
-			) {
+	for (const rawPath of invalidFunctions) {
+		const formattedPath = formatRoutePath(rawPath);
+
+		if (
+			functionsMap.has(formattedPath) ||
+			functionsMap.has(stripIndexRoute(formattedPath))
+		) {
+			invalidFunctions.delete(rawPath);
+		} else if (formattedPath.endsWith('.rsc')) {
+			const value = functionsMap.get(formattedPath.replace(/\.rsc$/, ''));
+
+			if (value) {
+				functionsMap.set(formattedPath, value);
 				invalidFunctions.delete(rawPath);
-			} else if (formattedPath.endsWith('.rsc')) {
-				const value = functionsMap.get(formattedPath.replace(/\.rsc$/, ''));
-
-				if (value) {
-					functionsMap.set(formattedPath, value);
-					invalidFunctions.delete(rawPath);
-				}
 			}
 		}
 	}
