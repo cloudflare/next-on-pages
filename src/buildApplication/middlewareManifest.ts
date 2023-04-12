@@ -80,7 +80,8 @@ export function parseMiddlewareManifest(
 
 	for (const [name, filepath] of functionsMap) {
 		// the .vc-config name includes the basePath, so we need to strip it for matching in the middleware manifest.
-		const fileName = (basePath ? name.replace(basePath, '') : name).slice(1);
+		const prefixRegex = new RegExp(`^(${basePath})?/`);
+		const fileName = name.replace(prefixRegex, '');
 
 		if (
 			middlewareEntries.length > 0 &&
