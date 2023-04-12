@@ -8,7 +8,9 @@ type VercelConfig = {
 	images?: VercelImagesConfig;
 	wildcard?: VercelWildcardConfig;
 	overrides?: VercelOverrideConfig;
+	framework?: { version: string };
 	cache?: string[];
+	crons?: VercelCronsConfig;
 };
 
 type VercelRoute = VercelSource | VercelHandler;
@@ -19,6 +21,8 @@ type VercelSource = {
 	headers?: Record<string, string>;
 	methods?: string[];
 	continue?: boolean;
+	override?: boolean;
+	important?: boolean;
 	caseSensitive?: boolean;
 	check?: boolean;
 	status?: number;
@@ -83,10 +87,12 @@ type VercelImageFormat = 'image/avif' | 'image/webp';
 type VercelImagesConfig = {
 	sizes: number[];
 	domains: string[];
+	remotePatterns?: string[];
 	minimumCacheTTL?: number; // seconds
 	formats?: VercelImageFormat[];
 	dangerouslyAllowSVG?: boolean;
 	contentSecurityPolicy?: string;
+	contentDispositionType?: string;
 };
 
 type VercelWildCard = {
@@ -103,9 +109,18 @@ type VercelOverride = {
 
 type VercelOverrideConfig = Record<string, VercelOverride>;
 
+type VercelCron = {
+	path: string;
+	schedule: string;
+};
+
+type VercelCronsConfig = VercelCron[];
+
 /**
  * Types for the processed Vercel build output (config, functions + static assets).
  */
+
+type Override<T, K extends keyof T, V> = Omit<T, K> & { [key in K]: V };
 
 type ProcessedVercelRoutes = {
 	none: VercelSource[];
@@ -128,6 +143,8 @@ type BuildOutputStaticOverride = {
 	path?: string;
 	contentType?: string;
 };
+type BuildOutputStaticItem = BuildOutputStaticAsset | BuildOutputStaticOverride;
+
 type BuildOutputFunction = {
 	type: 'function' | 'middleware';
 	entrypoint: string;
@@ -135,13 +152,8 @@ type BuildOutputFunction = {
 	matchers: { regexp: string }[];
 };
 
-type BuildOutputItem =
-	| BuildOutputFunction
-	| BuildOutputStaticAsset
-	| BuildOutputStaticOverride;
+type BuildOutputItem = BuildOutputFunction | BuildOutputStaticItem;
 type ProcessedVercelBuildOutput = Map<string, BuildOutputItem>;
-
-type Override<T, K extends keyof T, V> = Omit<T, K> & { [key in K]: V };
 
 type EdgeFunction = {
 	default: (
@@ -157,7 +169,7 @@ type AdjustedBuildOutputFunction = Override<
 >;
 type VercelBuildOutputItem =
 	| AdjustedBuildOutputFunction
-	| BuildOutputStaticAsset;
+	| BuildOutputStaticItem;
 
 type VercelBuildOutput = {
 	[key: string]: VercelBuildOutputItem;
