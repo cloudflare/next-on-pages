@@ -1,3 +1,5 @@
+// NOTE: This file and the corresponding logic will be removed in the new routing system. (see issue #129)
+
 import { cliWarn } from '../../cli';
 import { readJsonFile } from '../../utils';
 

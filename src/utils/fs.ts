@@ -1,4 +1,5 @@
-import { readFile, stat } from 'fs/promises';
+import { readdir, readFile, stat } from 'fs/promises';
+import { resolve } from 'path';
 
 /**
  * Convert paths with backslashes to normalized paths with forward slashes.
@@ -87,4 +88,26 @@ export function validateFile(path: string) {
  */
 export function validateDir(path: string) {
 	return validatePathType(path, 'directory');
+}
+
+/**
+ * Recursively reads all file paths in a directory.
+ *
+ * @param dir Directory to recursively read from.
+ * @returns Array of all paths for all files in a directory.
+ */
+export async function readPathsRecursively(dir: string): Promise<string[]> {
+	const files = await readdir(dir);
+
+	const paths = await Promise.all(
+		files.map(async file => {
+			const path = resolve(dir, file);
+
+			return (await validateDir(path))
+				? await readPathsRecursively(path)
+				: [path];
+		})
+	);
+
+	return paths.flat();
 }

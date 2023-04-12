@@ -4,7 +4,10 @@
  *  should be refactored to use .vercel/output instead as soon as possible
  */
 
-import { readJsonFile } from '../utils';
+// NOTE: This file and the corresponding logic will be removed in the new routing system. (see issue #129)
+
+import { readJsonFile, stripIndexRoute, stripRouteGroups } from '../utils';
+import type { NextJsConfigs } from './nextJsConfigs';
 
 export type EdgeFunctionDefinition = {
 	name: string;
@@ -31,7 +34,8 @@ export type MiddlewareManifestData = Awaited<
  * gets the parsed middleware manifest and validates it against the existing functions map.
  */
 export async function getParsedMiddlewareManifest(
-	functionsMap: Map<string, string>
+	functionsMap: Map<string, string>,
+	{ basePath }: NextJsConfigs
 ) {
 	// Annoying that we don't get this from the `.vercel` directory.
 	// Maybe we eventually just construct something similar from the `.vercel/output/functions` directory with the same magic filename/precendence rules?
@@ -42,12 +46,13 @@ export async function getParsedMiddlewareManifest(
 		throw new Error('Could not read the functions manifest.');
 	}
 
-	return parseMiddlewareManifest(middlewareManifest, functionsMap);
+	return parseMiddlewareManifest(middlewareManifest, functionsMap, basePath);
 }
 
 export function parseMiddlewareManifest(
 	middlewareManifest: MiddlewareManifest,
-	functionsMap: Map<string, string>
+	functionsMap: Map<string, string>,
+	basePath?: string
 ) {
 	if (middlewareManifest.version !== 2) {
 		throw new Error(
@@ -74,9 +79,13 @@ export function parseMiddlewareManifest(
 	const functionsEntries = Object.values(middlewareManifest.functions);
 
 	for (const [name, filepath] of functionsMap) {
+		// the .vc-config name includes the basePath, so we need to strip it for matching in the middleware manifest.
+		const prefixRegex = new RegExp(`^(${basePath})?/`);
+		const fileName = name.replace(prefixRegex, '');
+
 		if (
 			middlewareEntries.length > 0 &&
-			(name === 'middleware' || name === 'src/middleware')
+			(fileName === 'middleware' || fileName === 'src/middleware')
 		) {
 			for (const entry of middlewareEntries) {
 				if (entry?.name === 'middleware' || entry?.name === 'src/middleware') {
@@ -86,8 +95,16 @@ export function parseMiddlewareManifest(
 		}
 
 		for (const entry of functionsEntries) {
-			if (matchFunctionEntry(entry.name, name)) {
+			if (matchFunctionEntry(stripRouteGroups(entry.name), fileName)) {
 				hydratedFunctions.set(name, { matchers: entry.matchers, filepath });
+
+				// NOTE: Temporary to account for `/index` routes.
+				if (stripIndexRoute(name) !== name) {
+					hydratedFunctions.set(stripIndexRoute(name), {
+						matchers: entry.matchers,
+						filepath,
+					});
+				}
 			}
 		}
 	}

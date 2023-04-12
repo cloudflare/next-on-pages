@@ -4,12 +4,14 @@ import { dirname, join, relative } from 'path';
 import { parse, Node } from 'acorn';
 import { generate } from 'astring';
 import {
+	formatRoutePath,
 	normalizePath,
 	readJsonFile,
+	stripIndexRoute,
 	validateDir,
 	validateFile,
 } from '../utils';
-import { cliError, CliOptions } from '../cli';
+import { cliError, CliOptions, cliWarn } from '../cli';
 import { tmpdir } from 'os';
 
 /**
@@ -27,10 +29,9 @@ import { tmpdir } from 'os';
 export async function generateFunctionsMap(
 	functionsDir: string,
 	experimentalMinify: CliOptions['experimentalMinify']
-): Promise<{
-	functionsMap: Map<string, string>;
-	invalidFunctions: Set<string>;
-}> {
+): Promise<
+	Pick<DirectoryProcessingResults, 'functionsMap' | 'invalidFunctions'>
+> {
 	const processingSetup = {
 		functionsDir,
 		tmpFunctionsDir: join(tmpdir(), Math.random().toString(36).slice(2)),
@@ -43,6 +44,8 @@ export async function generateFunctionsMap(
 		functionsDir
 	);
 
+	await tryToFixInvalidFunctions(processingResults);
+
 	if (experimentalMinify) {
 		await buildWebpackChunkFiles(
 			processingResults.webpackChunks,
@@ -51,6 +54,53 @@ export async function generateFunctionsMap(
 	}
 
 	return processingResults;
+}
+
+/**
+ * Process the invalid functions and check whether and valid function was created in the functions
+ * map to override it.
+ *
+ * The build output sometimes generates invalid functions at the root, while still creating the
+ * valid functions. With the base path and route groups, it might create the valid edge function
+ * inside a folder for the route group, but create an invalid one that maps to the same path
+ * at the root.
+ *
+ * When we process the directory, we might add the valid function to the map before we process the
+ * invalid one, so we need to check if the invalid one was added to the map and remove it from the
+ * set if it was.
+ *
+ * If the invalid function is an RSC function (e.g. `path.rsc`) and doesn't have a valid squashed
+ * version, we check if a squashed non-RSC function exists (e.g. `path`) and use this instead. RSC
+ * functions are the same as non-RSC functions, per the Vercel source code.
+ * https://github.com/vercel/vercel/blob/main/packages/next/src/server-build.ts#L1193
+ *
+ * @param processingResults Object containing the results of processing the current function directory.
+ */
+async function tryToFixInvalidFunctions({
+	functionsMap,
+	invalidFunctions,
+}: DirectoryProcessingResults): Promise<void> {
+	if (invalidFunctions.size === 0) {
+		return;
+	}
+
+	for (const rawPath of invalidFunctions) {
+		const formattedPath = formatRoutePath(rawPath);
+
+		if (
+			functionsMap.has(formattedPath) ||
+			functionsMap.has(stripIndexRoute(formattedPath))
+		) {
+			invalidFunctions.delete(rawPath);
+		} else if (formattedPath.endsWith('.rsc')) {
+			const value = functionsMap.get(formattedPath.replace(/\.rsc$/, ''));
+
+			if (value) {
+				functionsMap.set(formattedPath, value);
+				invalidFunctions.delete(rawPath);
+			}
+		}
+	}
 }
 
 async function processDirectoryRecursively(
@@ -117,8 +167,26 @@ async function processFuncDirectory(
 		};
 	}
 
+	// There are instances where the build output will generate an uncompiled `middleware.js` file that is used as the entrypoint.
+	// TODO: investigate when and where the file is generated.
+	// This file is not able to be used as it is uncompiled, so we try to instead use the compiled `index.js` if it exists.
+	let isMiddleware = false;
+	if (functionConfig.entrypoint === 'middleware.js') {
+		isMiddleware = true;
+		functionConfig.entrypoint = 'index.js';
+	}
+
 	const functionFile = join(filepath, functionConfig.entrypoint);
 	if (!(await validateFile(functionFile))) {
+		if (isMiddleware) {
+			// We sometimes encounter an uncompiled `middleware.js` with no compiled `index.js` outside of a base path.
+			// Outside the base path, it should not be utilised, so it should be safe to ignore the function.
+			cliWarn(
+				`Detected an invalid middleware function for ${relativePath}. Skipping...`
+			);
+			return {};
+		}
+
 		return {
 			invalidFunctions: new Set([file]),
 		};
@@ -143,12 +211,15 @@ async function processFuncDirectory(
 	await mkdir(dirname(newFilePath), { recursive: true });
 	await writeFile(newFilePath, contents);
 
-	functionsMap.set(
-		normalizePath(
-			relative(setup.functionsDir, filepath).slice(0, -'.func'.length)
-		),
-		normalizePath(newFilePath)
-	);
+	const formattedPathName = formatRoutePath(relativePath);
+	const normalizedFilePath = normalizePath(newFilePath);
+
+	functionsMap.set(formattedPathName, normalizedFilePath);
+
+	if (formattedPathName.endsWith('/index')) {
+		// strip `/index` from the path name as the build output config doesn't rewrite `/index` to `/`
+		functionsMap.set(stripIndexRoute(formattedPathName), normalizedFilePath);
+	}
 
 	return {
 		functionsMap,

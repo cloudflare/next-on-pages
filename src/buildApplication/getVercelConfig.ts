@@ -25,3 +25,31 @@ export async function getVercelConfig(): Promise<VercelConfig> {
 
 	return config;
 }
+
+export function processVercelConfig(
+	config: VercelConfig
+): ProcessedVercelConfig {
+	const processedConfig: ProcessedVercelConfig = {
+		...config,
+		routes: {
+			none: [],
+			filesystem: [],
+			miss: [],
+			rewrite: [],
+			resource: [],
+			hit: [],
+			error: [],
+		},
+	};
+
+	let currentPhase: VercelHandleValue | 'none' = 'none';
+	config.routes.forEach(route => {
+		if ('handle' in route) {
+			currentPhase = route.handle;
+		} else {
+			processedConfig.routes[currentPhase].push(route);
+		}
+	});
+
+	return processedConfig;
+}

@@ -64,41 +64,47 @@ describe('parseMiddlewareManifest', () => {
 		};
 
 		const functionsMap = new Map(
-			['test', '[id]', '1/2/3', 'index', 'test', 'api/hello'].map(fn => [
-				fn,
-				`test/filepath/${fn}`,
-			])
+			['/test', '/[id]', '/1/2/3', '/', '/index', '/test', '/api/hello'].map(
+				fn => [fn, `test/filepath${fn === '/' ? '/index' : fn}`]
+			)
 		);
 
 		const expectedHydratedFunction = new Map([
 			[
-				'test',
+				'/test',
 				{ filepath: 'test/filepath/test', matchers: [{ regexp: 'regexpA' }] },
 			],
 			[
-				'[id]',
+				'/[id]',
 				{ filepath: 'test/filepath/[id]', matchers: [{ regexp: 'regexpB' }] },
 			],
 			[
-				'1/2/3',
+				'/1/2/3',
 				{
 					filepath: 'test/filepath/1/2/3',
 					matchers: [{ regexp: 'regexpC' }],
 				},
 			],
 			[
-				'index',
+				'/index',
 				{
 					filepath: 'test/filepath/index',
 					matchers: [{ regexp: 'regexpD' }],
 				},
 			],
 			[
-				'test',
+				'/',
+				{
+					filepath: 'test/filepath/index',
+					matchers: [{ regexp: 'regexpD' }],
+				},
+			],
+			[
+				'/test',
 				{ filepath: 'test/filepath/test', matchers: [{ regexp: 'regexpE' }] },
 			],
 			[
-				'api/hello',
+				'/api/hello',
 				{
 					filepath: 'test/filepath/api/hello',
 					matchers: [{ regexp: 'regexpF' }],

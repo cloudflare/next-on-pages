@@ -1,44 +1,7 @@
 import { parse } from 'cookie';
+import { adjustRequestForVercel, hasField } from './utils';
 
-const hasField = (
-	{
-		request,
-		url,
-		cookies,
-	}: { request: Request; url: URL; cookies: Record<string, string> },
-	has: VercelSource['has'][0]
-) => {
-	switch (has.type) {
-		case 'host': {
-			// TODO: URL host, hostname or HTTP Header host?
-			return url.host === has.value;
-		}
-		case 'header': {
-			if (has.value !== undefined) {
-				return request.headers.get(has.key)?.match(has.value);
-			}
-
-			return request.headers.has(has.key);
-		}
-		case 'cookie': {
-			const cookie = cookies[has.key];
-
-			if (has.value !== undefined) {
-				return cookie?.match(has.value);
-			}
-
-			return cookie !== undefined;
-		}
-		case 'query': {
-			if (has.value !== undefined) {
-				return url.searchParams.get(has.key)?.match(has.value);
-			}
-
-			return url.searchParams.has(has.key);
-		}
-	}
-};
-
+// NOTE: Will be replaced in the new routing system. (see issue #129)
 export const routesMatcher = (
 	{ request }: { request: Request },
 	routes?: VercelConfig['routes']
@@ -108,24 +71,11 @@ export const routesMatcher = (
 	return matchingRoutes;
 };
 
-type EdgeFunction = {
-	default: (
-		request: Request,
-		context: ExecutionContext
-	) => Response | Promise<Response>;
-};
+declare const __CONFIG__: ProcessedVercelConfig;
 
-type EdgeFunctions = {
-	matchers: { regexp: string }[];
-	entrypoint: Promise<EdgeFunction>;
-}[];
+declare const __BUILD_OUTPUT__: VercelBuildOutput;
 
-declare const __CONFIG__: VercelConfig;
-
-declare const __FUNCTIONS__: EdgeFunctions;
-
-declare const __MIDDLEWARE__: EdgeFunctions;
-
+// NOTE: Will be removed in the new routing system. (see issue #129)
 declare const __BASE_PATH__: string;
 
 export default {
@@ -133,17 +83,31 @@ export default {
 		(globalThis.process.env as unknown) = { ...globalThis.process.env, ...env };
 
 		const { pathname } = new URL(request.url);
-		const routes = routesMatcher({ request }, __CONFIG__.routes);
+		// NOTE: Will be removed in the new routing system. (see issue #129)
+		// middleware only occur in the `none` routing phase (i.e. before all other phases).
+		const routes = routesMatcher({ request }, __CONFIG__.routes.none);
 
+		// NOTE: Will be removed in the new routing system. (see issue #129)
 		for (const route of routes) {
-			if ('middlewarePath' in route && route.middlewarePath in __MIDDLEWARE__) {
-				return await (
-					await __MIDDLEWARE__[route.middlewarePath].entrypoint
-				).default(request, context);
+			if (
+				'middlewarePath' in route &&
+				route.middlewarePath in __BUILD_OUTPUT__
+			) {
+				const item = __BUILD_OUTPUT__[route.middlewarePath];
+
+				if (item.type === 'middleware') {
+					return await (await item.entrypoint).default(request, context);
+				}
 			}
 		}
 
-		for (const { matchers, entrypoint } of Object.values(__FUNCTIONS__)) {
+		// NOTE: Will be replaced in the new routing system. (see issue #129)
+		// Filtering for type `function` is temporary while the new routing system is being implemented.
+		for (const { matchers, entrypoint } of Object.values(
+			__BUILD_OUTPUT__
+		).filter(
+			item => item.type === 'function'
+		) as AdjustedBuildOutputFunction[]) {
 			let found = false;
 			for (const matcher of matchers) {
 				if (matcher.regexp) {
@@ -188,23 +152,3 @@ export default {
 		return env.ASSETS.fetch(request);
 	},
 } as ExportedHandler<{ ASSETS: Fetcher }>;
-
-/**
- * Adjusts the request so that it is formatted as if it were provided by Vercel
- *
- * @param request the original request received by the worker
- * @returns the adjusted request to pass to Next
- */
-function adjustRequestForVercel(request: Request): Request {
-	const adjustedHeaders = new Headers(request.headers);
-
-	if (request.cf) {
-		adjustedHeaders.append('x-vercel-ip-city', request.cf.city);
-		adjustedHeaders.append('x-vercel-ip-country', request.cf.country);
-		adjustedHeaders.append('x-vercel-ip-country-region', request.cf.region);
-		adjustedHeaders.append('x-vercel-ip-latitude', request.cf.latitude);
-		adjustedHeaders.append('x-vercel-ip-longitude', request.cf.longitude);
-	}
-
-	return new Request(request, { headers: adjustedHeaders });
-}
