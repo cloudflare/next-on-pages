@@ -41,7 +41,7 @@ Earlier and Later versions might be only partially supported, we don't fully kno
 
 ## next.config.js Properties
 
-> The following options have been gathered from the Next.js [next.config.js documentation](https://nextjs.org/docs/api-reference/next.config.js/introduction), alongside the [Advanced routing documentation](https://nextjs.org/docs/advanced-features/i18n-routing).
+> The following options have been gathered from the Next.js [next.config.js documentation](https://nextjs.org/docs/api-reference/next.config.js/introduction), alongside the [Internationalized routing documentation](https://nextjs.org/docs/advanced-features/i18n-routing).
 
 | Option                                     | Support |
 | ------------------------------------------ | ------- |
