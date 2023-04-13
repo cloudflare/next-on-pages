@@ -31,6 +31,7 @@ Earlier and Later versions might be only partially supported, we don't fully kno
 | wildcard                | 🔄      |
 | overrides               | 🔄      |
 | cache                   | ❌      |
+| crons                   | ❌      |
 
     - ✅: Supported
     - 🔄: Not currently supported, but it's probably possible and we may add support in the future
@@ -40,7 +41,7 @@ Earlier and Later versions might be only partially supported, we don't fully kno
 
 ## next.config.js Properties
 
-> The following options have been gathered from the [Next.js next.config.js documentation](https://nextjs.org/docs/api-reference/next.config.js/introduction).
+> The following options have been gathered from the Next.js [next.config.js documentation](https://nextjs.org/docs/api-reference/next.config.js/introduction), alongside the [Internationalized routing documentation](https://nextjs.org/docs/advanced-features/i18n-routing).
 
 | Option                                     | Support |
 | ------------------------------------------ | ------- |
@@ -69,6 +70,7 @@ Earlier and Later versions might be only partially supported, we don't fully kno
 | URL imports                                | ✅      |
 | build indicator<sup>7</sup>                | ❌      |
 | Turbopack-specific options<sup>8</sup>     | ❌      |
+| internationalized (i18n) routing           | 🔄      |
 
     - ✅: Supported
     - 🔄: Not currently supported, but it's probably possible and we may add support in the future
