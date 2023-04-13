@@ -4,7 +4,7 @@ import { dirname, join, relative } from 'path';
 import * as recast from 'recast';
 import * as acornParser from 'recast/parsers/babel';
 import type * as AstTypes from 'ast-types/gen/kinds';
-import { builders as astB } from 'ast-types';
+import { ASTNode, builders as astB } from 'ast-types';
 import {
 	formatRoutePath,
 	normalizePath,
@@ -15,6 +15,7 @@ import {
 } from '../utils';
 import { cliError, CliOptions, cliWarn } from '../cli';
 import { tmpdir } from 'os';
+import assert from 'assert';
 
 /**
  * Creates new files containing the Vercel built functions but adjusted so that they can be later
@@ -279,59 +280,26 @@ function extractWebpackChunks(
 	const parsedContents = recast.parse(functionContents, { parser: acornParser })
 		.program as AstTypes.ProgramKind;
 
-	const chunksProperties = parsedContents.body.map(
-		(statement: AstTypes.ExpressionStatementKind) => {
-			if (
-				statement.type === 'ExpressionStatement' &&
-				statement.expression?.type === 'CallExpression' &&
-				statement.expression.callee?.type === 'MemberExpression' &&
-				statement.expression.callee.object.type === 'AssignmentExpression' &&
-				statement.expression.callee.object.left.type === 'MemberExpression' &&
-				statement.expression.callee.object.left.object.type === 'Identifier' &&
-				statement.expression.callee.object.left.object.name === 'self' &&
-				statement.expression.callee.object.left.property.type ===
-					'Identifier' &&
-				statement.expression.callee.object.left.property.name ===
-					'webpackChunk_N_E' &&
-				statement.expression.arguments?.[0]?.type === 'ArrayExpression' &&
-				statement.expression.arguments?.[0].elements?.[1]?.type ===
-					'ObjectExpression'
-			) {
-				return (
-					statement.expression.arguments?.[0].elements?.[1]?.properties ?? []
-				).filter(
-					prop => prop.type === 'ObjectProperty'
-				) as AstTypes.ObjectPropertyKind[];
+	const chunksExpressions = getChunkExpressions(parsedContents);
+
+	for (const chunkExpression of chunksExpressions) {
+		const chunkKey = (chunkExpression.key as AstTypes.NumericLiteralKind).value;
+		const chunkCode = recast.print(chunkExpression.value).code;
+		if (chunkKey in existingWebpackChunks) {
+			if (existingWebpackChunks.get(chunkKey) !== chunkCode) {
+				cliError("ERROR: Detected a collision with '--experimental-minify'.");
+				cliError("Try removing the '--experimental-minify' argument.", true);
+				exit(1);
 			}
-			return [];
 		}
-	);
 
-	for (const properties of chunksProperties) {
-		const chunksExpressions = properties.filter(
-			prop => prop.key.type === 'NumericLiteral'
-		);
+		webpackChunks.set(chunkKey, chunkCode);
 
-		for (const chunkExpression of chunksExpressions) {
-			const chunkKey = (chunkExpression.key as AstTypes.NumericLiteralKind)
-				.value;
-			const chunkCode = recast.print(chunkExpression.value).code;
-			if (chunkKey in existingWebpackChunks) {
-				if (existingWebpackChunks.get(chunkKey) !== chunkCode) {
-					cliError("ERROR: Detected a collision with '--experimental-minify'.");
-					cliError("Try removing the '--experimental-minify' argument.", true);
-					exit(1);
-				}
-			}
+		const chunkFilePath = join(tmpWebpackDir, `${chunkKey}.js`);
 
-			webpackChunks.set(chunkKey, chunkCode);
+		const newValue = getRequireDefault(chunkFilePath);
 
-			const chunkFilePath = join(tmpWebpackDir, `${chunkKey}.js`);
-
-			const newValue = getRequireDefault(chunkFilePath);
-
-			chunkExpression.value = newValue;
-		}
+		chunkExpression.value = newValue;
 	}
 
 	return {
@@ -373,4 +341,39 @@ function getRequireDefault(path: string): AstTypes.MemberExpressionKind {
 		astB.callExpression(astB.identifier('require'), [astB.literal(path)]),
 		astB.identifier('default')
 	);
+}
+
+function getChunkExpressions(node: ASTNode): AstTypes.ObjectPropertyKind[] {
+	const chunksProperties: AstTypes.ObjectPropertyKind[] = [];
+
+	recast.visit(node, {
+		visitCallExpression(path) {
+			const node = path.node;
+			try {
+				const callee = node.callee;
+				assert(callee.type === 'MemberExpression');
+				assert(callee.object.type === 'AssignmentExpression');
+				assert(callee.object.left.type === 'MemberExpression');
+				assert(callee.object.left.object.type === 'Identifier');
+				assert(callee.object.left.object.name === 'self');
+				assert(callee.object.left.property.type === 'Identifier');
+				assert(callee.object.left.property.name === 'webpackChunk_N_E');
+				assert(node.arguments?.[0]?.type === 'ArrayExpression');
+				assert(node.arguments[0].elements[1].type === 'ObjectExpression');
+
+				(node.arguments[0].elements[1].properties ?? [])
+					.filter(prop => prop.type === 'ObjectProperty')
+					.forEach((objProp: AstTypes.ObjectPropertyKind) =>
+						chunksProperties.push(objProp)
+					);
+			} catch {
+				/* empty */
+			}
+
+			this.traverse(path);
+		},
+	});
+
+	const chunksExpressions = chunksProperties.flat();
+	return chunksExpressions;
 }
