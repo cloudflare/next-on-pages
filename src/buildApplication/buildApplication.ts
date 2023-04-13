@@ -34,7 +34,10 @@ export async function buildApplication({
 		try {
 			await buildVercelOutput();
 		} catch (err) {
-			cliError(err.message);
+			cliError(
+				err?.message ??
+					'Error: The Vercel build failed. For more details see the Vercel logs above.'
+			);
 			buildSuccess = false;
 		}
 	}
