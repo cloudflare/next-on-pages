@@ -31,6 +31,7 @@ Earlier and Later versions might be only partially supported, we don't fully kno
 | wildcard                | 🔄      |
 | overrides               | 🔄      |
 | cache                   | ❌      |
+| crons                   | ❌      |
 
     - ✅: Supported
     - 🔄: Not currently supported, but it's probably possible and we may add support in the future
@@ -69,6 +70,7 @@ Earlier and Later versions might be only partially supported, we don't fully kno
 | URL imports                                | ✅      |
 | build indicator<sup>7</sup>                | ❌      |
 | Turbopack-specific options<sup>8</sup>     | ❌      |
+| internationalized (i18n) routing           | 🔄      |
 
     - ✅: Supported
     - 🔄: Not currently supported, but it's probably possible and we may add support in the future
