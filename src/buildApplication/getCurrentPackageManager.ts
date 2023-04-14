@@ -2,7 +2,7 @@ import YAML from 'js-yaml';
 import { spawn } from 'child_process';
 import { readFile } from 'fs/promises';
 import { validateFile, getSpawnCommand, PackageManager } from '../utils';
-import { cliError } from '../cli';
+import { cliLog } from '../cli';
 
 export async function getCurrentPackageManager(): Promise<PackageManager> {
 	const userAgent = process.env.npm_config_user_agent;
@@ -19,9 +19,7 @@ export async function getCurrentPackageManager(): Promise<PackageManager> {
 		getYarnV.stdout.on('data', data => {
 			yarnV = `${data}`.trimEnd();
 		});
-		getYarnV.stderr.on('data', data => {
-			cliError(data);
-		});
+		getYarnV.stderr.on('data', data => cliLog(`\n${data}`));
 		await new Promise((resolve, reject) => {
 			getYarnV.on('close', code => {
 				if (code === 0) {
