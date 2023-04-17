@@ -2,4 +2,4 @@
 '@cloudflare/next-on-pages': minor
 ---
 
-Improve cli logs style
+Add colors to cli logs
