@@ -1,7 +1,7 @@
 import dedent from 'dedent-tabs';
 import { z } from 'zod';
 import { argumentParser } from 'zodcli';
-import chalk, { ChalkInstance } from 'chalk';
+import chalk, { type ChalkInstance } from 'chalk';
 
 // A helper type to handle command line flags. Defaults to false
 const flag = z
