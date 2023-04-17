@@ -24,7 +24,7 @@ export async function buildVercelOutput(): Promise<void> {
 	await generateProjectJsonFileIfNeeded();
 	cliLog('Project is ready');
 	await runVercelBuild(pkgMng);
-	cliSuccess('Building Completed.\n');
+	cliLog('Completed `npx vercel build`.\n');
 }
 
 /**
