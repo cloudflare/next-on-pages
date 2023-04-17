@@ -304,9 +304,9 @@ function extractWebpackChunks(
 					cliError(
 						`
 							ERROR: Detected a collision with '--experimental-minify'.
-							Try removing the '--experimental-minify' argument.
+							       Try removing the '--experimental-minify' argument.
 						`,
-						{ fromVercelCli: true, spaced: true }
+						{ spaced: true }
 					);
 					exit(1);
 				}
