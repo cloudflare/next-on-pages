@@ -157,19 +157,11 @@ function prepareCliMessage(
 		styleFormatter?: ChalkInstance;
 	}
 ): string {
+	const prefix = fromVercelCli ? '▲ ' : '⚡️';
 	const preparedMessage = dedent(message)
 		.split('\n')
-		.map(
-			line =>
-				`${getCliPrefix(fromVercelCli)} ${
-					styleFormatter ? styleFormatter(line) : line
-				}`
-		)
+		.map(line => `${prefix} ${styleFormatter ? styleFormatter(line) : line}`)
 		.join('\n');
 
 	return spaced ? `\n${preparedMessage}\n` : preparedMessage;
-}
-
-function getCliPrefix(fromVercelCli?: boolean): string {
-	return fromVercelCli ? '▲ ' : '⚡️';
 }
