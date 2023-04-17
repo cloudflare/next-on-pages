@@ -58,7 +58,7 @@ async function prepareAndBuildWorker(
 		vercelConfig = await getVercelConfig();
 	} catch (e) {
 		if (e instanceof Error) {
-			cliError(e.message, true);
+			cliError(e.message, { showReport: true });
 		}
 		exit(1);
 	}
@@ -95,7 +95,7 @@ async function prepareAndBuildWorker(
 		);
 	} catch (e: unknown) {
 		if (e instanceof Error) {
-			cliError(e.message, true);
+			cliError(e.message, { showReport: true });
 		}
 		exit(1);
 	}

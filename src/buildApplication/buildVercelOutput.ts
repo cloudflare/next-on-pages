@@ -1,7 +1,7 @@
 import { writeFile, mkdir, rm, rmdir } from 'fs/promises';
 import { spawn } from 'child_process';
 import { join, resolve } from 'path';
-import { cliError, cliLog } from '../cli';
+import { cliLog } from '../cli';
 import { validateDir, validateFile } from '../utils';
 import { getCurrentPackageManager } from './getCurrentPackageManager';
 import { PackageManager, getSpawnCommand } from '../utils/getSpawnCommand';
@@ -24,7 +24,7 @@ export async function buildVercelOutput(): Promise<void> {
 	await generateProjectJsonFileIfNeeded();
 	cliLog('Project is ready');
 	await runVercelBuild(pkgMng);
-	cliLog('Building Completed.\n');
+	cliLog('Completed `npx vercel build`.\n');
 }
 
 /**
@@ -51,8 +51,15 @@ async function runVercelBuild(pkgMng: PackageManager): Promise<void> {
 
 		const installVercel = spawn(pkgMngCMD, ['add', 'vercel', '-D']);
 
-		installVercel.stdout.on('data', data => cliLog(`\n${data}`, true));
-		installVercel.stderr.on('data', data => cliError(`\n${data}`, false, true));
+		installVercel.stdout.on('data', data =>
+			cliLog(`\n${data}`, { fromVercelCli: true })
+		);
+		installVercel.stderr.on('data', data =>
+			// here we use cliLog instead of cliError because the Vercel cli
+			// currently displays non-error messages in stderr
+			// so we just display all Vercel logs as standard logs
+			cliLog(`\n${data}`, { fromVercelCli: true })
+		);
 
 		await new Promise((resolve, reject) => {
 			installVercel.on('close', code => {
@@ -75,8 +82,15 @@ async function runVercelBuild(pkgMng: PackageManager): Promise<void> {
 		'build',
 	]);
 
-	vercelBuild.stdout.on('data', data => cliLog(`\n${data}`, true));
-	vercelBuild.stderr.on('data', data => cliError(`\n${data}`, false, true));
+	vercelBuild.stdout.on('data', data =>
+		cliLog(`\n${data}`, { fromVercelCli: true })
+	);
+	vercelBuild.stderr.on('data', data =>
+		// here we use cliLog instead of cliError because the Vercel cli
+		// currently displays non-error messages in stderr
+		// so we just display all Vercel logs as standard logs
+		cliLog(`\n${data}`, { fromVercelCli: true })
+	);
 
 	await new Promise((resolve, reject) => {
 		vercelBuild.on('close', code => {

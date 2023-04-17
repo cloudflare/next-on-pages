@@ -26,16 +26,17 @@ function getNodeEnv(): string {
 
 	const nextJsNodeEnvs = Object.values(NextJsNodeEnv);
 	if (!(nextJsNodeEnvs as string[]).includes(processNodeEnv)) {
-		cliWarn('');
-		cliWarn(`
+		cliWarn(
+			`
 			WARNING:
 			    The current value of the environment variable NODE_ENV is "${processNodeEnv}",
 			    but the supported values are: ${nextJsNodeEnvs
 						.map(env => `"${env}"`)
 						.join(', ')}.
 			    See: https://nextjs.org/docs/basic-features/environment-variables.
-		`);
-		cliWarn('');
+		`,
+			{ spaced: true }
+		);
 	}
 
 	return processNodeEnv;

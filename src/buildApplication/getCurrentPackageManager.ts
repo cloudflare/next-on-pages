@@ -19,9 +19,7 @@ export async function getCurrentPackageManager(): Promise<PackageManager> {
 		getYarnV.stdout.on('data', data => {
 			yarnV = `${data}`.trimEnd();
 		});
-		getYarnV.stderr.on('data', data => {
-			cliError(data);
-		});
+		getYarnV.stderr.on('data', data => cliError(`\n${data}`));
 		await new Promise((resolve, reject) => {
 			getYarnV.on('close', code => {
 				if (code === 0) {

@@ -301,8 +301,13 @@ function extractWebpackChunks(
 				if (
 					existingWebpackChunks.get(key) !== generate(chunkExpression.value)
 				) {
-					cliError("ERROR: Detected a collision with '--experimental-minify'.");
-					cliError("Try removing the '--experimental-minify' argument.", true);
+					cliError(
+						`
+							ERROR: Detected a collision with '--experimental-minify'.
+							       Try removing the '--experimental-minify' argument.
+						`,
+						{ spaced: true }
+					);
 					exit(1);
 				}
 			}

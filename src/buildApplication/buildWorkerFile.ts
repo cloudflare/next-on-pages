@@ -2,7 +2,7 @@ import { writeFile } from 'fs/promises';
 import { join } from 'path';
 import { build } from 'esbuild';
 import { tmpdir } from 'os';
-import { cliLog } from '../cli';
+import { cliSuccess } from '../cli';
 import { NextJsConfigs } from './nextJsConfigs';
 import { generateGlobalJs } from './generateGlobalJs';
 import { ProcessedVercelOutput } from './processVercelOutput';
@@ -70,5 +70,5 @@ export async function buildWorkerFile(
 		minify: experimentalMinify,
 	});
 
-	cliLog("Generated '.vercel/output/static/_worker.js'.");
+	cliSuccess("Generated '.vercel/output/static/_worker.js'.");
 }
