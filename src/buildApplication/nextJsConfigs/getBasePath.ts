@@ -27,8 +27,7 @@ export async function getBasePath(): Promise<string | null> {
 	if (!routesManifest || routesManifest.version !== 3) {
 		cliWarn(
 			`
-			  Warning: Could not read basePath from .next/routes-manifest.json 
-				filefalling back to empty basePath
+			Warning: Could not read basePath from .next/routes-manifest.json file, falling back to empty basePath
 			`,
 			{ spaced: true }
 		);
