@@ -55,6 +55,9 @@ async function runVercelBuild(pkgMng: PackageManager): Promise<void> {
 			cliLog(`\n${data}`, { fromVercelCli: true })
 		);
 		installVercel.stderr.on('data', data =>
+			// here we use cliLog instead of cliError because the Vercel cli
+			// currently displays non-error messages in stderr
+			// so we just display all Vercel logs as standard logs
 			cliLog(`\n${data}`, { fromVercelCli: true })
 		);
 
@@ -83,6 +86,9 @@ async function runVercelBuild(pkgMng: PackageManager): Promise<void> {
 		cliLog(`\n${data}`, { fromVercelCli: true })
 	);
 	vercelBuild.stderr.on('data', data =>
+		// here we use cliLog instead of cliError because the Vercel cli
+		// currently displays non-error messages in stderr
+		// so we just display all Vercel logs as standard logs
 		cliLog(`\n${data}`, { fromVercelCli: true })
 	);
 
