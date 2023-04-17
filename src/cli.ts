@@ -39,7 +39,7 @@ export function parseCliArgs() {
 			s: 'skipBuild',
 			e: 'experimentalMinify',
 			w: 'watch',
-			nc: 'noColor',
+			c: 'noColor',
 		},
 	}).parse(process.argv.slice(2));
 }
@@ -71,7 +71,7 @@ export function printCliHelpMessage(): void {
 
 		--watch, -w:                Automatically rebuilds when the project is edited
 
-		--no-color, -nc:            Disable colored output
+		--no-color, -c:             Disable colored output
 
 		GitHub: https://github.com/cloudflare/next-on-pages
 		'Docs: https://developers.cloudflare.com/pages/framework-guides/deploy-a-nextjs-site/
