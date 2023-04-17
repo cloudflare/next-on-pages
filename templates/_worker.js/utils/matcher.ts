@@ -35,8 +35,5 @@ export const hasField = (
 
 			return url.searchParams.has(has.key);
 		}
-		default: {
-			return false;
-		}
 	}
 };
