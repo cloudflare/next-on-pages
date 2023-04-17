@@ -52,8 +52,9 @@ export async function buildWorkerFile(
 			.join(',')}};`
 	);
 
+	const outputFile = join('.vercel', 'output', 'static', '_worker.js');
 	await build({
-		entryPoints: [join(__dirname, '../templates/_worker.js')],
+		entryPoints: [join(__dirname, '..', 'templates', '_worker.js')],
 		banner: {
 			js: generateGlobalJs(),
 		},
@@ -66,9 +67,9 @@ export async function buildWorkerFile(
 			__CONFIG__: JSON.stringify(vercelConfig),
 			__BASE_PATH__: JSON.stringify(nextJsConfigs.basePath ?? ''),
 		},
-		outfile: '.vercel/output/static/_worker.js',
+		outfile: outputFile,
 		minify: experimentalMinify,
 	});
 
-	cliSuccess("Generated '.vercel/output/static/_worker.js'.");
+	cliSuccess(`Generated '${outputFile}'.`);
 }

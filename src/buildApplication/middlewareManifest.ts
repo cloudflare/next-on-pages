@@ -6,6 +6,7 @@
 
 // NOTE: This file and the corresponding logic will be removed in the new routing system. (see issue #129)
 
+import { join } from 'path';
 import { readJsonFile, stripIndexRoute, stripRouteGroups } from '../utils';
 import type { NextJsConfigs } from './nextJsConfigs';
 
@@ -40,7 +41,7 @@ export async function getParsedMiddlewareManifest(
 	// Annoying that we don't get this from the `.vercel` directory.
 	// Maybe we eventually just construct something similar from the `.vercel/output/functions` directory with the same magic filename/precendence rules?
 	const middlewareManifest = await readJsonFile<MiddlewareManifest>(
-		'.next/server/middleware-manifest.json'
+		join('.next', 'server', 'middleware-manifest.json')
 	);
 	if (!middlewareManifest) {
 		throw new Error('Could not read the functions manifest.');

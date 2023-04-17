@@ -16,7 +16,7 @@ import { processVercelConfig } from './getVercelConfig';
  * @returns List of static asset paths.
  */
 export async function getVercelStaticAssets(): Promise<string[]> {
-	const dir = resolve('.vercel/output/static');
+	const dir = resolve('.vercel', 'output', 'static');
 	if (!(await validateDir(dir))) {
 		cliLog('No static assets detected.');
 		return [];

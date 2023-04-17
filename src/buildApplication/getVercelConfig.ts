@@ -1,3 +1,4 @@
+import { join } from 'path';
 import { readJsonFile } from '../utils';
 
 const supportedConfigVersion = 3;
@@ -12,14 +13,15 @@ const supportedConfigVersion = 3;
  * @returns the object parsed from the config file
  */
 export async function getVercelConfig(): Promise<VercelConfig> {
-	const config = await readJsonFile<VercelConfig>('.vercel/output/config.json');
+	const configPath = join('.vercel', 'output', 'config.json');
+	const config = await readJsonFile<VercelConfig>(configPath);
 	if (!config) {
-		throw new Error("Could not read the '.vercel/output/config.json' file.");
+		throw new Error(`Could not read the '${configPath}' file.`);
 	}
 
 	if (config.version !== supportedConfigVersion) {
 		throw new Error(
-			`Unknown '.vercel/output/config.json' version. Expected ${supportedConfigVersion} but found ${config.version}.`
+			`Unknown '${configPath}' version. Expected ${supportedConfigVersion} but found ${config.version}.`
 		);
 	}
 
