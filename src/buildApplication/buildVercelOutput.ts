@@ -1,7 +1,7 @@
 import { writeFile, mkdir, rm, rmdir } from 'fs/promises';
 import { spawn } from 'child_process';
 import { join, resolve } from 'path';
-import { cliLog, cliSuccess } from '../cli';
+import { cliLog } from '../cli';
 import { validateDir, validateFile } from '../utils';
 import { getCurrentPackageManager } from './getCurrentPackageManager';
 import { PackageManager, getSpawnCommand } from '../utils/getSpawnCommand';
