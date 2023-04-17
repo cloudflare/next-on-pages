@@ -91,7 +91,9 @@ export function processVercelOutput(
  * @returns Set of middleware paths.
  */
 function collectMiddlewarePaths(routes: VercelSource[]): Set<string> {
-	return new Set(routes.map(route => route.middlewarePath).filter(Boolean));
+	return new Set(
+		routes.map(route => route.middlewarePath ?? '').filter(Boolean)
+	);
 }
 
 /**
@@ -152,7 +154,7 @@ function applyVercelOverrides(
 	Object.entries(overrides ?? []).forEach(
 		([rawAssetPath, { path: rawServedPath, contentType }]) => {
 			const assetPath = addLeadingSlash(rawAssetPath);
-			const servedPath = addLeadingSlash(rawServedPath);
+			const servedPath = addLeadingSlash(rawServedPath ?? '');
 
 			const newValue: BuildOutputStaticOverride = {
 				type: 'override',

@@ -18,7 +18,7 @@ enum NextJsNodeEnv {
 }
 
 function getNodeEnv(): string {
-	const processNodeEnv = process.env.NODE_ENV;
+	const processNodeEnv = process.env['NODE_ENV'];
 
 	if (!processNodeEnv) {
 		return NextJsNodeEnv.PRODUCTION;

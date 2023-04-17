@@ -3,9 +3,9 @@ import { join } from 'path';
 import { build } from 'esbuild';
 import { tmpdir } from 'os';
 import { cliSuccess } from '../cli';
-import { NextJsConfigs } from './nextJsConfigs';
+import type { NextJsConfigs } from './nextJsConfigs';
 import { generateGlobalJs } from './generateGlobalJs';
-import { ProcessedVercelOutput } from './processVercelOutput';
+import type { ProcessedVercelOutput } from './processVercelOutput';
 
 /**
  * Construct a record for the build output map.

@@ -43,7 +43,7 @@ export function processVercelConfig(
 	};
 
 	let currentPhase: VercelHandleValue | 'none' = 'none';
-	config.routes.forEach(route => {
+	config.routes?.forEach(route => {
 		if ('handle' in route) {
 			currentPhase = route.handle;
 		} else {

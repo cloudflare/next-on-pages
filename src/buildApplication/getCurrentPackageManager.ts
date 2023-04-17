@@ -1,11 +1,12 @@
 import YAML from 'js-yaml';
 import { spawn } from 'child_process';
 import { readFile } from 'fs/promises';
-import { validateFile, getSpawnCommand, PackageManager } from '../utils';
+import type { PackageManager } from '../utils';
+import { validateFile, getSpawnCommand } from '../utils';
 import { cliError } from '../cli';
 
 export async function getCurrentPackageManager(): Promise<PackageManager> {
-	const userAgent = process.env.npm_config_user_agent;
+	const userAgent = process.env['npm_config_user_agent'];
 
 	const hasYarnLock = await validateFile('yarn.lock');
 	const hasPnpmLock = await validateFile('pnpm-lock.yaml');

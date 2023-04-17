@@ -5,7 +5,7 @@ export const hasField = (
 		url,
 		cookies,
 	}: { request: Request; url: URL; cookies: Record<string, string> },
-	has: VercelSource['has'][0]
+	has: NonNullable<VercelSource['has']>[0]
 ) => {
 	switch (has.type) {
 		case 'host': {
@@ -34,6 +34,9 @@ export const hasField = (
 			}
 
 			return url.searchParams.has(has.key);
+		}
+		default: {
+			return false;
 		}
 	}
 };

@@ -1,7 +1,8 @@
 import { readFile, writeFile, mkdir, readdir } from 'fs/promises';
 import { exit } from 'process';
 import { dirname, join, relative } from 'path';
-import { parse, Node } from 'acorn';
+import type { Node } from 'acorn';
+import { parse } from 'acorn';
 import { generate } from 'astring';
 import {
 	formatRoutePath,
@@ -11,7 +12,8 @@ import {
 	validateDir,
 	validateFile,
 } from '../utils';
-import { cliError, CliOptions, cliWarn } from '../cli';
+import type { CliOptions } from '../cli';
+import { cliError, cliWarn } from '../cli';
 import { tmpdir } from 'os';
 
 /**

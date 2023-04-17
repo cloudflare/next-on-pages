@@ -4,7 +4,8 @@ import { join, resolve } from 'path';
 import { cliLog } from '../cli';
 import { validateDir, validateFile } from '../utils';
 import { getCurrentPackageManager } from './getCurrentPackageManager';
-import { PackageManager, getSpawnCommand } from '../utils/getSpawnCommand';
+import type { PackageManager } from '../utils/getSpawnCommand';
+import { getSpawnCommand } from '../utils/getSpawnCommand';
 
 /**
  * Builds the Next.js output via the Vercel CLI
