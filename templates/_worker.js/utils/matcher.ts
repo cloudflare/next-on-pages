@@ -5,7 +5,7 @@ export const hasField = (
 		url,
 		cookies,
 	}: { request: Request; url: URL; cookies: Record<string, string> },
-	has: NonNullable<VercelSource['has']>[0]
+	has: VercelHasFields[0]
 ) => {
 	switch (has.type) {
 		case 'host': {
