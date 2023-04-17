@@ -94,7 +94,7 @@ export function cliSuccess(
 	console.log(
 		prepareCliMessage(message, {
 			fromVercelCli,
-			styleFromater: chalk.green,
+			styleFormatter: chalk.green,
 			spaced,
 		})
 	);
@@ -114,7 +114,7 @@ export function cliError(
 	console.error(
 		prepareCliMessage(message, {
 			fromVercelCli,
-			styleFromater: chalk.red,
+			styleFormatter: chalk.red,
 			spaced,
 		})
 	);
@@ -134,7 +134,7 @@ export function cliWarn(
 	console.warn(
 		prepareCliMessage(message, {
 			fromVercelCli,
-			styleFromater: chalk.yellow,
+			styleFormatter: chalk.yellow,
 			spaced,
 		})
 	);
@@ -150,10 +150,10 @@ function prepareCliMessage(
 	message: string,
 	{
 		fromVercelCli,
-		styleFromater,
+		styleFormatter,
 		spaced,
 	}: LogOptions & {
-		styleFromater?: ChalkInstance;
+		styleFormatter?: ChalkInstance;
 	}
 ): string {
 	const preparedMessage = dedent(message)
@@ -161,7 +161,7 @@ function prepareCliMessage(
 		.map(
 			line =>
 				`${getCliPrefix(fromVercelCli)} ${
-					styleFromater ? styleFromater(line) : line
+					styleFormatter ? styleFormatter(line) : line
 				}`
 		)
 		.join('\n');
