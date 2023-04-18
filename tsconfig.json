@@ -1,13 +1,18 @@
 {
-	"include": ["src", "templates", "tests", "vercel.types.d.ts"],
+	"$schema": "https://json.schemastore.org/tsconfig",
+	"extends": "@tsconfig/strictest/tsconfig.json",
 	"compilerOptions": {
-		"checkJs": false,
-		"target": "ES2021",
+		"target": "ES2022",
 		"module": "CommonJS",
-		"resolveJsonModule": true,
-		"lib": ["ES2021"],
+		"lib": ["ES2022"],
 		"types": ["@cloudflare/workers-types"],
-		"skipLibCheck": true,
-		"esModuleInterop": true
-	}
+
+		"moduleResolution": "node",
+		"verbatimModuleSyntax": false,
+		"resolveJsonModule": true,
+		"checkJs": false,
+
+		"exactOptionalPropertyTypes": false
+	},
+	"include": ["src", "templates", "tests", "vercel.types.d.ts", "env.d.ts"]
 }

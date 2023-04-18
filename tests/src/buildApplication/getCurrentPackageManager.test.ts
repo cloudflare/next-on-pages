@@ -1,7 +1,7 @@
 import { describe, expect, vi, it, afterEach } from 'vitest';
 import { getCurrentPackageManager } from '../../../src/buildApplication/getCurrentPackageManager';
 import { EventEmitter } from 'events';
-import { PackageManager } from '../../../src/utils';
+import type { PackageManager } from '../../../src/utils';
 
 let targetPkgMng: PackageManager = 'yarn (berry)';
 

@@ -5,7 +5,7 @@ import { adjustRequestForVercel, hasField } from './utils';
 export const routesMatcher = (
 	{ request }: { request: Request },
 	routes?: VercelConfig['routes']
-): VercelConfig['routes'] => {
+): NonNullable<VercelConfig['routes']> => {
 	// https://vercel.com/docs/build-output-api/v3#build-output-configuration/supported-properties/routes
 	const url = new URL(request.url);
 	const cookies = parse(request.headers.get('cookie') || '');
@@ -19,7 +19,7 @@ export const routesMatcher = (
 		if ('methods' in route) {
 			const requestMethod = request.method.toLowerCase();
 
-			const foundMatch = route.methods.find(
+			const foundMatch = route.methods?.find(
 				method => method.toLowerCase() === requestMethod
 			);
 
@@ -29,7 +29,7 @@ export const routesMatcher = (
 		}
 
 		if ('has' in route) {
-			const okay = route.has.every(has =>
+			const okay = route.has?.every(has =>
 				hasField({ request, url, cookies }, has)
 			);
 
@@ -39,7 +39,7 @@ export const routesMatcher = (
 		}
 
 		if ('missing' in route) {
-			const notOkay = route.missing.find(has =>
+			const notOkay = route.missing?.find(has =>
 				hasField({ request, url, cookies }, has)
 			);
 
@@ -53,7 +53,7 @@ export const routesMatcher = (
 			caseSensitive = true;
 		}
 
-		if ('src' in route) {
+		if ('src' in route && route.src) {
 			const regExp = new RegExp(route.src, caseSensitive ? undefined : 'i');
 			const match = url.pathname.match(regExp);
 
@@ -80,7 +80,7 @@ declare const __BASE_PATH__: string;
 
 export default {
 	async fetch(request, env, context) {
-		(globalThis.process.env as unknown) = { ...globalThis.process.env, ...env };
+		globalThis.process.env = { ...globalThis.process.env, ...env };
 
 		const { pathname } = new URL(request.url);
 		// NOTE: Will be removed in the new routing system. (see issue #129)
@@ -91,11 +91,12 @@ export default {
 		for (const route of routes) {
 			if (
 				'middlewarePath' in route &&
+				route.middlewarePath &&
 				route.middlewarePath in __BUILD_OUTPUT__
 			) {
 				const item = __BUILD_OUTPUT__[route.middlewarePath];
 
-				if (item.type === 'middleware') {
+				if (item?.type === 'middleware') {
 					return await (await item.entrypoint).default(request, context);
 				}
 			}

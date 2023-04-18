@@ -1,10 +1,9 @@
 import { exit } from 'process';
 import { resolve } from 'path';
-import { cliError, cliLog, CliOptions } from '../cli';
-import {
-	getParsedMiddlewareManifest,
-	MiddlewareManifestData,
-} from './middlewareManifest';
+import type { CliOptions } from '../cli';
+import { cliError, cliLog } from '../cli';
+import type { MiddlewareManifestData } from './middlewareManifest';
+import { getParsedMiddlewareManifest } from './middlewareManifest';
 import { getNextJsConfigs } from './nextJsConfigs';
 import { getVercelConfig } from './getVercelConfig';
 import { buildWorkerFile } from './buildWorkerFile';
@@ -35,7 +34,7 @@ export async function buildApplication({
 			await buildVercelOutput();
 		} catch (err) {
 			cliError(
-				err?.message ??
+				(err as Error)?.message ??
 					'Error: The Vercel build failed. For more details see the Vercel logs above.'
 			);
 			buildSuccess = false;

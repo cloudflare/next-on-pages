@@ -36,7 +36,7 @@ async function buildRoutes() {
 			{ flag: 'ax' } // don't generate file if it's already manually maintained
 		);
 	} catch (e) {
-		if (e.code != 'EEXIST') {
+		if ((e as { code?: string }).code !== 'EEXIST') {
 			throw e;
 		}
 	}

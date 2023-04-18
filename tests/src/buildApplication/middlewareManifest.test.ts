@@ -1,8 +1,6 @@
 import { describe, test, expect } from 'vitest';
-import {
-	MiddlewareManifest,
-	parseMiddlewareManifest,
-} from '../../../src/buildApplication/middlewareManifest';
+import type { MiddlewareManifest } from '../../../src/buildApplication/middlewareManifest';
+import { parseMiddlewareManifest } from '../../../src/buildApplication/middlewareManifest';
 
 describe('parseMiddlewareManifest', () => {
 	[-1, 3, 'v4'].forEach(invalidVersion => {

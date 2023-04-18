@@ -1,7 +1,8 @@
 import dedent from 'dedent-tabs';
 import { z } from 'zod';
 import { argumentParser } from 'zodcli';
-import chalk, { ChalkInstance } from 'chalk';
+import type { ChalkInstance } from 'chalk';
+import chalk from 'chalk';
 
 // A helper type to handle command line flags. Defaults to false
 const flag = z
@@ -156,19 +157,11 @@ function prepareCliMessage(
 		styleFormatter?: ChalkInstance;
 	}
 ): string {
+	const prefix = fromVercelCli ? '▲ ' : '⚡️';
 	const preparedMessage = dedent(message)
 		.split('\n')
-		.map(
-			line =>
-				`${getCliPrefix(fromVercelCli)} ${
-					styleFormatter ? styleFormatter(line) : line
-				}`
-		)
+		.map(line => `${prefix} ${styleFormatter ? styleFormatter(line) : line}`)
 		.join('\n');
 
 	return spaced ? `\n${preparedMessage}\n` : preparedMessage;
-}
-
-function getCliPrefix(fromVercelCli: boolean): string {
-	return fromVercelCli ? '▲ ' : '⚡️';
 }
