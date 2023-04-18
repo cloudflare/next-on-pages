@@ -37,8 +37,8 @@ function runWithNodeEnv<F extends (...args: unknown[]) => void>(
 	value: string,
 	testFn: F
 ): void {
-	const oldNodeEnv = process.env['NODE_ENV'];
-	process.env['NODE_ENV'] = value;
+	const oldNodeEnv = process.env.NODE_ENV;
+	process.env.NODE_ENV = value;
 	testFn();
-	process.env['NODE_ENV'] = oldNodeEnv;
+	process.env.NODE_ENV = oldNodeEnv;
 }

@@ -6,7 +6,7 @@ import { validateFile, getSpawnCommand } from '../utils';
 import { cliError } from '../cli';
 
 export async function getCurrentPackageManager(): Promise<PackageManager> {
-	const userAgent = process.env['npm_config_user_agent'];
+	const userAgent = process.env.npm_config_user_agent;
 
 	const hasYarnLock = await validateFile('yarn.lock');
 	const hasPnpmLock = await validateFile('pnpm-lock.yaml');
