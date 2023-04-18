@@ -386,18 +386,30 @@ async function buildWebpackChunkFiles(
  * output directory instead.
  */
 async function tryToFixFaviconFunc(): Promise<void> {
-	const staticMediaMetadata = resolve('.vercel', 'output', 'static', 'static', 'media', 'metadata');
+	const staticMediaMetadata = resolve(
+		'.vercel',
+		'output',
+		'static',
+		'static',
+		'media',
+		'metadata'
+	);
 	const files = await readdir(staticMediaMetadata);
 	const favicon = files.find(file => /^favicon\.[a-zA-Z0-9]+\.ico$/.test(file));
 	if (favicon) {
 		const faviconFilePath = join(staticMediaMetadata, favicon);
-		const vercelStaticFavicon = resolve('.vercel', 'output', 'static', 'favicon.ico');
+		const vercelStaticFavicon = resolve(
+			'.vercel',
+			'output',
+			'static',
+			'favicon.ico'
+		);
 		await copyFile(faviconFilePath, vercelStaticFavicon);
 	}
 	// let's delete  the .vercel/output/static/static directory so that extra media
 	// files are not uploaded unnecessarily to Cloudflare Pages
 	const staticStaticDir = resolve('.vercel', 'output', 'static', 'static');
-	rm(staticStaticDir, {recursive: true, force: true});
+	rm(staticStaticDir, { recursive: true, force: true });
 }
 
 type ProcessingSetup = {
