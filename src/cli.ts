@@ -67,14 +67,14 @@ export function printCliHelpMessage(): void {
 		--skip-build, -s:           Doesn't run 'vercel build' automatically
 
 
-		--experimental-minify, -m:  Attempts to minify the functions of a project (by de-duping webpack chunks)
+		--experimental-minify, -e:  Attempts to minify the functions of a project (by de-duping webpack chunks)
 
 		--watch, -w:                Automatically rebuilds when the project is edited
 
 		--no-color, -c:             Disable colored output
 
 		GitHub: https://github.com/cloudflare/next-on-pages
-		'Docs: https://developers.cloudflare.com/pages/framework-guides/deploy-a-nextjs-site/
+		Docs: https://developers.cloudflare.com/pages/framework-guides/deploy-a-nextjs-site/
 	`);
 }
 
