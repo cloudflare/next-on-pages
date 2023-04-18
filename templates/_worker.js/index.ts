@@ -53,11 +53,8 @@ export const routesMatcher = (
 			caseSensitive = true;
 		}
 
-		if ('src' in route) {
-			const regExp = new RegExp(
-				route.src as string,
-				caseSensitive ? undefined : 'i'
-			);
+		if ('src' in route && route.src) {
+			const regExp = new RegExp(route.src, caseSensitive ? undefined : 'i');
 			const match = url.pathname.match(regExp);
 
 			if (match) {
@@ -94,9 +91,10 @@ export default {
 		for (const route of routes) {
 			if (
 				'middlewarePath' in route &&
-				(route.middlewarePath as string) in __BUILD_OUTPUT__
+				route.middlewarePath &&
+				route.middlewarePath in __BUILD_OUTPUT__
 			) {
-				const item = __BUILD_OUTPUT__[route.middlewarePath as string];
+				const item = __BUILD_OUTPUT__[route.middlewarePath];
 
 				if (item?.type === 'middleware') {
 					return await (await item.entrypoint).default(request, context);
