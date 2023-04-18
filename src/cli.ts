@@ -32,17 +32,34 @@ export type CliOptions = z.infer<typeof cliOptions>;
  * @returns the provided options
  */
 export function parseCliArgs() {
-	return argumentParser({
-		options: cliOptions,
-		aliases: {
-			h: 'help',
-			v: 'version',
-			s: 'skipBuild',
-			e: 'experimentalMinify',
-			w: 'watch',
-			c: 'noColor',
-		},
-	}).parse(process.argv.slice(2));
+	try {
+		return argumentParser({
+			options: cliOptions,
+			aliases: {
+				h: 'help',
+				v: 'version',
+				s: 'skipBuild',
+				e: 'experimentalMinify',
+				w: 'watch',
+				c: 'noColor',
+			},
+		}).parse(process.argv.slice(2));
+	} catch (error) {
+		const issue = (error as z.ZodError)?.issues?.[0];
+		if (issue?.code === 'unrecognized_keys') {
+			const unknownKeys = issue.keys;
+			const label = `Unknown option${unknownKeys.length === 1 ? '' : 's'}`;
+			cliError(`${label}: ${unknownKeys.join(', ')}`, { spaced: true });
+			printCliHelpMessage();
+		} else {
+			cliError(
+				(error as z.ZodError | Error)?.message ??
+					'Error: Could not parse the provided Cli arguments.',
+				{ spaced: true, showReport: true }
+			);
+		}
+		process.exit(1);
+	}
 }
 
 type LogOptions = {
