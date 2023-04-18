@@ -6,7 +6,7 @@ spawn(
 	process.execPath,
 	[
 		...process.execArgv,
-		join(__dirname, '../dist/index.js'),
+		join(__dirname, '..', 'dist', 'index.js'),
 		...process.argv.slice(2),
 	],
 	{ stdio: 'inherit' }

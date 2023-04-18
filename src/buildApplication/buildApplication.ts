@@ -68,7 +68,7 @@ async function prepareAndBuildWorker(
 		cliLog(`Using basePath ${nextJsConfigs.basePath}`);
 	}
 
-	const functionsDir = resolve(`.vercel/output/functions`);
+	const functionsDir = resolve('.vercel', 'output', 'functions');
 	if (!(await validateDir(functionsDir))) {
 		cliLog('No functions detected.');
 		return;

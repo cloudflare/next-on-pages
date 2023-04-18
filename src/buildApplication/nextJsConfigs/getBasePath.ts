@@ -1,5 +1,6 @@
 // NOTE: This file and the corresponding logic will be removed in the new routing system. (see issue #129)
 
+import { join } from 'path';
 import { cliWarn } from '../../cli';
 import { readJsonFile } from '../../utils';
 
@@ -20,14 +21,15 @@ type RoutesManifest = {
  *          the function was unable to read it
  */
 export async function getBasePath(): Promise<string | null> {
+	const routesManifestFilePath = join('.next', 'routes-manifest.json');
 	const routesManifest = await readJsonFile<RoutesManifest>(
-		'.next/routes-manifest.json'
+		routesManifestFilePath
 	);
 
 	if (!routesManifest || routesManifest.version !== 3) {
 		cliWarn(
 			`
-			Warning: Could not read basePath from .next/routes-manifest.json file, falling back to empty basePath
+			Warning: Could not read basePath from ${routesManifestFilePath} file, falling back to empty basePath
 			`,
 			{ spaced: true }
 		);

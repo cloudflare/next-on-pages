@@ -33,10 +33,11 @@ export async function buildVercelOutput(): Promise<void> {
  * so we create a dummy one just to satisfy Vercel
  */
 async function generateProjectJsonFileIfNeeded(): Promise<void> {
-	if (!(await validateFile('.vercel/project.json'))) {
+	const projectJsonFilePath = join('.vercel', 'project.json');
+	if (!(await validateFile(projectJsonFilePath))) {
 		await mkdir('.vercel', { recursive: true });
 		await writeFile(
-			'.vercel/project.json',
+			projectJsonFilePath,
 			JSON.stringify({ projectId: '_', orgId: '_', settings: {} })
 		);
 	}
@@ -112,7 +113,7 @@ async function runVercelBuild(pkgMng: PackageManager): Promise<void> {
  * We do not need these files, nor do we want to run the risk of them being available. Therefore, we should delete them instead of uploading them to Cloudflare Pages.
  */
 export async function deleteNextTelemetryFiles(): Promise<void> {
-	const nextDir = resolve('.vercel/output/static/_next');
+	const nextDir = resolve('.vercel', 'output', 'static', '_next');
 	const privateDir = join(nextDir, '__private');
 
 	if (await validateDir(privateDir)) {
