@@ -80,7 +80,7 @@ declare const __BASE_PATH__: string;
 
 export default {
 	async fetch(request, env, context) {
-		(globalThis.process.env as unknown) = { ...globalThis.process.env, ...env };
+		globalThis.process.env = { ...globalThis.process.env, ...env };
 
 		const { pathname } = new URL(request.url);
 		// NOTE: Will be removed in the new routing system. (see issue #129)
