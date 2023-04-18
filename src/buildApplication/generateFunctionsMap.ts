@@ -248,6 +248,15 @@ async function processFuncDirectory(
 function fixFunctionContents(contents: string) {
 	contents = contents.replace(
 		// TODO: This hack is not good. We should replace this with something less brittle ASAP
+		// It seems like Next creates chunks which require node:buffer which isn't available in
+		// the edge runtime, such requires don't seem to be used for edge functions so we just
+		// replace them with empty objects
+		/require\((?:(['"])node:buffer\1)\)/gm,
+		'{}'
+	);
+
+	contents = contents.replace(
+		// TODO: This hack is not good. We should replace this with something less brittle ASAP
 		// https://github.com/vercel/next.js/blob/2e7dfca362931be99e34eccec36074ab4a46ffba/packages/next/src/server/web/adapter.ts#L276-L282
 		/(Object.defineProperty\(globalThis,\s*"__import_unsupported",\s*{[\s\S]*?configurable:\s*)([^,}]*)(.*}\s*\))/gm,
 		'$1true$3'
