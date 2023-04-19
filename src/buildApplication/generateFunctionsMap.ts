@@ -165,11 +165,7 @@ async function processFuncDirectory(
 
 	if (functionConfig?.runtime !== 'edge') {
 		if (file === 'favicon.ico.func') {
-			try {
-				await tryToFixFaviconFunc();
-			} catch {
-				cliWarn('Warning: No static favicon file found');
-			}
+			await tryToFixFaviconFunc();
 			return {};
 		}
 		return {
@@ -377,30 +373,36 @@ async function buildWebpackChunkFiles(
  * and moves that one in the static output directory instead.
  */
 async function tryToFixFaviconFunc(): Promise<void> {
-	const staticMediaMetadata = resolve(
-		'.vercel',
-		'output',
-		'static',
-		'static',
-		'media',
-		'metadata'
-	);
-	const files = await readdir(staticMediaMetadata);
-	const favicon = files.find(file => /^favicon\.[a-zA-Z0-9]+\.ico$/.test(file));
-	if (favicon) {
-		const faviconFilePath = join(staticMediaMetadata, favicon);
-		const vercelStaticFavicon = resolve(
+	try {
+		const staticMediaMetadata = resolve(
 			'.vercel',
 			'output',
 			'static',
-			'favicon.ico'
+			'static',
+			'media',
+			'metadata'
 		);
-		await copyFile(faviconFilePath, vercelStaticFavicon);
+		const files = await readdir(staticMediaMetadata);
+		const favicon = files.find(file =>
+			/^favicon\.[a-zA-Z0-9]+\.ico$/.test(file)
+		);
+		if (favicon) {
+			const faviconFilePath = join(staticMediaMetadata, favicon);
+			const vercelStaticFavicon = resolve(
+				'.vercel',
+				'output',
+				'static',
+				'favicon.ico'
+			);
+			await copyFile(faviconFilePath, vercelStaticFavicon);
+		}
+		// let's delete  the .vercel/output/static/static directory so that extra media
+		// files are not uploaded unnecessarily to Cloudflare Pages
+		const staticStaticDir = resolve('.vercel', 'output', 'static', 'static');
+		rm(staticStaticDir, { recursive: true, force: true });
+	} catch {
+		cliWarn('Warning: No static favicon file found');
 	}
-	// let's delete  the .vercel/output/static/static directory so that extra media
-	// files are not uploaded unnecessarily to Cloudflare Pages
-	const staticStaticDir = resolve('.vercel', 'output', 'static', 'static');
-	rm(staticStaticDir, { recursive: true, force: true });
 }
 
 type ProcessingSetup = {
