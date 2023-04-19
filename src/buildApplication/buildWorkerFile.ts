@@ -1,4 +1,4 @@
-import { writeFile, readFile } from 'fs/promises';
+import { writeFile } from 'fs/promises';
 import { join } from 'path';
 import type { Plugin } from 'esbuild';
 import { build } from 'esbuild';
@@ -64,7 +64,7 @@ export async function buildWorkerFile(
 		inject: [functionsFile],
 		target: 'es2022',
 		platform: 'neutral',
-		external: ['node:async_hooks', nodeBufferPlaceholder],
+		external: ['node:async_hooks', 'node:buffer'],
 		define: {
 			__CONFIG__: JSON.stringify(vercelConfig),
 			__BASE_PATH__: JSON.stringify(nextJsConfigs.basePath ?? ''),
@@ -74,34 +74,25 @@ export async function buildWorkerFile(
 		plugins: [nodeBufferPlugin],
 	});
 
-	const workerCode = await readFile(outputFile, 'utf8');
-	const updatedWorkerCode = workerCode.replaceAll(
-		nodeBufferPlaceholder,
-		'node:buffer'
-	);
-	await writeFile(outputFile, updatedWorkerCode, 'utf8');
-
 	cliSuccess(`Generated '${outputFile}'.`);
 }
-
-// placeholder to be used instead of node:buffer, this is needed because in order to have proper
-// runtime imports from node:buffer, in esbuild we need to replace imports from node:buffer with
-// imports from somewhere and make that other place external (and after the build replace this new
-// placeholder location with the original node:buffer)
-const nodeBufferPlaceholder = '__node:buffer__';
 
 // Chunks can contain `require("node:buffer")`, this is not allowed and breaks at runtime
 // the following fixes this by updating the require to a standard esm import from node:buffer
 const nodeBufferPlugin: Plugin = {
 	name: 'node:buffer',
 	setup(build) {
-		build.onResolve({ filter: /^node:buffer$/ }, args => ({
-			path: args.path,
-			namespace: 'node-buffer',
-		}));
+		build.onResolve({ filter: /^node:buffer$/ }, ({ kind, path }) => {
+			if (kind === 'require-call') return;
+
+			return {
+				path,
+				namespace: 'node-buffer',
+			};
+		});
 
 		build.onLoad({ filter: /.*/, namespace: 'node-buffer' }, () => ({
-			contents: `export * from '${nodeBufferPlaceholder}'`,
+			contents: `export * from 'node:buffer'`,
 			loader: 'js',
 		}));
 	},
