@@ -396,7 +396,7 @@ async function tryToFixFaviconFunc(): Promise<void> {
 			);
 			await copyFile(faviconFilePath, vercelStaticFavicon);
 		}
-		// let's delete  the .vercel/output/static/static directory so that extra media
+		// let's delete the .vercel/output/static/static directory so that extra media
 		// files are not uploaded unnecessarily to Cloudflare Pages
 		const staticStaticDir = resolve('.vercel', 'output', 'static', 'static');
 		rm(staticStaticDir, { recursive: true, force: true });
