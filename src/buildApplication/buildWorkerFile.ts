@@ -1,6 +1,6 @@
 import { writeFile } from 'fs/promises';
 import { join } from 'path';
-import type { Plugin} from 'esbuild';
+import type { Plugin } from 'esbuild';
 import { build } from 'esbuild';
 import { tmpdir } from 'os';
 import { cliSuccess } from '../cli';
@@ -64,14 +64,14 @@ export async function buildWorkerFile(
 		inject: [functionsFile],
 		target: 'es2022',
 		platform: 'neutral',
-		external: ['node:async_hooks', "node:buffer"],
+		external: ['node:async_hooks', 'node:buffer'],
 		define: {
 			__CONFIG__: JSON.stringify(vercelConfig),
 			__BASE_PATH__: JSON.stringify(nextJsConfigs.basePath ?? ''),
 		},
 		outfile: outputFile,
 		minify: experimentalMinify,
-		plugins: [nodeBufferPlugin]
+		plugins: [nodeBufferPlugin],
 	});
 
 	cliSuccess(`Generated '${outputFile}'.`);
@@ -82,14 +82,14 @@ export async function buildWorkerFile(
 const nodeBufferPlugin: Plugin = {
 	name: 'node:buffer',
 	setup(build) {
-	  build.onResolve({ filter: /^node:buffer$/ }, args => ({
-		path: args.path,
-		namespace: 'node-buffer',
-	  }))
+		build.onResolve({ filter: /^node:buffer$/ }, args => ({
+			path: args.path,
+			namespace: 'node-buffer',
+		}));
 
-	  build.onLoad({ filter: /.*/, namespace: 'node-buffer' }, () => ({
-		contents: "export * from 'node:buffer'",
-		loader: 'js',
-	  }))
+		build.onLoad({ filter: /.*/, namespace: 'node-buffer' }, () => ({
+			contents: "export * from 'node:buffer'",
+			loader: 'js',
+		}));
 	},
 };
