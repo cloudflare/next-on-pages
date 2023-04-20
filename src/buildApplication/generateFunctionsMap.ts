@@ -13,7 +13,6 @@ import {
 } from '../utils';
 import type { CliOptions } from '../cli';
 import { cliError, cliWarn } from '../cli';
-import { tmpdir } from 'os';
 import type * as AST from 'ast-types/gen/kinds';
 import assert from 'node:assert';
 import type { PrerenderedFileData } from './fixPrerenderedRoutes';
@@ -34,11 +33,21 @@ import { fixPrerenderedRoutes } from './fixPrerenderedRoutes';
 export async function generateFunctionsMap(
 	functionsDir: string,
 	disableChunksDedup: CliOptions['disableChunksDedup']
-): Promise<DirectoryProcessingResults> {
+): Promise<
+	Pick<DirectoryProcessingResults, 'functionsMap' | 'invalidFunctions'>
+> {
+	const nextOnPagesDistDir = join(
+		'.vercel',
+		'output',
+		'static',
+		'_worker.js',
+		'__next-on-pages-dist__'
+	);
+
 	const processingSetup = {
 		functionsDir,
-		tmpFunctionsDir: join(tmpdir(), Math.random().toString(36).slice(2)),
-		tmpWebpackDir: join(tmpdir(), Math.random().toString(36).slice(2)),
+		distFunctionsDir: join(nextOnPagesDistDir, 'functions'),
+		distWebpackDir: join(nextOnPagesDistDir, 'chunks'),
 		disableChunksDedup,
 	};
 
@@ -52,7 +61,7 @@ export async function generateFunctionsMap(
 	if (!disableChunksDedup) {
 		await buildWebpackChunkFiles(
 			processingResults.webpackChunks,
-			processingSetup.tmpWebpackDir
+			processingSetup.distWebpackDir
 		);
 	}
 
@@ -217,14 +226,14 @@ async function processFuncDirectory(
 
 	if (!setup.disableChunksDedup) {
 		const { updatedFunctionContents, extractedWebpackChunks } =
-			extractWebpackChunks(setup.tmpWebpackDir, contents, webpackChunks);
+			extractWebpackChunks(contents, functionFile, webpackChunks);
 		contents = updatedFunctionContents;
 		extractedWebpackChunks.forEach((value, key) =>
 			webpackChunks.set(key, value)
 		);
 	}
 
-	const newFilePath = join(setup.tmpFunctionsDir, `${relativePath}.js`);
+	const newFilePath = join(setup.distFunctionsDir, `${relativePath}.js`);
 	await mkdir(dirname(newFilePath), { recursive: true });
 	await writeFile(newFilePath, contents);
 
@@ -282,15 +291,19 @@ function fixFunctionContents(contents: string) {
  * those chunks
  */
 function extractWebpackChunks(
-	tmpWebpackDir: string,
 	functionContents: string,
+	filePath: string,
 	existingWebpackChunks: Map<number, string>
 ): {
 	updatedFunctionContents: string;
 	extractedWebpackChunks: Map<number, string>;
 } {
+	const getChunkImport = getChunkImportFn(filePath);
+
 	const webpackChunks = new Map<number, string>();
 	const webpackChunksCodeReplaceMap = new Map<string, string>();
+
+	const webpackChunksImports: string[] = [];
 
 	const parsedContents = parse(functionContents, {
 		ecmaVersion: 'latest',
@@ -323,15 +336,11 @@ function extractWebpackChunks(
 
 		webpackChunks.set(key, chunkExpressionCode);
 
-		const chunkFilePath = join(tmpWebpackDir, `${key}.js`);
-
-		const newChunkExpressionCode = `require(${JSON.stringify(
-			chunkFilePath
-		)}).default`;
+		webpackChunksImports.push(getChunkImport(key));
 
 		webpackChunksCodeReplaceMap.set(
 			chunkExpressionCode,
-			newChunkExpressionCode
+			getChunkIdentifier(key)
 		);
 	});
 
@@ -340,7 +349,9 @@ function extractWebpackChunks(
 	});
 
 	return {
-		updatedFunctionContents: functionContents,
+		updatedFunctionContents: [...webpackChunksImports, functionContents].join(
+			';\n'
+		),
 		extractedWebpackChunks: webpackChunks,
 	};
 }
@@ -398,8 +409,8 @@ async function tryToFixFaviconFunc(): Promise<void> {
 
 type ProcessingSetup = {
 	functionsDir: string;
-	tmpFunctionsDir: string;
-	tmpWebpackDir: string;
+	distFunctionsDir: string;
+	distWebpackDir: string;
 	disableChunksDedup: boolean;
 };
 
@@ -477,4 +488,26 @@ function assertSelfWebpackChunk_N_E(expression: AST.NodeKind): void {
 	assert(expression.object.name === 'self');
 	assert(expression.property.type === 'Identifier');
 	assert(expression.property.name === 'webpackChunk_N_E');
+}
+
+function getChunkIdentifier(chunkKey: number): string {
+	return `__chunk_${chunkKey}`;
+}
+
+function getChunkImportFn(functionPath: string): (chunkKey: number) => string {
+	const functionNestingLevel = getFunctionNestingLevel(functionPath);
+	const accountForNestingPath = `../`.repeat(functionNestingLevel);
+	return chunkKey => {
+		const chunkIdentifier = getChunkIdentifier(chunkKey);
+		const chunkPath = `${accountForNestingPath}__next-on-pages-dist__/chunks/${chunkKey}.js`;
+		return `import ${chunkIdentifier} from '${chunkPath}'`;
+	};
+}
+
+function getFunctionNestingLevel(functionPath: string): number {
+	const relativePath = functionPath.replace(
+		/^.*\/.vercel\/output\/functions\//,
+		''
+	);
+	return relativePath.split('/').length;
 }
