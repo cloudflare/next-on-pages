@@ -1,21 +1,7 @@
-import { describe, test, expect, vi, beforeAll, afterAll } from 'vitest';
+import { describe, test, expect, vi, afterAll } from 'vitest';
 import { getNextJsConfigs } from '../../src/buildApplication/nextJsConfigs';
-
-beforeAll(() => {
-	vi.mock('node:fs/promises', async () => {
-		return {
-			readFile: () =>
-				new Promise(resolve =>
-					resolve(
-						JSON.stringify({
-							version: 3,
-							basePath: '/test',
-						})
-					)
-				),
-		};
-	});
-});
+import { join } from 'path';
+import mockFs from 'mock-fs';
 
 afterAll(() => {
 	vi.clearAllMocks();
@@ -23,7 +9,14 @@ afterAll(() => {
 
 describe('getNextJsConfigs', async () => {
 	test('should produce an appropriate configs object', async () => {
+		mockFs({
+			[join('.next', 'routes-manifest.json')]: JSON.stringify({
+				version: 3,
+				basePath: '/test',
+			}),
+		});
 		const configs = await getNextJsConfigs();
 		expect(configs.basePath).toEqual('/test');
+		mockFs.restore();
 	});
 });
