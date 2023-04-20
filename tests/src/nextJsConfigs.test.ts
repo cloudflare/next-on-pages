@@ -1,11 +1,7 @@
-import { describe, test, expect, vi, afterAll } from 'vitest';
+import { describe, test, expect } from 'vitest';
 import { getNextJsConfigs } from '../../src/buildApplication/nextJsConfigs';
 import { join } from 'path';
 import mockFs from 'mock-fs';
-
-afterAll(() => {
-	vi.clearAllMocks();
-});
 
 describe('getNextJsConfigs', async () => {
 	test('should produce an appropriate configs object', async () => {
