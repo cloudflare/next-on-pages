@@ -1,5 +1,6 @@
 import { writeFile } from 'fs/promises';
 import { join } from 'path';
+import type { Plugin } from 'esbuild';
 import { build } from 'esbuild';
 import { tmpdir } from 'os';
 import { cliSuccess } from '../cli';
@@ -53,6 +54,7 @@ export async function buildWorkerFile(
 	);
 
 	const outputFile = join('.vercel', 'output', 'static', '_worker.js');
+
 	await build({
 		entryPoints: [join(__dirname, '..', 'templates', '_worker.js')],
 		banner: {
@@ -62,14 +64,36 @@ export async function buildWorkerFile(
 		inject: [functionsFile],
 		target: 'es2022',
 		platform: 'neutral',
-		external: ['node:async_hooks'],
+		external: ['node:async_hooks', 'node:buffer'],
 		define: {
 			__CONFIG__: JSON.stringify(vercelConfig),
 			__BASE_PATH__: JSON.stringify(nextJsConfigs.basePath ?? ''),
 		},
 		outfile: outputFile,
 		minify: experimentalMinify,
+		plugins: [nodeBufferPlugin],
 	});
 
 	cliSuccess(`Generated '${outputFile}'.`);
 }
+
+// Chunks can contain `require("node:buffer")`, this is not allowed and breaks at runtime
+// the following fixes this by updating the require to a standard esm import from node:buffer
+const nodeBufferPlugin: Plugin = {
+	name: 'node:buffer',
+	setup(build) {
+		build.onResolve({ filter: /^node:buffer$/ }, ({ kind, path }) => {
+			if (kind === 'require-call') return;
+
+			return {
+				path,
+				namespace: 'node-buffer',
+			};
+		});
+
+		build.onLoad({ filter: /.*/, namespace: 'node-buffer' }, () => ({
+			contents: `export * from 'node:buffer'`,
+			loader: 'js',
+		}));
+	},
+};
