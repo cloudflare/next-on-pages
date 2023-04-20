@@ -1,5 +1,29 @@
 # @cloudflare/next-on-pages
 
+## 0.9.0
+
+### Minor Changes
+
+- 3fa5b0e: Add colors to cli logs
+
+### Patch Changes
+
+- 6bb5dea: fix favicon breaking Next.js 13.3.0 app dir applications
+- 3fe3a7d: fix small help message typos
+- 752ae09: prevent buildSuccess check from crashing with a bad error message.
+- 4dfd789: fix `require("node:buffer")` breaking applications
+
+  Next seems to have started relying on `node:buffer` this nodejs module is supported by the workers
+  runtime but it fails the \_worker.js build because `node:buffer` isn't recognized by esbuild (since
+  we're not bundling for node), simply adding it to the externals option of the build command doesn't
+  seem to work since it generates dynamic require calls which fail at runtime.
+
+  So this change also adds an esbuild plugin so that the dynamic require calls to `node:buffer`
+  get converted to requires to a new file which statically exports all entries from `node:buffer`,
+  effectively removing the problematic require calls whilst allowing the use of `node:buffer` entries.
+
+- 15f7ff5: Show a user-friendly error message for an unknown CLI flag
+
 ## 0.8.0
 
 ### Minor Changes

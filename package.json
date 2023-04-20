@@ -1,6 +1,6 @@
 {
 	"name": "@cloudflare/next-on-pages",
-	"version": "0.8.0",
+	"version": "0.9.0",
 	"bin": "./bin/index.js",
 	"scripts": {
 		"prettier": "npx prettier --ignore-unknown --ignore-path=.gitignore .",
