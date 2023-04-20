@@ -22,6 +22,7 @@
 	],
 	"dependencies": {
 		"acorn": "^8.8.0",
+		"ast-types": "^0.14.2",
 		"astring": "^1.8.4",
 		"chalk": "^5.2.0",
 		"chokidar": "^3.5.3",

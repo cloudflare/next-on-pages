@@ -1,7 +1,6 @@
 import { readFile, writeFile, mkdir, rm, readdir, copyFile } from 'fs/promises';
 import { exit } from 'process';
 import { dirname, join, relative, resolve } from 'path';
-import type { Node } from 'acorn';
 import { parse } from 'acorn';
 import { generate } from 'astring';
 import {
@@ -15,6 +14,8 @@ import {
 import type { CliOptions } from '../cli';
 import { cliError, cliWarn } from '../cli';
 import { tmpdir } from 'os';
+import type * as AST from 'ast-types/gen/kinds';
+import assert from 'node:assert';
 
 /**
  * Creates new files containing the Vercel built functions but adjusted so that they can be later
@@ -283,69 +284,86 @@ function extractWebpackChunks(
 	const parsedContents = parse(functionContents, {
 		ecmaVersion: 'latest',
 		sourceType: 'module',
-	}) as Node & { body: LooseNode[] };
+	}) as unknown as AST.ProgramKind;
 
-	const expressions = parsedContents.body
-		.filter(
-			({ type, expression }) =>
-				type === 'ExpressionStatement' &&
-				expression?.type === 'CallExpression' &&
-				expression.callee?.type === 'MemberExpression' &&
-				expression.callee.object?.type === 'AssignmentExpression' &&
-				expression.callee.object.left?.object?.name === 'self' &&
-				expression.callee.object.left.property?.name === 'webpackChunk_N_E' &&
-				expression.arguments?.[0]?.elements?.[1]?.type === 'ObjectExpression'
-		)
-		.map(
-			node => node?.expression?.arguments?.[0]?.elements?.[1]?.properties
-		) as LooseNode[][];
+	const chunks = parsedContents.body
+		.flatMap(statement => {
+			try {
+				assert(statement.type === 'ExpressionStatement');
+				const expr = statement.expression;
 
-	for (const objectOfChunks of expressions) {
-		for (const chunkExpression of objectOfChunks) {
-			const key = chunkExpression?.key?.value;
-			if (key in existingWebpackChunks) {
-				if (
-					existingWebpackChunks.get(key) !== generate(chunkExpression.value)
-				) {
-					cliError(
-						`
+				assert(expr.type === 'CallExpression');
+				assert(expr.callee.type === 'MemberExpression');
+				const calleeObj = expr.callee.object;
+
+				assert(calleeObj.type === 'AssignmentExpression');
+				assert(calleeObj.left.type === 'MemberExpression');
+				assert(calleeObj.left.object.type === 'Identifier');
+				assert(calleeObj.left.object.name === 'self');
+				assert(calleeObj.left.property.type === 'Identifier');
+				assert(calleeObj.left.property.name === 'webpackChunk_N_E');
+
+				assert(expr.arguments[0]?.type === 'ArrayExpression');
+				assert(expr.arguments[0].elements[1]?.type === 'ObjectExpression');
+
+				const props = expr.arguments[0].elements[1]?.properties ?? [];
+
+				return props.filter(
+					p =>
+						p.type === 'Property' &&
+						p.key.type === 'Literal' &&
+						typeof p.key.value === 'number' &&
+						p.value.type === 'ArrowFunctionExpression'
+				) as AST.PropertyKind[];
+			} catch {
+				return null;
+			}
+		})
+		.filter(Boolean) as AST.PropertyKind[];
+
+	for (const chunk of chunks) {
+		const key = (chunk.key as AST.NumericLiteralKind).value;
+
+		if (key in existingWebpackChunks) {
+			if (existingWebpackChunks.get(key) !== generate(chunk.value)) {
+				cliError(
+					`
 							ERROR: Detected a collision with '--experimental-minify'.
 							       Try removing the '--experimental-minify' argument.
 						`,
-						{ spaced: true }
-					);
-					exit(1);
-				}
+					{ spaced: true }
+				);
+				exit(1);
 			}
-
-			webpackChunks.set(key, generate(chunkExpression.value));
-
-			const chunkFilePath = join(tmpWebpackDir, `${key}.js`);
-
-			const newValue = {
-				type: 'MemberExpression',
-				object: {
-					type: 'CallExpression',
-					callee: {
-						type: 'Identifier',
-						name: 'require',
-					},
-					arguments: [
-						{
-							type: 'Literal',
-							value: chunkFilePath,
-							raw: JSON.stringify(chunkFilePath),
-						},
-					],
-				},
-				property: {
-					type: 'Identifier',
-					name: 'default',
-				},
-			};
-
-			chunkExpression.value = newValue;
 		}
+
+		webpackChunks.set(key, generate(chunk.value));
+
+		const chunkFilePath = join(tmpWebpackDir, `${key}.js`);
+
+		const newValue = {
+			type: 'MemberExpression',
+			object: {
+				type: 'CallExpression',
+				callee: {
+					type: 'Identifier',
+					name: 'require',
+				},
+				arguments: [
+					{
+						type: 'Literal',
+						value: chunkFilePath,
+						raw: JSON.stringify(chunkFilePath),
+					},
+				],
+			},
+			property: {
+				type: 'Identifier',
+				name: 'default',
+			},
+		};
+
+		(chunk as unknown as { value: unknown }).value = newValue;
 	}
 
 	return {
@@ -416,23 +434,4 @@ type DirectoryProcessingResults = {
 	invalidFunctions: Set<string>;
 	functionsMap: Map<string, string>;
 	webpackChunks: Map<number, string>;
-};
-
-type LooseNode = Node & {
-	expression?: LooseNode;
-	callee?: LooseNode;
-	object?: LooseNode;
-	left?: LooseNode;
-	right?: LooseNode;
-	property?: LooseNode;
-	arguments?: LooseNode[];
-	elements?: LooseNode[];
-	properties?: LooseNode[];
-	key?: LooseNode;
-	name?: string;
-	/*
-    eslint-disable-next-line @typescript-eslint/no-explicit-any 
-    -- TODO: improve the type of value
-  */
-	value: any;
 };
