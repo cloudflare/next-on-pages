@@ -286,8 +286,7 @@ function extractWebpackChunks(
 		sourceType: 'module',
 	}) as unknown as AST.ProgramKind;
 
-	const chunks = parsedContents.body
-		.flatMap(getWebpackChunksFromStatement);
+	const chunks = parsedContents.body.flatMap(getWebpackChunksFromStatement);
 
 	for (const chunk of chunks) {
 		const key = (chunk.key as AST.NumericLiteralKind).value;
@@ -423,7 +422,9 @@ type DirectoryProcessingResults = {
  *
  * @returns the chunks as an array of AST Properties if the statement represent the target javascript code, an empty array otherwise
  */
-function getWebpackChunksFromStatement(statement: AST.StatementKind): AST.PropertyKind[] {
+function getWebpackChunksFromStatement(
+	statement: AST.StatementKind
+): AST.PropertyKind[] {
 	try {
 		assert(statement.type === 'ExpressionStatement');
 		const expr = statement.expression;
