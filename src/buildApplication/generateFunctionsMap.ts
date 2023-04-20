@@ -2,7 +2,6 @@ import { readFile, writeFile, mkdir, rm, readdir, copyFile } from 'fs/promises';
 import { exit } from 'process';
 import { dirname, join, relative, resolve } from 'path';
 import { parse } from 'acorn';
-import { generate } from 'astring';
 import {
 	formatRoutePath,
 	normalizePath,
@@ -290,6 +289,7 @@ function extractWebpackChunks(
 	extractedWebpackChunks: Map<number, string>;
 } {
 	const webpackChunks = new Map<number, string>();
+	const webpackChunksCodeReplaceMap = new Map<string, string>();
 
 	const parsedContents = parse(functionContents, {
 		ecmaVersion: 'latest',
@@ -298,11 +298,15 @@ function extractWebpackChunks(
 
 	const chunks = parsedContents.body.flatMap(getWebpackChunksFromStatement);
 
-	for (const chunk of chunks) {
+	chunks.forEach(chunk => {
 		const key = (chunk.key as AST.NumericLiteralKind).value;
 
-		if (key in existingWebpackChunks) {
-			if (existingWebpackChunks.get(key) !== generate(chunk.value)) {
+		const chunkExpressionCode = functionContents.slice(
+			(chunk as unknown as {value: { start: number }}).value.start,
+			(chunk as unknown as {value: { end: number }}).value.end
+		);
+
+		if (existingWebpackChunks.has(key) && existingWebpackChunks.get(key) !== chunkExpressionCode) {
 				cliError(
 					`
 							ERROR: Detected a collision with '--experimental-minify'.
@@ -311,40 +315,28 @@ function extractWebpackChunks(
 					{ spaced: true }
 				);
 				exit(1);
-			}
 		}
 
-		webpackChunks.set(key, generate(chunk.value));
+		webpackChunks.set(key, chunkExpressionCode);
 
 		const chunkFilePath = join(tmpWebpackDir, `${key}.js`);
 
-		const newValue = {
-			type: 'MemberExpression',
-			object: {
-				type: 'CallExpression',
-				callee: {
-					type: 'Identifier',
-					name: 'require',
-				},
-				arguments: [
-					{
-						type: 'Literal',
-						value: chunkFilePath,
-						raw: JSON.stringify(chunkFilePath),
-					},
-				],
-			},
-			property: {
-				type: 'Identifier',
-				name: 'default',
-			},
-		};
+		const newChunkExpressionCode = `require(${JSON.stringify(
+			chunkFilePath
+		)}).default`;
 
-		(chunk as unknown as { value: unknown }).value = newValue;
-	}
+		webpackChunksCodeReplaceMap.set(
+			chunkExpressionCode,
+			newChunkExpressionCode
+		);
+	});
+
+	webpackChunksCodeReplaceMap.forEach((newChunkCode, chunkCode) => {
+		functionContents = functionContents.replace(chunkCode, newChunkCode);
+	});
 
 	return {
-		updatedFunctionContents: generate(parsedContents),
+		updatedFunctionContents: functionContents,
 		extractedWebpackChunks: webpackChunks,
 	};
 }
