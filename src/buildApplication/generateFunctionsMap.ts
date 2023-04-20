@@ -287,39 +287,7 @@ function extractWebpackChunks(
 	}) as unknown as AST.ProgramKind;
 
 	const chunks = parsedContents.body
-		.flatMap(statement => {
-			try {
-				assert(statement.type === 'ExpressionStatement');
-				const expr = statement.expression;
-
-				assert(expr.type === 'CallExpression');
-				assert(expr.callee.type === 'MemberExpression');
-				const calleeObj = expr.callee.object;
-
-				assert(calleeObj.type === 'AssignmentExpression');
-				assert(calleeObj.left.type === 'MemberExpression');
-				assert(calleeObj.left.object.type === 'Identifier');
-				assert(calleeObj.left.object.name === 'self');
-				assert(calleeObj.left.property.type === 'Identifier');
-				assert(calleeObj.left.property.name === 'webpackChunk_N_E');
-
-				assert(expr.arguments[0]?.type === 'ArrayExpression');
-				assert(expr.arguments[0].elements[1]?.type === 'ObjectExpression');
-
-				const props = expr.arguments[0].elements[1]?.properties ?? [];
-
-				return props.filter(
-					p =>
-						p.type === 'Property' &&
-						p.key.type === 'Literal' &&
-						typeof p.key.value === 'number' &&
-						p.value.type === 'ArrowFunctionExpression'
-				) as AST.PropertyKind[];
-			} catch {
-				return null;
-			}
-		})
-		.filter(Boolean) as AST.PropertyKind[];
+		.flatMap(getWebpackChunksFromStatement);
 
 	for (const chunk of chunks) {
 		const key = (chunk.key as AST.NumericLiteralKind).value;
@@ -435,3 +403,70 @@ type DirectoryProcessingResults = {
 	functionsMap: Map<string, string>;
 	webpackChunks: Map<number, string>;
 };
+
+/**
+ * Verifies wether the provided AST statement represents a javascript code
+ * of the following format:
+ * 	```
+ * 		(self.webpackChunk_N_E = self.webpackChunk_N_E || []).push(...,
+ * 			{
+ * 				[chunkNumberA]: e => { ... },
+ * 				[chunkNumberB]: e => { ... },
+ * 				[chunkNumberC]: e => { ... },
+ * 				...
+ * 			}
+ * 		]);
+ *  ```
+ * and in such case it extracts the various chunk properties.
+ *
+ * @param statement the AST statement to check
+ *
+ * @returns the chunks as an array of AST Properties if the statement represent the target javascript code, an empty array otherwise
+ */
+function getWebpackChunksFromStatement(statement: AST.StatementKind): AST.PropertyKind[] {
+	try {
+		assert(statement.type === 'ExpressionStatement');
+		const expr = statement.expression;
+
+		assert(expr.type === 'CallExpression');
+		assert(expr.callee.type === 'MemberExpression');
+		assert(expr.callee.property.type === 'Identifier');
+		assert(expr.callee.property.name === 'push');
+		const calleeObj = expr.callee.object;
+
+		assert(calleeObj.type === 'AssignmentExpression');
+
+		assertSelfWebpackChunk_N_E(calleeObj.left);
+
+		assert(calleeObj.right.type === 'LogicalExpression');
+		assert(calleeObj.right.operator === '||');
+		assertSelfWebpackChunk_N_E(calleeObj.right.left);
+		assert(calleeObj.right.right.type === 'ArrayExpression');
+		assert(calleeObj.right.right.elements.length === 0);
+
+		assert(expr.arguments[0]?.type === 'ArrayExpression');
+		assert(expr.arguments[0].elements[1]?.type === 'ObjectExpression');
+
+		return expr.arguments[0].elements[1].properties.filter(
+			p =>
+				p.type === 'Property' &&
+				p.key.type === 'Literal' &&
+				typeof p.key.value === 'number' &&
+				p.value.type === 'ArrowFunctionExpression'
+		) as AST.PropertyKind[];
+	} catch {
+		return [];
+	}
+}
+
+/**
+ * Asserts whether the provided AST node represents `self.webpackChunk_N_E`
+ * (throws an AssertionError it doesn't)
+ */
+function assertSelfWebpackChunk_N_E(expression: AST.NodeKind): void {
+	assert(expression.type === 'MemberExpression');
+	assert(expression.object.type === 'Identifier');
+	assert(expression.object.name === 'self');
+	assert(expression.property.type === 'Identifier');
+	assert(expression.property.name === 'webpackChunk_N_E');
+}
