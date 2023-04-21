@@ -101,9 +101,7 @@ describe('generateFunctionsMap', async () => {
 	});
 
 	test('should ignore a generated middleware.js file while also proving a warning', async () => {
-		const fn = vi.fn();
-		// eslint-disable-next-line no-console
-		console.warn = fn;
+		const mockedWarn = vi.spyOn(console, 'warn').mockImplementation(() => null);
 
 		const { invalidFunctions } = await generateFunctionsMapFrom({
 			'middlewarejs.func': {
@@ -117,10 +115,12 @@ describe('generateFunctionsMap', async () => {
 		});
 
 		expect(Array.from(invalidFunctions.values())).toEqual([]);
-		expect(fn.mock.calls.length).toBe(1);
-		expect(fn.mock.calls[0]?.[0]).toMatch(
-			/invalid middleware function for middlewarejs.func/
+		expect(mockedWarn).toHaveBeenCalledTimes(1);
+		expect(mockedWarn).toHaveBeenLastCalledWith(
+			expect.stringMatching(/invalid middleware function for middlewarejs.func/)
 		);
+
+		mockedWarn.mockRestore();
 	});
 
 	// TODO: add tests that also test the functions map with the experimentalMinify flag
