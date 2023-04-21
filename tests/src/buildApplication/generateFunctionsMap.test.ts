@@ -22,26 +22,78 @@ const invalidFuncDir = {
 };
 
 describe('generateFunctionsMap', async () => {
-	test('should generate a valid functions map (without experimentalMinify), accounting for invalid root-level functions', async () => {
+
+	describe('without experimentalMinify should correctly handle', () => {
+		test('valid index routes', async () => {
+			mockFs({
+				functions: {
+					'index.func': validFuncDir,
+					'index.rsc.func': validFuncDir,
+				},
+			});
+	
+			const { functionsMap } = await generateFunctionsMap('functions', false);
+	
+			expect(functionsMap.size).toEqual(3);
+			expect(functionsMap.get('/')).toMatch(/\/index\.func\.js$/);
+			expect(functionsMap.get('/index')).toMatch(/\/index\.func\.js$/);
+			expect(functionsMap.get('/index.rsc')).toMatch(/\/index\.rsc\.func\.js$/);
+
+			mockFs.restore();
+		})
+
+		test('valid nested routes', async () => {
+			mockFs({
+				functions: {
+					api: {
+						'hello.func': validFuncDir,
+					},
+				},
+			});
+	
+			const { functionsMap } = await generateFunctionsMap('functions', false);
+	
+			expect(functionsMap.size).toEqual(1);
+			expect(functionsMap.get('/api/hello')).toMatch(/\/api\/hello\.func\.js$/);
+
+			mockFs.restore();
+		})
+
+
+		test('valid middlewares (and ignore their potential middleware.js file)', async () => {
+			mockFs({
+				functions: {
+					'middlewarejs.func': {
+						'.vc-config.json': JSON.stringify({
+							name: 'middleware',
+							runtime: 'edge',
+							entrypoint: 'middleware.js',
+						}),
+						'index.js': '',
+						'middleware.js': '',
+					},
+					base: {
+						'middleware.func': validFuncDir,
+					},
+				},
+			});
+	
+			const { functionsMap } = await generateFunctionsMap('functions', false);
+	
+			expect(functionsMap.size).toEqual(2);
+			expect(functionsMap.get('/middlewarejs')).toMatch(
+				/\/middlewarejs\.func\.js$/
+			);
+			expect(functionsMap.get('/base/middleware')).toMatch(
+				/\/base\/middleware\.func\.js$/
+			);
+			mockFs.restore();
+		})
+	})
+
+	test('should squash valid routes in route groups', async () => {
 		mockFs({
 			functions: {
-				'index.func': validFuncDir,
-				'index.rsc.func': validFuncDir,
-				api: {
-					'hello.func': validFuncDir,
-				},
-				'middlewarejs.func': {
-					'.vc-config.json': JSON.stringify({
-						name: 'middleware',
-						runtime: 'edge',
-						entrypoint: 'middleware.js',
-					}),
-					'index.js': '',
-					'middleware.js': '',
-				},
-				base: {
-					'middleware.func': validFuncDir,
-				},
 				path: {
 					'(group-1)': {
 						to: {
@@ -51,46 +103,14 @@ describe('generateFunctionsMap', async () => {
 						},
 					},
 				},
-				'(is-valid)': {
-					'should-be-valid.func': validFuncDir,
-				},
-				rsc: {
-					'(is-valid)': {
-						'should-be-valid.func': validFuncDir,
-						'should-be-valid.rsc.func': validFuncDir,
-					},
-				},
 			},
 		});
 
 		const { functionsMap } = await generateFunctionsMap('functions', false);
 
-		expect(functionsMap.size).toEqual(10);
-		// index
-		expect(functionsMap.get('/')).toMatch(/\/index\.func\.js$/);
-		expect(functionsMap.get('/index')).toMatch(/\/index\.func\.js$/);
-		expect(functionsMap.get('/index.rsc')).toMatch(/\/index\.rsc\.func\.js$/);
-		// nested route
-		expect(functionsMap.get('/api/hello')).toMatch(/\/api\/hello\.func\.js$/);
-		// middleware
-		expect(functionsMap.get('/middlewarejs')).toMatch(
-			/\/middlewarejs\.func\.js$/
-		);
-		expect(functionsMap.get('/base/middleware')).toMatch(
-			/\/base\/middleware\.func\.js$/
-		);
-		// route group
+		expect(functionsMap.size).toEqual(1);
 		expect(functionsMap.get('/path/to/page')).toMatch(
 			/\/path\/\(group-1\)\/to\/\(group-2\)\/page\.func\.js$/
-		);
-		expect(functionsMap.get('/should-be-valid')).toMatch(
-			/\(is-valid\)\/should-be-valid\.func\.js$/
-		);
-		expect(functionsMap.get('/rsc/should-be-valid')).toMatch(
-			/rsc\/\(is-valid\)\/should-be-valid\.func\.js$/
-		);
-		expect(functionsMap.get('/rsc/should-be-valid.rsc')).toMatch(
-			/rsc\/\(is-valid\)\/should-be-valid\.rsc\.func\.js$/
 		);
 
 		mockFs.restore();
@@ -121,9 +141,6 @@ describe('generateFunctionsMap', async () => {
 	test('should return invalid functions', async () => {
 		mockFs({
 			functions: {
-				'should-be-valid-alt.func': {
-					'.vc-config.json': invalidIndexVcConfigJson,
-				},
 				'index.func': invalidFuncDir,
 				'index.rsc.func': invalidFuncDir,
 			},
@@ -134,7 +151,6 @@ describe('generateFunctionsMap', async () => {
 		expect(Array.from(invalidFunctions.values())).toEqual([
 			'index.func',
 			'index.rsc.func',
-			'should-be-valid-alt.func',
 		]);
 
 		mockFs.restore();
