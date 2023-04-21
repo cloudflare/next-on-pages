@@ -134,7 +134,7 @@ describe('readPathsRecursively', () => {
 		const paths = (await readPathsRecursively('root/functions')).map(path =>
 			normalizePath(path)
 		);
-		expect(paths.length).toBe(3);
+		expect(paths.length).toEqual(3);
 		expect(paths[0]).toMatch(
 			/root\/functions\/\(route-group\)\/page\.func\/index\.js$/
 		);
