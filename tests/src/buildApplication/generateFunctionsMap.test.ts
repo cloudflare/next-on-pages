@@ -65,13 +65,6 @@ describe('generateFunctionsMap', async () => {
 
 		const { functionsMap } = await generateFunctionsMap('functions', false);
 
-		// Do we still need to test this? @james-elicx
-		// // NOTE: The invalid function here is used to test that invalid functions on the root-level are considered invalid, while a valid squashed function (in a route group) replaces an equivalent invalid function that exists on the root-level.
-		// // i.e. `(is-valid)/should-be-valid.func` replaces the invalid `should-be-valid.func` on the root-level, and `should-be-valid-alt.func` is still invalid.
-		// expect(Array.from(invalidFunctions.values())).toEqual([
-		// 	'should-be-valid-alt.func',
-		// ]);
-
 		expect(functionsMap.size).toEqual(10);
 		// index
 		expect(functionsMap.get('/')).toMatch(/\/index\.func\.js$/);
@@ -98,6 +91,28 @@ describe('generateFunctionsMap', async () => {
 		);
 		expect(functionsMap.get('/rsc/should-be-valid.rsc')).toMatch(
 			/rsc\/\(is-valid\)\/should-be-valid\.rsc\.func\.js$/
+		);
+
+		mockFs.restore();
+	});
+
+	test('should squash invalid root functions', async () => {
+		mockFs({
+			functions: {
+				'should-be-valid.func': invalidFuncDir,
+				'(is-actually-valid)': {
+					'should-be-valid.func': validFuncDir,
+				}
+			},
+		});
+
+		const { invalidFunctions, functionsMap } = await generateFunctionsMap('functions', false);
+
+		expect(Array.from(invalidFunctions.values())).toEqual([
+		]);
+		expect(functionsMap.size).toEqual(1);
+		expect(functionsMap.get('/should-be-valid')).toMatch(
+			/\(is-actually-valid\)\/should-be-valid\.func\.js$/
 		);
 
 		mockFs.restore();
