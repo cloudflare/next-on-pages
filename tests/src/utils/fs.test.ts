@@ -131,7 +131,9 @@ describe('readPathsRecursively', () => {
 		mockFs.restore();
 	});
 	test('should read all paths recursively', async () => {
-		const paths = await readPathsRecursively('root/functions');
+		const paths = (await readPathsRecursively('root/functions')).map(path =>
+			normalizePath(path)
+		);
 		expect(paths.length).toBe(3);
 		expect(paths[0]).toMatch(
 			/root\/functions\/\(route-group\)\/page\.func\/index\.js$/
