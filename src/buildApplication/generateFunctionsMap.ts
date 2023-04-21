@@ -1,6 +1,7 @@
 import { readFile, writeFile, mkdir, rm, readdir, copyFile } from 'fs/promises';
 import { exit } from 'process';
 import { dirname, join, relative, resolve } from 'path';
+import type { Node } from 'acorn';
 import { parse } from 'acorn';
 import {
 	formatRoutePath,
@@ -302,19 +303,22 @@ function extractWebpackChunks(
 		const key = (chunk.key as AST.NumericLiteralKind).value;
 
 		const chunkExpressionCode = functionContents.slice(
-			(chunk as unknown as {value: { start: number }}).value.start,
-			(chunk as unknown as {value: { end: number }}).value.end
+			(chunk.value as Node).start,
+			(chunk.value as Node).end
 		);
 
-		if (existingWebpackChunks.has(key) && existingWebpackChunks.get(key) !== chunkExpressionCode) {
-				cliError(
-					`
+		if (
+			existingWebpackChunks.has(key) &&
+			existingWebpackChunks.get(key) !== chunkExpressionCode
+		) {
+			cliError(
+				`
 							ERROR: Detected a collision with '--experimental-minify'.
 							       Try removing the '--experimental-minify' argument.
 						`,
-					{ spaced: true }
-				);
-				exit(1);
+				{ spaced: true }
+			);
+			exit(1);
 		}
 
 		webpackChunks.set(key, chunkExpressionCode);
