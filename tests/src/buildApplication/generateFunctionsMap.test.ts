@@ -1,4 +1,4 @@
-import { describe, test, expect } from 'vitest';
+import { describe, test, expect, vi } from 'vitest';
 import { generateFunctionsMap } from '../../../src/buildApplication/generateFunctionsMap';
 import mockFs from 'mock-fs';
 
@@ -36,7 +36,8 @@ describe('generateFunctionsMap', async () => {
 						runtime: 'edge',
 						entrypoint: 'middleware.js',
 					}),
-					'index.js': '', // is this correct? @james-elicx
+					'index.js': '',
+					'middleware.js': '',
 				},
 				base: {
 					'middleware.func': validFuncDir,
@@ -120,6 +121,33 @@ describe('generateFunctionsMap', async () => {
 			'index.rsc.func',
 			'should-be-valid-alt.func',
 		]);
+
+		mockFs.restore();
+	});
+
+	test('should ignore a generated middleware.js file while also proving a warning', async () => {
+		const fn = vi.fn()
+		// eslint-disable-next-line no-console
+		console.warn = fn;
+
+		mockFs({
+			functions: {
+				'middlewarejs.func': {
+					'.vc-config.json': JSON.stringify({
+						name: 'middleware',
+						runtime: 'edge',
+						entrypoint: 'middleware.js',
+					}),
+					'middleware.js': '',
+				},
+			},
+		});
+
+		const { invalidFunctions } = await generateFunctionsMap('functions', false);
+		expect(Array.from(invalidFunctions.values())).toEqual([]);
+
+		expect(fn.mock.calls.length).toBe(1);
+		expect(fn.mock.calls[0]?.[0]).toMatch(/invalid middleware function for middlewarejs.func/);
 
 		mockFs.restore();
 	});
