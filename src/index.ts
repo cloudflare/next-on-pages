@@ -54,6 +54,7 @@ function setWatchMode(fn: () => void): void {
 			'node_modules',
 			'.vercel',
 			'.next',
+			'.wrangler',
 			'package-lock.json',
 			'yarn.lock',
 		],
