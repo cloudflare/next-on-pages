@@ -79,6 +79,11 @@ async function prepareAndBuildWorker(
 		options.experimentalMinify
 	);
 
+	if (invalidFunctions.size > 0) {
+		printInvalidFunctionsErrorMessage(Array.from(invalidFunctions));
+		exit(1);
+	}
+
 	if (functionsMap.size === 0) {
 		cliLog('No functions detected.');
 		return;
@@ -96,11 +101,6 @@ async function prepareAndBuildWorker(
 		if (e instanceof Error) {
 			cliError(e.message, { showReport: true });
 		}
-		exit(1);
-	}
-
-	if (invalidFunctions.size > 0) {
-		printInvalidFunctionsErrorMessage(Array.from(invalidFunctions));
 		exit(1);
 	}
 
