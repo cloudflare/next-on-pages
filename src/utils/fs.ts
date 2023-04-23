@@ -97,17 +97,21 @@ export function validateDir(path: string) {
  * @returns Array of all paths for all files in a directory.
  */
 export async function readPathsRecursively(dir: string): Promise<string[]> {
-	const files = await readdir(dir);
+	try {
+		const files = await readdir(dir);
 
-	const paths = await Promise.all(
-		files.map(async file => {
-			const path = resolve(dir, file);
+		const paths = await Promise.all(
+			files.map(async file => {
+				const path = resolve(dir, file);
 
-			return (await validateDir(path))
-				? await readPathsRecursively(path)
-				: [path];
-		})
-	);
+				return (await validateDir(path))
+					? await readPathsRecursively(path)
+					: [path];
+			})
+		);
 
-	return paths.flat();
+		return paths.flat();
+	} catch {
+		return [];
+	}
 }

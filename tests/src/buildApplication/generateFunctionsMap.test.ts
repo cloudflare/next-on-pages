@@ -1,148 +1,159 @@
-import { describe, test, expect, vi, beforeAll, afterAll } from 'vitest';
+import { describe, test, expect, vi } from 'vitest';
 import { generateFunctionsMap } from '../../../src/buildApplication/generateFunctionsMap';
-import { normalizePath } from '../../../src/utils';
-
-beforeAll(() => {
-	vi.mock('node:fs/promises', async () => {
-		return {
-			readFile: async (rawFile: string) => {
-				const file = normalizePath(rawFile);
-				if (
-					/invalidTest\/functions\/middlewarejs.*\/\.vc-config\.json/.test(file)
-				) {
-					return JSON.stringify({
-						runtime: 'edge',
-						entrypoint: 'middleware.js',
-					});
-				}
-				if (/invalidTest\/functions\/index.*\/\.vc-config\.json/.test(file)) {
-					return JSON.stringify({ runtime: 'nodejs', entrypoint: 'index.js' });
-				}
-				if (
-					/validTest\/functions\/middleware.*\/\.vc-config\.json/.test(file)
-				) {
-					return JSON.stringify({
-						name: 'middleware',
-						runtime: 'edge',
-						entrypoint: file.includes('middlewarejs')
-							? 'middleware.js'
-							: 'index.js',
-					});
-				}
-				if (/validTest\/functions\/.*\/\.vc-config\.json/.test(file)) {
-					return JSON.stringify({
-						runtime:
-							file.includes('should-be-valid') && !file.includes('is-valid')
-								? 'nodejs'
-								: 'edge',
-						entrypoint: 'index.js',
-					});
-				}
-				return '';
-			},
-			mkdir: async () => null,
-			writeFile: async () => null,
-			stat: async (path: string) => {
-				// NOTE: Invalid file is used to (in a hacky way) simulate an function called `middlewarejs` that has an entry point of `middleware.js` being changed to `index.js`, and that new entry point not existing in the file system. Hence, it would be an invalid file, and `isDirectory()` and `isFile()` will then be false.
-				const invalidFile =
-					path.includes('invalidTest') &&
-					path.includes('middlewarejs') &&
-					path.endsWith('.js');
-				const isFile = path.endsWith('.js') || path.endsWith('.json');
-
-				return {
-					isDirectory: () => !invalidFile && !isFile,
-					isFile: () => !invalidFile && isFile,
-				};
-			},
-			readdir: async (rawDir: string) => {
-				const dir = normalizePath(rawDir);
-				if (['validTest/functions', 'invalidTest/functions'].includes(dir)) {
-					return [
-						'api',
-						'index.func',
-						'index.rsc.func',
-						'middlewarejs.func',
-						'base/middleware.func',
-						'path/(group-1)/to/(group-2)/page.func',
-						'(is-valid)/should-be-valid.func', // valid
-						'should-be-valid.func', // invalid
-						'should-be-valid-alt.func', // invalid
-						'rsc/(is-valid)/should-be-valid.func', // valid
-						'rsc/should-be-valid.rsc.func', // invalid
-					];
-				}
-				if (
-					['validTest/functions/api', 'invalidTest/functions/api'].includes(dir)
-				) {
-					return ['hello.func'];
-				}
-				return [];
-			},
-		};
-	});
-});
-
-afterAll(() => {
-	vi.clearAllMocks();
-});
+import mockFs from 'mock-fs';
+import type { DirectoryItems } from 'mock-fs/lib/filesystem';
 
 describe('generateFunctionsMap', async () => {
-	test('should generate a valid functions map (without experimentalMinify), accounting for invalid root-level functions', async () => {
-		const { invalidFunctions, functionsMap } = await generateFunctionsMap(
-			'validTest/functions',
-			false
-		);
+	describe('without experimentalMinify should correctly handle', () => {
+		test('valid index routes', async () => {
+			const { functionsMap } = await generateFunctionsMapFrom({
+				'index.func': validFuncDir,
+				'index.rsc.func': validFuncDir,
+			});
 
-		// NOTE: The invalid function here is used to test that invalid functions on the root-level are considered invalid, while a valid squashed function (in a route group) replaces an equivalent invalid function that exists on the root-level.
-		// i.e. `(is-valid)/should-be-valid.func` replaces the invalid `should-be-valid.func` on the root-level, and `should-be-valid-alt.func` is still invalid.
-		expect(invalidFunctions.size).toEqual(1);
-		expect(Array.from(invalidFunctions.values())).toEqual([
-			'should-be-valid-alt.func',
-		]);
+			expect(functionsMap.size).toEqual(3);
+			expect(functionsMap.get('/')).toMatch(/\/index\.func\.js$/);
+			expect(functionsMap.get('/index')).toMatch(/\/index\.func\.js$/);
+			expect(functionsMap.get('/index.rsc')).toMatch(/\/index\.rsc\.func\.js$/);
+		});
 
-		expect(functionsMap.size).toEqual(10);
-		// index
-		expect(functionsMap.get('/')).toMatch(/\/index\.func\.js$/);
-		expect(functionsMap.get('/index')).toMatch(/\/index\.func\.js$/);
-		expect(functionsMap.get('/index.rsc')).toMatch(/\/index\.rsc\.func\.js$/);
-		// nested route
-		expect(functionsMap.get('/api/hello')).toMatch(/\/api\/hello\.func\.js$/);
-		// middleware
-		expect(functionsMap.get('/middlewarejs')).toMatch(
-			/\/middlewarejs\.func\.js$/
-		);
-		expect(functionsMap.get('/base/middleware')).toMatch(
-			/\/base\/middleware\.func\.js$/
-		);
-		// route group
+		test('valid nested routes', async () => {
+			const { functionsMap } = await generateFunctionsMapFrom({
+				api: {
+					'hello.func': validFuncDir,
+				},
+			});
+
+			expect(functionsMap.size).toEqual(1);
+			expect(functionsMap.get('/api/hello')).toMatch(/\/api\/hello\.func\.js$/);
+		});
+
+		test('valid middlewares (and ignore their potential middleware.js file)', async () => {
+			const { functionsMap } = await generateFunctionsMapFrom({
+				'middlewarejs.func': {
+					'.vc-config.json': JSON.stringify({
+						name: 'middleware',
+						runtime: 'edge',
+						entrypoint: 'middleware.js',
+					}),
+					'index.js': '',
+					'middleware.js': '',
+				},
+				base: {
+					'middleware.func': validFuncDir,
+				},
+			});
+
+			expect(functionsMap.size).toEqual(2);
+			expect(functionsMap.get('/middlewarejs')).toMatch(
+				/\/middlewarejs\.func\.js$/
+			);
+			expect(functionsMap.get('/base/middleware')).toMatch(
+				/\/base\/middleware\.func\.js$/
+			);
+		});
+	});
+
+	test('should squash valid routes in route groups', async () => {
+		const { functionsMap } = await generateFunctionsMapFrom({
+			path: {
+				'(group-1)': {
+					to: {
+						'(group-2)': {
+							'page.func': validFuncDir,
+						},
+					},
+				},
+			},
+		});
+
+		expect(functionsMap.size).toEqual(1);
 		expect(functionsMap.get('/path/to/page')).toMatch(
 			/\/path\/\(group-1\)\/to\/\(group-2\)\/page\.func\.js$/
 		);
+	});
+
+	test('should squash invalid root functions', async () => {
+		const { invalidFunctions, functionsMap } = await generateFunctionsMapFrom({
+			'should-be-valid.func': invalidFuncDir,
+			'(is-actually-valid)': {
+				'should-be-valid.func': validFuncDir,
+			},
+		});
+
+		expect(Array.from(invalidFunctions.values())).toEqual([]);
+		expect(functionsMap.size).toEqual(1);
 		expect(functionsMap.get('/should-be-valid')).toMatch(
-			/\(is-valid\)\/should-be-valid\.func\.js$/
-		);
-		expect(functionsMap.get('/rsc/should-be-valid')).toMatch(
-			/rsc\/\(is-valid\)\/should-be-valid\.func\.js$/
-		);
-		expect(functionsMap.get('/rsc/should-be-valid.rsc')).toMatch(
-			/rsc\/\(is-valid\)\/should-be-valid\.func\.js$/
+			/\(is-actually-valid\)\/should-be-valid\.func\.js$/
 		);
 	});
 
-	// TODO: add tests that also test the functions map with the experimentalMinify flag
-
 	test('should return invalid functions', async () => {
-		const { invalidFunctions } = await generateFunctionsMap(
-			'invalidTest/functions',
-			false
-		);
+		const { invalidFunctions } = await generateFunctionsMapFrom({
+			'index.func': invalidFuncDir,
+			'index.rsc.func': invalidFuncDir,
+		});
 
-		expect(invalidFunctions.size).toEqual(3);
 		expect(Array.from(invalidFunctions.values())).toEqual([
 			'index.func',
 			'index.rsc.func',
-			'should-be-valid-alt.func',
 		]);
 	});
+
+	test('should ignore a generated middleware.js file while also proving a warning', async () => {
+		const mockedWarn = vi.spyOn(console, 'warn').mockImplementation(() => null);
+
+		const { invalidFunctions } = await generateFunctionsMapFrom({
+			'middlewarejs.func': {
+				'.vc-config.json': JSON.stringify({
+					name: 'middleware',
+					runtime: 'edge',
+					entrypoint: 'middleware.js',
+				}),
+				'middleware.js': '',
+			},
+		});
+
+		expect(Array.from(invalidFunctions.values())).toEqual([]);
+		expect(mockedWarn).toHaveBeenCalledTimes(1);
+		expect(mockedWarn).toHaveBeenLastCalledWith(
+			expect.stringMatching(/invalid middleware function for middlewarejs.func/)
+		);
+
+		mockedWarn.mockRestore();
+	});
+
+	// TODO: add tests that also test the functions map with the experimentalMinify flag
 });
+
+const validIndexVcConfigJson = JSON.stringify({
+	runtime: 'edge',
+	entrypoint: 'index.js',
+});
+
+const invalidIndexVcConfigJson = JSON.stringify({
+	runtime: 'nodejs',
+	entrypoint: 'index.js',
+});
+
+const validFuncDir = {
+	'.vc-config.json': validIndexVcConfigJson,
+	'index.js': '',
+};
+
+const invalidFuncDir = {
+	'.vc-config.json': invalidIndexVcConfigJson,
+	'index.js': '',
+};
+
+async function generateFunctionsMapFrom(
+	functions: DirectoryItems,
+	experimentalMinify = false
+) {
+	mockFs({
+		functions,
+	});
+	const result = await generateFunctionsMap('functions', experimentalMinify);
+	mockFs.restore();
+	return result;
+}

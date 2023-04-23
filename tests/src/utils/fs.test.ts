@@ -1,4 +1,4 @@
-import { describe, test, expect, vi, beforeAll, afterAll } from 'vitest';
+import { describe, test, expect, beforeAll, afterAll } from 'vitest';
 import {
 	normalizePath,
 	readJsonFile,
@@ -6,46 +6,7 @@ import {
 	validateDir,
 	validateFile,
 } from '../../../src/utils';
-
-beforeAll(() => {
-	vi.mock('node:fs/promises', () => ({
-		stat: (path: string) =>
-			new Promise((res, rej) =>
-				path.startsWith('validTest')
-					? res({
-							isDirectory: () => !path.endsWith('.js'),
-							isFile: () => path.endsWith('.js'),
-					  })
-					: rej('invalid path')
-			),
-		readFile: (path: string) =>
-			new Promise((res, rej) =>
-				path === '.vc-config.json'
-					? res(JSON.stringify({ runtime: 'edge', entrypoint: 'index.js' }))
-					: rej('invalid file')
-			),
-		readdir: (path: string) =>
-			new Promise(res =>
-				res(
-					{
-						'validTest/functions': ['(route-group)', 'index.func', 'home.func'],
-						'validTest/functions/index.func': ['index.js'],
-						'validTest/functions/home.func': ['index.js'],
-						'validTest/functions/(route-group)': ['page.func'],
-						'validTest/functions/(route-group)/page.func': ['index.js'],
-					}[path] ?? []
-				)
-			),
-	}));
-
-	vi.mock('node:path', () => ({
-		resolve: (dir: string, file: string) => `${dir}/${file}`,
-	}));
-});
-
-afterAll(() => {
-	vi.clearAllMocks();
-});
+import mockFs from 'mock-fs';
 
 describe('normalizePath', () => {
 	test('windows short path name format normalizes', () => {
@@ -70,69 +31,120 @@ describe('normalizePath', () => {
 
 describe('readJsonFile', () => {
 	test('should read a valid JSON file', async () => {
-		await expect(readJsonFile('.vc-config.json')).resolves.toEqual({
+		const vcConfigContent = {
 			runtime: 'edge',
 			entrypoint: 'index.js',
+		};
+		mockFs({
+			'.vc-config.json': JSON.stringify(vcConfigContent),
 		});
+		await expect(readJsonFile('.vc-config.json')).resolves.toEqual(
+			vcConfigContent
+		);
+		mockFs.restore();
 	});
 
 	test('should return null with invalid json file', async () => {
-		await expect(readJsonFile('.invalid-config.json')).resolves.toEqual(null);
+		mockFs({
+			'invalid.json': 'invalid-file',
+		});
+		await expect(readJsonFile('invalid.json')).resolves.toEqual(null);
+		mockFs.restore();
 	});
 });
 
 describe('validateFile', () => {
+	beforeAll(() => {
+		mockFs({
+			'functions/index.func': { 'index.js': 'valid-file' },
+		});
+	});
+	afterAll(() => {
+		mockFs.restore();
+	});
 	test('valid file returns true', async () => {
 		await expect(
-			validateFile('validTest/functions/index.func/index.js')
+			validateFile('functions/index.func/index.js')
 		).resolves.toEqual(true);
 	});
 
 	test('valid directory returns false', async () => {
-		await expect(
-			validateFile('validTest/functions/index.func')
-		).resolves.toEqual(false);
+		await expect(validateFile('functions/index.func')).resolves.toEqual(false);
 	});
 
 	test('invalid path returns false', async () => {
-		await expect(validateFile('invalidTest/invalidPath')).resolves.toEqual(
-			false
-		);
+		await expect(
+			validateFile('functions/invalid-index.func/index.js')
+		).resolves.toEqual(false);
 	});
 });
 
 describe('validateDir', () => {
+	beforeAll(() => {
+		mockFs({
+			'functions/index.func': { 'index.js': 'valid-file' },
+		});
+	});
+	afterAll(() => {
+		mockFs.restore();
+	});
 	test('valid directory returns true', async () => {
-		await expect(
-			validateDir('validTest/functions/index.func')
-		).resolves.toEqual(true);
+		mockFs({
+			'functions/index.func': { 'index.js': 'valid-file' },
+		});
+		await expect(validateDir('functions/index.func')).resolves.toEqual(true);
+		mockFs.restore();
 	});
 
 	test('valid file returns false', async () => {
-		await expect(
-			validateDir('validTest/functions/index.func/index.js')
-		).resolves.toEqual(false);
+		await expect(validateDir('functions/index.func/index.js')).resolves.toEqual(
+			false
+		);
 	});
 
 	test('invalid path returns false', async () => {
-		await expect(validateDir('invalidTest/invalidPath')).resolves.toEqual(
-			false
-		);
+		await expect(validateDir('invalidPath')).resolves.toEqual(false);
 	});
 });
 
 describe('readPathsRecursively', () => {
+	beforeAll(() => {
+		mockFs({
+			root: {
+				functions: {
+					'(route-group)': {
+						'page.func': {
+							'index.js': 'page-js-code',
+						},
+					},
+					'index.func': {
+						'index.js': 'index-js-code',
+					},
+					'home.func': {
+						'index.js': 'home-js-code',
+					},
+				},
+			},
+		});
+	});
+	afterAll(() => {
+		mockFs.restore();
+	});
 	test('should read all paths recursively', async () => {
-		await expect(readPathsRecursively('validTest/functions')).resolves.toEqual([
-			'validTest/functions/(route-group)/page.func/index.js',
-			'validTest/functions/index.func/index.js',
-			'validTest/functions/home.func/index.js',
-		]);
+		const paths = (await readPathsRecursively('root/functions')).map(path =>
+			normalizePath(path)
+		);
+		expect(paths.length).toEqual(3);
+		expect(paths[0]).toMatch(
+			/root\/functions\/\(route-group\)\/page\.func\/index\.js$/
+		);
+		expect(paths[1]).toMatch(/root\/functions\/home\.func\/index\.js$/);
+		expect(paths[2]).toMatch(/root\/functions\/index\.func\/index\.js$/);
 	});
 
 	test('invalid directory, returns empty array', async () => {
 		await expect(
-			readPathsRecursively('invalidTest/functions')
+			readPathsRecursively('invalid-root/functions')
 		).resolves.toEqual([]);
 	});
 });
