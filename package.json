@@ -34,6 +34,7 @@
 	},
 	"peerDependencies": {
 		"vercel": "^28.0.2"
+		// TODO: add peer dependency to wrangler ^2.X.Y
 	},
 	"devDependencies": {
 		"@changesets/cli": "^2.26.0",
