@@ -399,9 +399,9 @@ async function tryToFixFaviconFunc(): Promise<void> {
 }
 
 export type VercelPrerenderConfig = {
-	type: 'Prerender' | string;
+	type: string;
 	sourcePath?: string;
-	fallback: { type: 'FileFsRef' | string; mode: number; fsPath: string };
+	fallback: { type: string; mode: number; fsPath: string };
 	initialHeaders?: Record<string, string>;
 };
 export type PrerenderedFileData = {
@@ -410,8 +410,8 @@ export type PrerenderedFileData = {
 };
 
 /**
- * Extract the prerendered routes from a list of routes, copy the prerendered files to the static
- * output directory, and return a list of non-prerendered routes.
+ * Extracts the prerendered routes from a list of routes, copies the prerendered files to the
+ * `.vercel/static/output` directory, and returns a list of non-prerendered routes.
  *
  * Additionally, it creates paths to use for overrides for the routing process, along with the
  * correct headers to apply.
