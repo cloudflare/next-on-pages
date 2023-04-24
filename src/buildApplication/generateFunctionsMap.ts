@@ -504,10 +504,22 @@ function getChunkImportFn(functionPath: string): (chunkKey: number) => string {
 	};
 }
 
+const functionsDir = resolve('.vercel', 'output', 'functions');
+
 function getFunctionNestingLevel(functionPath: string): number {
-	const relativePath = functionPath.replace(
-		/^.*\/.vercel\/output\/functions\//,
-		''
-	);
-	return relativePath.split('/').length;
+	let nestingLevel = -1;
+	try {
+		const relativePath = relative(functionPath, functionsDir);
+		nestingLevel = relativePath.split('..').length - 1;
+	} catch {
+		/* empty */
+	}
+
+	if (nestingLevel < 0) {
+		throw new Error(
+			`Error: could not determine nesting level of the following function: ${functionPath}`
+		);
+	}
+
+	return nestingLevel;
 }
