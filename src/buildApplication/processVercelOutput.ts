@@ -9,6 +9,7 @@ import {
 import { cliLog, cliWarn } from '../cli';
 import type { MiddlewareManifestData } from './middlewareManifest';
 import { processVercelConfig } from './getVercelConfig';
+import type { PrerenderedFileData } from './generateFunctionsMap';
 
 /**
  * Extract a list of static assets from the Vercel build output.
@@ -38,12 +39,14 @@ export type ProcessedVercelOutput = {
  *
  * @param config Vercel build output config.
  * @param staticAssets List of static asset paths from the file system.
+ * @param prerenderedRoutes Map of prerendered files from the file system.
  * @param functionsMap Map of functions from the file system.
  * @returns Processed Vercel build output map.
  */
 export function processVercelOutput(
 	config: VercelConfig,
 	staticAssets: string[],
+	prerenderedRoutes: Map<string, PrerenderedFileData>,
 	{ hydratedMiddleware, hydratedFunctions }: MiddlewareManifestData
 ): ProcessedVercelOutput {
 	const processedConfig = processVercelConfig(config);
@@ -72,6 +75,8 @@ export function processVercelOutput(
 
 	// Apply the overrides from the build output config to the processed output map.
 	applyVercelOverrides(processedConfig, processedOutput);
+	// Apply the prerendered routes and their overrides to the processed output map.
+	applyPrerenderedRoutes(prerenderedRoutes, processedOutput);
 
 	rewriteMiddlewarePaths(
 		processedOutput,
@@ -159,7 +164,7 @@ function applyVercelOverrides(
 			const newValue: BuildOutputStaticOverride = {
 				type: 'override',
 				path: assetPath,
-				contentType,
+				headers: contentType ? { 'content-type': contentType } : undefined,
 			};
 
 			// Update the existing static record to contain the new `contentType` and `assetPath`.
@@ -180,4 +185,31 @@ function applyVercelOverrides(
 			}
 		}
 	);
+}
+
+/**
+ * Apply the prerendered routes and their overrides to the processed output map.
+ *
+ * @param prerenderedRoutes Prererendered routes to apply to the output map.
+ * @param vercelOutput Map of path names to build output items.
+ */
+function applyPrerenderedRoutes(
+	prerenderedRoutes: Map<string, PrerenderedFileData>,
+	vercelOutput: Map<string, BuildOutputItem>
+): void {
+	prerenderedRoutes.forEach(({ headers, overrides }, path) => {
+		vercelOutput.set(path, {
+			type: 'override',
+			path,
+			headers,
+		});
+
+		overrides?.forEach(overridenPath => {
+			vercelOutput.set(overridenPath, {
+				type: 'override',
+				path,
+				headers,
+			});
+		});
+	});
 }

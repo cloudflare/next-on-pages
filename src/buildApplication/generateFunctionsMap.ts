@@ -32,9 +32,7 @@ import assert from 'node:assert';
 export async function generateFunctionsMap(
 	functionsDir: string,
 	experimentalMinify: CliOptions['experimentalMinify']
-): Promise<
-	Pick<DirectoryProcessingResults, 'functionsMap' | 'invalidFunctions'>
-> {
+): Promise<DirectoryProcessingResults> {
 	const processingSetup = {
 		functionsDir,
 		tmpFunctionsDir: join(tmpdir(), Math.random().toString(36).slice(2)),
@@ -113,11 +111,17 @@ async function processDirectoryRecursively(
 	const invalidFunctions = new Set<string>();
 	const functionsMap = new Map<string, string>();
 	const webpackChunks = new Map<number, string>();
+	const prerenderedRoutes = new Map<string, PrerenderedFileData>();
 
 	const files = await readdir(dir);
+	const functionFiles = await fixPrerenderedRoutes(
+		prerenderedRoutes,
+		files,
+		dir
+	);
 
 	await Promise.all(
-		files.map(async file => {
+		functionFiles.map(async file => {
 			const filepath = join(dir, file);
 			if (await validateDir(filepath)) {
 				const dirResultsPromise = file.endsWith('.func')
@@ -131,6 +135,9 @@ async function processDirectoryRecursively(
 				dirResults.webpackChunks?.forEach((value, key) =>
 					webpackChunks.set(key, value)
 				);
+				dirResults.prerenderedRoutes?.forEach((value, key) =>
+					prerenderedRoutes.set(key, value)
+				);
 			}
 		})
 	);
@@ -139,6 +146,7 @@ async function processDirectoryRecursively(
 		invalidFunctions,
 		functionsMap,
 		webpackChunks,
+		prerenderedRoutes,
 	};
 }
 
@@ -390,6 +398,115 @@ async function tryToFixFaviconFunc(): Promise<void> {
 	}
 }
 
+export type VercelPrerenderConfig = {
+	type: 'Prerender' | string;
+	sourcePath?: string;
+	fallback: { type: 'FileFsRef' | string; mode: number; fsPath: string };
+	initialHeaders?: Record<string, string>;
+};
+export type PrerenderedFileData = {
+	headers?: Record<string, string>;
+	overrides?: string[];
+};
+
+/**
+ * Extract the prerendered routes from a list of routes, copy the prerendered files to the static
+ * output directory, and return a list of non-prerendered routes.
+ *
+ * Additionally, it creates paths to use for overrides for the routing process, along with the
+ * correct headers to apply.
+ *
+ * @param prerenderedRoutes Map of prerendered files.
+ * @param files File paths to check for prerendered routes.
+ * @param baseDir Base directory for the routes.
+ * @returns List of non-prerendered routes.
+ */
+async function fixPrerenderedRoutes(
+	prerenderedRoutes: Map<string, PrerenderedFileData>,
+	files: string[],
+	baseDir: string
+): Promise<string[]> {
+	const outputDir = resolve('.vercel', 'output');
+	// Get the prerender configs
+	const prerenderConfigs = files.filter(file =>
+		/.+\.prerender-config\.json$/gi.test(file)
+	);
+
+	const validPrerenderedRoutes = (
+		await Promise.all(
+			prerenderConfigs.map(async file => {
+				const configPath = join(baseDir, file);
+				const dirName = relative(join(outputDir, 'functions'), baseDir);
+				const config = await readJsonFile<VercelPrerenderConfig>(configPath);
+
+				if (
+					config?.type?.toLowerCase() !== 'prerender' ||
+					config?.fallback?.type?.toLowerCase() !== 'filefsref' ||
+					!config?.fallback?.fsPath
+				) {
+					const relativeName = normalizePath(join(dirName, file));
+					cliWarn(`Invalid prerender config for ${relativeName}`);
+					return [];
+				}
+				const { fallback } = config;
+
+				const oldRoute = normalizePath(join(dirName, fallback.fsPath));
+				const oldFile = join(outputDir, 'functions', oldRoute);
+				// Check the prerendered file exists.
+				if (!(await validateFile(oldFile))) {
+					cliWarn(`Could not find prerendered file for ${oldRoute}`);
+					return [];
+				}
+
+				const newRoute = normalizePath(
+					join(
+						dirName,
+						fallback.fsPath.replace(/(?:\.rsc)?\.prerender-fallback/gi, '')
+					)
+				);
+				const newFile = join(outputDir, 'static', newRoute);
+				// Check if a static file already exists at the new location.
+				if (await validateFile(newFile)) {
+					cliWarn(`Prerendered file already exists for ${newRoute}`);
+					return [];
+				}
+
+				await mkdir(dirname(newFile), { recursive: true });
+				await copyFile(oldFile, newFile);
+
+				// Create override entries that might normally be created through the build output config.
+				const formattedPathName = normalizePath(formatRoutePath(newRoute));
+				const withoutHtmlExt = formattedPathName.replace(/\.html$/, '');
+				const strippedIndexRoute = stripIndexRoute(withoutHtmlExt);
+				const overrides = new Set(
+					[formattedPathName, withoutHtmlExt, strippedIndexRoute].filter(
+						route => route !== `/${newRoute}`
+					)
+				);
+
+				prerenderedRoutes.set(`/${newRoute}`, {
+					headers: config.initialHeaders,
+					overrides: [...overrides],
+				});
+
+				const oldFunc = file.replace(/\.prerender-config\.json$/gi, '.func');
+
+				// Return the configs, static files, and function directories that can be ignored.
+				return [file, relative(baseDir, oldFile), oldFunc];
+			})
+		)
+	)
+		.flat()
+		.filter(Boolean) as string[];
+
+	// Remove files related to the prerendered routes from the functions list.
+	const functionFiles = files.filter(
+		file => !validPrerenderedRoutes.includes(file)
+	);
+
+	return functionFiles;
+}
+
 type ProcessingSetup = {
 	functionsDir: string;
 	tmpFunctionsDir: string;
@@ -401,6 +518,7 @@ type DirectoryProcessingResults = {
 	invalidFunctions: Set<string>;
 	functionsMap: Map<string, string>;
 	webpackChunks: Map<number, string>;
+	prerenderedRoutes: Map<string, PrerenderedFileData>;
 };
 
 /**
