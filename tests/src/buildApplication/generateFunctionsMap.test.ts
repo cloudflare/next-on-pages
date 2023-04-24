@@ -1,5 +1,5 @@
 import { describe, test, expect, vi } from 'vitest';
-import type { VercelPrerenderConfig } from '../../../src/buildApplication/generateFunctionsMap';
+import type { VercelPrerenderConfig } from '../../../src/buildApplication/fixPrerenderedRoutes';
 import { generateFunctionsMap } from '../../../src/buildApplication/generateFunctionsMap';
 import mockFs from 'mock-fs';
 import type { DirectoryItems } from 'mock-fs/lib/filesystem';

@@ -1,6 +1,7 @@
 import { describe, test, expect } from 'vitest';
+import type { ProcessedVercelOutput } from '../../../src/buildApplication/processVercelOutput';
 import { processVercelOutput } from '../../../src/buildApplication/processVercelOutput';
-import type { PrerenderedFileData } from '../../../src/buildApplication/generateFunctionsMap';
+import type { PrerenderedFileData } from '../../../src/buildApplication/fixPrerenderedRoutes';
 
 describe('processVercelOutput', () => {
 	test('should process the config and build output correctly', () => {
@@ -15,25 +16,28 @@ describe('processVercelOutput', () => {
 				{ src: '/test-2', dest: '/test-6' },
 			],
 		};
+		const inputtedAssets = ['/static/test.png'];
+		const inputtedPrerendered = new Map<string, PrerenderedFileData>();
+		const inputtedHydrated = {
+			hydratedMiddleware: new Map([
+				['/middleware', { filepath: '/middleware/index.js', matchers: [] }],
+			]),
+			hydratedFunctions: new Map([
+				[
+					'/use-middleware',
+					{ filepath: '/use-middleware/index.js', matchers: [] },
+				],
+			]),
+		};
 
 		const processed = processVercelOutput(
 			inputtedConfig,
-			['/static/test.png'],
-			new Map<string, PrerenderedFileData>(),
-			{
-				hydratedMiddleware: new Map([
-					['/middleware', { filepath: '/middleware/index.js', matchers: [] }],
-				]),
-				hydratedFunctions: new Map([
-					[
-						'/use-middleware',
-						{ filepath: '/use-middleware/index.js', matchers: [] },
-					],
-				]),
-			}
+			inputtedAssets,
+			inputtedPrerendered,
+			inputtedHydrated
 		);
 
-		expect(processed).toEqual({
+		const expected: ProcessedVercelOutput = {
 			vercelConfig: {
 				version: 3,
 				routes: {
@@ -68,7 +72,9 @@ describe('processVercelOutput', () => {
 					},
 				],
 			]),
-		});
+		};
+
+		expect(processed).toEqual(expected);
 	});
 
 	test('applies overrides from the config to the outputted functions', () => {
@@ -84,20 +90,28 @@ describe('processVercelOutput', () => {
 				},
 			},
 		};
+		const inputtedAssets = [
+			'/404.html',
+			'/500.html',
+			'/index.html',
+			'/test.html',
+		];
+		const inputtedPrerendered = new Map<string, PrerenderedFileData>();
+		const inputtedHydrated = {
+			hydratedMiddleware: new Map(),
+			hydratedFunctions: new Map([
+				['/page', { filepath: '/page/index.js', matchers: [] }],
+			]),
+		};
 
 		const processed = processVercelOutput(
 			inputtedConfig,
-			['/404.html', '/500.html', '/index.html', '/test.html'],
-			new Map<string, PrerenderedFileData>(),
-			{
-				hydratedMiddleware: new Map([]),
-				hydratedFunctions: new Map([
-					['/page', { filepath: '/page/index.js', matchers: [] }],
-				]),
-			}
+			inputtedAssets,
+			inputtedPrerendered,
+			inputtedHydrated
 		);
 
-		expect(processed).toEqual({
+		const expected: ProcessedVercelOutput = {
 			vercelConfig: {
 				version: 3,
 				routes: {
@@ -196,7 +210,9 @@ describe('processVercelOutput', () => {
 					},
 				],
 			]),
-		});
+		};
+
+		expect(processed).toEqual(expected);
 	});
 
 	test('applies prerendered routes to the outputted functions', () => {
@@ -212,55 +228,58 @@ describe('processVercelOutput', () => {
 				},
 			},
 		};
+		const inputtedAssets = [
+			'/404.html',
+			'/500.html',
+			'/index.html',
+			'/index.rsc',
+			'/nested/(route-group)/foo.html',
+		];
+		const inputtedPrerendered = new Map<string, PrerenderedFileData>([
+			[
+				'/index.html',
+				{
+					headers: {
+						vary: 'RSC, Next-Router-State-Tree, Next-Router-Prefetch',
+					},
+					overrides: ['/index', '/'],
+				},
+			],
+			[
+				'/index.rsc',
+				{
+					headers: {
+						'content-type': 'text/x-component',
+						vary: 'RSC, Next-Router-State-Tree, Next-Router-Prefetch',
+					},
+					overrides: [],
+				},
+			],
+			[
+				'/nested/(route-group)/foo.html',
+				{
+					headers: {
+						vary: 'RSC, Next-Router-State-Tree, Next-Router-Prefetch',
+					},
+					overrides: ['/nested/foo.html', '/nested/foo'],
+				},
+			],
+		]);
+		const inputtedHydrated = {
+			hydratedMiddleware: new Map(),
+			hydratedFunctions: new Map([
+				['/page', { filepath: '/page/index.js', matchers: [] }],
+			]),
+		};
 
 		const processed = processVercelOutput(
 			inputtedConfig,
-			[
-				'/404.html',
-				'/500.html',
-				'/index.html',
-				'/index.rsc',
-				'/nested/(route-group)/foo.html',
-			],
-			new Map<string, PrerenderedFileData>([
-				[
-					'/index.html',
-					{
-						headers: {
-							vary: 'RSC, Next-Router-State-Tree, Next-Router-Prefetch',
-						},
-						overrides: ['/index', '/'],
-					},
-				],
-				[
-					'/index.rsc',
-					{
-						headers: {
-							'content-type': 'text/x-component',
-							vary: 'RSC, Next-Router-State-Tree, Next-Router-Prefetch',
-						},
-						overrides: [],
-					},
-				],
-				[
-					'/nested/(route-group)/foo.html',
-					{
-						headers: {
-							vary: 'RSC, Next-Router-State-Tree, Next-Router-Prefetch',
-						},
-						overrides: ['/nested/foo.html', '/nested/foo'],
-					},
-				],
-			]),
-			{
-				hydratedMiddleware: new Map([]),
-				hydratedFunctions: new Map([
-					['/page', { filepath: '/page/index.js', matchers: [] }],
-				]),
-			}
+			inputtedAssets,
+			inputtedPrerendered,
+			inputtedHydrated
 		);
 
-		expect(processed).toEqual({
+		const expected: ProcessedVercelOutput = {
 			vercelConfig: {
 				version: 3,
 				routes: {
@@ -287,7 +306,7 @@ describe('processVercelOutput', () => {
 					},
 				},
 			},
-			vercelOutput: new Map([
+			vercelOutput: new Map<string, BuildOutputItem>([
 				[
 					'/404.html',
 					{
@@ -400,6 +419,8 @@ describe('processVercelOutput', () => {
 					},
 				],
 			]),
-		});
+		};
+
+		expect(processed).toEqual(expected);
 	});
 });
