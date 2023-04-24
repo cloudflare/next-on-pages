@@ -22,7 +22,7 @@ export type PrerenderedFileData = {
 };
 
 /**
- * Retrieve a valid prerendered route config.
+ * Retrieves a valid prerendered route config.
  *
  * @param baseDir Base directory for the prerendered routes.
  * @param file Prerendered config file name.
@@ -51,7 +51,7 @@ async function getRouteConfig(
 }
 
 /**
- * Retrieve the path to the prerendered route, if it exists.
+ * Retrieves the path to the prerendered route, if it exists.
  *
  * @param config.fallback Fallback file configuration.
  * @param dirName Directory name to use for the route.
@@ -63,20 +63,20 @@ async function getRoutePath(
 	dirName: string,
 	outputDir: string
 ): Promise<string | null> {
-	const oldRoute = normalizePath(join(dirName, fallback.fsPath));
-	const oldFile = join(outputDir, 'functions', oldRoute);
+	const prerenderRoute = normalizePath(join(dirName, fallback.fsPath));
+	const prerenderFile = join(outputDir, 'functions', prerenderRoute);
 
 	// Check the prerendered file exists.
-	if (!(await validateFile(oldFile))) {
-		cliWarn(`Could not find prerendered file for ${oldRoute}`);
+	if (!(await validateFile(prerenderFile))) {
+		cliWarn(`Could not find prerendered file for ${prerenderRoute}`);
 		return null;
 	}
 
-	return oldFile;
+	return prerenderFile;
 }
 
 /**
- * Retrieve the new destination for the prerendered file, if no file already exists.
+ * Retrieves the new destination for the prerendered file, if no file already exists.
  *
  * @param config.fallback Fallback file configuration.
  * @param dirName Directory name to use for the route.
@@ -88,25 +88,25 @@ async function getRouteDest(
 	dirName: string,
 	outputDir: string
 ): Promise<{ newFile: string; newRoute: string } | null> {
-	const newRoute = normalizePath(
+	const destinationRoute = normalizePath(
 		join(
 			dirName,
 			fallback.fsPath.replace(/(?:\.rsc)?\.prerender-fallback/gi, '')
 		)
 	);
-	const newFile = join(outputDir, 'static', newRoute);
+	const newFile = join(outputDir, 'static', destinationRoute);
 
 	// Check if a static file already exists at the new location.
-	if (await validateFile(newFile)) {
-		cliWarn(`Prerendered file already exists for ${newRoute}`);
+	if (await validateFile(destinationFile)) {
+		cliWarn(`Prerendered file already exists for ${destinationRoute}`);
 		return null;
 	}
 
-	return { newFile, newRoute };
+	return { destinationFile, destinationRoute };
 }
 
 /**
- * Validate a prerendered route and retrieve its config file, original file path, and new destination.
+ * Validates a prerendered route and retrieve its config file, original file path, and new destination.
  *
  * @param baseDir Base directory for the prerendered routes.
  * @param file Prerendered config file name.
@@ -118,28 +118,29 @@ async function validateRoute(baseDir: string, file: string, outputDir: string) {
 	const config = await getRouteConfig(baseDir, file, dirName);
 	if (!config) return null;
 
-	const oldFile = await getRoutePath(config, dirName, outputDir);
-	if (!oldFile) return null;
+	const originalFile = await getRoutePath(config, dirName, outputDir);
+	if (!originalFile) return null;
 
 	const dest = await getRouteDest(config, dirName, outputDir);
 	if (!dest) return null;
 
-	return { config, oldFile, newFile: dest.newFile, newRoute: dest.newRoute };
+	return { config, originalFile, destinationFile: dest.newFile, destinationRoute: dest.newRoute };
 }
 
 /**
- * Copy a prerendered file to its new destination.
+ * Copies a file from one location to another, it also creates the destination
+ * directory if it doesn't exist
  *
- * @param oldFile Prerendered file path.
- * @param newFile Destination for the prerendered file.
+ * @param sourceFile Original file path.
+ * @param destFile Destination for the file.
  */
-async function createNewRouteFile(oldFile: string, newFile: string) {
-	await mkdir(dirname(newFile), { recursive: true });
-	await copyFile(oldFile, newFile);
+async function copyFileWithDir(sourceFile: string, destFile: string) {
+	await mkdir(dirname(sourceFile), { recursive: true });
+	await copyFile(sourceFile, destFile);
 }
 
 /**
- * Create a list of overrides for a new route.
+ * Creates a list of overrides for a new route.
  *
  * @param newRoute New route to create overrides for.
  * @returns List of overrides for the new route.
@@ -186,8 +187,8 @@ export async function fixPrerenderedRoutes(
 		const routeInfo = await validateRoute(baseDir, file, outputDir);
 		if (!routeInfo) continue;
 
-		const { config, oldFile, newFile, newRoute } = routeInfo;
-		await createNewRouteFile(oldFile, newFile);
+		const { config, originalFile, destinationFile, destinationRoute } = routeInfo;
+		await copyFileWithDir(originalFile, destinationFile);
 
 		prerenderedRoutes.set(`/${newRoute}`, {
 			headers: config.initialHeaders,
