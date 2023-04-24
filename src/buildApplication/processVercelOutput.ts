@@ -9,7 +9,7 @@ import {
 import { cliLog, cliWarn } from '../cli';
 import type { MiddlewareManifestData } from './middlewareManifest';
 import { processVercelConfig } from './getVercelConfig';
-import type { PrerenderedFileData } from './generateFunctionsMap';
+import type { PrerenderedFileData } from './fixPrerenderedRoutes';
 
 /**
  * Extract a list of static assets from the Vercel build output.
