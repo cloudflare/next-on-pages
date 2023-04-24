@@ -24,19 +24,11 @@ body:
     validations:
       required: true
 
-  - type: input
-    id: nextjs-info
+  - type: textarea
+    id: next-on-pages-info
     attributes:
-      label: Next.js related information
-      description: What output do you get when running `npx next info`?
-    validations:
-      required: false
-
-  - type: input
-    id: vercel-version
-    attributes:
-      label: Vercel version
-      description: What version of the Vercel CLI are you using?
+      label: next-on-pages environment related information
+      description: What output do you get when running `npx @cloudflare/next-on-pages --info`?
     validations:
       required: false
 

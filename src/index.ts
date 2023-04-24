@@ -1,7 +1,7 @@
 import { watch } from 'chokidar';
 import pLimit from 'p-limit';
 import type { CliOptions } from './cli';
-import { cliLog, parseCliArgs, printCliHelpMessage } from './cli';
+import { cliLog, parseCliArgs, printCliHelpMessage, printEnvInfo } from './cli';
 import { buildApplication } from './buildApplication';
 import { nextOnPagesVersion } from './utils';
 
@@ -15,6 +15,10 @@ function runNextOnPages(): void {
 	if (args.version) {
 		// eslint-disable-next-line no-console -- for the version lets simply print it plainly
 		console.log(nextOnPagesVersion);
+		return;
+	}
+	if (args.info) {
+		printEnvInfo();
 		return;
 	}
 

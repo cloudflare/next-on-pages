@@ -1,8 +1,13 @@
+import os from 'os';
+import { execFileSync } from 'child_process';
 import dedent from 'dedent-tabs';
 import { z } from 'zod';
 import { argumentParser } from 'zodcli';
 import type { ChalkInstance } from 'chalk';
 import chalk from 'chalk';
+import { getCurrentPackageManager } from './buildApplication/getCurrentPackageManager';
+import { getSpawnCommand, nextOnPagesVersion } from './utils';
+import type { PackageManager } from './utils';
 
 // A helper type to handle command line flags. Defaults to false
 const flag = z
@@ -21,6 +26,7 @@ const cliOptions = z
 		experimentalMinify: flag,
 		version: flag,
 		noColor: flag,
+		info: flag,
 	})
 	.strict();
 
@@ -42,6 +48,7 @@ export function parseCliArgs() {
 				e: 'experimentalMinify',
 				w: 'watch',
 				c: 'noColor',
+				i: 'info',
 			},
 		}).parse(process.argv.slice(2));
 	} catch (error) {
@@ -90,6 +97,8 @@ export function printCliHelpMessage(): void {
 		--watch, -w:                Automatically rebuilds when the project is edited
 
 		--no-color, -c:             Disable colored output
+
+		--info, -i:                 Prints relevant details about the current system which can be used to report bugs
 
 		GitHub: https://github.com/cloudflare/next-on-pages
 		Docs: https://developers.cloudflare.com/pages/framework-guides/deploy-a-nextjs-site/
@@ -181,4 +190,57 @@ function prepareCliMessage(
 		.join('\n');
 
 	return spaced ? `\n${preparedMessage}\n` : preparedMessage;
+}
+
+export async function printEnvInfo(): Promise<void> {
+	const envInfoMessage = dedent(`
+		System:
+			Platform: ${os.platform()}
+			Arch: ${os.arch()}
+			Version: ${os.version()}
+			CPU: (${os.cpus().length}) ${os.arch()} ${os.cpus()[0]?.model}
+			Memory: ${Math.round(os.totalmem() / 1024 / 1024 / 1024)} GB
+			Shell: ${process.env['SHELL']?.toString() ?? 'Unknown'}
+		Binaries:
+			Node: ${process.versions.node}
+			Yarn: ${getBinaryVersion('yarn')}
+			npm: ${getBinaryVersion('npm')}
+			pnpm: ${getBinaryVersion('pnpm')}
+		Package Manager Used: ${await getCurrentPackageManager()}
+		Relevant Packages:
+			@cloudflare/next-on-pages: ${nextOnPagesVersion}
+			vercel: ${getPackageVersion('vercel')}
+			next: ${getPackageVersion('next')}
+	`);
+
+	// eslint-disable-next-line no-console
+	console.log(`\n${envInfoMessage}\n`);
+}
+
+function getPackageVersion(packageName: string): string {
+	try {
+		const command = process.platform === 'win32' ? 'npm.cmd' : 'npm';
+		const commandOutput = execFileSync(
+			command,
+			['list', packageName, '--json', '--depth=0'],
+			{ stdio: 'pipe' }
+		)
+			.toString()
+			.trim();
+		const packageInfo = JSON.parse(commandOutput);
+		return packageInfo?.dependencies[packageName]?.version ?? 'N/A';
+	} catch {
+		return 'N/A';
+	}
+}
+
+function getBinaryVersion(binaryName: PackageManager): string {
+	const commandArgs = ['--version'];
+	try {
+		return execFileSync(getSpawnCommand(binaryName), commandArgs)
+			.toString()
+			.trim();
+	} catch {
+		return 'N/A';
+	}
 }
