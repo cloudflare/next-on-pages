@@ -1,5 +1,29 @@
 # @cloudflare/next-on-pages
 
+## 0.10.0
+
+### Minor Changes
+
+- 2a159ed: add --info, -i CLI flag to print relevant details about the system and environment
+
+### Patch Changes
+
+- dc74ffe: fix: properly align invalid functions in error message
+- e3b92c3: Ignore '.wrangler' directory in watch mode
+- cf43f44: move the invalidFunctions check before the no-functions one
+
+  currently if a build contains only invalid functions we'd be presenting a log
+  saying that no function was found and simply return the static assets as if
+  everything is correct, this is because we check for invalid functions only
+  after checking if there are any (valid) ones, this change moves the invalid
+  functions check so that is performed first, making sure that the described case
+  successfully errors
+
+- 758f588: improve AST checking
+
+  improve the way we check for webpack chunks (for the experimental minification) by
+  improving the AST types used and also make the AST checking more robust
+
 ## 0.9.0
 
 ### Minor Changes
