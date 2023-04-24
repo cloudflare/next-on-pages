@@ -1,13 +1,13 @@
 import { cliWarn } from '../cli';
 import {
+	copyFileWithDir,
 	formatRoutePath,
 	normalizePath,
 	readJsonFile,
 	stripIndexRoute,
 	validateFile,
 } from '../utils';
-import { join, relative, resolve, dirname } from 'path';
-import { mkdir, copyFile } from 'fs/promises';
+import { join, relative, resolve } from 'path';
 
 export type VercelPrerenderConfig = {
 	type: string;
@@ -87,22 +87,22 @@ async function getRouteDest(
 	{ fallback }: VercelPrerenderConfig,
 	dirName: string,
 	outputDir: string
-): Promise<{ newFile: string; newRoute: string } | null> {
-	const destinationRoute = normalizePath(
+): Promise<{ destFile: string; destRoute: string } | null> {
+	const destRoute = normalizePath(
 		join(
 			dirName,
 			fallback.fsPath.replace(/(?:\.rsc)?\.prerender-fallback/gi, '')
 		)
 	);
-	const newFile = join(outputDir, 'static', destinationRoute);
+	const destFile = join(outputDir, 'static', destRoute);
 
 	// Check if a static file already exists at the new location.
-	if (await validateFile(destinationFile)) {
-		cliWarn(`Prerendered file already exists for ${destinationRoute}`);
+	if (await validateFile(destFile)) {
+		cliWarn(`Prerendered file already exists for ${destRoute}`);
 		return null;
 	}
 
-	return { destinationFile, destinationRoute };
+	return { destFile, destRoute };
 }
 
 /**
@@ -124,19 +124,12 @@ async function validateRoute(baseDir: string, file: string, outputDir: string) {
 	const dest = await getRouteDest(config, dirName, outputDir);
 	if (!dest) return null;
 
-	return { config, originalFile, destinationFile: dest.newFile, destinationRoute: dest.newRoute };
-}
-
-/**
- * Copies a file from one location to another, it also creates the destination
- * directory if it doesn't exist
- *
- * @param sourceFile Original file path.
- * @param destFile Destination for the file.
- */
-async function copyFileWithDir(sourceFile: string, destFile: string) {
-	await mkdir(dirname(sourceFile), { recursive: true });
-	await copyFile(sourceFile, destFile);
+	return {
+		config,
+		originalFile,
+		destFile: dest.destFile,
+		destRoute: dest.destRoute,
+	};
 }
 
 /**
@@ -187,18 +180,18 @@ export async function fixPrerenderedRoutes(
 		const routeInfo = await validateRoute(baseDir, file, outputDir);
 		if (!routeInfo) continue;
 
-		const { config, originalFile, destinationFile, destinationRoute } = routeInfo;
-		await copyFileWithDir(originalFile, destinationFile);
+		const { config, originalFile, destFile, destRoute } = routeInfo;
+		await copyFileWithDir(originalFile, destFile);
 
-		prerenderedRoutes.set(`/${newRoute}`, {
+		prerenderedRoutes.set(`/${destRoute}`, {
 			headers: config.initialHeaders,
-			overrides: getRouteOverrides(newRoute),
+			overrides: getRouteOverrides(destRoute),
 		});
 
 		const oldFunc = file.replace(/\.prerender-config\.json$/gi, '.func');
 
 		validRoutePaths.add(file); // original config file
-		validRoutePaths.add(normalizePath(relative(baseDir, oldFile))); // original static file
+		validRoutePaths.add(normalizePath(relative(baseDir, originalFile))); // original static file
 		validRoutePaths.add(oldFunc); // original function directory
 	}
 
