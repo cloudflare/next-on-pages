@@ -120,24 +120,28 @@ async function prepareAndBuildWorker(
 }
 
 function printInvalidFunctionsErrorMessage(invalidFunctions: string[]): void {
-	cliError(`
+	cliError(
+		`
 		ERROR: Failed to produce a Cloudflare Pages build from the project.
 
-		The following functions were not configured to run with the Edge Runtime:
-		${invalidFunctions.map(fn => ` - ${fn}`).join('\n')}
+			The following functions were not configured to run with the Edge Runtime:\n${invalidFunctions
+				.map(fn => `				- ${fn}`)
+				.join('\n')}
 
-		If this is a Next.js project:
+			If this is a Next.js project:
 
-		- you can read more about configuring Edge API Routes here: https://nextjs.org/docs/api-routes/edge-api-route
-		
-		- you can try enabling the Edge Runtime for a specific page by exporting the following from your page:
+			- you can read more about configuring Edge API Routes here: https://nextjs.org/docs/api-routes/edge-api-route
+			
+			- you can try enabling the Edge Runtime for a specific page by exporting the following from your page:
 
-		        export const config = { runtime: 'edge' };
+					export const config = { runtime: 'edge' };
 
-		- or you can try enabling the Edge Runtime for all pages in your project by adding the following to your 'next.config.js' file:
+			- or you can try enabling the Edge Runtime for all pages in your project by adding the following to your 'next.config.js' file:
 
-		        const nextConfig = { experimental: { runtime: 'edge'} };
+					const nextConfig = { experimental: { runtime: 'edge'} };
 
-		You can read more about the Edge Runtime here: https://nextjs.org/docs/advanced-features/react-18/switchable-runtime
-	`);
+			You can read more about the Edge Runtime here: https://nextjs.org/docs/advanced-features/react-18/switchable-runtime
+	`,
+		{ spaced: true }
+	);
 }
