@@ -21,7 +21,7 @@ function constructBuildOutputRecord(item: BuildOutputItem) {
 		? `{
 				type: ${JSON.stringify(item.type)},
 				path: ${item.path ? JSON.stringify(item.path) : undefined},
-				contentType: ${item.contentType ? JSON.stringify(item.contentType) : undefined}
+				headers: ${item.headers ? JSON.stringify(item.headers) : undefined}
 			}`
 		: `{
 				type: ${JSON.stringify(item.type)},

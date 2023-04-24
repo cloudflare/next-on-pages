@@ -1,5 +1,6 @@
 import { describe, test, expect, beforeAll, afterAll } from 'vitest';
 import {
+	copyFileWithDir,
 	normalizePath,
 	readJsonFile,
 	readPathsRecursively,
@@ -146,5 +147,36 @@ describe('readPathsRecursively', () => {
 		await expect(
 			readPathsRecursively('invalid-root/functions')
 		).resolves.toEqual([]);
+	});
+});
+
+describe('copyFileWithDir', () => {
+	test('should copy file to missing directory', async () => {
+		mockFs({
+			folder: {
+				'index.js': 'valid-file',
+			},
+		});
+
+		await expect(validateDir('new-folder')).resolves.toEqual(false);
+		await copyFileWithDir('folder/index.js', 'new-folder/index.js');
+		await expect(validateFile('new-folder/index.js')).resolves.toEqual(true);
+
+		mockFs.restore();
+	});
+
+	test('should copy file to existing directory', async () => {
+		mockFs({
+			folder: {
+				'index.js': 'valid-file',
+			},
+			'new-folder': {},
+		});
+
+		await expect(validateDir('new-folder')).resolves.toEqual(true);
+		await copyFileWithDir('folder/index.js', 'new-folder/index.js');
+		await expect(validateFile('new-folder/index.js')).resolves.toEqual(true);
+
+		mockFs.restore();
 	});
 });

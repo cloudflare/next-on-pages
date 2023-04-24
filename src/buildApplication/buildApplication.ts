@@ -74,10 +74,8 @@ async function prepareAndBuildWorker(
 		return;
 	}
 
-	const { invalidFunctions, functionsMap } = await generateFunctionsMap(
-		functionsDir,
-		options.experimentalMinify
-	);
+	const { invalidFunctions, functionsMap, prerenderedRoutes } =
+		await generateFunctionsMap(functionsDir, options.experimentalMinify);
 
 	if (invalidFunctions.size > 0) {
 		printInvalidFunctionsErrorMessage(Array.from(invalidFunctions));
@@ -109,6 +107,7 @@ async function prepareAndBuildWorker(
 	const processedVercelOutput = processVercelOutput(
 		vercelConfig,
 		staticAssets,
+		prerenderedRoutes,
 		middlewareManifestData
 	);
 

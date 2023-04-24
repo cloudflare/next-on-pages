@@ -140,8 +140,8 @@ type ProcessedVercelConfig = Override<
 type BuildOutputStaticAsset = { type: 'static' };
 type BuildOutputStaticOverride = {
 	type: 'override';
-	path?: string;
-	contentType?: string;
+	path: string;
+	headers?: Record<string, string>;
 };
 type BuildOutputStaticItem = BuildOutputStaticAsset | BuildOutputStaticOverride;
 

@@ -1,5 +1,5 @@
-import { readdir, readFile, stat } from 'fs/promises';
-import { resolve } from 'path';
+import { readdir, readFile, stat, mkdir, copyFile } from 'fs/promises';
+import { resolve, dirname } from 'path';
 
 /**
  * Convert paths with backslashes to normalized paths with forward slashes.
@@ -114,4 +114,16 @@ export async function readPathsRecursively(dir: string): Promise<string[]> {
 	} catch {
 		return [];
 	}
+}
+
+/**
+ * Copies a file from one location to another, it also creates the destination
+ * directory if it doesn't exist
+ *
+ * @param sourceFile Original file path.
+ * @param destFile Destination for the file.
+ */
+export async function copyFileWithDir(sourceFile: string, destFile: string) {
+	await mkdir(dirname(destFile), { recursive: true });
+	await copyFile(sourceFile, destFile);
 }

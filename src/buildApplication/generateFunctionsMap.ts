@@ -16,6 +16,8 @@ import { cliError, cliWarn } from '../cli';
 import { tmpdir } from 'os';
 import type * as AST from 'ast-types/gen/kinds';
 import assert from 'node:assert';
+import type { PrerenderedFileData } from './fixPrerenderedRoutes';
+import { fixPrerenderedRoutes } from './fixPrerenderedRoutes';
 
 /**
  * Creates new files containing the Vercel built functions but adjusted so that they can be later
@@ -32,9 +34,7 @@ import assert from 'node:assert';
 export async function generateFunctionsMap(
 	functionsDir: string,
 	experimentalMinify: CliOptions['experimentalMinify']
-): Promise<
-	Pick<DirectoryProcessingResults, 'functionsMap' | 'invalidFunctions'>
-> {
+): Promise<DirectoryProcessingResults> {
 	const processingSetup = {
 		functionsDir,
 		tmpFunctionsDir: join(tmpdir(), Math.random().toString(36).slice(2)),
@@ -113,11 +113,17 @@ async function processDirectoryRecursively(
 	const invalidFunctions = new Set<string>();
 	const functionsMap = new Map<string, string>();
 	const webpackChunks = new Map<number, string>();
+	const prerenderedRoutes = new Map<string, PrerenderedFileData>();
 
 	const files = await readdir(dir);
+	const functionFiles = await fixPrerenderedRoutes(
+		prerenderedRoutes,
+		files,
+		dir
+	);
 
 	await Promise.all(
-		files.map(async file => {
+		functionFiles.map(async file => {
 			const filepath = join(dir, file);
 			if (await validateDir(filepath)) {
 				const dirResultsPromise = file.endsWith('.func')
@@ -131,6 +137,9 @@ async function processDirectoryRecursively(
 				dirResults.webpackChunks?.forEach((value, key) =>
 					webpackChunks.set(key, value)
 				);
+				dirResults.prerenderedRoutes?.forEach((value, key) =>
+					prerenderedRoutes.set(key, value)
+				);
 			}
 		})
 	);
@@ -139,6 +148,7 @@ async function processDirectoryRecursively(
 		invalidFunctions,
 		functionsMap,
 		webpackChunks,
+		prerenderedRoutes,
 	};
 }
 
@@ -401,6 +411,7 @@ type DirectoryProcessingResults = {
 	invalidFunctions: Set<string>;
 	functionsMap: Map<string, string>;
 	webpackChunks: Map<number, string>;
+	prerenderedRoutes: Map<string, PrerenderedFileData>;
 };
 
 /**
