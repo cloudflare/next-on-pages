@@ -53,6 +53,24 @@ body:
       required: false
 
   - type: textarea
+    id: pages-deployment-id
+    attributes:
+      label: Pages Deployment ID
+      description: If you have have a Pages deployment ID where you reproduced this bug, this may additionally help us to debug the problem.
+    validations:
+      required: false
+
+  - type: dropdown
+    id: pages-deployment-method
+    attributes:
+      label: Pages Deployment Method
+      options:
+        - Direct Upload (`wrangler pages publish` or the @cloudflare/pages-action GitHub Action)
+        - Pages CI (GitHub/GitLab integration)
+    validations:
+      required: true
+
+  - type: textarea
     id: additional-info
     attributes:
       label: Additional Information
