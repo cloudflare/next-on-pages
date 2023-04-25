@@ -34,15 +34,15 @@ export async function buildApplication({
 			await buildVercelOutput();
 		} catch {
 			cliError(
-					`
+				`
 					The Vercel build command failed. For more details see the Vercel logs above.
 					
 					Note: The Vercel building process is run untouched by @cloudflare/next-on-pages,
 						  so any issue you might be facing is unrelated to this CLI. If you need help
 						  solving the issue, refer to the Vercel or Next.js documentation or their
 						  repositories.
-					`
-					, { spaced: true }
+					`,
+				{ spaced: true }
 			);
 			buildSuccess = false;
 		}
