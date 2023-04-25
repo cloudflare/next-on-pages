@@ -83,6 +83,9 @@ const nodeBufferPlugin: Plugin = {
 	name: 'node:buffer',
 	setup(build) {
 		build.onResolve({ filter: /^node:buffer$/ }, ({ kind, path }) => {
+			// this plugin converts `require("node:buffer")` calls, those are the only ones that
+			// need updating (esm imports to "node"buffer" are totally valid), so we make sure
+			// that this import is a require call, if it isn't we return (leaving the import as is)
 			if (kind !== 'require-call') return;
 
 			return {
