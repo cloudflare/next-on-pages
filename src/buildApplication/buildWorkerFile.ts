@@ -83,7 +83,7 @@ const nodeBufferPlugin: Plugin = {
 	name: 'node:buffer',
 	setup(build) {
 		build.onResolve({ filter: /^node:buffer$/ }, ({ kind, path }) => {
-			if (kind === 'require-call') return;
+			if (kind !== 'require-call') return;
 
 			return {
 				path,
