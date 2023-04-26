@@ -61,7 +61,7 @@ Next, in the [Cloudflare Dashboard](https://dash.cloudflare.com/?to=/:account/pa
   | ---------------------- | ----------------------------------------------------- |
   | Build command | `npx @cloudflare/next-on-pages --experimental-minify` |
   | Build output directory | `.vercel/output/static` |
-- In the _Environment variables (advanced)_ section add a new variable named `NODE_VERSION` set to `16` or greater (`18` is not supported yet, See [Build Image Update Discussion](https://github.com/cloudflare/pages-build-image/discussions/1)).
+- In the _Environment variables (advanced)_ section add a new variable named `NODE_VERSION` set to `16` or greater
 - Click on _Save and Deploy_ to start the deployment (this first deployment won't be fully functional as the next step is also necessary)
 - Go to the Pages project settings page (_Settings_ > _Functions_ > _Compatibility Flags_), add the `nodejs_compat` for both the production and preview and make sure that the **Compatibility Date** for both production and preview is set to at least `2022-11-30`.
 
