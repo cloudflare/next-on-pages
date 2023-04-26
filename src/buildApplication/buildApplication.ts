@@ -18,6 +18,7 @@ import {
 	getVercelStaticAssets,
 	processVercelOutput,
 } from './processVercelOutput';
+import { getCurrentPackageExecuter, getCurrentPackageManager } from './getCurrentPackageManager';
 
 /**
  * Builds the _worker.js with static assets implementing the Next.js application
@@ -35,13 +36,9 @@ export async function buildApplication({
 		} catch {
 			cliError(
 				`
-					The Vercel build command failed. For more details see the Vercel logs above.
-					
-					Note: The Vercel building process is run untouched by @cloudflare/next-on-pages,
-						  so any issue you might be facing is unrelated to this CLI. If you need help
-						  solving the issue, refer to the Vercel or Next.js documentation or their
-						  repositories.
-					`,
+					The Vercel build (\`${await getCurrentPackageExecuter()} vercel build\`) command failed. For more details see the Vercel logs above.
+					If you need help solving the issue, refer to the Vercel or Next.js documentation or their repositories.
+				`,
 				{ spaced: true }
 			);
 			buildSuccess = false;

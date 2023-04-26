@@ -1,5 +1,5 @@
 import { describe, expect, vi, it, afterEach } from 'vitest';
-import { getCurrentPackageManager } from '../../../src/buildApplication/getCurrentPackageManager';
+import { getCurrentPackageExecuter, getCurrentPackageManager } from '../../../src/buildApplication/getCurrentPackageManager';
 import { EventEmitter } from 'events';
 import type { PackageManager } from '../../../src/utils';
 
@@ -69,3 +69,10 @@ describe('getCurrentPackageManager', async () => {
 		expect(pkgMng).toEqual(targetPkgMng);
 	});
 });
+
+describe('getCurrentPackageExecuter', () =>{
+	it('TODO', async () => {
+		const pkgMng = await getCurrentPackageExecuter();
+		expect(pkgMng).toEqual('to implement');
+	});
+})

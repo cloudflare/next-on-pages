@@ -4,6 +4,7 @@ import { readFile } from 'fs/promises';
 import type { PackageManager } from '../utils';
 import { validateFile, getSpawnCommand } from '../utils';
 import { cliError } from '../cli';
+import { isWindows } from '../utils/isWindows';
 
 export async function getCurrentPackageManager(): Promise<PackageManager> {
 	const userAgent = process.env.npm_config_user_agent;
@@ -48,4 +49,16 @@ export async function getCurrentPackageManager(): Promise<PackageManager> {
 		}
 	}
 	return 'npm';
+}
+
+export async function getCurrentPackageExecuter(): Promise<string> {
+	const cmd = isWindows() ? '.cmd' : '';
+	const packageManager = await getCurrentPackageManager();
+	switch(packageManager) {
+		case 'npm': return `npx${cmd}`;
+		case 'pnpm': return `pnpx${cmd}`;
+		case 'yarn (berry)': return `yarn${cmd} dlx`;
+		case 'yarn (classic)': return `yarn${cmd}`;
+		default: return `npx${cmd}`;
+	}
 }

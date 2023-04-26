@@ -1,3 +1,5 @@
+import { isWindows } from "./isWindows";
+
 const packageManagers = {
 	pnpm: 'pnpx',
 	'yarn (berry)': 'yarn',
@@ -9,6 +11,6 @@ const packageManagers = {
 export type PackageManager = keyof typeof packageManagers;
 
 export function getSpawnCommand(pkgMng: keyof typeof packageManagers): string {
-	const winCMD = process.platform === 'win32' ? '.cmd' : '';
+	const winCMD = isWindows() ? '.cmd' : '';
 	return `${packageManagers[pkgMng]}${winCMD}`;
 }

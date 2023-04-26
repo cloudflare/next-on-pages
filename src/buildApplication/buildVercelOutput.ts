@@ -3,7 +3,7 @@ import { spawn } from 'child_process';
 import { join, resolve } from 'path';
 import { cliLog } from '../cli';
 import { validateDir, validateFile } from '../utils';
-import { getCurrentPackageManager } from './getCurrentPackageManager';
+import { getCurrentPackageExecuter, getCurrentPackageManager } from './getCurrentPackageManager';
 import type { PackageManager } from '../utils/getSpawnCommand';
 import { getSpawnCommand } from '../utils/getSpawnCommand';
 
@@ -25,7 +25,7 @@ export async function buildVercelOutput(): Promise<void> {
 	await generateProjectJsonFileIfNeeded();
 	cliLog('Project is ready');
 	await runVercelBuild(pkgMng);
-	cliLog('Completed `npx vercel build`.\n');
+	cliLog(`Completed \`${await getCurrentPackageExecuter()} vercel build\`.`);
 }
 
 /**

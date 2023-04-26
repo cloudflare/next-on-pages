@@ -8,6 +8,7 @@ import chalk from 'chalk';
 import { getCurrentPackageManager } from './buildApplication/getCurrentPackageManager';
 import { getSpawnCommand, nextOnPagesVersion } from './utils';
 import type { PackageManager } from './utils';
+import { isWindows } from './utils/isWindows';
 
 // A helper type to handle command line flags. Defaults to false
 const flag = z
@@ -219,7 +220,7 @@ export async function printEnvInfo(): Promise<void> {
 
 function getPackageVersion(packageName: string): string {
 	try {
-		const command = process.platform === 'win32' ? 'npm.cmd' : 'npm';
+		const command = isWindows() ? 'npm.cmd' : 'npm';
 		const commandOutput = execFileSync(
 			command,
 			['list', packageName, '--json', '--depth=0'],
