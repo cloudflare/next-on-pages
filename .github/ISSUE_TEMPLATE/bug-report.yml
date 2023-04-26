@@ -52,7 +52,7 @@ body:
     validations:
       required: false
 
-  - type: textarea
+  - type: input
     id: pages-deployment-id
     attributes:
       label: Pages Deployment ID
