@@ -1,10 +1,8 @@
 import YAML from 'js-yaml';
 import { spawn } from 'child_process';
 import { readFile } from 'fs/promises';
-import type { PackageManager } from '../utils';
-import { validateFile, getSpawnCommand } from '../utils';
 import { cliError } from '../cli';
-import { isWindows } from '../utils/isWindows';
+import { validateFile } from '../utils';
 
 export async function getCurrentPackageManager(): Promise<PackageManager> {
 	const userAgent = process.env.npm_config_user_agent;
@@ -15,7 +13,7 @@ export async function getCurrentPackageManager(): Promise<PackageManager> {
 	if ((userAgent && userAgent.startsWith('pnpm')) || hasPnpmLock) return 'pnpm';
 
 	if ((userAgent && userAgent.startsWith('yarn')) || hasYarnLock) {
-		const yarn = getSpawnCommand('yarn');
+		const yarn = getPackageManagerSpawnCommand('yarn');
 		const getYarnV = spawn(yarn, ['-v']);
 		let yarnV = '';
 		getYarnV.stdout.on('data', data => {
@@ -66,4 +64,25 @@ export async function getCurrentPackageExecuter(): Promise<string> {
 		default:
 			return `npx${cmd}`;
 	}
+}
+
+const packageManagers = {
+	pnpm: 'pnpx',
+	'yarn (berry)': 'yarn',
+	'yarn (classic)': 'yarn',
+	yarn: 'yarn',
+	npm: 'npx',
+};
+
+export type PackageManager = keyof typeof packageManagers;
+
+export function getPackageManagerSpawnCommand(
+	pkgMng: keyof typeof packageManagers
+): string {
+	const winCMD = isWindows() ? '.cmd' : '';
+	return `${packageManagers[pkgMng]}${winCMD}`;
+}
+
+function isWindows(): boolean {
+	return process.platform === 'win32';
 }

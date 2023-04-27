@@ -3,12 +3,12 @@ import { spawn } from 'child_process';
 import { join, resolve } from 'path';
 import { cliLog } from '../cli';
 import { validateDir, validateFile } from '../utils';
+import type { PackageManager } from './packageManagerUtils';
 import {
 	getCurrentPackageExecuter,
 	getCurrentPackageManager,
-} from './getCurrentPackageManager';
-import type { PackageManager } from '../utils/getSpawnCommand';
-import { getSpawnCommand } from '../utils/getSpawnCommand';
+	getPackageManagerSpawnCommand,
+} from './packageManagerUtils';
 
 /**
  * Builds the Next.js output via the Vercel CLI
@@ -47,7 +47,7 @@ async function generateProjectJsonFileIfNeeded(): Promise<void> {
 }
 
 async function runVercelBuild(pkgMng: PackageManager): Promise<void> {
-	const pkgMngCMD = getSpawnCommand(pkgMng);
+	const pkgMngCMD = getPackageManagerSpawnCommand(pkgMng);
 
 	if (pkgMng === 'yarn (classic)') {
 		cliLog(

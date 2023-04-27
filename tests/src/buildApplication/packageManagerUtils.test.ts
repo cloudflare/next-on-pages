@@ -1,10 +1,10 @@
 import { describe, expect, vi, it, afterAll } from 'vitest';
+import type { PackageManager } from '../../../src/buildApplication/packageManagerUtils';
 import {
 	getCurrentPackageExecuter,
 	getCurrentPackageManager,
-} from '../../../src/buildApplication/getCurrentPackageManager';
+} from '../../../src/buildApplication/packageManagerUtils';
 import { EventEmitter } from 'events';
-import type { PackageManager } from '../../../src/utils';
 
 describe('getCurrentPackageManager', async () => {
 	it('should detect yarn (berry)', async () => {
