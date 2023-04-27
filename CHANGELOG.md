@@ -1,5 +1,29 @@
 # @cloudflare/next-on-pages
 
+## 0.10.1
+
+### Patch Changes
+
+- a680db6: improve the error message shown when the Vercel build fails to make clearer that the issue is not next-on-pages related
+- b07e3bc: Fix static route handling in the app directory and copy prerendered routes to the build output static directory.
+
+  If an app directory project builds pages without specifying a runtime and has no server-side functionality, it defaults to generating static pages. These pages are in the form of prerendered routes, which are stored in the build output directory with prerender configs, fallback files, and functions. The functions it creates are not necessary and will be invalid nodejs functions as no runtime was specified, and the fallback files can instead be used as static assets for the pages.
+
+- bddbe04: remove astring dependency
+
+  remove the `astring` dependency and by doing so basically just create and edit
+  javascript code via string manipulations.
+
+  this should speed up the experimental minification (since we don't generate js code
+  from ASTs anymore) and avoid potential bugs in the `astring` library (like #151)
+
+  note that this is not the cleanest solution and that we should look into implementing
+  more robust and stable javascript code handling via AST visiting and manipulations
+  (but currently that has proven quite problematic since modern javascript libraries that
+  allow such code modding have turned out to be very slow, significantly impacting DX)
+
+- 9f5b83c: fix require-call typo preventing nodeBufferPlugin from properly working
+
 ## 0.10.0
 
 ### Minor Changes
