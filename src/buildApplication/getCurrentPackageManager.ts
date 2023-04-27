@@ -54,11 +54,16 @@ export async function getCurrentPackageManager(): Promise<PackageManager> {
 export async function getCurrentPackageExecuter(): Promise<string> {
 	const cmd = isWindows() ? '.cmd' : '';
 	const packageManager = await getCurrentPackageManager();
-	switch(packageManager) {
-		case 'npm': return `npx${cmd}`;
-		case 'pnpm': return `pnpx${cmd}`;
-		case 'yarn (berry)': return `yarn${cmd} dlx`;
-		case 'yarn (classic)': return `yarn${cmd}`;
-		default: return `npx${cmd}`;
+	switch (packageManager) {
+		case 'npm':
+			return `npx${cmd}`;
+		case 'pnpm':
+			return `pnpx${cmd}`;
+		case 'yarn (berry)':
+			return `yarn${cmd} dlx`;
+		case 'yarn (classic)':
+			return `yarn${cmd}`;
+		default:
+			return `npx${cmd}`;
 	}
 }

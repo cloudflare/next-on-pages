@@ -1,4 +1,4 @@
-import { isWindows } from "./isWindows";
+import { isWindows } from './isWindows';
 
 const packageManagers = {
 	pnpm: 'pnpx',

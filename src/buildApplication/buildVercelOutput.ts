@@ -3,7 +3,10 @@ import { spawn } from 'child_process';
 import { join, resolve } from 'path';
 import { cliLog } from '../cli';
 import { validateDir, validateFile } from '../utils';
-import { getCurrentPackageExecuter, getCurrentPackageManager } from './getCurrentPackageManager';
+import {
+	getCurrentPackageExecuter,
+	getCurrentPackageManager,
+} from './getCurrentPackageManager';
 import type { PackageManager } from '../utils/getSpawnCommand';
 import { getSpawnCommand } from '../utils/getSpawnCommand';
 

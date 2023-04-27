@@ -18,7 +18,7 @@ import {
 	getVercelStaticAssets,
 	processVercelOutput,
 } from './processVercelOutput';
-import { getCurrentPackageExecuter, getCurrentPackageManager } from './getCurrentPackageManager';
+import { getCurrentPackageExecuter } from './getCurrentPackageManager';
 
 /**
  * Builds the _worker.js with static assets implementing the Next.js application
