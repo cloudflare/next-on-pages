@@ -18,6 +18,7 @@ import {
 	getVercelStaticAssets,
 	processVercelOutput,
 } from './processVercelOutput';
+import { getCurrentPackageExecuter } from './packageManagerUtils';
 
 /**
  * Builds the _worker.js with static assets implementing the Next.js application
@@ -32,10 +33,13 @@ export async function buildApplication({
 	if (!skipBuild) {
 		try {
 			await buildVercelOutput();
-		} catch (err) {
+		} catch {
 			cliError(
-				(err as Error)?.message ??
-					'Error: The Vercel build failed. For more details see the Vercel logs above.'
+				`
+					The Vercel build (\`${await getCurrentPackageExecuter()} vercel build\`) command failed. For more details see the Vercel logs above.
+					If you need help solving the issue, refer to the Vercel or Next.js documentation or their repositories.
+				`,
+				{ spaced: true }
 			);
 			buildSuccess = false;
 		}
