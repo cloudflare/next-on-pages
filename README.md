@@ -78,7 +78,7 @@ npx @cloudflare/next-on-pages
 This command will build your Next.js application and produce a `.vercel/output/static` directory which you can then use with Wrangler:
 
 ```sh
-npx wrangler pages dev .vercel/output/static --compatibility-flag=nodejs_compat
+npx wrangler pages dev .vercel/output/static --compatibility-flags=nodejs_compat
 ```
 
 Running `npx @cloudflare/next-on-pages --help` will display a useful help message which will detail the various additional options the CLI offers.
@@ -94,7 +94,7 @@ npx @cloudflare/next-on-pages --watch
 Then in a separate terminal run:
 
 ```sh
-npx wrangler pages dev .vercel/output/static --compatibility-flag=nodejs_compat
+npx wrangler pages dev .vercel/output/static --compatibility-flags=nodejs_compat
 ```
 
 ### Install `@cloudflare/next-on-pages` and vercel (optional)
