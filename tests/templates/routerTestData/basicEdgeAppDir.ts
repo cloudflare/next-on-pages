@@ -121,14 +121,16 @@ export const testSet: TestSet = {
 		...['/', '/index', '/index.rsc', '/api/hello'].map(path => {
 			const fileName = path.replace(/^\/$/, '/index');
 			const matchedPath = path.replace(/^\/index$/, '/');
-			const isRsc = /\.rsc$/.test(path);
 
 			return {
-				name: `\`${path}\` returns its ${isRsc ? 'RSC ' : ''}page`,
+				name: `\`${path}\` returns its page`,
 				paths: [path],
 				expected: {
 					status: 200,
-					data: JSON.stringify({ file: fileName, params: [] }),
+					data: JSON.stringify({
+						file: fileName.replace(/\.rsc$/, ''),
+						params: [],
+					}),
 					headers: {
 						'content-type': 'text/plain;charset=UTF-8',
 						'x-matched-path': matchedPath,
@@ -137,12 +139,12 @@ export const testSet: TestSet = {
 			};
 		}),
 		{
-			name: '`/` with RSC header returns the RSC page for `/index` and `vary` header',
+			name: '`/` with RSC header returns the page for `/index` and `vary` header',
 			paths: ['/'],
 			headers: { rsc: 'true' },
 			expected: {
 				status: 200,
-				data: JSON.stringify({ file: '/index.rsc', params: [] }),
+				data: JSON.stringify({ file: '/index', params: [] }),
 				headers: {
 					'content-type': 'text/plain;charset=UTF-8',
 					'x-matched-path': '/index.rsc',
