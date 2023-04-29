@@ -137,6 +137,20 @@ export function router(
 				prevPath = path;
 				path = applyPCREMatches(route.dest, srcMatch, captureGroupKeys);
 
+				// NOTE: Special handling for `/index` RSC routes. Sometimes the Vercel build output config
+				// has a record to rewrite `^/` to `/index.rsc`, however, this will hit requests to pages
+				// that aren't `/`. In this case, we should check that the previous path is `/`.
+				if (/\/index\.rsc$/i.test(path) && !/\/(:index)?$/i.test(prevPath)) {
+					path = prevPath;
+				}
+
+				// NOTE: Special handling for `.rsc` requests. If the Vercel CLI failed to generate an RSC
+				// version of the page and the build output config has a record mapping the request to the
+				// RSC variant, we should strip the `.rsc` extension from the path.
+				if (/\.rsc$/i.test(path) && !(path in output)) {
+					path = path.replace(/\.rsc/i, '');
+				}
+
 				// If not an external URL, merge search params for later use.
 				if (!isUrl(path)) {
 					const destUrl = new URL(path, url);
@@ -290,6 +304,6 @@ export function router(
 		 * @param prevMatch The match from the Vercel build output.
 		 * @returns A response object.
 		 */
-		serve: (req: Request, match: MatchedSet) => serve(req, match),
+		serve: (req: Request, match: MatchedSet) => serve(req, match, false),
 	};
 }
