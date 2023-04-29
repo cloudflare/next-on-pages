@@ -30,6 +30,7 @@ type VercelSource = {
 	missing?: VercelHasFields;
 	locale?: VercelLocale;
 	middlewarePath?: string;
+	middlewareRawSrc?: string[];
 };
 
 type VercelHasFields = Array<
@@ -148,8 +149,6 @@ type BuildOutputStaticItem = BuildOutputStaticAsset | BuildOutputStaticOverride;
 type BuildOutputFunction = {
 	type: 'function' | 'middleware';
 	entrypoint: string;
-	// NOTE: Will be removed in the new routing system. (see issue #129)
-	matchers: { regexp: string }[];
 };
 
 type BuildOutputItem = BuildOutputFunction | BuildOutputStaticItem;

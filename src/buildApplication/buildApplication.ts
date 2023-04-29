@@ -2,9 +2,6 @@ import { exit } from 'process';
 import { resolve } from 'path';
 import type { CliOptions } from '../cli';
 import { cliError, cliLog } from '../cli';
-import type { MiddlewareManifestData } from './middlewareManifest';
-import { getParsedMiddlewareManifest } from './middlewareManifest';
-import { getNextJsConfigs } from './nextJsConfigs';
 import { getVercelConfig } from './getVercelConfig';
 import { buildWorkerFile } from './buildWorkerFile';
 import { generateFunctionsMap } from './generateFunctionsMap';
@@ -73,12 +70,6 @@ async function prepareAndBuildWorker(
 		exit(1);
 	}
 
-	const nextJsConfigs = await getNextJsConfigs();
-
-	if (nextJsConfigs.basePath) {
-		cliLog(`Using basePath ${nextJsConfigs.basePath}`);
-	}
-
 	const functionsDir = resolve('.vercel', 'output', 'functions');
 	if (!(await validateDir(functionsDir))) {
 		cliLog('No functions detected.');
@@ -98,35 +89,16 @@ async function prepareAndBuildWorker(
 		return;
 	}
 
-	// NOTE: Middleware manifest logic will be removed in the new routing system. (see issue #129)
-	let middlewareManifestData: MiddlewareManifestData;
-
-	try {
-		middlewareManifestData = await getParsedMiddlewareManifest(
-			functionsMap,
-			nextJsConfigs
-		);
-	} catch (e: unknown) {
-		if (e instanceof Error) {
-			cliError(e.message, { showReport: true });
-		}
-		exit(1);
-	}
-
 	const staticAssets = await getVercelStaticAssets();
 
 	const processedVercelOutput = processVercelOutput(
 		vercelConfig,
 		staticAssets,
 		prerenderedRoutes,
-		middlewareManifestData
+		functionsMap
 	);
 
-	await buildWorkerFile(
-		processedVercelOutput,
-		nextJsConfigs,
-		!options.disableWorkerMinification
-	);
+	await buildWorkerFile(processedVercelOutput, !options.disableWorkerMinification);
 }
 
 function printInvalidFunctionsErrorMessage(invalidFunctions: string[]): void {

@@ -4,7 +4,6 @@ import type { Plugin } from 'esbuild';
 import { build } from 'esbuild';
 import { tmpdir } from 'os';
 import { cliSuccess } from '../cli';
-import type { NextJsConfigs } from './nextJsConfigs';
 import { generateGlobalJs } from './generateGlobalJs';
 import type { ProcessedVercelOutput } from './processVercelOutput';
 
@@ -14,7 +13,7 @@ import type { ProcessedVercelOutput } from './processVercelOutput';
  * @param item The build output item to construct a record for.
  * @returns Record for the build output map.
  */
-function constructBuildOutputRecord(item: BuildOutputItem) {
+export function constructBuildOutputRecord(item: BuildOutputItem) {
 	return item.type === 'static'
 		? `{ type: ${JSON.stringify(item.type)} }`
 		: item.type === 'override'
@@ -25,15 +24,12 @@ function constructBuildOutputRecord(item: BuildOutputItem) {
 			}`
 		: `{
 				type: ${JSON.stringify(item.type)},
-				entrypoint: AsyncLocalStoragePromise.then(() => import('${item.entrypoint}')),
-				matchers: ${JSON.stringify(item.matchers)}
+				entrypoint: AsyncLocalStoragePromise.then(() => import('${item.entrypoint}'))
 			}`;
 }
 
-// NOTE: `nextJsConfigs`, and accompanying logic will be removed in the new routing system. (see issue #129)
 export async function buildWorkerFile(
 	{ vercelConfig, vercelOutput }: ProcessedVercelOutput,
-	nextJsConfigs: NextJsConfigs,
 	minify: boolean
 ) {
 	const functionsFile = join(
@@ -67,7 +63,6 @@ export async function buildWorkerFile(
 		external: ['node:async_hooks', 'node:buffer'],
 		define: {
 			__CONFIG__: JSON.stringify(vercelConfig),
-			__BASE_PATH__: JSON.stringify(nextJsConfigs.basePath ?? ''),
 		},
 		outfile: outputFile,
 		minify,

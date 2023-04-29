@@ -18,23 +18,16 @@ describe('processVercelOutput', () => {
 		};
 		const inputtedAssets = ['/static/test.png'];
 		const inputtedPrerendered = new Map<string, PrerenderedFileData>();
-		const inputtedHydrated = {
-			hydratedMiddleware: new Map([
-				['/middleware', { filepath: '/middleware/index.js', matchers: [] }],
-			]),
-			hydratedFunctions: new Map([
-				[
-					'/use-middleware',
-					{ filepath: '/use-middleware/index.js', matchers: [] },
-				],
-			]),
-		};
+		const inputtedFunctions = new Map<string, string>([
+			['/middleware', '/middleware/index.js'],
+			['/use-middleware', '/use-middleware/index.js'],
+		]);
 
 		const processed = processVercelOutput(
 			inputtedConfig,
 			inputtedAssets,
 			inputtedPrerendered,
-			inputtedHydrated
+			inputtedFunctions
 		);
 
 		const expected: ProcessedVercelOutput = {
@@ -59,7 +52,6 @@ describe('processVercelOutput', () => {
 					'/use-middleware',
 					{
 						entrypoint: '/use-middleware/index.js',
-						matchers: [],
 						type: 'function',
 					},
 				],
@@ -67,7 +59,6 @@ describe('processVercelOutput', () => {
 					'middleware',
 					{
 						entrypoint: '/middleware/index.js',
-						matchers: [],
 						type: 'middleware',
 					},
 				],
@@ -97,18 +88,15 @@ describe('processVercelOutput', () => {
 			'/test.html',
 		];
 		const inputtedPrerendered = new Map<string, PrerenderedFileData>();
-		const inputtedHydrated = {
-			hydratedMiddleware: new Map(),
-			hydratedFunctions: new Map([
-				['/page', { filepath: '/page/index.js', matchers: [] }],
-			]),
-		};
+		const inputtedFunctions = new Map<string, string>([
+			['/page', '/page/index.js'],
+		]);
 
 		const processed = processVercelOutput(
 			inputtedConfig,
 			inputtedAssets,
 			inputtedPrerendered,
-			inputtedHydrated
+			inputtedFunctions
 		);
 
 		const expected: ProcessedVercelOutput = {
@@ -173,7 +161,6 @@ describe('processVercelOutput', () => {
 					'/page',
 					{
 						entrypoint: '/page/index.js',
-						matchers: [],
 						type: 'function',
 					},
 				],
@@ -265,18 +252,15 @@ describe('processVercelOutput', () => {
 				},
 			],
 		]);
-		const inputtedHydrated = {
-			hydratedMiddleware: new Map(),
-			hydratedFunctions: new Map([
-				['/page', { filepath: '/page/index.js', matchers: [] }],
-			]),
-		};
+		const inputtedFunctions = new Map<string, string>([
+			['/page', '/page/index.js'],
+		]);
 
 		const processed = processVercelOutput(
 			inputtedConfig,
 			inputtedAssets,
 			inputtedPrerendered,
-			inputtedHydrated
+			inputtedFunctions
 		);
 
 		const expected: ProcessedVercelOutput = {
@@ -358,7 +342,6 @@ describe('processVercelOutput', () => {
 					'/page',
 					{
 						entrypoint: '/page/index.js',
-						matchers: [],
 						type: 'function',
 					},
 				],
