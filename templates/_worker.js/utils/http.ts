@@ -53,7 +53,8 @@ export function applySearchParams(
 /**
  * Creates a new Request object with the same body and headers as the original.
  *
- * Replaces the URL with the given path, stripping the `.html` extension for asset matching.
+ * Replaces the URL with the given path, stripping the `.html` extension and `/index.html` for
+ * asset matching.
  * https://developers.cloudflare.com/pages/platform/serving-pages/#route-matching
  *
  * @param req Request object to re-create.
@@ -62,7 +63,9 @@ export function applySearchParams(
  */
 export function createNewRequest(req: Request, path: string) {
 	const newUrl = new URL(path, req.url);
-	newUrl.pathname = newUrl.pathname.replace(/\.html$/, '');
+	newUrl.pathname = newUrl.pathname
+		.replace(/^\/index.html$/, '/')
+		.replace(/\.html$/, '');
 	return new Request(newUrl, req);
 }
 

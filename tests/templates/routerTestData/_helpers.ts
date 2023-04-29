@@ -43,8 +43,10 @@ export class MockAssetFetcher {
 
 	public fetch = (req: Request) => {
 		const { pathname } = new URL(req.url);
+		const noExt = pathname.replace(/\.html$/, '');
+		const withExt = `${noExt.replace(/^\/$/, '/index')}.html`;
 
-		const asset = this.assets[pathname];
+		const asset = this.assets[noExt] || this.assets[withExt];
 		if (!asset) {
 			return Promise.resolve(new Response('Asset not found', { status: 404 }));
 		}
@@ -58,7 +60,7 @@ export class MockAssetFetcher {
 	};
 
 	public addAsset = (path: string, data: Asset) => {
-		this.assets[path.replace(/\.html$/, '')] = data;
+		this.assets[path] = data;
 	};
 }
 

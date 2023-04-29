@@ -83,4 +83,11 @@ describe('createNewRequest', () => {
 
 		expect(new URL(request.url).pathname).toEqual('/new-path');
 	});
+
+	test('creates new request with the new path without .html', () => {
+		const prevReq = new Request('http://localhost/test');
+		const request = createNewRequest(prevReq, '/index.html');
+
+		expect(new URL(request.url).pathname).toEqual('/');
+	});
 });
