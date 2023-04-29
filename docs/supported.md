@@ -16,13 +16,13 @@ Earlier and Later versions might be only partially supported, we don't fully kno
 | ----------------------- | ------- |
 | version                 | `3`     |
 | routes `src`            | ✅      |
-| routes `dest`           | 🔄      |
-| routes `headers`        | 🔄      |
+| routes `dest`           | ✅      |
+| routes `headers`        | ✅      |
 | routes `methods`        | ✅      |
-| routes `continue`       | 🔄      |
+| routes `continue`       | ✅      |
 | routes `caseSensitive`  | ✅      |
-| routes `check`          | 🔄      |
-| routes `status`         | 🔄      |
+| routes `check`          | ✅      |
+| routes `status`         | ✅      |
 | routes `has`            | ✅      |
 | routes `missing`        | ✅      |
 | routes `locale`         | 🔄      |
@@ -47,9 +47,9 @@ Earlier and Later versions might be only partially supported, we don't fully kno
 | ------------------------------------------ | ------- |
 | environment variables                      | 🔄      |
 | base path                                  | ✅      |
-| rewrites                                   | 🔄      |
-| redirects                                  | 🔄      |
-| custom headers                             | 🔄      |
+| rewrites                                   | ✅      |
+| redirects                                  | ✅      |
+| custom headers                             | ✅      |
 | custom page extensions                     | ✅      |
 | CDN support with asset prefix              | 🔄      |
 | custom Image loader config                 | 🔄      |
