@@ -49,8 +49,7 @@ export function getNextPhase(
  *
  * @param item Build output item to run or fetch.
  * @param request Request object.
- * @param args.path Path for the matched route.
- * @param args.searchParams Search params for the matched route.
+ * @param match Matched route details.
  * @param assets Fetcher for static assets.
  * @param ctx Execution context for the request.
  * @returns Response object.

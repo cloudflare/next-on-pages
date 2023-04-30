@@ -58,9 +58,7 @@ function runTestCase(
 /**
  * Runs a test set.
  *
- * @param args.config Processed Vercel build output config.
- * @param args.files Vercel build output files.
- * @param args.testCases Test cases to run.
+ * @param testSet Test set to run.
  */
 async function runTestSet({ config, files, testCases }: TestSet) {
 	const { vercelConfig, buildOutput, assetsFetcher } =

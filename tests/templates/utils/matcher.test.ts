@@ -4,7 +4,7 @@ import { hasField, checkRouteMatch } from '../../../templates/_worker.js/utils';
 
 type HasFieldTestCase = {
 	name: string;
-	has: VercelHasFields[0];
+	has: VercelHasField;
 	expected: boolean;
 };
 
@@ -15,13 +15,16 @@ type CheckRouteMatchTestCase = {
 	expected: boolean;
 };
 
-const req = new Request('https://test.com/index?foo=bar&bar=', {
-	headers: {
-		headerWithValue: 'value',
-		headerWithoutValue: undefined as unknown as string,
-		cookie: 'foo=bar; bar=',
-	},
-});
+const req = new Request(
+	'https://test.com/index?queryWithValue=value&queryWithoutValue=',
+	{
+		headers: {
+			headerWithValue: 'value',
+			headerWithoutValue: undefined as unknown as string,
+			cookie: 'cookieWithValue=value; cookieWithoutValue=',
+		},
+	}
+);
 const url = new URL(req.url);
 const cookies = parse(req.headers.get('cookie') ?? '');
 
@@ -57,40 +60,39 @@ describe('hasField', () => {
 			has: { type: 'header', key: 'headerWithoutValue', value: 'value' },
 			expected: false,
 		},
-		}
 		{
 			name: 'cookie: has with key+value match returns true',
-			has: { type: 'cookie', key: 'foo', value: 'bar' },
+			has: { type: 'cookie', key: 'cookieWithValue', value: 'value' },
 			expected: true,
 		},
 		{
 			name: 'cookie: has with key+value mismatch returns false',
-			has: { type: 'cookie', key: 'foo', value: 'bar2' },
+			has: { type: 'cookie', key: 'cookieWithValue', value: 'alt-value' },
 			expected: false,
 		},
 		{
 			name: 'cookie: has with key match returns true',
-			has: { type: 'cookie', key: 'bar' },
+			has: { type: 'cookie', key: 'cookieWithValue' },
 			expected: true,
 		},
 		{
 			name: 'query: has with key+value match returns true',
-			has: { type: 'query', key: 'foo', value: 'bar' },
+			has: { type: 'query', key: 'queryWithValue', value: 'value' },
 			expected: true,
 		},
 		{
 			name: 'query: has with key+value mismatch returns false',
-			has: { type: 'query', key: 'foo', value: 'bar2' },
+			has: { type: 'query', key: 'queryWithValue', value: 'alt-value' },
 			expected: false,
 		},
 		{
 			name: 'query: has with key match returns true',
-			has: { type: 'query', key: 'bar' },
+			has: { type: 'query', key: 'queryWithoutValue' },
 			expected: true,
 		},
 		{
 			name: 'query: has with key but no value mismatch returns false',
-			has: { type: 'query', key: 'bar' , value: 'baz' },
+			has: { type: 'query', key: 'queryWithoutValue', value: 'value' },
 			expected: false,
 		},
 	];
@@ -131,7 +133,7 @@ describe('checkRouteMatch', () => {
 				has: [
 					{ type: 'host', value: 'test.com' },
 					{ type: 'header', key: 'headerWithoutValue' },
-					{ type: 'query', key: 'foo', value: 'bar' },
+					{ type: 'query', key: 'queryWithValue', value: 'value' },
 				],
 			},
 			expected: true,
@@ -158,7 +160,7 @@ describe('checkRouteMatch', () => {
 				src: '^/index$',
 				missing: [
 					{ type: 'host', value: 'example.com' },
-					{ type: 'query', key: 'baz' },
+					{ type: 'query', key: 'missingQuery' },
 				],
 			},
 			expected: true,
@@ -169,7 +171,7 @@ describe('checkRouteMatch', () => {
 				src: '^/index$',
 				missing: [
 					{ type: 'host', value: 'example.com' },
-					{ type: 'query', key: 'foo' },
+					{ type: 'query', key: 'queryWithValue' },
 				],
 			},
 			expected: false,
@@ -200,11 +202,21 @@ describe('checkRouteMatch', () => {
 			route: {
 				src: '^/index$',
 				has: [{ type: 'host', value: 'test.com' }],
-				missing: [{ type: 'query', key: 'baz' }],
+				missing: [{ type: 'query', key: 'missingQuery' }],
 				methods: ['GET'],
 				status: 500,
 			},
 			expected: true,
+		},
+		{
+			name: 'match with correct `method`',
+			route: { src: '^/index$', methods: ['GET'], status: 200 },
+			expected: true,
+		},
+		{
+			name: "doesn't match with incorrect `method`",
+			route: { src: '^/index$', methods: ['POST'], status: 200 },
+			expected: false,
 		},
 	];
 

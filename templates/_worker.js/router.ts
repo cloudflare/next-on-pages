@@ -16,7 +16,7 @@ import {
  *
  * The router is used to match and serve routes in the Vercel build output.
  *
- * @param args.routes Routes from the processed Vercel build output config.
+ * @param config The processed Vercel build output config.
  * @param output Vercel build output.
  * @param assets Static assets fetcher.
  * @param ctx Execution context.

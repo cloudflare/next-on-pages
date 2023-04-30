@@ -1,7 +1,7 @@
 import type { MatchPCREResult } from './pcre';
 import { matchPCRE } from './pcre';
 
-type HasFieldProps = {
+type HasFieldRequestProperties = {
 	url: URL;
 	cookies: Record<string, string>;
 	headers: Headers;
@@ -11,14 +11,12 @@ type HasFieldProps = {
  * Checks if a Vercel source route's `has` record conditions match a request.
  *
  * @param has The `has` record conditions to check against the request.
- * @param param.url The URL object.
- * @param param.cookies The cookies object.
- * @param param.headers The headers object.
+ * @param requestProperties The request properties to check against.
  * @returns Whether the request matches the `has` record conditions.
  */
 export function hasField(
-	has: NonNullable<VercelSource['has']>[0],
-	{ url, cookies, headers }: HasFieldProps
+	has: VercelHasField,
+	{ url, cookies, headers }: HasFieldRequestProperties
 ): boolean {
 	switch (has.type) {
 		case 'host': {
@@ -50,7 +48,7 @@ export function hasField(
 	}
 }
 
-type CheckRouteMatchProps = {
+type CheckRouteMatchRequestProperties = {
 	url: URL;
 	cookies: Record<string, string>;
 	headers: Headers;
@@ -63,17 +61,19 @@ type CheckRouteMatchProps = {
  *
  * @param route Build output config source route object.
  * @param currentPath Current path to check against.
- * @param args.url URL object.
- * @param args.cookies Cookies object.
- * @param args.headers Headers object.
- * @param args.method HTTP method for the request.
- * @param args.requiredStatus Optional required status code to check for.
+ * @param requestProperties Request properties to check against.
  * @returns The source path match result if the route matches, otherwise `undefined`.
  */
 export function checkRouteMatch(
 	route: VercelSource,
 	currentPath: string,
-	{ url, cookies, headers, method, requiredStatus }: CheckRouteMatchProps
+	{
+		url,
+		cookies,
+		headers,
+		method,
+		requiredStatus,
+	}: CheckRouteMatchRequestProperties
 ): MatchPCREResult | undefined {
 	const srcMatch = matchPCRE(route.src, currentPath, route.caseSensitive);
 	if (!srcMatch.match) return;

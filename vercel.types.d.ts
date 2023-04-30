@@ -33,12 +33,13 @@ type VercelSource = {
 	middlewareRawSrc?: string[];
 };
 
-type VercelHasFields = Array<
+type VercelHasField =
 	| VercelHostHasField
 	| VercelHeaderHasField
 	| VercelCookieHasField
-	| VercelQueryHasField
->;
+	| VercelQueryHasField;
+
+type VercelHasFields = Array<VercelHasField>;
 
 type VercelLocale = {
 	redirect?: Record<string, string>;
