@@ -1,7 +1,7 @@
 import {
 	applyHeaders,
-	createNewRequest,
-	createNewResponse,
+	createRouteRequest,
+	createMutableResponse,
 	applySearchParams,
 } from './http';
 
@@ -75,8 +75,8 @@ export async function runItem(
 				break;
 			}
 			case 'override': {
-				resp = createNewResponse(
-					await assets.fetch(createNewRequest(req, item.path ?? path))
+				resp = createMutableResponse(
+					await assets.fetch(createRouteRequest(req, item.path ?? path))
 				);
 
 				if (item.headers) {
@@ -85,7 +85,7 @@ export async function runItem(
 				break;
 			}
 			case 'static': {
-				resp = await assets.fetch(createNewRequest(req, path));
+				resp = await assets.fetch(createRouteRequest(req, path));
 				break;
 			}
 			case 'middleware': {
@@ -104,7 +104,7 @@ export async function runItem(
 
 	return resp
 		? // construct a new response as the original response might be immutable
-		  createNewResponse(resp)
+		  createMutableResponse(resp)
 		: new Response('Not Found', { status: 404 });
 }
 

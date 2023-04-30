@@ -3,7 +3,7 @@ import type { MatchPCREResult } from '../../../templates/_worker.js/utils';
 import {
 	applyHeaders,
 	applySearchParams,
-	createNewRequest,
+	createRouteRequest,
 	isUrl,
 } from '../../../templates/_worker.js/utils';
 
@@ -72,24 +72,24 @@ describe('applySearchParams', () => {
 	});
 });
 
-describe('createNewRequest', () => {
+describe('createRouteRequest', () => {
 	test('creates new request with the new path', () => {
 		const prevReq = new Request('http://localhost/test');
-		const request = createNewRequest(prevReq, '/new-path');
+		const request = createRouteRequest(prevReq, '/new-path');
 
 		expect(new URL(request.url).pathname).toEqual('/new-path');
 	});
 
 	test('creates new request with the new path without .html', () => {
 		const prevReq = new Request('http://localhost/test');
-		const request = createNewRequest(prevReq, '/new-path.html');
+		const request = createRouteRequest(prevReq, '/new-path.html');
 
 		expect(new URL(request.url).pathname).toEqual('/new-path');
 	});
 
 	test('creates new request with the new path without .html', () => {
 		const prevReq = new Request('http://localhost/test');
-		const request = createNewRequest(prevReq, '/index.html');
+		const request = createRouteRequest(prevReq, '/index.html');
 
 		expect(new URL(request.url).pathname).toEqual('/');
 	});

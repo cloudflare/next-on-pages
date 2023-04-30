@@ -61,7 +61,7 @@ export function applySearchParams(
  * @param path URL to use for the new Request object.
  * @returns A new Request object with the same body and headers as the original.
  */
-export function createNewRequest(req: Request, path: string) {
+export function createRouteRequest(req: Request, path: string) {
 	const newUrl = new URL(path, req.url);
 	newUrl.pathname = newUrl.pathname
 		.replace(/^\/index.html$/, '/')
@@ -77,6 +77,6 @@ export function createNewRequest(req: Request, path: string) {
  * @param resp Response object to re-create.
  * @returns A new Response object with the same body and headers.
  */
-export function createNewResponse(resp: Response) {
+export function createMutableResponse(resp: Response) {
 	return new Response(resp.body, resp);
 }
