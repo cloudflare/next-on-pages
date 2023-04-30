@@ -58,8 +58,8 @@ export function processVercelOutput(
 		processedOutput.set(key, {
 			type: 'function',
 			// NOTE: We replace the `.rsc.func.js` extension with `.func.js` as RSC functions have the
-			// same hash as the non-rsc version, so we opt to use it instead.
-			// This also resolves a mysterious error during routing when rsc functions are bundled:
+			// same exact content (and hash) as their non-rsc counterpart, so we opt to use the latter instead.
+			// This also resolves an unclear runtime error that happens during routing when rsc functions are bundled:
 			// `TypeError: Cannot read properties of undefined (reading 'default')`
 			entrypoint: value.replace(/\.rsc\.func\.js$/i, '.func.js'),
 		});
