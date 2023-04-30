@@ -10,7 +10,7 @@ export type MatchPCREResult = {
 };
 
 /**
- * Check if a value matches with a PCRE-compatible string, and extract the capture group keys.
+ * Checks if a value matches with a PCRE-compatible string, and extract the capture group keys.
  *
  * @param expr PCRE-compatible string.
  * @param val String to check with the regular expression.
@@ -32,7 +32,7 @@ export function matchPCRE(
 }
 
 /**
- * Process the value and replaced any matched parameters (index or named capture groups).
+ * Processes the value and replaced any matched parameters (index or named capture groups).
  *
  * @param rawStr String to process.
  * @param match Matches from the PCRE matcher.

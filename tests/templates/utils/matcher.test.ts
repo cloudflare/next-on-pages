@@ -53,6 +53,12 @@ describe('hasField', () => {
 			expected: true,
 		},
 		{
+			name: 'header: has with key but no value mismatch returns false',
+			has: { type: 'header', key: 'headerWithoutValue', value: 'value' },
+			expected: false,
+		},
+		}
+		{
 			name: 'cookie: has with key+value match returns true',
 			has: { type: 'cookie', key: 'foo', value: 'bar' },
 			expected: true,
@@ -82,6 +88,11 @@ describe('hasField', () => {
 			has: { type: 'query', key: 'bar' },
 			expected: true,
 		},
+		{
+			name: 'query: has with key but no value mismatch returns false',
+			has: { type: 'query', key: 'bar' , value: 'baz' },
+			expected: false,
+		},
 	];
 
 	testCases.forEach(testCase => {
@@ -104,7 +115,7 @@ describe('checkRouteMatch', () => {
 			expected: true,
 		},
 		{
-			name: 'doesnt match a route with invalid `src`',
+			name: "doesn't match a route with invalid `src`",
 			route: { src: '^/invalid$' },
 			expected: false,
 		},
@@ -134,7 +145,7 @@ describe('checkRouteMatch', () => {
 			expected: true,
 		},
 		{
-			name: 'doesnt match a route with `src` and invalid `missing`',
+			name: "doesn't match a route with `src` and invalid `missing`",
 			route: {
 				src: '^/index$',
 				missing: [{ type: 'host', value: 'test.com' }],
@@ -153,7 +164,7 @@ describe('checkRouteMatch', () => {
 			expected: true,
 		},
 		{
-			name: 'doesnt match with `src` and multiple `missing` (one valid, one invalid)',
+			name: "doesn't match with `src` and multiple `missing` (one valid, one invalid)",
 			route: {
 				src: '^/index$',
 				missing: [
@@ -179,7 +190,7 @@ describe('checkRouteMatch', () => {
 			expected: true,
 		},
 		{
-			name: 'doesnt match with invalid `status` and required status',
+			name: "doesn't match with invalid `status` and required status",
 			route: { src: '^/index$', status: 500 },
 			requiredStatus: 404,
 			expected: false,

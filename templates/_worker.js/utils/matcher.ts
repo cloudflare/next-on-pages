@@ -8,7 +8,7 @@ type HasFieldProps = {
 };
 
 /**
- * Check if a Vercel source route's `has` record conditions match a request.
+ * Checks if a Vercel source route's `has` record conditions match a request.
  *
  * @param has The `has` record conditions to check against the request.
  * @param param.url The URL object.
@@ -59,7 +59,7 @@ type CheckRouteMatchProps = {
 };
 
 /**
- * Check if a Vercel source route from the build output config matches a request.
+ * Checks if a Vercel source route from the build output config matches a request.
  *
  * @param route Build output config source route object.
  * @param currentPath Current path to check against.
@@ -76,29 +76,29 @@ export function checkRouteMatch(
 	{ url, cookies, headers, method, requiredStatus }: CheckRouteMatchProps
 ): MatchPCREResult | undefined {
 	const srcMatch = matchPCRE(route.src, currentPath, route.caseSensitive);
-	if (!srcMatch.match) return undefined;
+	if (!srcMatch.match) return;
 
 	// One of the HTTP `methods` conditions must be met - skip if not met.
 	if (
 		route.methods &&
 		!route.methods.map(m => m.toUpperCase()).includes(method.toUpperCase())
 	) {
-		return undefined;
+		return;
 	}
 
 	// All `has` conditions must be met - skip if one is not met.
 	if (route.has?.find(has => !hasField(has, { url, cookies, headers }))) {
-		return undefined;
+		return;
 	}
 
 	// All `missing` conditions must not be met - skip if one is met.
 	if (route.missing?.find(has => hasField(has, { url, cookies, headers }))) {
-		return undefined;
+		return;
 	}
 
 	// Required status code must match (i.e. for error routes) - skip if not met.
 	if (requiredStatus && route.status !== requiredStatus) {
-		return undefined;
+		return;
 	}
 
 	return srcMatch;

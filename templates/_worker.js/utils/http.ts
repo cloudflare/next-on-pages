@@ -2,7 +2,7 @@ import type { MatchPCREResult } from './pcre';
 import { applyPCREMatches } from './pcre';
 
 /**
- * Apply a set of headers to a response.
+ * Applies a set of headers to a response.
  *
  * @param source Headers to apply.
  * @param target Headers object to apply to.
@@ -26,7 +26,7 @@ export function applyHeaders(
 }
 
 /**
- * Check if a string is an URL.
+ * Checks if a string is an URL.
  *
  * @param url String to check.
  * @returns Whether the string is an URL.
@@ -36,7 +36,7 @@ export function isUrl(url: string): boolean {
 }
 
 /**
- * Merge search params from one URLSearchParams object to another.
+ * Merges search params from one URLSearchParams object to another.
  *
  * @param source Source search params to apply to the target.
  * @param target Target that search params will be applied to.
