@@ -1,8 +1,11 @@
 import { describe, test, expect } from 'vitest';
 import type { MatchPCREResult } from '../../../templates/_worker.js/utils';
-import { createNewRequest } from '../../../templates/_worker.js/utils';
-import { applySearchParams } from '../../../templates/_worker.js/utils';
-import { applyHeaders, isUrl } from '../../../templates/_worker.js/utils';
+import {
+	applyHeaders,
+	applySearchParams,
+	createNewRequest,
+	isUrl,
+} from '../../../templates/_worker.js/utils';
 
 describe('applyHeaders', () => {
 	test('applies headers from normal object', () => {

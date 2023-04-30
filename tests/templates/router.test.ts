@@ -7,8 +7,8 @@ import {
 	dynamicRoutesTestSet,
 	middlewareTestSet,
 } from './routerTestData';
-import type { TestCase, TestSet } from './routerTestData/_helpers';
-import { createRouterTestData } from './routerTestData/_helpers';
+import type { TestCase, TestSet } from '../_helpers';
+import { createRouterTestData } from '../_helpers';
 
 /**
  * Runs a test case.

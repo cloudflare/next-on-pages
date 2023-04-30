@@ -1,13 +1,13 @@
 import mockFs from 'mock-fs';
 import type { DirectoryItems } from 'mock-fs/lib/filesystem';
-import { generateFunctionsMap } from '../../../src/buildApplication/generateFunctionsMap';
 import { readFileSync } from 'fs';
 import { join, resolve } from 'path';
+import { generateFunctionsMap } from '../../src/buildApplication/generateFunctionsMap';
 import {
 	getVercelStaticAssets,
 	processVercelOutput,
-} from '../../../src/buildApplication/processVercelOutput';
-import type { VercelPrerenderConfig } from '../../../src/buildApplication/fixPrerenderedRoutes';
+} from '../../src/buildApplication/processVercelOutput';
+import type { VercelPrerenderConfig } from '../../src/buildApplication/fixPrerenderedRoutes';
 
 export type TestSet = {
 	name: string;

@@ -1,3 +1,7 @@
+// pcre-to-regexp converts a PCRE string to a regular expression. It also extracts the named
+// capture group keys, which is useful for matching and replacing parameters.
+// This is the same library used by Vercel in the build output, and is used here to ensure
+// consistency and proper support.
 import createPCRE from 'pcre-to-regexp/dist/index.js';
 
 export type MatchPCREResult = {
@@ -31,8 +35,8 @@ export function matchPCRE(
  * Process the value and replaced any matched parameters (index or named capture groups).
  *
  * @param rawStr String to process.
- * @param match Matches from the `src` matcher.
- * @param captureGroupKeys Named capture group keys from the `src` matcher.
+ * @param match Matches from the PCRE matcher.
+ * @param captureGroupKeys Named capture group keys from the PCRE matcher.
  * @returns The processed string with replaced parameters.
  */
 export function applyPCREMatches(

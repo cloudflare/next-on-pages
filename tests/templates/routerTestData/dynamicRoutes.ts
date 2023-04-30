@@ -1,5 +1,5 @@
-import type { TestSet } from './_helpers';
-import { createValidFuncDir } from './_helpers';
+import type { TestSet } from '../../_helpers';
+import { createValidFuncDir } from '../../_helpers';
 
 // root-level catch-all, and dynamic route.
 

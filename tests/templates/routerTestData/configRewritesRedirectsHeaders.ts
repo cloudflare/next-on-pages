@@ -1,5 +1,5 @@
-import type { TestSet } from './_helpers';
-import { createValidFuncDir } from './_helpers';
+import type { TestSet } from '../../_helpers';
+import { createValidFuncDir } from '../../_helpers';
 
 // next.config.js rewrites, redirects, and headers options
 

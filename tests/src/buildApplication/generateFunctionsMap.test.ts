@@ -3,7 +3,7 @@ import { generateFunctionsMap } from '../../../src/buildApplication/generateFunc
 import mockFs from 'mock-fs';
 import type { DirectoryItems } from 'mock-fs/lib/filesystem';
 import { join } from 'path';
-import { mockPrerenderConfigFile } from '../../templates/routerTestData/_helpers';
+import { mockPrerenderConfigFile } from '../../_helpers';
 
 describe('generateFunctionsMap', async () => {
 	describe('with chunks deduplication disabled should correctly handle', () => {

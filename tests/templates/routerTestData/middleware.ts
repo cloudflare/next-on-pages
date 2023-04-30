@@ -1,5 +1,5 @@
-import type { TestSet } from './_helpers';
-import { createValidFuncDir } from './_helpers';
+import type { TestSet } from '../../_helpers';
+import { createValidFuncDir } from '../../_helpers';
 
 // routes using middleware: redirect, rewrite, set headers, set cookies, override request headers.
 

@@ -1,5 +1,5 @@
-import type { TestSet } from './_helpers';
-import { createPrerenderedRoute, createValidFuncDir } from './_helpers';
+import type { TestSet } from '../../_helpers';
+import { createPrerenderedRoute, createValidFuncDir } from '../../_helpers';
 
 // statically generated app directory routes
 
