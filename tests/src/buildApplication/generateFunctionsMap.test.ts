@@ -6,7 +6,7 @@ import type { DirectoryItems } from 'mock-fs/lib/filesystem';
 import { join } from 'path';
 
 describe('generateFunctionsMap', async () => {
-	describe('without experimentalMinify should correctly handle', () => {
+	describe('with chunks deduplication disabled should correctly handle', () => {
 		test('valid index routes', async () => {
 			const { functionsMap } = await generateFunctionsMapFrom({
 				'index.func': validFuncDir,
@@ -398,7 +398,7 @@ describe('generateFunctionsMap', async () => {
 		});
 	});
 
-	// TODO: add tests that also test the functions map with the experimentalMinify flag
+	// TODO: add tests that also test the functions map with the chunks deduplication enabled
 });
 
 const validIndexVcConfigJson = JSON.stringify({
@@ -424,7 +424,7 @@ const invalidFuncDir = {
 async function generateFunctionsMapFrom(
 	functions: DirectoryItems,
 	staticAssets: DirectoryItems = {},
-	experimentalMinify = false
+	disableChunksDedup = true
 ) {
 	mockFs({
 		'.vercel': {
@@ -436,7 +436,7 @@ async function generateFunctionsMapFrom(
 	});
 	const result = await generateFunctionsMap(
 		join('.vercel', 'output', 'functions'),
-		experimentalMinify
+		disableChunksDedup
 	);
 	mockFs.restore();
 	return result;

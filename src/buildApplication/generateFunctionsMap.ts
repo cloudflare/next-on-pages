@@ -24,22 +24,22 @@ import { fixPrerenderedRoutes } from './fixPrerenderedRoutes';
  * bundled in our worker and generates a map that maps the Vercel original function paths (without the `.func` extension)
  * to the newly generated files.
  *
- * if experimentalMinify is set to true additionally as part of the functions map generation this functions also extracts
- * webpack chunks, adds imports to such chunks in the functions themselves, and filters out duplicated chunks.
+ * As part of the functions map generation this functions also extracts webpack chunks, adds imports to such chunks in the
+ * functions themselves, and filters out duplicated chunks, such operation is skipped it disableChunksDedup is true.
  *
  * @param functionsDir path of the directory of Next.js functions built by Vercel
- * @param experimentalMinify flag indicating wether to use the experimental minify
+ * @param disableChunksDedup flag indicating wether the chunks de-duplication should be disabled
  * @returns an object containing the generated functions map and also a set of paths of invalid functions (if any is present)
  */
 export async function generateFunctionsMap(
 	functionsDir: string,
-	experimentalMinify: CliOptions['experimentalMinify']
+	disableChunksDedup: CliOptions['disableChunksDedup']
 ): Promise<DirectoryProcessingResults> {
 	const processingSetup = {
 		functionsDir,
 		tmpFunctionsDir: join(tmpdir(), Math.random().toString(36).slice(2)),
 		tmpWebpackDir: join(tmpdir(), Math.random().toString(36).slice(2)),
-		experimentalMinify,
+		disableChunksDedup,
 	};
 
 	const processingResults = await processDirectoryRecursively(
@@ -49,7 +49,7 @@ export async function generateFunctionsMap(
 
 	await tryToFixInvalidFunctions(processingResults);
 
-	if (experimentalMinify) {
+	if (!disableChunksDedup) {
 		await buildWebpackChunkFiles(
 			processingResults.webpackChunks,
 			processingSetup.tmpWebpackDir
@@ -215,7 +215,7 @@ async function processFuncDirectory(
 	let contents = await readFile(functionFile, 'utf8');
 	contents = fixFunctionContents(contents);
 
-	if (setup.experimentalMinify) {
+	if (!setup.disableChunksDedup) {
 		const { updatedFunctionContents, extractedWebpackChunks } =
 			extractWebpackChunks(setup.tmpWebpackDir, contents, webpackChunks);
 		contents = updatedFunctionContents;
@@ -313,10 +313,10 @@ function extractWebpackChunks(
 		) {
 			cliError(
 				`
-							ERROR: Detected a collision with '--experimental-minify'.
-							       Try removing the '--experimental-minify' argument.
+							ERROR: Detected a collision with the webpack chunks deduplication.
+							       Try adding the '--disable-chunks-dedup' argument to temporarily solve the issue.
 						`,
-				{ spaced: true }
+				{ spaced: true, showReport: true }
 			);
 			exit(1);
 		}
@@ -400,7 +400,7 @@ type ProcessingSetup = {
 	functionsDir: string;
 	tmpFunctionsDir: string;
 	tmpWebpackDir: string;
-	experimentalMinify: boolean;
+	disableChunksDedup: boolean;
 };
 
 type DirectoryProcessingResults = {

@@ -59,7 +59,7 @@ Next, in the [Cloudflare Dashboard](https://dash.cloudflare.com/?to=/:account/pa
 - Provide the following options:
   | Option | Value |
   | ---------------------- | ----------------------------------------------------- |
-  | Build command | `npx @cloudflare/next-on-pages --experimental-minify` |
+  | Build command | `npx @cloudflare/next-on-pages` |
   | Build output directory | `.vercel/output/static` |
 - In the _Environment variables (advanced)_ section add a new variable named `NODE_VERSION` set to `16` or greater
 - Click on _Save and Deploy_ to start the deployment (this first deployment won't be fully functional as the next step is also necessary)

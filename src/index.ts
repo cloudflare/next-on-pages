@@ -1,6 +1,7 @@
 import { watch } from 'chokidar';
 import pLimit from 'p-limit';
 import type { CliOptions } from './cli';
+import { cliWarn } from './cli';
 import { cliLog, parseCliArgs, printCliHelpMessage, printEnvInfo } from './cli';
 import { buildApplication } from './buildApplication';
 import { nextOnPagesVersion } from './utils';
@@ -27,6 +28,20 @@ function runNextOnPages(): void {
 	if (args.help) {
 		printCliHelpMessage();
 		return;
+	}
+
+	if (args.experimentalMinify) {
+		cliWarn(
+			`
+			Warning: the --experimental-minify|-e flag is deprecated and doesn't produce any effect, the
+			(previously named) experimental minification is now enabled by default, you can disable it
+			via the --disable-chunks-dedup|-d flag.
+
+			Note: if you're using the --experimental-minify|-e flag in your build command please remove it
+			      as it will be removed in a future version of the package (causing your command to fail).
+		`,
+			{ spaced: true }
+		);
 	}
 
 	// Run the build once

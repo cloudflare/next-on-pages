@@ -27,8 +27,12 @@ import { getCurrentPackageExecuter } from './packageManagerUtils';
  */
 export async function buildApplication({
 	skipBuild,
-	experimentalMinify,
-}: Pick<CliOptions, 'skipBuild' | 'experimentalMinify'>) {
+	disableChunksDedup,
+	disableWorkerMinification,
+}: Pick<
+	CliOptions,
+	'skipBuild' | 'disableChunksDedup' | 'disableWorkerMinification'
+>) {
 	let buildSuccess = true;
 	if (!skipBuild) {
 		try {
@@ -49,12 +53,15 @@ export async function buildApplication({
 
 	await deleteNextTelemetryFiles();
 
-	await prepareAndBuildWorker({ experimentalMinify });
+	await prepareAndBuildWorker({
+		disableChunksDedup,
+		disableWorkerMinification,
+	});
 	await buildMetadataFiles();
 }
 
 async function prepareAndBuildWorker(
-	options: Pick<CliOptions, 'experimentalMinify'>
+	options: Pick<CliOptions, 'disableChunksDedup' | 'disableWorkerMinification'>
 ): Promise<void> {
 	let vercelConfig: VercelConfig;
 	try {
@@ -79,7 +86,7 @@ async function prepareAndBuildWorker(
 	}
 
 	const { invalidFunctions, functionsMap, prerenderedRoutes } =
-		await generateFunctionsMap(functionsDir, options.experimentalMinify);
+		await generateFunctionsMap(functionsDir, options.disableChunksDedup);
 
 	if (invalidFunctions.size > 0) {
 		printInvalidFunctionsErrorMessage(Array.from(invalidFunctions));
@@ -118,7 +125,7 @@ async function prepareAndBuildWorker(
 	await buildWorkerFile(
 		processedVercelOutput,
 		nextJsConfigs,
-		options.experimentalMinify
+		!options.disableWorkerMinification
 	);
 }
 
