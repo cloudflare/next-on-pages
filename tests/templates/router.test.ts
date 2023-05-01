@@ -1,5 +1,4 @@
 import { describe, expect, suite, test, vi } from 'vitest';
-import { router } from '../../templates/_worker.js/router';
 import {
 	basicEdgeAppDirTestSet,
 	basicStaticAppDirTestSet,
@@ -9,6 +8,7 @@ import {
 } from './routerTestData';
 import type { TestCase, TestSet } from '../_helpers';
 import { createRouterTestData } from '../_helpers';
+import { Router } from '../../templates/_worker.js/router';
 
 /**
  * Runs a test case.
@@ -16,10 +16,7 @@ import { createRouterTestData } from '../_helpers';
  * @param requestRouter Router instance to use.
  * @param testCase Test case to run.
  */
-function runTestCase(
-	requestRouter: ReturnType<typeof router>,
-	testCase: TestCase
-) {
+function runTestCase(requestRouter: Router, testCase: TestCase) {
 	test(testCase.name, async () => {
 		const { paths, headers, expected } = testCase;
 
@@ -64,7 +61,7 @@ async function runTestSet({ config, files, testCases }: TestSet) {
 	const { vercelConfig, buildOutput, assetsFetcher } =
 		await createRouterTestData(config, files);
 
-	const requestRouter = router(
+	const requestRouter = new Router(
 		vercelConfig,
 		buildOutput,
 		assetsFetcher,

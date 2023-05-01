@@ -16,7 +16,6 @@ export type MatchedSet = {
  * Gets the next phase of the routing process.
  *
  * Determines which phase should follow the `none`, `filesystem`, `rewrite`, or `resource` phases.
-=======
  *
  * @param phase Current phase of the routing process.
  * @returns Next phase of the routing process.
@@ -106,64 +105,4 @@ export async function runOrFetchBuildOutputItem(
 	}
 
 	return createMutableResponse(resp);
-}
-
-/**
- * Processes the response from running a middleware function.
- *
- * Handles rewriting the URL and applying redirects, response headers, and overriden request headers.
- *
- * @param resp Middleware response object.
- * @param req Request object.
- * @param url URL object.
- * @param currentMatch The current details for matching the route.
- * @returns Updated details for matching the route.
- */
-export function processMiddlewareResp(
-	resp: Response,
-	req: Request,
-	url: URL,
-	currentMatch: Omit<MatchedSet, 'status'>
-): Omit<MatchedSet, 'status'> {
-	const { searchParams, headers } = currentMatch;
-	let path = currentMatch.path;
-
-	const overrideKey = 'x-middleware-override-headers';
-	const overrideHeader = resp.headers.get(overrideKey);
-	if (overrideHeader) {
-		const overridenHeaderKeys = new Set(
-			overrideHeader.split(',').map(h => h.trim())
-		);
-
-		for (const key of overridenHeaderKeys.keys()) {
-			const valueKey = `x-middleware-request-${key}`;
-			const value = resp.headers.get(valueKey);
-
-			if (req.headers.get(key) !== value) {
-				if (value) {
-					req.headers.set(key, value);
-				} else {
-					req.headers.delete(key);
-				}
-			}
-
-			resp.headers.delete(valueKey);
-		}
-
-		resp.headers.delete(overrideKey);
-	}
-
-	const rewriteKey = 'x-middleware-rewrite';
-	const rewriteHeader = resp.headers.get(rewriteKey);
-	if (rewriteHeader) {
-		const newUrl = new URL(rewriteHeader, url);
-		path = newUrl.pathname;
-		applySearchParams(newUrl.searchParams, searchParams);
-
-		resp.headers.delete(rewriteKey);
-	}
-
-	applyHeaders(resp.headers, headers.normal);
-
-	return { path, searchParams, headers };
 }
