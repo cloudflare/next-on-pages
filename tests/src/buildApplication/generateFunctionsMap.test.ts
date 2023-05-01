@@ -292,7 +292,7 @@ describe('generateFunctionsMap', async () => {
 			});
 
 			expect(invalidFunctions.size).toEqual(1);
-			expect(invalidFunctions.has('page.rsc.func')).toEqual(true);
+			expect(invalidFunctions.has('nested/page.rsc.func')).toEqual(true);
 
 			expect(mockedWarn).toHaveBeenCalledTimes(1);
 			expect(mockedWarn).toHaveBeenCalledWith(
@@ -329,7 +329,7 @@ describe('generateFunctionsMap', async () => {
 			});
 
 			expect(invalidFunctions.size).toEqual(1);
-			expect(invalidFunctions.has('index.rsc.func')).toEqual(true);
+			expect(invalidFunctions.has('nested/index.rsc.func')).toEqual(true);
 
 			expect(mockedWarn).toHaveBeenCalledTimes(1);
 			expect(mockedWarn).toHaveBeenCalledWith(
@@ -361,7 +361,7 @@ describe('generateFunctionsMap', async () => {
 			expect(prerenderedRoutes.size).toEqual(0);
 
 			expect(invalidFunctions.size).toEqual(1);
-			expect(invalidFunctions.has('index.func')).toEqual(true);
+			expect(invalidFunctions.has('nested/index.func')).toEqual(true);
 
 			expect(mockedWarn).toHaveBeenCalledTimes(1);
 			expect(mockedWarn).toHaveBeenCalledWith(
