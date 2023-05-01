@@ -13,7 +13,7 @@ export type MatchedSet = {
 };
 
 /**
- * Get the next phase of the routing process.
+ * Gets the next phase of the routing process.
  *
  * @param phase Current phase of the routing process.
  * @returns Next phase of the routing process.
@@ -45,7 +45,7 @@ export function getNextPhase(
 }
 
 /**
- * Run or fetch a build output item.
+ * Runs or fetches a build output item.
  *
  * @param item Build output item to run or fetch.
  * @param request Request object.
@@ -102,14 +102,11 @@ export async function runItem(
 		return new Response('Internal Server Error', { status: 500 });
 	}
 
-	return resp
-		? // construct a new response as the original response might be immutable
-		  createMutableResponse(resp)
-		: new Response('Not Found', { status: 404 });
+	return createMutableResponse(resp);
 }
 
 /**
- * Process the response from running a middleware function.
+ * Processes the response from running a middleware function.
  *
  * Handles rewriting the URL and applying redirects, response headers, and overriden request headers.
  *
