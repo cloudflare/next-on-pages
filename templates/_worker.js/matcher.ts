@@ -264,7 +264,9 @@ export class Matcher {
 		// NOTE: Special handling for `.rsc` requests. If the Vercel CLI failed to generate an RSC
 		// version of the page and the build output config has a record mapping the request to the
 		// RSC variant, we should strip the `.rsc` extension from the path.
-		if (/\.rsc$/i.test(this.path) && !(this.path in this.output)) {
+		const isRsc = /\.rsc$/i.test(this.path);
+		const pathIsGenerated = this.path in this.output;
+		if (isRsc && !pathIsGenerated) {
 			this.path = this.path.replace(/\.rsc/i, '');
 		}
 
@@ -290,15 +292,17 @@ export class Matcher {
 		checkStatus?: boolean
 	): Promise<CheckRouteStatus> {
 		const routeMatch = this.checkRouteMatch(route, checkStatus);
+
 		// If this route doesn't match, continue to the next one.
 		if (!routeMatch?.match) return 'skip';
+
 		const { match: srcMatch, captureGroupKeys } = routeMatch;
 
 		// If this route overrides, replace the response headers and status.
 		this.applyRouteOverrides(route);
 
 		// Call and process the middleware if this is a middleware route.
-		const success = await this.runRouteMiddleware(route?.middlewarePath);
+		const success = await this.runRouteMiddleware(route.middlewarePath);
 		if (!success) return 'error';
 
 		// Update final headers with the ones from this route.
@@ -310,7 +314,7 @@ export class Matcher {
 		// Update the path with the new destination.
 		const prevPath = this.applyRouteDest(route, srcMatch, captureGroupKeys);
 
-		// If `check` is required and the path isn't an URL, check it again.
+		// If `check` is required and the path isn't a URL, check it again.
 		if (route.check && !isUrl(this.path)) {
 			if (prevPath === this.path) {
 				// NOTE: If the current/rewritten path is the same as the one that entered the phase, it
@@ -331,7 +335,7 @@ export class Matcher {
 	}
 
 	/**
-	 * Checks a phase from the routing process to see if any routes match the current request.
+	 * Checks a phase from the routing process to see if any route matches the current request.
 	 *
 	 * @param phase Current phase for routing.
 	 * @returns The status from checking the phase.
@@ -370,10 +374,12 @@ export class Matcher {
 			return 'done';
 		}
 
-		// In the `miss` phase, set status to 404 if no path was found and it isn't an error code.
 		const pathExistsInOutput = this.path in this.output;
+
+		// In the `miss` phase, set status to 404 if no path was found and it isn't an error code.
 		if (phase === 'miss' && !pathExistsInOutput) {
-			this.status = !this.status || this.status < 400 ? 404 : this.status;
+			const should404 = !this.status || this.status < 400;
+			this.status = should404 ? 404 : this.status;
 		}
 
 		let nextPhase: VercelHandleValue = 'miss';
@@ -400,13 +406,16 @@ export class Matcher {
 		const result = await this.checkPhase(phase);
 
 		// Check if path is an external URL.
-		if (isUrl(this.path)) this.headers.normal.set('location', this.path);
+		if (isUrl(this.path)) {
+			this.headers.normal.set('location', this.path);
+		}
 
 		// Update status to redirect user to external URL.
-		if (this.headers.normal.has('location')) {
-			if (!this.status || this.status < 300 || this.status >= 400) {
-				this.status = 307;
-			}
+		if (
+			this.headers.normal.has('location') &&
+			(!this.status || this.status < 300 || this.status >= 400)
+		) {
+			this.status = 307;
 		}
 
 		return result;

@@ -36,7 +36,7 @@ export class Router {
 	}
 
 	/**
-	 * Find a match for the request.
+	 * Finds a match for the request.
 	 *
 	 * @param matcher Instance of the matcher for the request.
 	 * @param phase The phase to run, either `none` or `error`.
