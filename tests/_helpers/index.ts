@@ -34,10 +34,7 @@ export class MockAssetFetcher {
 
 	constructor(assets: Record<string, Asset> = {}) {
 		this.assets = Object.fromEntries(
-			[...Object.entries(assets)].map(([key, value]) => [
-				key.replace(/\.html$/, ''),
-				value,
-			])
+			[...Object.entries(assets)].map(([key, value]) => [key, value])
 		);
 	}
 
@@ -208,9 +205,9 @@ export async function createRouterTestData(
 		{} as VercelBuildOutput
 	);
 
-	const assetsFetcher = new MockAssetFetcher();
+	const staticAssetsForFetcher = staticAssets.reduce((acc, path) => {
+		const newAcc = { ...acc };
 
-	staticAssets.forEach(path => {
 		const item = buildOutput[path];
 		const contentType =
 			(item?.type === 'override' && item.headers?.['content-type']) ||
@@ -219,8 +216,11 @@ export async function createRouterTestData(
 		const fsPath = join(resolve('.vercel', 'output', 'static'), path);
 		const data = readFileSync(fsPath, 'utf-8');
 
-		assetsFetcher.addAsset(path, { data, type: contentType });
-	});
+		newAcc[path] = { data, type: contentType };
+		return newAcc;
+	}, {} as Record<string, Asset>);
+
+	const assetsFetcher = new MockAssetFetcher(staticAssetsForFetcher);
 
 	mockFs.restore();
 	return { vercelConfig, buildOutput, assetsFetcher };

@@ -8,7 +8,7 @@ import {
 	getNextPhase,
 	isUrl,
 	processMiddlewareResp,
-	runItem,
+	runOrFetchBuildOutputItem,
 } from './utils';
 
 /**
@@ -87,7 +87,7 @@ export function router(
 					return { path, status, headers, searchParams };
 				}
 
-				const middlewareResp = await runItem(
+				const middlewareResp = await runOrFetchBuildOutputItem(
 					middlewareItem,
 					req,
 					{ path, status, headers, searchParams },
@@ -262,7 +262,7 @@ export function router(
 			return serve(req, errorMatch, true);
 		}
 
-		let resp = await runItem(
+		let resp = await runOrFetchBuildOutputItem(
 			output[path],
 			req,
 			{ path, status, headers, searchParams },

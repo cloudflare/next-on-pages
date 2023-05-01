@@ -15,11 +15,17 @@ export type MatchedSet = {
 /**
  * Gets the next phase of the routing process.
  *
+ * Determines which phase should follow the `none`, `filesystem`, `rewrite`, or `resource` phases.
+=======
+ *
  * @param phase Current phase of the routing process.
  * @returns Next phase of the routing process.
  */
 export function getNextPhase(
-	phase: keyof ProcessedVercelRoutes
+	phase: Extract<
+		keyof ProcessedVercelRoutes,
+		'none' | 'filesystem' | 'rewrite' | 'resource'
+	>
 ): VercelHandleValue {
 	switch (phase) {
 		// `none` applied headers/redirects/middleware/`beforeFiles` rewrites. It checked non-dynamic routes and static assets.
@@ -38,9 +44,6 @@ export function getNextPhase(
 		case 'resource': {
 			return 'miss';
 		}
-		default: {
-			return 'miss';
-		}
 	}
 }
 
@@ -54,7 +57,7 @@ export function getNextPhase(
  * @param ctx Execution context for the request.
  * @returns Response object.
  */
-export async function runItem(
+export async function runOrFetchBuildOutputItem(
 	item: VercelBuildOutputItem | undefined,
 	request: Request,
 	{ path, searchParams }: MatchedSet,
