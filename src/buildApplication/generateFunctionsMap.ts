@@ -180,7 +180,7 @@ async function processFuncDirectory(
 			return {};
 		}
 		return {
-			invalidFunctions: new Set([file]),
+			invalidFunctions: new Set([relativePath]),
 		};
 	}
 
@@ -205,7 +205,7 @@ async function processFuncDirectory(
 		}
 
 		return {
-			invalidFunctions: new Set([file]),
+			invalidFunctions: new Set([relativePath]),
 		};
 	}
 
