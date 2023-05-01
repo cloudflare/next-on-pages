@@ -1,6 +1,6 @@
 import type { MatchedSet } from './utils';
 import { applyHeaders, runOrFetchBuildOutputItem } from './utils';
-import { RoutesMatcher } from './matcher';
+import { RoutesMatcher } from './routes-matcher';
 
 /**
  * The router is used to match and serve routes in the Vercel build output.
