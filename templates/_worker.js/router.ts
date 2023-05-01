@@ -1,16 +1,13 @@
 import type { MatchedSet } from './utils';
 import { applyHeaders, runOrFetchBuildOutputItem } from './utils';
-import { Matcher } from './matcher';
+import { RoutesMatcher } from './matcher';
 
+/**
+ * The router is used to match and serve routes in the Vercel build output.
+ */
 export class Router {
 	/** Processed routes from the Vercel build output config. */
 	private routes: ProcessedVercelRoutes;
-	/** Vercel build output. */
-	private output: VercelBuildOutput;
-	/** Static assets fetcher. */
-	private assets: Fetcher;
-	/** Execution context. */
-	private ctx: ExecutionContext;
 
 	/**
 	 * Creates a new instance of the router.
@@ -25,14 +22,14 @@ export class Router {
 	 */
 	constructor(
 		config: ProcessedVercelConfig,
-		output: VercelBuildOutput,
-		assets: Fetcher,
-		ctx: ExecutionContext
+		/** Vercel build output. */
+		private output: VercelBuildOutput,
+		/** Static assets fetcher. */
+		private assets: Fetcher,
+		/** Execution context. */
+		private ctx: ExecutionContext
 	) {
 		this.routes = config.routes;
-		this.output = output;
-		this.assets = assets;
-		this.ctx = ctx;
 	}
 
 	/**
@@ -41,10 +38,10 @@ export class Router {
 	 * @param matcher Instance of the matcher for the request.
 	 * @param phase The phase to run, either `none` or `error`.
 	 * @param skipErrorMatch Whether to skip the error match.
-	 * @returns
+	 * @returns The matched set of path, status, headers, and search params.
 	 */
 	private async findMatch(
-		matcher: Matcher,
+		matcher: RoutesMatcher,
 		phase: 'none' | 'error' = 'none',
 		skipErrorMatch = false
 	): Promise<MatchedSet> {
@@ -72,7 +69,7 @@ export class Router {
 	 * @returns The matched set of path, status, headers, and search params.
 	 */
 	public async match(req: Request): Promise<MatchedSet> {
-		const matcher = new Matcher(
+		const matcher = new RoutesMatcher(
 			this.routes,
 			this.output,
 			this.assets,
@@ -92,8 +89,16 @@ export class Router {
 	 */
 	public async serve(req: Request, match: MatchedSet): Promise<Response> {
 		const { path = '/404', status, headers, searchParams } = match;
+
 		// Redirect user to external URL for redirects.
 		if (headers.normal.has('location')) {
+			// Apply the search params to the location header.
+			const location = headers.normal.get('location') ?? '/';
+			const paramsStr = [...searchParams.keys()].length
+				? `?${searchParams.toString()}`
+				: '';
+			headers.normal.set('location', `${location}${paramsStr}`);
+
 			return new Response(null, { status, headers: headers.normal });
 		}
 
@@ -106,8 +111,8 @@ export class Router {
 		);
 
 		const newHeaders = headers.normal;
-		applyHeaders(resp.headers, newHeaders);
-		applyHeaders(headers.important, newHeaders);
+		applyHeaders(newHeaders, resp.headers);
+		applyHeaders(newHeaders, headers.important);
 
 		resp = new Response(resp.body, {
 			...resp,

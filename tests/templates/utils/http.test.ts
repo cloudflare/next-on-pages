@@ -10,7 +10,7 @@ import {
 describe('applyHeaders', () => {
 	test('applies headers from normal object', () => {
 		const headers = new Headers({ foo: 'bar' });
-		applyHeaders({ other: 'value' }, headers);
+		applyHeaders(headers, { other: 'value' });
 
 		expect(Object.fromEntries(headers.entries())).toEqual({
 			foo: 'bar',
@@ -20,7 +20,7 @@ describe('applyHeaders', () => {
 
 	test('applies headers from headers object', () => {
 		const headers = new Headers({ foo: 'bar' });
-		applyHeaders(new Headers({ other: 'value' }), headers);
+		applyHeaders(headers, new Headers({ other: 'value' }));
 
 		expect(Object.fromEntries(headers.entries())).toEqual({
 			foo: 'bar',
@@ -34,7 +34,7 @@ describe('applyHeaders', () => {
 			match: ['localhost/index.html', 'index.html'],
 			captureGroupKeys: ['path'],
 		};
-		applyHeaders({ other: 'path/to/$path' }, headers, pcreMatch);
+		applyHeaders(headers, { other: 'path/to/$path' }, pcreMatch);
 
 		expect(Object.fromEntries(headers.entries())).toEqual({
 			foo: 'bar',
@@ -61,7 +61,7 @@ describe('applySearchParams', () => {
 		expect([...source.searchParams.entries()].length).toEqual(1);
 		expect([...target.searchParams.entries()].length).toEqual(1);
 
-		applySearchParams(source.searchParams, target.searchParams);
+		applySearchParams(target.searchParams, source.searchParams);
 
 		expect([...source.searchParams.entries()].length).toEqual(1);
 		expect([...target.searchParams.entries()].length).toEqual(2);

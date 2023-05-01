@@ -133,6 +133,8 @@ type ProcessedVercelRoutes = {
 	hit: VercelSource[];
 	error: VercelSource[];
 };
+type VercelPhase = keyof ProcessedVercelRoutes;
+
 type ProcessedVercelConfig = Override<
 	VercelConfig,
 	'routes',

@@ -18,7 +18,9 @@ export type TestSet = {
 export type TestCase = {
 	name: string;
 	paths: string[];
+	host?: string;
 	headers?: Record<string, string>;
+	method?: string;
 	expected: {
 		status: number;
 		data: string;

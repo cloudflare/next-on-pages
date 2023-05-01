@@ -1,17 +1,10 @@
 import { describe, test, expect } from 'vitest';
 import { parse } from 'cookie';
-import { hasField, checkRouteMatch } from '../../../templates/_worker.js/utils';
+import { hasField } from '../../../templates/_worker.js/utils';
 
 type HasFieldTestCase = {
 	name: string;
 	has: VercelHasField;
-	expected: boolean;
-};
-
-type CheckRouteMatchTestCase = {
-	name: string;
-	route: VercelSource;
-	requiredStatus?: number;
 	expected: boolean;
 };
 
@@ -105,131 +98,6 @@ describe('hasField', () => {
 				headers: req.headers,
 			});
 			expect(result).toEqual(testCase.expected);
-		});
-	});
-});
-
-describe('checkRouteMatch', () => {
-	const testCases: CheckRouteMatchTestCase[] = [
-		{
-			name: 'matches a route with only `src`',
-			route: { src: '^/index$' },
-			expected: true,
-		},
-		{
-			name: "doesn't match a route with invalid `src`",
-			route: { src: '^/invalid$' },
-			expected: false,
-		},
-		{
-			name: 'matches a route with `src` and single `has`',
-			route: { src: '^/index$', has: [{ type: 'host', value: 'test.com' }] },
-			expected: true,
-		},
-		{
-			name: 'matches a route with `src` and multiple `has`',
-			route: {
-				src: '^/index$',
-				has: [
-					{ type: 'host', value: 'test.com' },
-					{ type: 'header', key: 'headerWithoutValue' },
-					{ type: 'query', key: 'queryWithValue', value: 'value' },
-				],
-			},
-			expected: true,
-		},
-		{
-			name: 'matches a route with `src` and `missing`',
-			route: {
-				src: '^/index$',
-				missing: [{ type: 'host', value: 'example.com' }],
-			},
-			expected: true,
-		},
-		{
-			name: "doesn't match a route with `src` and invalid `missing`",
-			route: {
-				src: '^/index$',
-				missing: [{ type: 'host', value: 'test.com' }],
-			},
-			expected: false,
-		},
-		{
-			name: 'match with `src` and multiple `missing`',
-			route: {
-				src: '^/index$',
-				missing: [
-					{ type: 'host', value: 'example.com' },
-					{ type: 'query', key: 'missingQuery' },
-				],
-			},
-			expected: true,
-		},
-		{
-			name: "doesn't match with `src` and multiple `missing` (one valid, one invalid)",
-			route: {
-				src: '^/index$',
-				missing: [
-					{ type: 'host', value: 'example.com' },
-					{ type: 'query', key: 'queryWithValue' },
-				],
-			},
-			expected: false,
-		},
-		{
-			name: 'match with `src` and `has` and `missing`',
-			route: {
-				src: '^/index$',
-				has: [{ type: 'host', value: 'test.com' }],
-				missing: [{ type: 'host', value: 'example.com' }],
-			},
-			expected: true,
-		},
-		{
-			name: 'match with `status` and required status',
-			route: { src: '^/index$', status: 404 },
-			requiredStatus: 404,
-			expected: true,
-		},
-		{
-			name: "doesn't match with invalid `status` and required status",
-			route: { src: '^/index$', status: 500 },
-			requiredStatus: 404,
-			expected: false,
-		},
-		{
-			name: 'match with `src` + `has` + `missing` + `methods`',
-			route: {
-				src: '^/index$',
-				has: [{ type: 'host', value: 'test.com' }],
-				missing: [{ type: 'query', key: 'missingQuery' }],
-				methods: ['GET'],
-				status: 500,
-			},
-			expected: true,
-		},
-		{
-			name: 'match with correct `method`',
-			route: { src: '^/index$', methods: ['GET'], status: 200 },
-			expected: true,
-		},
-		{
-			name: "doesn't match with incorrect `method`",
-			route: { src: '^/index$', methods: ['POST'], status: 200 },
-			expected: false,
-		},
-	];
-
-	testCases.forEach(testCase => {
-		test(testCase.name, () => {
-			const result = checkRouteMatch(testCase.route, url.pathname, {
-				url,
-				cookies,
-				headers: req.headers,
-				method: req.method,
-				requiredStatus: testCase.requiredStatus,
-			});
-			expect(!!result).toEqual(testCase.expected);
 		});
 	});
 });

@@ -21,10 +21,7 @@ export type MatchedSet = {
  * @returns Next phase of the routing process.
  */
 export function getNextPhase(
-	phase: Extract<
-		keyof ProcessedVercelRoutes,
-		'none' | 'filesystem' | 'rewrite' | 'resource'
-	>
+	phase: Extract<VercelPhase, 'none' | 'filesystem' | 'rewrite' | 'resource'>
 ): VercelHandleValue {
 	switch (phase) {
 		// `none` applied headers/redirects/middleware/`beforeFiles` rewrites. It checked non-dynamic routes and static assets.
@@ -67,7 +64,7 @@ export async function runOrFetchBuildOutputItem(
 
 	// Apply the search params from matching the route to the request URL.
 	const url = new URL(request.url);
-	applySearchParams(searchParams, url.searchParams);
+	applySearchParams(url.searchParams, searchParams);
 	const req = new Request(url, request);
 
 	try {
@@ -82,7 +79,7 @@ export async function runOrFetchBuildOutputItem(
 				);
 
 				if (item.headers) {
-					applyHeaders(item.headers, resp.headers);
+					applyHeaders(resp.headers, item.headers);
 				}
 				break;
 			}

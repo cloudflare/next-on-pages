@@ -2,6 +2,7 @@ import { describe, expect, suite, test, vi } from 'vitest';
 import {
 	basicEdgeAppDirTestSet,
 	basicStaticAppDirTestSet,
+	checkRouteMatchTestSet,
 	configRewritesRedirectsHeadersTestSet,
 	dynamicRoutesTestSet,
 	middlewareTestSet,
@@ -18,15 +19,21 @@ import { Router } from '../../templates/_worker.js/router';
  */
 function runTestCase(requestRouter: Router, testCase: TestCase) {
 	test(testCase.name, async () => {
-		const { paths, headers, expected } = testCase;
+		const {
+			paths,
+			headers,
+			host = 'localhost',
+			method = 'GET',
+			expected,
+		} = testCase;
 
-		const urls = paths.map(p => `http://localhost${p}`);
+		const urls = paths.map(p => `http://${host}${p}`);
 		for (const url of urls) {
 			const mockedConsoleError = vi
 				.spyOn(console, 'error')
 				.mockImplementation(() => null);
 
-			const req = new Request(url, { headers });
+			const req = new Request(url, { method, headers });
 			const match = await requestRouter.match(req);
 			const res = await requestRouter.serve(req, match);
 
@@ -75,6 +82,7 @@ suite('router', () => {
 	[
 		basicEdgeAppDirTestSet,
 		basicStaticAppDirTestSet,
+		checkRouteMatchTestSet,
 		configRewritesRedirectsHeadersTestSet,
 		dynamicRoutesTestSet,
 		middlewareTestSet,

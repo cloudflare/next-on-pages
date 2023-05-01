@@ -4,27 +4,20 @@ import {
 	applyHeaders,
 	applyPCREMatches,
 	applySearchParams,
+	hasField,
 	getNextPhase,
 	isUrl,
+	matchPCRE,
 	runOrFetchBuildOutputItem,
-	checkRouteMatch as checkRouteMatchUtility,
 } from './utils';
 
 export type CheckRouteStatus = 'skip' | 'next' | 'done' | 'error';
 export type CheckPhaseStatus = Extract<CheckRouteStatus, 'error' | 'done'>;
 
-export class Matcher {
-	/** Processed routes from the Vercel build output config. */
-	private routes: ProcessedVercelRoutes;
-	/** Vercel build output. */
-	private output: VercelBuildOutput;
-	/** Static assets fetcher. */
-	private assets: Fetcher;
-	/** Execution context. */
-	private ctx: ExecutionContext;
-
-	/** Request to match */
-	private req: Request;
+/**
+ * The routes matcher is used to match a request to a route and run the route's middleware.
+ */
+export class RoutesMatcher {
 	/** URL from the request to match */
 	private url: URL;
 	/** Cookies from the request to match */
@@ -44,7 +37,7 @@ export class Matcher {
 	 *
 	 * The matcher is used to match a request to a route and run the route's middleware.
 	 *
-	 * @param config The processed Vercel build output config.
+	 * @param routes The processed Vercel build output config routes.
 	 * @param output Vercel build output.
 	 * @param assets Static assets fetcher.
 	 * @param ctx Execution context.
@@ -53,19 +46,18 @@ export class Matcher {
 	 * @returns The matched set of path, status, headers, and search params.
 	 */
 	constructor(
-		routes: ProcessedVercelRoutes,
-		output: VercelBuildOutput,
-		assets: Fetcher,
-		ctx: ExecutionContext,
-		req: Request,
+		/** Processed routes from the Vercel build output config. */
+		private routes: ProcessedVercelRoutes,
+		/** Vercel build output. */
+		private output: VercelBuildOutput,
+		/** Static assets fetcher. */
+		private assets: Fetcher,
+		/** Execution context. */
+		private ctx: ExecutionContext,
+		/** Request to match */
+		private req: Request,
 		prevMatch?: MatchedSet
 	) {
-		this.routes = routes;
-		this.output = output;
-		this.assets = assets;
-		this.ctx = ctx;
-
-		this.req = req;
 		this.url = new URL(req.url);
 		this.cookies = parse(req.headers.get('cookie') || '');
 
@@ -89,13 +81,41 @@ export class Matcher {
 		route: VercelSource,
 		checkStatus?: boolean
 	): MatchPCREResult | undefined {
-		return checkRouteMatchUtility(route, this.path, {
+		const srcMatch = matchPCRE(route.src, this.path, route.caseSensitive);
+		if (!srcMatch.match) return;
+
+		// One of the HTTP `methods` conditions must be met - skip if not met.
+		if (
+			route.methods &&
+			!route.methods
+				.map(m => m.toUpperCase())
+				.includes(this.req.method.toUpperCase())
+		) {
+			return;
+		}
+
+		const hasFieldProps = {
 			url: this.url,
 			cookies: this.cookies,
 			headers: this.req.headers,
-			method: this.req.method,
-			requiredStatus: checkStatus ? this.status : undefined,
-		});
+		};
+
+		// All `has` conditions must be met - skip if one is not met.
+		if (route.has?.find(has => !hasField(has, hasFieldProps))) {
+			return;
+		}
+
+		// All `missing` conditions must not be met - skip if one is met.
+		if (route.missing?.find(has => hasField(has, hasFieldProps))) {
+			return;
+		}
+
+		// Required status code must match (i.e. for error routes) - skip if not met.
+		if (checkStatus && route.status !== this.status) {
+			return;
+		}
+
+		return srcMatch;
 	}
 
 	/**
@@ -136,12 +156,12 @@ export class Matcher {
 		if (rewriteHeader) {
 			const newUrl = new URL(rewriteHeader, this.url);
 			this.path = newUrl.pathname;
-			applySearchParams(newUrl.searchParams, this.searchParams);
+			applySearchParams(this.searchParams, newUrl.searchParams);
 
 			resp.headers.delete(rewriteKey);
 		}
 
-		applyHeaders(resp.headers, this.headers.normal);
+		applyHeaders(this.headers.normal, resp.headers);
 	}
 
 	/**
@@ -211,13 +231,13 @@ export class Matcher {
 	): void {
 		if (!route.headers) return;
 
-		applyHeaders(route.headers, this.headers.normal, {
+		applyHeaders(this.headers.normal, route.headers, {
 			match: srcMatch,
 			captureGroupKeys,
 		});
 
 		if (route.important) {
-			applyHeaders(route.headers, this.headers.important, {
+			applyHeaders(this.headers.important, route.headers, {
 				match: srcMatch,
 				captureGroupKeys,
 			});
@@ -265,17 +285,17 @@ export class Matcher {
 		// version of the page and the build output config has a record mapping the request to the
 		// RSC variant, we should strip the `.rsc` extension from the path.
 		const isRsc = /\.rsc$/i.test(this.path);
-		const pathIsGenerated = this.path in this.output;
-		if (isRsc && !pathIsGenerated) {
+		const pathExistsInOutput = this.path in this.output;
+		if (isRsc && !pathExistsInOutput) {
 			this.path = this.path.replace(/\.rsc/i, '');
 		}
 
-		// If not an external URL, merge search params for later use.
-		if (!isUrl(this.path)) {
-			const destUrl = new URL(this.path, this.url);
-			applySearchParams(destUrl.searchParams, this.searchParams);
-			this.path = destUrl.pathname;
-		}
+		// Merge search params for later use when serving a response.
+		const destUrl = new URL(this.path, this.url);
+		applySearchParams(this.searchParams, destUrl.searchParams);
+
+		// If the new dest is not an URL, update the path with the path from the URL.
+		if (!isUrl(this.path)) this.path = destUrl.pathname;
 
 		return prevPath;
 	}
@@ -340,27 +360,18 @@ export class Matcher {
 	 * @param phase Current phase for routing.
 	 * @returns The status from checking the phase.
 	 */
-	private async checkPhase(
-		phase: keyof ProcessedVercelRoutes
-	): Promise<CheckPhaseStatus> {
+	private async checkPhase(phase: VercelPhase): Promise<CheckPhaseStatus> {
 		let shouldContinue = true;
 
 		for (const route of this.routes[phase]) {
 			const result = await this.checkRoute(route, phase === 'error');
 
-			switch (result) {
-				case 'skip':
-					continue;
-				case 'done':
-					shouldContinue = false;
-					break;
-				case 'error':
-					return 'error';
-				case 'next':
-					break;
+			if (result === 'error') {
+				return 'error';
 			}
 
-			if (!shouldContinue) {
+			if (result === 'done') {
+				shouldContinue = false;
 				break;
 			}
 		}
@@ -401,7 +412,7 @@ export class Matcher {
 	 * @returns The status from checking for matches.
 	 */
 	public async run(
-		phase: Extract<keyof ProcessedVercelRoutes, 'none' | 'error'> = 'none'
+		phase: Extract<VercelPhase, 'none' | 'error'> = 'none'
 	): Promise<CheckPhaseStatus> {
 		const result = await this.checkPhase(phase);
 

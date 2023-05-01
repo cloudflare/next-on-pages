@@ -13,6 +13,12 @@ const rawVercelConfig: VercelConfig = {
 			continue: true,
 			override: true,
 		},
+		{
+			src: '^/redirect/(?<paramWithValue>[^/]+?)/param(?:/)?$',
+			headers: {
+				location: '/redirect/with/param?paramWithValue=$paramWithValue',
+			},
+		},
 		{ handle: 'rewrite' },
 		{
 			src: '^/_next/data/iJgI1dhNzKWmpXhfhPItf/dynamic/(?<pageId>[^/]+?)(?:/)?.json$',
@@ -142,6 +148,15 @@ export const testSet: TestSet = {
 					'content-type': 'text/plain;charset=UTF-8',
 					'x-matched-path': '/dynamic/[pageId]',
 				},
+			},
+		},
+		{
+			name: 'redirects include search params from match',
+			paths: ['/redirect/value/param'],
+			expected: {
+				status: 307,
+				data: '',
+				headers: { location: '/redirect/with/param?paramWithValue=value' },
 			},
 		},
 	],

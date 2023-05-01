@@ -1,6 +1,3 @@
-import type { MatchPCREResult } from './pcre';
-import { matchPCRE } from './pcre';
-
 type HasFieldRequestProperties = {
 	url: URL;
 	cookies: Record<string, string>;
@@ -46,60 +43,4 @@ export function hasField(
 			return url.searchParams.has(has.key);
 		}
 	}
-}
-
-type CheckRouteMatchRequestProperties = {
-	url: URL;
-	cookies: Record<string, string>;
-	headers: Headers;
-	method: string;
-	requiredStatus?: number;
-};
-
-/**
- * Checks if a Vercel source route from the build output config matches a request.
- *
- * @param route Build output config source route object.
- * @param currentPath Current path to check against.
- * @param requestProperties Request properties to check against.
- * @returns The source path match result if the route matches, otherwise `undefined`.
- */
-export function checkRouteMatch(
-	route: VercelSource,
-	currentPath: string,
-	{
-		url,
-		cookies,
-		headers,
-		method,
-		requiredStatus,
-	}: CheckRouteMatchRequestProperties
-): MatchPCREResult | undefined {
-	const srcMatch = matchPCRE(route.src, currentPath, route.caseSensitive);
-	if (!srcMatch.match) return;
-
-	// One of the HTTP `methods` conditions must be met - skip if not met.
-	if (
-		route.methods &&
-		!route.methods.map(m => m.toUpperCase()).includes(method.toUpperCase())
-	) {
-		return;
-	}
-
-	// All `has` conditions must be met - skip if one is not met.
-	if (route.has?.find(has => !hasField(has, { url, cookies, headers }))) {
-		return;
-	}
-
-	// All `missing` conditions must not be met - skip if one is met.
-	if (route.missing?.find(has => hasField(has, { url, cookies, headers }))) {
-		return;
-	}
-
-	// Required status code must match (i.e. for error routes) - skip if not met.
-	if (requiredStatus && route.status !== requiredStatus) {
-		return;
-	}
-
-	return srcMatch;
 }

@@ -4,13 +4,13 @@ import { applyPCREMatches } from './pcre';
 /**
  * Applies a set of headers to a response.
  *
- * @param source Headers to apply.
  * @param target Headers object to apply to.
+ * @param source Headers to apply.
  * @param pcreMatch PCRE match result to apply to header values.
  */
 export function applyHeaders(
-	source: Record<string, string> | Headers,
 	target: Headers,
+	source: Record<string, string> | Headers,
 	pcreMatch?: MatchPCREResult
 ): void {
 	const entries =
@@ -38,12 +38,12 @@ export function isUrl(url: string): boolean {
 /**
  * Merges search params from one URLSearchParams object to another.
  *
- * @param source Source search params to apply to the target.
  * @param target Target that search params will be applied to.
+ * @param source Source search params to apply to the target.
  */
 export function applySearchParams(
-	source: URLSearchParams,
-	target: URLSearchParams
+	target: URLSearchParams,
+	source: URLSearchParams
 ) {
 	for (const [key, value] of source.entries()) {
 		target.set(key, value);
