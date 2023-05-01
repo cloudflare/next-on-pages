@@ -45,8 +45,8 @@ export type ProcessedVercelOutput = {
 export function processVercelOutput(
 	config: VercelConfig,
 	staticAssets: string[],
-	prerenderedRoutes: Map<string, PrerenderedFileData>,
-	functionsMap: Map<string, string>
+	prerenderedRoutes = new Map<string, PrerenderedFileData>(),
+	functionsMap = new Map<string, string>()
 ): ProcessedVercelOutput {
 	const processedConfig = processVercelConfig(config);
 

@@ -403,7 +403,7 @@ type ProcessingSetup = {
 	disableChunksDedup: boolean;
 };
 
-type DirectoryProcessingResults = {
+export type DirectoryProcessingResults = {
 	invalidFunctions: Set<string>;
 	functionsMap: Map<string, string>;
 	webpackChunks: Map<number, string>;

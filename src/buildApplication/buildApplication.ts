@@ -4,6 +4,7 @@ import type { CliOptions } from '../cli';
 import { cliError, cliLog } from '../cli';
 import { getVercelConfig } from './getVercelConfig';
 import { buildWorkerFile } from './buildWorkerFile';
+import type { DirectoryProcessingResults } from './generateFunctionsMap';
 import { generateFunctionsMap } from './generateFunctionsMap';
 import {
 	buildVercelOutput,
@@ -70,23 +71,27 @@ async function prepareAndBuildWorker(
 		exit(1);
 	}
 
+	let generatedFunctionsMaps: DirectoryProcessingResults | undefined;
+
 	const functionsDir = resolve('.vercel', 'output', 'functions');
 	if (!(await validateDir(functionsDir))) {
 		cliLog('No functions detected.');
-		return;
-	}
+	} else {
+		generatedFunctionsMaps = await generateFunctionsMap(
+			functionsDir,
+			options.disableChunksDedup
+		);
 
-	const { invalidFunctions, functionsMap, prerenderedRoutes } =
-		await generateFunctionsMap(functionsDir, options.disableChunksDedup);
+		if (generatedFunctionsMaps.invalidFunctions.size > 0) {
+			printInvalidFunctionsErrorMessage(
+				Array.from(generatedFunctionsMaps.invalidFunctions)
+			);
+			exit(1);
+		}
 
-	if (invalidFunctions.size > 0) {
-		printInvalidFunctionsErrorMessage(Array.from(invalidFunctions));
-		exit(1);
-	}
-
-	if (functionsMap.size === 0) {
-		cliLog('No functions detected.');
-		return;
+		if (generatedFunctionsMaps.functionsMap.size === 0) {
+			cliLog('No functions detected.');
+		}
 	}
 
 	const staticAssets = await getVercelStaticAssets();
@@ -94,8 +99,8 @@ async function prepareAndBuildWorker(
 	const processedVercelOutput = processVercelOutput(
 		vercelConfig,
 		staticAssets,
-		prerenderedRoutes,
-		functionsMap
+		generatedFunctionsMaps?.prerenderedRoutes,
+		generatedFunctionsMaps?.functionsMap
 	);
 
 	await buildWorkerFile(processedVercelOutput, !options.disableWorkerMinification);
