@@ -183,7 +183,7 @@ export async function createRouterTestData(
 
 	const { functionsMap, prerenderedRoutes } = await generateFunctionsMap(
 		join('.vercel', 'output', 'functions'),
-		false
+		true
 	);
 
 	const staticAssets = await getVercelStaticAssets();
