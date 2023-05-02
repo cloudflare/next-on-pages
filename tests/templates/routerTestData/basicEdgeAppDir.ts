@@ -53,6 +53,7 @@ const rawVercelConfig: VercelConfig = {
 			dest: '$0',
 		},
 		{ handle: 'rewrite' },
+		{ src: '/_next/data/KrEKu7sTpLxBoWS8AxVhX/index.json', dest: '/index' },
 		{ src: '/_next/data/(.*)', dest: '/404', status: 404 },
 		{ handle: 'hit' },
 		{
@@ -216,6 +217,18 @@ export const testSet: TestSet = {
 				headers: {
 					'content-type': 'text/html; charset=utf-8',
 					'x-matched-path': '/404',
+				},
+			},
+		},
+		{
+			name: 'issue 70 - rewrite phase should enter after filesystem rewrites $1 to $1 with check: true',
+			paths: ['/_next/data/KrEKu7sTpLxBoWS8AxVhX/index.json'],
+			expected: {
+				status: 200,
+				data: JSON.stringify({ file: '/index', params: [] }),
+				headers: {
+					'content-type': 'text/plain;charset=UTF-8',
+					'x-matched-path': '/',
 				},
 			},
 		},

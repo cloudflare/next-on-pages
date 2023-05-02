@@ -16,13 +16,12 @@ export type MatchedSet = {
  * Gets the next phase of the routing process.
  *
  * Determines which phase should follow the `none`, `filesystem`, `rewrite`, or `resource` phases.
+ * Falls back to `miss`.
  *
  * @param phase Current phase of the routing process.
  * @returns Next phase of the routing process.
  */
-export function getNextPhase(
-	phase: Extract<VercelPhase, 'none' | 'filesystem' | 'rewrite' | 'resource'>
-): VercelHandleValue {
+export function getNextPhase(phase: VercelPhase): VercelHandleValue {
 	switch (phase) {
 		// `none` applied headers/redirects/middleware/`beforeFiles` rewrites. It checked non-dynamic routes and static assets.
 		case 'none': {
@@ -38,6 +37,9 @@ export function getNextPhase(
 		}
 		// `resource` applied `fallback` rewrites. It checked the final routes.
 		case 'resource': {
+			return 'miss';
+		}
+		default: {
 			return 'miss';
 		}
 	}

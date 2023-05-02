@@ -303,15 +303,15 @@ export class RoutesMatcher {
 	/**
 	 * Checks a route to see if it matches the current request.
 	 *
+	 * @param phase Current phase of the routing process.
 	 * @param route Build output config source route.
-	 * @param checkStatus Whether to check the status code for the route.
 	 * @returns The status from checking the route.
 	 */
 	private async checkRoute(
-		route: VercelSource,
-		checkStatus?: boolean
+		phase: VercelPhase,
+		route: VercelSource
 	): Promise<CheckRouteStatus> {
-		const routeMatch = this.checkRouteMatch(route, checkStatus);
+		const routeMatch = this.checkRouteMatch(route, phase === 'error');
 
 		// If this route doesn't match, continue to the next one.
 		if (!routeMatch?.match) return 'skip';
@@ -338,8 +338,14 @@ export class RoutesMatcher {
 		if (route.check && !isUrl(this.path)) {
 			if (prevPath === this.path) {
 				// NOTE: If the current/rewritten path is the same as the one that entered the phase, it
-				// can cause an infinite loop. Therefore, we should just set the status to `404` instead.
+				// can cause an infinite loop. Therefore, we should just set the status to `404` instead
+				// when we are in the `miss` phase. Otherwise, we should continue to the next phase.
 				// This happens with invalid `/_next/static/...` and `/_next/data/...` requests.
+
+				if (phase !== 'miss') {
+					return await this.checkPhase(getNextPhase(phase));
+				}
+
 				this.status = 404;
 			} else {
 				return await this.checkPhase('filesystem');
@@ -364,7 +370,7 @@ export class RoutesMatcher {
 		let shouldContinue = true;
 
 		for (const route of this.routes[phase]) {
-			const result = await this.checkRoute(route, phase === 'error');
+			const result = await this.checkRoute(phase, route);
 
 			if (result === 'error') {
 				return 'error';
