@@ -103,7 +103,10 @@ async function prepareAndBuildWorker(
 		generatedFunctionsMaps?.functionsMap
 	);
 
-	await buildWorkerFile(processedVercelOutput, !options.disableWorkerMinification);
+	await buildWorkerFile(
+		processedVercelOutput,
+		!options.disableWorkerMinification
+	);
 }
 
 function printInvalidFunctionsErrorMessage(invalidFunctions: string[]): void {
