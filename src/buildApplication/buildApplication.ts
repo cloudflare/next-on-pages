@@ -75,7 +75,7 @@ async function prepareAndBuildWorker(
 
 	const functionsDir = resolve('.vercel', 'output', 'functions');
 	if (!(await validateDir(functionsDir))) {
-		cliLog('No functions detected.');
+		cliLog('No functions detected (Vercel didn't generate a functions directory).');
 	} else {
 		generatedFunctionsMaps = await generateFunctionsMap(
 			functionsDir,
