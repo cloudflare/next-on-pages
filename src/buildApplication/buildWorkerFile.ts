@@ -34,7 +34,7 @@ function constructBuildOutputRecord(item: BuildOutputItem) {
 export async function buildWorkerFile(
 	{ vercelConfig, vercelOutput }: ProcessedVercelOutput,
 	nextJsConfigs: NextJsConfigs,
-	experimentalMinify: boolean
+	minify: boolean
 ) {
 	const functionsFile = join(
 		tmpdir(),
@@ -70,7 +70,7 @@ export async function buildWorkerFile(
 			__BASE_PATH__: JSON.stringify(nextJsConfigs.basePath ?? ''),
 		},
 		outfile: outputFile,
-		minify: experimentalMinify,
+		minify,
 		plugins: [nodeBufferPlugin],
 	});
 

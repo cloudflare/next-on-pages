@@ -27,6 +27,8 @@ const cliOptions = z
 		watch: flag,
 		skipBuild: flag,
 		experimentalMinify: flag,
+		disableChunksDedup: flag,
+		disableWorkerMinification: flag,
 		version: flag,
 		noColor: flag,
 		info: flag,
@@ -49,6 +51,8 @@ export function parseCliArgs() {
 				v: 'version',
 				s: 'skipBuild',
 				e: 'experimentalMinify',
+				d: 'disableChunksDedup',
+				m: 'disableWorkerMinification',
 				w: 'watch',
 				c: 'noColor',
 				i: 'info',
@@ -88,20 +92,26 @@ export function printCliHelpMessage(): void {
 
 		Options:
 
-		--help, -h:                 Shows this help message
+		--help, -h:                         Shows this help message
 
-		--version, -v:              Shows the version of the package
+		--version, -v:                      Shows the version of the package
 
-		--skip-build, -s:           Doesn't run 'vercel build' automatically
+		--skip-build, -s:                   Doesn't run 'vercel build' automatically
 
+		--disable-chunks-dedup, -d:         Disables the de-duplication of webpack chunks performed to reduce the output
+		                                    size of the application so that they can be deployed on Cloudflare Pages
+		                                    without hitting the javascript size limit (this option is generally useful only
+		                                    when there are issues with the de-duplication process, to speed up the building process
+		                                    during development or for debugging purposes)
 
-		--experimental-minify, -e:  Attempts to minify the functions of a project (by de-duping webpack chunks)
+		--disable-worker-minification, -m:  Disabled the minification of the _worker.js script performed to reduce its javascript
+		                                    size (this option is generally useful only for debugging purposes)
 
-		--watch, -w:                Automatically rebuilds when the project is edited
+		--watch, -w:                        Automatically rebuilds when the project is edited
 
-		--no-color, -c:             Disable colored output
+		--no-color, -c:                     Disable colored output
 
-		--info, -i:                 Prints relevant details about the current system which can be used to report bugs
+		--info, -i:                         Prints relevant details about the current system which can be used to report bugs
 
 		GitHub: https://github.com/cloudflare/next-on-pages
 		Docs: https://developers.cloudflare.com/pages/framework-guides/deploy-a-nextjs-site/
