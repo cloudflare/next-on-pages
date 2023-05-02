@@ -16,14 +16,6 @@ body:
 
         > ℹ️ Please try to provide as much details as you can, the more details you can include the more likely it is for the issue to get quickly addressed.
 
-  - type: input
-    id: next-on-pages-version
-    attributes:
-      label: Cli version
-      description: Which version of `@cloudflare/next-on-pages` are you using?
-    validations:
-      required: true
-
   - type: textarea
     id: next-on-pages-info
     attributes:
@@ -52,6 +44,16 @@ body:
     validations:
       required: false
 
+  - type: dropdown
+    id: pages-deployment-method
+    attributes:
+      label: Pages Deployment Method
+      description: If you have have deployed (or tried to deploy) your application, what method have you used?
+      options:
+        - N/A (haven't tried deploying the app yet)
+        - Direct Upload (`wrangler pages publish` or the @cloudflare/pages-action GitHub Action)
+        - Pages CI (GitHub/GitLab integration)
+
   - type: input
     id: pages-deployment-id
     attributes:
@@ -59,16 +61,6 @@ body:
       description: If you have have a Pages deployment ID where you reproduced this bug, this may additionally help us to debug the problem.
     validations:
       required: false
-
-  - type: dropdown
-    id: pages-deployment-method
-    attributes:
-      label: Pages Deployment Method
-      options:
-        - Direct Upload (`wrangler pages publish` or the @cloudflare/pages-action GitHub Action)
-        - Pages CI (GitHub/GitLab integration)
-    validations:
-      required: true
 
   - type: textarea
     id: additional-info
