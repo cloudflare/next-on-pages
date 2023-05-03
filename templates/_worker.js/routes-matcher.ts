@@ -349,7 +349,7 @@ export class RoutesMatcher {
 
 				this.status = 404;
 			} else {
-				return await this.checkPhase('filesystem');
+				return await this.checkPhase('none');
 			}
 		}
 
