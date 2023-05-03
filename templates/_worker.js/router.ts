@@ -63,7 +63,7 @@ export class Router {
 	}
 
 	/**
-	 * Match a request to a route from the Vercel build output.
+	 * Matches a request to a route from the Vercel build output.
 	 *
 	 * @param req Request object.
 	 * @returns The matched set of path, status, headers, and search params.
@@ -121,5 +121,16 @@ export class Router {
 		});
 
 		return resp;
+	}
+
+	/**
+	 * Matches a request to a route from the Vercel build output and serves it.
+	 *
+	 * @param req Request object.
+	 * @returns A response object.
+	 */
+	public async handle(req: Request): Promise<Response> {
+		const match = await this.match(req);
+		return await this.serve(req, match);
 	}
 }

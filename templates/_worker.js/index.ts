@@ -17,8 +17,7 @@ export default {
 		);
 
 		const adjustedRequest = adjustRequestForVercel(request);
-		const match = await requestRouter.match(adjustedRequest);
 
-		return requestRouter.serve(adjustedRequest, match);
+		return requestRouter.handle(adjustedRequest);
 	},
 } as ExportedHandler<{ ASSETS: Fetcher }>;

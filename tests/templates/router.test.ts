@@ -34,8 +34,7 @@ function runTestCase(requestRouter: Router, testCase: TestCase) {
 				.mockImplementation(() => null);
 
 			const req = new Request(url, { method, headers });
-			const match = await requestRouter.match(req);
-			const res = await requestRouter.serve(req, match);
+			const res = await requestRouter.handle(req);
 
 			expect(res.status).toEqual(expected.status);
 			await expect(res.text()).resolves.toEqual(expected.data);
