@@ -38,6 +38,8 @@ export function isUrl(url: string): boolean {
 /**
  * Merges search params from one URLSearchParams object to another.
  *
+ * Only updates the a parameter if the target does not contain it, or the source value is not empty.
+ *
  * @param target Target that search params will be applied to.
  * @param source Source search params to apply to the target.
  */
@@ -46,7 +48,9 @@ export function applySearchParams(
 	source: URLSearchParams
 ) {
 	for (const [key, value] of source.entries()) {
-		target.set(key, value);
+		if (!target.has(key) || !!value) {
+			target.set(key, value);
+		}
 	}
 }
 

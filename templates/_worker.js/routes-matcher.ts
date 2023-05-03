@@ -68,6 +68,7 @@ export class RoutesMatcher {
 			important: new Headers(),
 		};
 		this.searchParams = prevMatch?.searchParams || new URLSearchParams();
+		applySearchParams(this.searchParams, this.url.searchParams);
 	}
 
 	/**

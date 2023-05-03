@@ -113,7 +113,7 @@ export const testSet: TestSet = {
 				status: 200,
 				data: JSON.stringify({
 					file: '/somewhere-else',
-					params: [['overrideMe', '']],
+					params: [['overrideMe', 'hello']],
 				}),
 				headers: {
 					'content-type': 'text/plain;charset=UTF-8',
