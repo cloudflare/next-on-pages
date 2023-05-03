@@ -221,7 +221,10 @@ export const testSet: TestSet = {
 			},
 		},
 		{
-			name: 'issue 70 - rewrite phase should enter after filesystem rewrites $1 to $1 with check: true',
+			// `/_next/data/.../page.json` files get rewritten to the same path in `filesystem` phase.
+			// This test ensures that the `rewrite` phase is entered when `check` is true, so that they
+			// are rewritten correctly to `/page`. Otherwise, the page won't match correctly (issue #70).
+			name: 'issue 70 - `rewrite` phase should enter after `filesystem` rewrites a path to the same path with `check: true`',
 			paths: ['/_next/data/KrEKu7sTpLxBoWS8AxVhX/index.json'],
 			expected: {
 				status: 200,
