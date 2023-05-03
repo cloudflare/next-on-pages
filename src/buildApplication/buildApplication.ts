@@ -29,9 +29,10 @@ export async function buildApplication({
 	skipBuild,
 	disableChunksDedup,
 	disableWorkerMinification,
+	watch,
 }: Pick<
 	CliOptions,
-	'skipBuild' | 'disableChunksDedup' | 'disableWorkerMinification'
+	'skipBuild' | 'disableChunksDedup' | 'disableWorkerMinification' | 'watch'
 >) {
 	let buildSuccess = true;
 	if (!skipBuild) {
@@ -49,7 +50,10 @@ export async function buildApplication({
 		}
 	}
 
-	if (!buildSuccess) return;
+	if (!buildSuccess) {
+		if (!watch) exit(1);
+		return;
+	}
 
 	await deleteNextTelemetryFiles();
 
