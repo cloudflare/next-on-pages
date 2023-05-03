@@ -55,7 +55,7 @@ export function applySearchParams(
 }
 
 /**
- * Creates a new Request object with the same body and headers as the original.
+ * Creates a new Request object with the same body, headers, and search params as the original.
  *
  * Replaces the URL with the given path, stripping the `.html` extension and `/index.html` for
  * asset matching.
@@ -67,9 +67,12 @@ export function applySearchParams(
  */
 export function createRouteRequest(req: Request, path: string) {
 	const newUrl = new URL(path, req.url);
+	applySearchParams(newUrl.searchParams, new URL(req.url).searchParams);
+
 	newUrl.pathname = newUrl.pathname
 		.replace(/^\/index.html$/, '/')
 		.replace(/\.html$/, '');
+
 	return new Request(newUrl, req);
 }
 
