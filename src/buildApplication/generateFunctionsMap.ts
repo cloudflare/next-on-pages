@@ -180,7 +180,7 @@ async function processFuncDirectory(
 			return {};
 		}
 		return {
-			invalidFunctions: new Set([file]),
+			invalidFunctions: new Set([relativePath]),
 		};
 	}
 
@@ -205,7 +205,7 @@ async function processFuncDirectory(
 		}
 
 		return {
-			invalidFunctions: new Set([file]),
+			invalidFunctions: new Set([relativePath]),
 		};
 	}
 
@@ -403,7 +403,7 @@ type ProcessingSetup = {
 	disableChunksDedup: boolean;
 };
 
-type DirectoryProcessingResults = {
+export type DirectoryProcessingResults = {
 	invalidFunctions: Set<string>;
 	functionsMap: Map<string, string>;
 	webpackChunks: Map<number, string>;

@@ -1,9 +1,9 @@
 import { describe, test, expect, vi } from 'vitest';
-import type { VercelPrerenderConfig } from '../../../src/buildApplication/fixPrerenderedRoutes';
 import { generateFunctionsMap } from '../../../src/buildApplication/generateFunctionsMap';
 import mockFs from 'mock-fs';
 import type { DirectoryItems } from 'mock-fs/lib/filesystem';
 import { join } from 'path';
+import { mockPrerenderConfigFile } from '../../_helpers';
 
 describe('generateFunctionsMap', async () => {
 	describe('with chunks deduplication disabled should correctly handle', () => {
@@ -133,14 +133,10 @@ describe('generateFunctionsMap', async () => {
 					'page.rsc.func': validFuncDir,
 					'index.func': invalidFuncDir,
 					'index.rsc.func': invalidFuncDir,
-					'index.prerender-config.json': mockPrerenderConfigFile('index', {
-						vary: true,
-					}),
+					'index.prerender-config.json': mockPrerenderConfigFile('index'),
 					'index.prerender-fallback.html': '',
-					'index.rsc.prerender-config.json': mockPrerenderConfigFile(
-						'index.rsc',
-						{ rscType: true, vary: true }
-					),
+					'index.rsc.prerender-config.json':
+						mockPrerenderConfigFile('index.rsc'),
 					'index.rsc.prerender-fallback.rsc': '',
 				});
 
@@ -170,19 +166,12 @@ describe('generateFunctionsMap', async () => {
 					nested: {
 						'foo.func': invalidFuncDir,
 						'foo.rsc.func': invalidFuncDir,
-						'foo.prerender-config.json': mockPrerenderConfigFile('foo', {
-							vary: true,
-						}),
+						'foo.prerender-config.json': mockPrerenderConfigFile('foo'),
 						'foo.prerender-fallback.html': '',
-						'foo.rsc.prerender-config.json': mockPrerenderConfigFile(
-							'foo.rsc',
-							{ rscType: true, vary: true }
-						),
+						'foo.rsc.prerender-config.json': mockPrerenderConfigFile('foo.rsc'),
 						'foo.rsc.prerender-fallback.rsc': '',
 						'bar.func': invalidFuncDir,
-						'bar.prerender-config.json': mockPrerenderConfigFile('bar', {
-							vary: true,
-						}),
+						'bar.prerender-config.json': mockPrerenderConfigFile('bar'),
 						'bar.prerender-fallback.html': '',
 					},
 				});
@@ -218,9 +207,7 @@ describe('generateFunctionsMap', async () => {
 					nested: {
 						'(route-group)': {
 							'foo.func': invalidFuncDir,
-							'foo.prerender-config.json': mockPrerenderConfigFile('foo', {
-								vary: true,
-							}),
+							'foo.prerender-config.json': mockPrerenderConfigFile('foo'),
 							'foo.prerender-fallback.html': '',
 						},
 					},
@@ -248,14 +235,10 @@ describe('generateFunctionsMap', async () => {
 					{
 						'index.func': invalidFuncDir,
 						'index.rsc.func': invalidFuncDir,
-						'index.prerender-config.json': mockPrerenderConfigFile('index', {
-							vary: true,
-						}),
+						'index.prerender-config.json': mockPrerenderConfigFile('index'),
 						'index.prerender-fallback.html': '',
-						'index.rsc.prerender-config.json': mockPrerenderConfigFile(
-							'index.rsc',
-							{ rscType: true, vary: true }
-						),
+						'index.rsc.prerender-config.json':
+							mockPrerenderConfigFile('index.rsc'),
 						'index.rsc.prerender-fallback.rsc': '',
 					},
 					{ 'index.rsc': '' }
@@ -290,14 +273,10 @@ describe('generateFunctionsMap', async () => {
 						nested: {
 							'page.func': invalidFuncDir,
 							'page.rsc.func': invalidFuncDir,
-							'page.prerender-config.json': mockPrerenderConfigFile('page', {
-								vary: true,
-							}),
+							'page.prerender-config.json': mockPrerenderConfigFile('page'),
 							'page.prerender-fallback.html': '',
-							'page.rsc.prerender-config.json': mockPrerenderConfigFile(
-								'page.rsc',
-								{ rscType: true, vary: true }
-							),
+							'page.rsc.prerender-config.json':
+								mockPrerenderConfigFile('page.rsc'),
 							'page.rsc.prerender-fallback.rsc': '',
 						},
 					},
@@ -313,7 +292,7 @@ describe('generateFunctionsMap', async () => {
 			});
 
 			expect(invalidFunctions.size).toEqual(1);
-			expect(invalidFunctions.has('page.rsc.func')).toEqual(true);
+			expect(invalidFunctions.has('nested/page.rsc.func')).toEqual(true);
 
 			expect(mockedWarn).toHaveBeenCalledTimes(1);
 			expect(mockedWarn).toHaveBeenCalledWith(
@@ -334,14 +313,10 @@ describe('generateFunctionsMap', async () => {
 					nested: {
 						'index.func': invalidFuncDir,
 						'index.rsc.func': invalidFuncDir,
-						'index.prerender-config.json': mockPrerenderConfigFile('index', {
-							vary: true,
-						}),
+						'index.prerender-config.json': mockPrerenderConfigFile('index'),
 						'index.prerender-fallback.html': '',
-						'index.rsc.prerender-config.json': mockPrerenderConfigFile(
-							'index.rsc',
-							{ rscType: true, vary: true }
-						),
+						'index.rsc.prerender-config.json':
+							mockPrerenderConfigFile('index.rsc'),
 					},
 				});
 
@@ -354,7 +329,7 @@ describe('generateFunctionsMap', async () => {
 			});
 
 			expect(invalidFunctions.size).toEqual(1);
-			expect(invalidFunctions.has('index.rsc.func')).toEqual(true);
+			expect(invalidFunctions.has('nested/index.rsc.func')).toEqual(true);
 
 			expect(mockedWarn).toHaveBeenCalledTimes(1);
 			expect(mockedWarn).toHaveBeenCalledWith(
@@ -386,7 +361,7 @@ describe('generateFunctionsMap', async () => {
 			expect(prerenderedRoutes.size).toEqual(0);
 
 			expect(invalidFunctions.size).toEqual(1);
-			expect(invalidFunctions.has('index.func')).toEqual(true);
+			expect(invalidFunctions.has('nested/index.func')).toEqual(true);
 
 			expect(mockedWarn).toHaveBeenCalledTimes(1);
 			expect(mockedWarn).toHaveBeenCalledWith(
@@ -440,36 +415,4 @@ async function generateFunctionsMapFrom(
 	);
 	mockFs.restore();
 	return result;
-}
-
-/**
- * Create a fake prerender config file for testing.
- *
- * @param path Path name for the file in the build output.
- * @param args.rscType Whether the file should have the rsc file mime type header.
- * @param args.vary Whether the file should have a vary header.
- * @returns The stringified prerender config file contents.
- */
-function mockPrerenderConfigFile(
-	path: string,
-	{ rscType, vary }: { rscType?: boolean; vary?: boolean } = {}
-): string {
-	const fsPath = path.endsWith('.rsc')
-		? `${path}.prerender-fallback.rsc`
-		: `${path}.prerender-fallback.html`;
-	const config: VercelPrerenderConfig = {
-		type: 'Prerender',
-		fallback: {
-			type: 'FileFsRef',
-			mode: 0,
-			fsPath,
-		},
-		initialHeaders: {
-			...(rscType && { 'content-type': 'text/x-component' }),
-			...(vary && {
-				vary: 'RSC, Next-Router-State-Tree, Next-Router-Prefetch',
-			}),
-		},
-	};
-	return JSON.stringify(config);
 }

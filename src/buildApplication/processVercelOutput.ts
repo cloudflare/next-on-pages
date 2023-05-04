@@ -7,7 +7,6 @@ import {
 	validateDir,
 } from '../utils';
 import { cliLog, cliWarn } from '../cli';
-import type { MiddlewareManifestData } from './middlewareManifest';
 import { processVercelConfig } from './getVercelConfig';
 import type { PrerenderedFileData } from './fixPrerenderedRoutes';
 
@@ -46,8 +45,8 @@ export type ProcessedVercelOutput = {
 export function processVercelOutput(
 	config: VercelConfig,
 	staticAssets: string[],
-	prerenderedRoutes: Map<string, PrerenderedFileData>,
-	{ hydratedMiddleware, hydratedFunctions }: MiddlewareManifestData
+	prerenderedRoutes = new Map<string, PrerenderedFileData>(),
+	functionsMap = new Map<string, string>()
 ): ProcessedVercelOutput {
 	const processedConfig = processVercelConfig(config);
 
@@ -55,21 +54,14 @@ export function processVercelOutput(
 		staticAssets.map(path => [path, { type: 'static' }])
 	);
 
-	// NOTE: The middleware manifest output is used temporarily to match routes + dynamic args. It will be replaced with the regular `functionsMap` in the final routing system. (see issue #129)
-	hydratedFunctions.forEach(({ matchers, filepath }, key) => {
+	functionsMap.forEach((value, key) => {
 		processedOutput.set(key, {
 			type: 'function',
-			entrypoint: filepath,
-			// NOTE: Usage of matchers will be removed in the final routing system. (see issue #129)
-			matchers,
-		});
-	});
-	hydratedMiddleware.forEach(({ matchers, filepath }, key) => {
-		processedOutput.set(key, {
-			type: 'function',
-			entrypoint: filepath,
-			// NOTE: Usage of matchers will be removed in the final routing system. (see issue #129)
-			matchers,
+			// NOTE: We replace the `.rsc.func.js` extension with `.func.js` as RSC functions have the
+			// same exact content (and hash) as their non-rsc counterpart, so we opt to use the latter instead.
+			// This also resolves an unclear runtime error that happens during routing when rsc functions are bundled:
+			// `TypeError: Cannot read properties of undefined (reading 'default')`
+			entrypoint: value.replace(/\.rsc\.func\.js$/i, '.func.js'),
 		});
 	});
 

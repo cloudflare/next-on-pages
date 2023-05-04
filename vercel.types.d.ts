@@ -30,14 +30,16 @@ type VercelSource = {
 	missing?: VercelHasFields;
 	locale?: VercelLocale;
 	middlewarePath?: string;
+	middlewareRawSrc?: string[];
 };
 
-type VercelHasFields = Array<
+type VercelHasField =
 	| VercelHostHasField
 	| VercelHeaderHasField
 	| VercelCookieHasField
-	| VercelQueryHasField
->;
+	| VercelQueryHasField;
+
+type VercelHasFields = Array<VercelHasField>;
 
 type VercelLocale = {
 	redirect?: Record<string, string>;
@@ -131,6 +133,8 @@ type ProcessedVercelRoutes = {
 	hit: VercelSource[];
 	error: VercelSource[];
 };
+type VercelPhase = keyof ProcessedVercelRoutes;
+
 type ProcessedVercelConfig = Override<
 	VercelConfig,
 	'routes',
@@ -148,8 +152,6 @@ type BuildOutputStaticItem = BuildOutputStaticAsset | BuildOutputStaticOverride;
 type BuildOutputFunction = {
 	type: 'function' | 'middleware';
 	entrypoint: string;
-	// NOTE: Will be removed in the new routing system. (see issue #129)
-	matchers: { regexp: string }[];
 };
 
 type BuildOutputItem = BuildOutputFunction | BuildOutputStaticItem;
