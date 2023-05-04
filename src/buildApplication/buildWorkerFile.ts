@@ -28,10 +28,10 @@ export function constructBuildOutputRecord(item: BuildOutputItem) {
 
 	return `{
 				type: ${JSON.stringify(item.type)},
-				entrypoint: AsyncLocalStoragePromise.then(() => import('${item.entrypoint.replace(
+				entrypoint: import('${item.entrypoint.replace(
 					/^\.vercel\/output\/static\/_worker\.js\/__next-on-pages-dist__\//,
 					'./__next-on-pages-dist__/'
-				)}')),
+				)}')
 			}`;
 }
 
@@ -46,12 +46,7 @@ export async function buildWorkerFile(
 
 	await writeFile(
 		functionsFile,
-		`
-		export const AsyncLocalStoragePromise = import('node:async_hooks').then(({ AsyncLocalStorage }) => {
-			globalThis.AsyncLocalStorage = AsyncLocalStorage;
-		}).catch(() => undefined);
-
-		export const __BUILD_OUTPUT__ = {${[...vercelOutput.entries()]
+		`export const __BUILD_OUTPUT__ = {${[...vercelOutput.entries()]
 			.map(([name, item]) => `"${name}": ${constructBuildOutputRecord(item)}`)
 			.join(',')}};`
 	);
@@ -73,7 +68,7 @@ export async function buildWorkerFile(
 		inject: [functionsFile],
 		target: 'es2022',
 		platform: 'neutral',
-		external: ['node:async_hooks', 'node:buffer', './__next-on-pages-dist__/*'],
+		external: ['node:*', './__next-on-pages-dist__/*'],
 		define: {
 			__CONFIG__: JSON.stringify(vercelConfig),
 		},

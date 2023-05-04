@@ -8,7 +8,25 @@ import { cliWarn } from '../cli';
  */
 export function generateGlobalJs(): string {
 	const nodeEnv = getNodeEnv();
-	return `globalThis.process = { env: { NODE_ENV: '${nodeEnv}' } };`;
+
+	return `
+		import { AsyncLocalStorage } from 'node:async_hooks';
+		globalThis.AsyncLocalStorage = AsyncLocalStorage;
+
+		const __ENV_ALS__ = new AsyncLocalStorage();
+		__ENV_ALS__['NODE_ENV'] = '${nodeEnv}';
+
+		globalThis.process = {
+			env: new Proxy(
+				{},
+				{
+					get: (_, property) => Reflect.get(__ENV_ALS__.getStore(), property),
+					set: (_, property, value) => Reflect.set(__ENV_ALS__.getStore(), property, value),
+			}),
+		};
+	`
+		.replace(/^\s+/, '')
+		.replace(/\n\s+/g, ' ');
 }
 
 enum NextJsNodeEnv {
