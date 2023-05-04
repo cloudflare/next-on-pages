@@ -6,18 +6,24 @@ import {
 	configRewritesRedirectsHeadersTestSet,
 	dynamicRoutesTestSet,
 	middlewareTestSet,
-} from './routerTestData';
+} from './requestTestData';
 import type { TestCase, TestSet } from '../_helpers';
 import { createRouterTestData } from '../_helpers';
-import { Router } from '../../templates/_worker.js/router';
+import type { RequestContext } from '../../src/utils/requestContext';
+import { handleRequest } from '../../templates/_worker.js/handleRequest';
 
 /**
  * Runs a test case.
  *
- * @param requestRouter Router instance to use.
+ * @param reqCtx partial request context to use for the tests.
  * @param testCase Test case to run.
  */
-function runTestCase(requestRouter: Router, testCase: TestCase) {
+function runTestCase(
+	reqCtx: Pick<RequestContext, 'assetsFetcher' | 'ctx'>,
+	config: ProcessedVercelConfig,
+	output: VercelBuildOutput,
+	testCase: TestCase
+) {
 	test(testCase.name, async () => {
 		const {
 			paths,
@@ -34,7 +40,11 @@ function runTestCase(requestRouter: Router, testCase: TestCase) {
 				.mockImplementation(() => null);
 
 			const req = new Request(url, { method, headers });
-			const res = await requestRouter.handle(req);
+			const res = await handleRequest(
+				{ ...reqCtx, request: req },
+				config,
+				output
+			);
 
 			expect(res.status).toEqual(expected.status);
 			await expect(res.text()).resolves.toEqual(expected.data);
@@ -67,14 +77,14 @@ async function runTestSet({ config, files, testCases }: TestSet) {
 	const { vercelConfig, buildOutput, assetsFetcher } =
 		await createRouterTestData(config, files);
 
-	const requestRouter = new Router(
-		vercelConfig,
-		buildOutput,
+	const reqCtx: Pick<RequestContext, 'assetsFetcher' | 'ctx'> = {
 		assetsFetcher,
-		{} as ExecutionContext
-	);
+		ctx: {} as ExecutionContext,
+	};
 
-	testCases.forEach(testCase => runTestCase(requestRouter, testCase));
+	testCases.forEach(testCase =>
+		runTestCase(reqCtx, vercelConfig, buildOutput, testCase)
+	);
 }
 
 suite('router', () => {
