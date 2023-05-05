@@ -8,7 +8,7 @@ To offer the best support for Next.js applications, the worker needs to try and 
 
 ## Routing Phases
 
-In order to explain how routing works, it is important to first understand the underlying stages that the system goes through. These are taken from the Vercel build output config, and interpreted in a way that can be used by the worker.
+In order to explain how routing works, it is important to first understand the underlying stages that the system goes through. These are taken from the Vercel build output config (as per the [Vercel documentation](https://vercel.com/docs/build-output-api/v3/configuration#handler-route)), and interpreted in a way that can be used by the worker.
 
 The routing process is broken down into a series of different phases.
 
@@ -61,7 +61,7 @@ For example, the following source route would turn the path `/blog/hello-world` 
 }
 ```
 
-After the rewrites have occured, the build output is checked for matches with dynamic routes.
+After the rewrites have occurred, the build output is checked for matches with dynamic routes.
 
 ### `resource`
 
@@ -108,13 +108,13 @@ A simplistic overview of the routing process is as follows.
 
 The first thing that happens when a request is received, is that the router starts looking for matches in the `none` phase. It calls a function to start checking phases. This function is called recursively to check additional phases.
 
-For every single source route in a phase, it calls to check whether the route is a match, and process the relevant details (more on checking source routes can be seen below). When it receives a response from the route checker, if it encountered an error — normally from running middleware — it will break out of the routing process and return the error response. Otherwise, the only other time it disables the continuation of routing is if the route checker returns a final match, i.e. it is done for that phase.
+For every single source route in a phase, we check to see whether the route is a match, and process the relevant details (for more details on source checking see the [Checking Source Routes section](#checking-source-routes)). When we receive a response from the route checker, if we encountered an error — normally from running middleware — we break out of the routing process and return the error response. Otherwise, the only other time we disable the continuation of routing is if the route checker returns a final match.
 
-After it has finished checking all the source routes in a phase, it moves on to determine what will happen next. If the current phase is the `hit` phase, or the route has at some point been rewritten to an URL, it returns that routing is complete.
+After all the source routes in the current phase have been checked, we move on to determine what will happen next. If the current phase is the `hit` phase, or the route has at some point been rewritten to an URL, the routing is complete and we're ready to server the the response.
 
-If the current phase is `miss`, it will update the status code to 404 if there is no file found in the build output. Afterwards, if a file was found in the output, or the current phase is `error`, it moves on to the `hit` phase. It is important that the hit phase is run every time a match is found in the build output or when the current phase is `miss` or `error`, because this allows us to update the headers for the response with the current matched path.
+If the current phase is `miss`, we check the build output, if there is no file matching the requested one we set the status code to 404. Afterwards, if a file was found in the output, or the current phase is `error`, we move on to the `hit` phase. It is important that the hit phase is run every time a match is found in the build output or when the current phase is `miss` or `error`, because this allows us to update the headers for the response with the current matched path.
 
-In all other cases, it attempts to retrieve the next phase, based on the current phase. Afterwards, it recursively calls the function so that it can check the next phase.
+In all other cases, we attempt to retrieve the next phase, based on the current one, and iterate forward.
 
 #### Diagram
 
@@ -128,18 +128,19 @@ flowchart TD
     IsPhaseHit --> |yes| EndIsPhaseHit[matching done]
     IsPhaseHit --> |no| IsPhaseMiss{phase == miss}
     IsPhaseMiss --> |yes| Set404[set 404]
-    Set404 --> NextPhaseIsWhat{path found or phase == miss/error}
+    Set404 --> NextPhaseIsWhat{path found\nor\nphase == miss/error}
     IsPhaseMiss --> |no| NextPhaseIsWhat
-    NextPhaseIsWhat --> |true - set next phase to hit| checkPhase
-    NextPhaseIsWhat --> |get next phase| getNextPhase --> checkPhase
+    NextPhaseIsWhat --> |if true\nset next phase to hit| checkPhase
+    NextPhaseIsWhat --> |if false\nget next phase| getNextPhase --> checkPhase
 
+    NextPhaseIs{determine next phase} --> 
     getNextPhase --> NextPhaseIs{determine next phase}
+
     NextPhaseIs --> |none| NextIsFS[filesystem]
     NextPhaseIs --> |filesystem| NextIsRW[rewrite]
     NextPhaseIs --> |rewrite| NextIsRS[resource]
     NextPhaseIs --> |resource| NextIsMS[miss]
     NextPhaseIs --> |all others| NextIsMS
-```
 
 ### Checking Source Routes
 
@@ -149,13 +150,13 @@ For every source route in a phase, we need to check for a match and process it a
 
 The first step in this part of the process is checking the value for the route matches up with the current path. At the same time, this also extracts any dynamic parameters.
 
-Checking a route is a match involves verifying that the request method is the same, the correct fields are or aren't specified, and the current path name matches.
+Checking whether a route is a match involves verifying that the request method is the same, the correct fields are or aren't specified, and the current path name matches.
 
-If the route was not a match, we simply return that we want to skip it.
+If the route was not a match, we simply skip it (i.e. it doesn't involve the current request).
 
 #### Overrides
 
-In different phases, different things may be applied to our response object, or modify the current requests details. The first thing we check for is whether a source route wants to override the current headers and status code and, if so, reset them.
+In different phases, different things may be applied to our response object, or modify the current requests details. The first thing we check for is whether a (matching) source route wants to override the current headers and status code and, if so, reset them.
 
 #### Middleware
 
@@ -169,11 +170,11 @@ If running the middleware failed, we have to bail out of routing and return an e
 
 Source routes are able to specify headers and status codes to apply to the response. These are updated internally so that they can be applied to the final response object.
 
-There are two different types of headers that the build output config can provide. There are important ones, and normal ones. Whether headers should be treated as important is denoted by the presence of an `important` property on a source route. We believe that this indicated that the headers should take precendence over all others on the final response object.
+There are two different types of headers that the build output config can provide. There are important ones, and normal ones. Whether headers should be treated as important is denoted by the presence of an `important` property on a source route. We believe that this indicated that the headers should take precedence over all others on the final response object.
 
 #### Destination
 
-If a source route wants to rewrite the current path to point to a different file, it specifies a destination property. These are taken and the current path is updated, along with applying any search parameters we have collected.
+If a source route wants to rewrite the current path to point to a different file, it specifies a destination property. We take such destination from (matching) source routes and replace the current path with them, along with applying any search parameters we might have collected.
 
 This is where a route's dynamic parameters are applied as search parameters.
 
@@ -195,7 +196,7 @@ In the event that the rewritten path is the same as the current path, we opt to 
 
 #### Continuing with the Routing Process
 
-After all of the above has been completed, the final part to check for a route is whether it would like us to continue matching. If it does not, we have reached the end of matching for this phase, so we can simply exit out with the `done` response.
+After all of the above has been completed, the final part to check for a (matching) route is whether it would like us to continue matching (it does so by setting its `continue` field to `true`). If it does not, we have reached the end of matching for this phase.
 
 #### Diagram
 
@@ -203,23 +204,20 @@ After all of the above has been completed, the final part to check for a route i
 flowchart TD
     checkRoute --> CheckSourceMatch{check source match}
     CheckSourceMatch -->|true| ApplyOverrides[apply overrides]
-    CheckSourceMatch -->|false| EndRoutingSkip[return `skip`]
+    CheckSourceMatch -->|false| EndRoutingSkip[`skip`]
     ApplyOverrides --> HasMiddleware{has middleware}
     HasMiddleware --> |yes| RunMiddlewareResult{run middleware}
-    HasMiddleware --> |no| ApplyHeaders
-    RunMiddlewareResult --> |success| ApplyHeaders
-    RunMiddlewareResult --> |error| EndRoutingError[return `error`]
-    ApplyHeaders --> ApplyStatusCode[apply status code]
-    ApplyStatusCode --> ApplyDestination
-    ApplyDestination --> ShouldCheck{should check filesystem}
+    HasMiddleware --> |no| ApplyHeadersStatusAndDestination[apply headers\napply status code\napply destination]
+    RunMiddlewareResult --> |success| ApplyHeaders[apply headers]
+    RunMiddlewareResult --> |error| EndRoutingError[`error`]
+    ApplyHeadersStatusAndDestination --> ShouldCheck{should check filesystem}
     ShouldCheck --> |yes| PathsEqual{new path is equal}
-    PathsEqual --> |yes + phase = miss| Return404[set status to 404] --> ShouldContinue
-    PathsEqual --> |yes + phase != miss| checkNextPhase[check next phase]
+    PathsEqual --> |yes\n+\nphase = miss| Return404[set status to 404] --> ShouldContinue
+    PathsEqual --> |yes\n+\nphase != miss| checkNextPhase[check next phase]
     PathsEqual --> |false| checkNonePhase[check `none` phase]
     ShouldCheck --> |false| ShouldContinue{should continue}
-    ShouldContinue --> |true| ReturnNext[return `next`]
-    ShouldContinue --> |false| ReturnDone[return `done`]
-```
+    ShouldContinue --> |true| ReturnNext[`next`]
+    ShouldContinue --> |false| ReturnDone[`done`]
 
 ### Serving Responses
 
@@ -241,7 +239,7 @@ flowchart TD
     CheckRedirect --> |true| ReturnRedirect[return redirect response]
     CheckRedirect --> |false| FetchItemFromOutput[fetch item from build output]
     FetchItemFromOutput --> ApplySearchParams[apply search params to request]
-    ApplySearchParams --> RetrieveResponseForItem{fetch item response}
+    ApplySearchParams --> RetrieveResponseForItem{fetch or run\nitem response}
     RetrieveResponseForItem --> |success| ApplyHeadersAndStatus[apply headers + status]
     RetrieveResponseForItem --> |error| ReturnError[return error response]
     ApplyHeadersAndStatus --> ReturnResponse[return final response object]
