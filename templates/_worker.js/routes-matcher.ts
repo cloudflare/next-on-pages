@@ -10,6 +10,7 @@ import {
 	matchPCRE,
 	runOrFetchBuildOutputItem,
 } from './utils';
+import type { RequestContext } from '../../src/utils/requestContext';
 
 export type CheckRouteStatus = 'skip' | 'next' | 'done' | 'error';
 export type CheckPhaseStatus = Extract<CheckRouteStatus, 'error' | 'done'>;
@@ -50,16 +51,12 @@ export class RoutesMatcher {
 		private routes: ProcessedVercelRoutes,
 		/** Vercel build output. */
 		private output: VercelBuildOutput,
-		/** Static assets fetcher. */
-		private assets: Fetcher,
-		/** Execution context. */
-		private ctx: ExecutionContext,
-		/** Request to match */
-		private req: Request,
+		/** Request Context object for the request to match */
+		private reqCtx: RequestContext,
 		prevMatch?: MatchedSet
 	) {
-		this.url = new URL(req.url);
-		this.cookies = parse(req.headers.get('cookie') || '');
+		this.url = new URL(reqCtx.request.url);
+		this.cookies = parse(reqCtx.request.headers.get('cookie') || '');
 
 		this.path = prevMatch?.path || this.url.pathname || '/';
 		this.status = prevMatch?.status;
@@ -90,7 +87,7 @@ export class RoutesMatcher {
 			route.methods &&
 			!route.methods
 				.map(m => m.toUpperCase())
-				.includes(this.req.method.toUpperCase())
+				.includes(this.reqCtx.request.method.toUpperCase())
 		) {
 			return;
 		}
@@ -98,7 +95,7 @@ export class RoutesMatcher {
 		const hasFieldProps = {
 			url: this.url,
 			cookies: this.cookies,
-			headers: this.req.headers,
+			headers: this.reqCtx.request.headers,
 		};
 
 		// All `has` conditions must be met - skip if one is not met.
@@ -138,11 +135,11 @@ export class RoutesMatcher {
 				const valueKey = `x-middleware-request-${key}`;
 				const value = resp.headers.get(valueKey);
 
-				if (this.req.headers.get(key) !== value) {
+				if (this.reqCtx.request.headers.get(key) !== value) {
 					if (value) {
-						this.req.headers.set(key, value);
+						this.reqCtx.request.headers.set(key, value);
 					} else {
-						this.req.headers.delete(key);
+						this.reqCtx.request.headers.delete(key);
 					}
 				}
 
@@ -182,18 +179,12 @@ export class RoutesMatcher {
 			return false;
 		}
 
-		const resp = await runOrFetchBuildOutputItem(
-			item,
-			this.req,
-			{
-				path: this.path,
-				searchParams: this.searchParams,
-				headers: this.headers,
-				status: this.status,
-			},
-			this.assets,
-			this.ctx
-		);
+		const resp = await runOrFetchBuildOutputItem(item, this.reqCtx, {
+			path: this.path,
+			searchParams: this.searchParams,
+			headers: this.headers,
+			status: this.status,
+		});
 
 		if (resp.status >= 400) {
 			// The middleware function errored. Set the status and bail out.

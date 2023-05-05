@@ -1,3 +1,4 @@
+import type { RequestContext } from '../../../src/utils/requestContext';
 import {
 	applyHeaders,
 	createRouteRequest,
@@ -57,10 +58,8 @@ export function getNextPhase(phase: VercelPhase): VercelHandleValue {
  */
 export async function runOrFetchBuildOutputItem(
 	item: VercelBuildOutputItem | undefined,
-	request: Request,
-	{ path, searchParams }: MatchedSet,
-	assets: Fetcher,
-	ctx: ExecutionContext
+	{ request, assetsFetcher, ctx }: RequestContext,
+	{ path, searchParams }: MatchedSet
 ) {
 	let resp: Response | undefined = undefined;
 
@@ -77,7 +76,7 @@ export async function runOrFetchBuildOutputItem(
 			}
 			case 'override': {
 				resp = createMutableResponse(
-					await assets.fetch(createRouteRequest(req, item.path ?? path))
+					await assetsFetcher.fetch(createRouteRequest(req, item.path ?? path))
 				);
 
 				if (item.headers) {
@@ -86,7 +85,7 @@ export async function runOrFetchBuildOutputItem(
 				break;
 			}
 			case 'static': {
-				resp = await assets.fetch(createRouteRequest(req, path));
+				resp = await assetsFetcher.fetch(createRouteRequest(req, path));
 				break;
 			}
 			case 'middleware': {
