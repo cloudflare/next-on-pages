@@ -22,7 +22,7 @@ The routing process is broken down into a series of different phases.
 
 Each phase is processed in a somewhat sequential order, depending on the outcome of the previous phase. At different points, certain configuration options are applied, the final destination may be updated, or the final response object is modified.
 
-After checking the [source routes](https://vercel.com/docs/build-output-api/v3/configuration#source-route) for each phase, the system will check the build output to determine if the file path exists or not. If it can find a record for the path, it runs the `hit` phase and then breaks out of the routing system to return a response to the client.
+After checking the [source routes](https://vercel.com/docs/build-output-api/v3/configuration#source-route) for each phase, the system will check the build output to determine if the file path exists or not. If it can find a record for the path, it runs the `hit` phase and then breaks out of the routing system to return a response to the client. If an error occurs during routing (e.g. with middleware), we enter the `error` phase to check for a relevant error page.
 
 ### `none`
 
@@ -106,7 +106,7 @@ A simplistic overview of the routing process is as follows.
 
 ### Checking Phases
 
-The first thing that happens when a request is received, is that the router starts looking for matches in the `none` phase. It calls a function to start checking phases. This function is called recursively to check additional phases.
+When we receive a request, the router looks for matches in the different phases, starting at the `none` phase.
 
 For every single source route in a phase, we check to see whether the route is a match, and process the relevant details (for more details on source checking see the [Checking Source Routes section](#checking-source-routes)). When we receive a response from the route checker, if we encountered an error — normally from running middleware — we break out of the routing process and return the error response. Otherwise, the only other time we disable the continuation of routing is if the route checker returns a final match.
 
@@ -133,7 +133,7 @@ flowchart TD
     NextPhaseIsWhat --> |if true\nset next phase to hit| checkPhase
     NextPhaseIsWhat --> |if false\nget next phase| getNextPhase --> checkPhase
 
-    NextPhaseIs{determine next phase} --> 
+    NextPhaseIs{determine next phase} -->
     getNextPhase --> NextPhaseIs{determine next phase}
 
     NextPhaseIs --> |none| NextIsFS[filesystem]
@@ -141,6 +141,7 @@ flowchart TD
     NextPhaseIs --> |rewrite| NextIsRS[resource]
     NextPhaseIs --> |resource| NextIsMS[miss]
     NextPhaseIs --> |all others| NextIsMS
+```
 
 ### Checking Source Routes
 
@@ -164,7 +165,7 @@ Next up, any middleware is run. Middleware occurs during the `none` phase, at th
 
 Additionally, it is important to check whether the middleware was a rewrite, so that the current path can be updated.
 
-If running the middleware failed, we have to bail out of routing and return an error to the client.
+If running the middleware failed, we have to bail out of routing and enter the `error` phase, and then return the error response to the client.
 
 #### Headers and Status Code
 
@@ -218,6 +219,7 @@ flowchart TD
     ShouldCheck --> |false| ShouldContinue{should continue}
     ShouldContinue --> |true| ReturnNext[`next`]
     ShouldContinue --> |false| ReturnDone[`done`]
+```
 
 ### Serving Responses
 
