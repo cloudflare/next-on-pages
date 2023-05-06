@@ -33,6 +33,9 @@ export class RoutesMatcher {
 	/** Search params for the response object */
 	public searchParams: URLSearchParams;
 
+	/** Counter for how many times the function to check a phase has been called */
+	public checkPhaseCounter;
+
 	/**
 	 * Creates a new instance of a request matcher.
 	 *
@@ -66,6 +69,8 @@ export class RoutesMatcher {
 		};
 		this.searchParams = prevMatch?.searchParams || new URLSearchParams();
 		applySearchParams(this.searchParams, this.url.searchParams);
+
+		this.checkPhaseCounter = 0;
 	}
 
 	/**
@@ -339,7 +344,20 @@ export class RoutesMatcher {
 				}
 
 				this.status = 404;
+			} else if (phase === 'miss') {
+				// When in the `miss` phase, enter `filesystem` if the file is not in the build output. This
+				// avoids rewrites in `none` that do the opposite of those in `miss`, and would cause infinite
+				// loops (e.g. i18n). If it is in the build output, remove a potentially applied `404` status.
+				if (!(this.path in this.output)) {
+					return await this.checkPhase('filesystem');
+				}
+
+				if (this.status === 404) {
+					this.status = undefined;
+				}
 			} else {
+				// In all other instances, we need to enter the `none` phase so we can ensure that requests
+				// for the `RSC` variant of pages are served correctly.
 				return await this.checkPhase('none');
 			}
 		}
@@ -359,6 +377,15 @@ export class RoutesMatcher {
 	 * @returns The status from checking the phase.
 	 */
 	private async checkPhase(phase: VercelPhase): Promise<CheckPhaseStatus> {
+		if (this.checkPhaseCounter++ >= 50) {
+			// eslint-disable-next-line no-console
+			console.error(
+				`Routing encountered an infinite loop while checking ${this.url.pathname}`
+			);
+			this.status = 500;
+			return 'error';
+		}
+
 		let shouldContinue = true;
 
 		for (const route of this.routes[phase]) {
@@ -412,6 +439,8 @@ export class RoutesMatcher {
 	public async run(
 		phase: Extract<VercelPhase, 'none' | 'error'> = 'none'
 	): Promise<CheckPhaseStatus> {
+		// Reset the counter for each run.
+		this.checkPhaseCounter = 0;
 		const result = await this.checkPhase(phase);
 
 		// Check if path is an external URL.
