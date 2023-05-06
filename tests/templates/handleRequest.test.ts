@@ -5,6 +5,7 @@ import {
 	checkRouteMatchTestSet,
 	configRewritesRedirectsHeadersTestSet,
 	dynamicRoutesTestSet,
+	infiniteLoopTestSet,
 	middlewareTestSet,
 } from './requestTestData';
 import type { TestCase, TestSet } from '../_helpers';
@@ -94,6 +95,7 @@ suite('router', () => {
 		checkRouteMatchTestSet,
 		configRewritesRedirectsHeadersTestSet,
 		dynamicRoutesTestSet,
+		infiniteLoopTestSet,
 		middlewareTestSet,
 	].forEach(testSet => {
 		describe(testSet.name, () => runTestSet(testSet));
