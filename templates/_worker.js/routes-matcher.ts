@@ -43,9 +43,7 @@ export class RoutesMatcher {
 	 *
 	 * @param routes The processed Vercel build output config routes.
 	 * @param output Vercel build output.
-	 * @param assets Static assets fetcher.
-	 * @param ctx Execution context.
-	 * @param req Request object.
+	 * @param reqCtx Request context object; request object, assets fetcher, and execution context.
 	 * @param prevMatch The previous match from a routing phase to initialize the matcher with.
 	 * @returns The matched set of path, status, headers, and search params.
 	 */
@@ -405,7 +403,7 @@ export class RoutesMatcher {
 		if (
 			phase === 'hit' ||
 			isUrl(this.path) ||
-			(!shouldContinue && this.headers.normal.has('location'))
+			this.headers.normal.has('location')
 		) {
 			return 'done';
 		}
