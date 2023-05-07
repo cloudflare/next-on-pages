@@ -34,12 +34,10 @@ cd my-next-app
 
 ### 2. Configure the application to use the Edge Runtime
 
-In order for your application to run on Cloudflare Pages, it needs to be set to use the Edge Runtime. Make sure that all the files in your application containing server-side code (e.g. any API Routes and any pages which use `getServerSideProps`) export a `config` object specifying the use of the Edge Runtime:
+In order for your application to run on Cloudflare Pages, it needs to be set to use the Edge Runtime. Make sure that all the files in your application containing server-side code (e.g. any API Routes and any pages which use `getServerSideProps`) export a [Runtime Route Segement config](https://nextjs.org/docs/app/api-reference/file-conventions/route-segment-config#runtime) specifying the use of the Edge Runtime:
 
 ```ts
-export const config = {
-	runtime: 'edge',
-};
+export const runtime = 'edge';
 ```
 
 Additionally, ensure that your application is not using any [unsupported APIs](https://nextjs.org/docs/api-reference/edge-runtime#unsupported-apis) and that its API routes are defined as [Edge API Routes](https://nextjs.org/docs/api-routes/edge-api-routes).
