@@ -5,6 +5,7 @@ import {
 	applySearchParams,
 	createRouteRequest,
 	isUrl,
+	parseAcceptLanguage,
 } from '../../../templates/_worker.js/utils';
 
 describe('applyHeaders', () => {
@@ -92,5 +93,21 @@ describe('createRouteRequest', () => {
 		const request = createRouteRequest(prevReq, '/index.html');
 
 		expect(new URL(request.url).pathname).toEqual('/');
+	});
+});
+
+describe('parseAcceptLanguage', () => {
+	test('extract the locales and sort by quality when present', () => {
+		[
+			['', []],
+			['en', ['en']],
+			['en-US,en', ['en-US', 'en']],
+			['en-US,en;q=0.9,es;q=0.8', ['en-US', 'en', 'es']],
+			['en-US,fr;q=0.7,en;q=0.9,es;q=0.8', ['en-US', 'en', 'es', 'fr']],
+			['fr;q=0.7,en;q=0.9,en-US,es;q=0.8', ['en-US', 'en', 'es', 'fr']],
+			['fr;q = 0.7,en;q =0.9,en-US,es;q= 0.8', ['en-US', 'en', 'es', 'fr']],
+		].forEach(([input, output]) => {
+			expect(parseAcceptLanguage(input as string)).toEqual(output);
+		});
 	});
 });

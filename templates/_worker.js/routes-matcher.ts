@@ -1,5 +1,6 @@
 import { parse } from 'cookie';
 import type { MatchPCREResult, MatchedSet } from './utils';
+import { parseAcceptLanguage } from './utils';
 import {
 	applyHeaders,
 	applyPCREMatches,
@@ -296,6 +297,54 @@ export class RoutesMatcher {
 	}
 
 	/**
+	 * Applies the route's redirects for locales and internationalization.
+	 *
+	 * @param route Build output config source route.
+	 */
+	private applyLocaleRedirects(route: VercelSource): void {
+		if (!route.locale?.redirect) return;
+
+		// Automatic locale detection is only supposed to occur at the root. However, the build output
+		// sometimes uses `/` as the regex instead of `^/$`. So, we should check if the `route.src` is
+		// equal to the path if it is not a regular expression, to determine if we are at the root.
+		// https://nextjs.org/docs/pages/building-your-application/routing/internationalization#automatic-locale-detection
+		const srcIsRegex = /^\^(.)*$/.test(route.src);
+		if (!srcIsRegex && route.src !== this.path) return;
+
+		// If we already have a location header set, we might have found a locale redirect earlier.
+		if (this.headers.normal.has('location')) return;
+
+		const {
+			locale: { redirect: redirects, cookie: cookieName },
+		} = route;
+
+		const cookieValue = cookieName ? this.cookies[cookieName] : '';
+		const cookieLocales = parseAcceptLanguage(cookieValue);
+
+		const headerLocales = parseAcceptLanguage(
+			this.reqCtx.request.headers.get('accept-language')
+		);
+
+		// Locales from the cookie take precedence over the header.
+		const locales = [...cookieLocales, ...headerLocales];
+
+		for (const locale of locales) {
+			const redirectValue = redirects[locale];
+			if (!redirectValue) continue;
+
+			// If the path starts with the redirect, we should already be in the right place. Bail out.
+			if (this.path.startsWith(redirectValue)) {
+				return;
+			}
+
+			// Redirect found, set the location header and bail out.
+			this.headers.normal.set('location', redirectValue);
+			this.status = 307;
+			return;
+		}
+	}
+
+	/**
 	 * Checks a route to see if it matches the current request.
 	 *
 	 * @param phase Current phase of the routing process.
@@ -315,6 +364,9 @@ export class RoutesMatcher {
 
 		// If this route overrides, replace the response headers and status.
 		this.applyRouteOverrides(route);
+
+		// If this route has a locale, apply the redirects for it.
+		this.applyLocaleRedirects(route);
 
 		// Call and process the middleware if this is a middleware route.
 		const success = await this.runRouteMiddleware(route.middlewarePath);
