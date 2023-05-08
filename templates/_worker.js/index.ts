@@ -14,7 +14,12 @@ declare const __ENV_ALS__: AsyncLocalStorage<unknown> & {
 
 export default {
 	async fetch(request, env, ctx) {
-		return __ENV_ALS__.run({ ...env, NODE_ENV: __NODE_ENV__ }, () => {
+		const cloudflare = {
+			cf: request.cf,
+			env,
+			ctx,
+		};
+		return __ENV_ALS__.run({ cloudflare, NODE_ENV: __NODE_ENV__ }, () => {
 			const adjustedRequest = adjustRequestForVercel(request);
 
 			return handleRequest(
