@@ -95,7 +95,7 @@ export function createMutableResponse(resp: Response) {
  * @returns Array of locales sorted by quality.
  */
 export function parseAcceptLanguage(headerValue: string): string[] {
-	return (headerValue ?? '')
+	return headerValue
 		.split(',')
 		.map(val => {
 			const [lang, qual] = val.split(';') as [string, string | undefined];
