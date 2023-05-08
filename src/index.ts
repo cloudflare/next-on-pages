@@ -76,6 +76,9 @@ function setWatchMode(fn: () => void): void {
 			'.wrangler',
 			'package-lock.json',
 			'yarn.lock',
+			'pnpm-lock.yaml',
+			'.pnpm-store',
+			'_tmp_*',
 		],
 		ignoreInitial: true,
 	}).on('all', fn);
