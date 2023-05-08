@@ -94,7 +94,7 @@ export function createMutableResponse(resp: Response) {
  * @param headerValue Accept-Language header value.
  * @returns Array of locales sorted by quality.
  */
-export function parseAcceptLanguage(headerValue?: string | null): string[] {
+export function parseAcceptLanguage(headerValue: string): string[] {
 	return (headerValue ?? '')
 		.split(',')
 		.map(val => {

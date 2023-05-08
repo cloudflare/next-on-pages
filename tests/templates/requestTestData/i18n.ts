@@ -63,6 +63,7 @@ const rawVercelConfig: VercelConfig = {
 			check: true,
 			dest: '$0',
 		},
+		{ src: '/en', dest: '/', check: true },
 		{ src: '^//?(?:en|fr|nl|es)/(.*)', dest: '/$1', check: true },
 		{ handle: 'rewrite' },
 		{
@@ -241,7 +242,7 @@ export const testSet: TestSet = {
 		},
 		{
 			name: 'runs function for route (no specific locale for function)',
-			paths: locales.map(locale => `/${locale}/gssp`),
+			paths: ['/gssp', ...locales.map(locale => `/${locale}/gssp`)],
 			expected: {
 				status: 200,
 				data: JSON.stringify({ file: '/gssp', params: [] }),
@@ -253,7 +254,7 @@ export const testSet: TestSet = {
 		},
 		{
 			name: 'runs function for dynamic route (no specific locale for function)',
-			paths: locales.map(locale => `/${locale}/gsp/test`),
+			paths: ['/gsp/test', ...locales.map(locale => `/${locale}/gsp/test`)],
 			expected: {
 				status: 200,
 				data: JSON.stringify({

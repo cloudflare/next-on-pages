@@ -36,6 +36,8 @@ export class RoutesMatcher {
 
 	/** Counter for how many times the function to check a phase has been called */
 	public checkPhaseCounter;
+	/** Locales found during routing */
+	public locales: Record<string, string> | undefined;
 
 	/**
 	 * Creates a new instance of a request matcher.
@@ -304,6 +306,9 @@ export class RoutesMatcher {
 	private applyLocaleRedirects(route: VercelSource): void {
 		if (!route.locale?.redirect) return;
 
+		if (!this.locales) this.locales = {};
+		Object.assign(this.locales, route.locale.redirect);
+
 		// Automatic locale detection is only supposed to occur at the root. However, the build output
 		// sometimes uses `/` as the regex instead of `^/$`. So, we should check if the `route.src` is
 		// equal to the path if it is not a regular expression, to determine if we are at the root.
@@ -318,17 +323,19 @@ export class RoutesMatcher {
 			locale: { redirect: redirects, cookie: cookieName },
 		} = route;
 
-		const cookieValue = cookieName ? this.cookies[cookieName] : '';
+		const cookieValue = cookieName ? this.cookies[cookieName] ?? '' : '';
 		const cookieLocales = parseAcceptLanguage(cookieValue);
 
 		const headerLocales = parseAcceptLanguage(
-			this.reqCtx.request.headers.get('accept-language')
+			this.reqCtx.request.headers.get('accept-language') ?? ''
 		);
 
 		// Locales from the cookie take precedence over the header.
 		const locales = [...cookieLocales, ...headerLocales];
 
-		const redirectLocales = locales.map(locale => redirects[locale]).filter(Boolean) as string[];
+		const redirectLocales = locales
+			.map(locale => redirects[locale])
+			.filter(Boolean) as string[];
 
 		const redirectValue = redirectLocales[0];
 		if (redirectValue) {
@@ -342,6 +349,37 @@ export class RoutesMatcher {
 	}
 
 	/**
+	 * Modifies the source route's `src` regex to be friendly with previously found locale's in the
+	 * `miss` phase.
+	 *
+	 * Sometimes, there is a source route with `src: '/{locale}'`, which rewrites all paths containing
+	 * the locale to `/`. This is problematic for matching, and should only do this if the path is
+	 * exactly the locale, i.e. `^/{locale}$`.
+	 *
+	 * @param route Build output config source route.
+	 * @param phase Current phase of the routing process.
+	 * @returns The route with the locale friendly regex.
+	 */
+	private getLocaleFriendlyRoute(
+		route: VercelSource,
+		phase: VercelPhase
+	): VercelSource {
+		if (
+			!this.locales ||
+			phase !== 'miss' ||
+			!/^\//.test(route.src) ||
+			!(route.src.slice(1) in this.locales)
+		) {
+			return route;
+		}
+
+		return {
+			...route,
+			src: `^${route.src}$`,
+		};
+	}
+
+	/**
 	 * Checks a route to see if it matches the current request.
 	 *
 	 * @param phase Current phase of the routing process.
@@ -350,8 +388,9 @@ export class RoutesMatcher {
 	 */
 	private async checkRoute(
 		phase: VercelPhase,
-		route: VercelSource
+		rawRoute: VercelSource
 	): Promise<CheckRouteStatus> {
+		const route = this.getLocaleFriendlyRoute(rawRoute, phase);
 		const routeMatch = this.checkRouteMatch(route, phase === 'error');
 
 		// If this route doesn't match, continue to the next one.
