@@ -25,7 +25,7 @@ Earlier and Later versions might be only partially supported, we don't fully kno
 | routes `status`         | ✅      |
 | routes `has`            | ✅      |
 | routes `missing`        | ✅      |
-| routes `locale`         | 🔄      |
+| routes `locale`         | ✅      |
 | routes `middlewarePath` | ✅      |
 | images<sup>1</sup>      | 🔄      |
 | wildcard                | 🔄      |
@@ -70,7 +70,7 @@ Earlier and Later versions might be only partially supported, we don't fully kno
 | URL imports                                | ✅      |
 | build indicator<sup>7</sup>                | ❌      |
 | Turbopack-specific options<sup>8</sup>     | ❌      |
-| internationalized (i18n) routing           | 🔄      |
+| internationalized (i18n) routing           | ✅      |
 
     - ✅: Supported
     - 🔄: Not currently supported, but it's probably possible and we may add support in the future

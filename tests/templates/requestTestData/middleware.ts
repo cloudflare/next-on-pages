@@ -93,7 +93,6 @@ export const testSet: TestSet = {
 				data: '',
 				headers: {
 					location: 'http://localhost/somewhere-else?redirect=',
-					'x-matched-path': '/api/hello',
 				},
 			},
 		},

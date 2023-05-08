@@ -166,9 +166,9 @@ export const testSet: TestSet = {
 			},
 		},
 		{
-			name: 'trailing slash redirects to non-trailing slash',
+			name: 'trailing slash redirects (308) to non-trailing slash',
 			paths: ['/api/hello/'],
-			expected: { status: 307, data: '', headers: { location: '/api/hello' } },
+			expected: { status: 308, data: '', headers: { location: '/api/hello' } },
 		},
 		{
 			name: 'valid `_next/static` file returns the cache headers',
