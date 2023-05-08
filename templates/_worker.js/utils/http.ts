@@ -99,7 +99,7 @@ export function parseAcceptLanguage(headerValue?: string | null): string[] {
 		.split(',')
 		.map(val => {
 			const [lang, qual] = val.split(';') as [string, string | undefined];
-			const quality = parseFloat((qual ?? 'q=1').replace(/q ?= ?/gi, ''));
+			const quality = parseFloat((qual ?? 'q=1').replace(/q *= */gi, ''));
 
 			return [lang.trim(), isNaN(quality) ? 1 : quality] as [string, number];
 		})

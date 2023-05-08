@@ -99,15 +99,25 @@ describe('createRouteRequest', () => {
 describe('parseAcceptLanguage', () => {
 	test('extract the locales and sort by quality when present', () => {
 		[
-			['', []],
-			['en', ['en']],
-			['en-US,en', ['en-US', 'en']],
-			['en-US,en;q=0.9,es;q=0.8', ['en-US', 'en', 'es']],
-			['en-US,fr;q=0.7,en;q=0.9,es;q=0.8', ['en-US', 'en', 'es', 'fr']],
-			['fr;q=0.7,en;q=0.9,en-US,es;q=0.8', ['en-US', 'en', 'es', 'fr']],
-			['fr;q = 0.7,en;q =0.9,en-US,es;q= 0.8', ['en-US', 'en', 'es', 'fr']],
-		].forEach(([input, output]) => {
-			expect(parseAcceptLanguage(input as string)).toEqual(output);
+			{ header: '', expected: [] },
+			{ header: 'en', expected: ['en'] },
+			{ header: 'en-US,en', expected: ['en-US', 'en'] },
+			{ header: 'en-US,en;q=0.9,es;q=0.8', expected: ['en-US', 'en', 'es'] },
+			{
+				header: 'en-US,fr;q=0.7,en;q=0.9,es;q=0.8',
+				expected: ['en-US', 'en', 'es', 'fr'],
+			},
+			{
+				header: 'fr;q=0.7,en;q=0.9,en-US,es;q=0.8',
+				expected: ['en-US', 'en', 'es', 'fr'],
+			},
+			{
+				header: 'fr;q = 0.7,en;q =0.9,en-US,es;q= 0.8',
+				expected: ['en-US', 'en', 'es', 'fr'],
+			},
+		].forEach(({ header, expected }) => {
+			const result = parseAcceptLanguage(header);
+			expect(result).toEqual(expected);
 		});
 	});
 });

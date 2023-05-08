@@ -328,18 +328,15 @@ export class RoutesMatcher {
 		// Locales from the cookie take precedence over the header.
 		const locales = [...cookieLocales, ...headerLocales];
 
-		for (const locale of locales) {
-			const redirectValue = redirects[locale];
-			if (!redirectValue) continue;
+		const redirectLocales = locales.map(locale => redirects[locale]).filter(Boolean) as string[];
 
-			// If the path starts with the redirect, we should already be in the right place. Bail out.
-			if (this.path.startsWith(redirectValue)) {
-				return;
+		const redirectValue = redirectLocales[0];
+		if (redirectValue) {
+			const needsRedirecting = !this.path.startsWith(redirectValue);
+			if (needsRedirecting) {
+				this.headers.normal.set('location', redirectValue);
+				this.status = 307;
 			}
-
-			// Redirect found, set the location header and bail out.
-			this.headers.normal.set('location', redirectValue);
-			this.status = 307;
 			return;
 		}
 	}
