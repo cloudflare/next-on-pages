@@ -323,8 +323,8 @@ export class RoutesMatcher {
 			locale: { redirect: redirects, cookie: cookieName },
 		} = route;
 
-		const cookieValue = cookieName ? this.cookies[cookieName] ?? '' : '';
-		const cookieLocales = parseAcceptLanguage(cookieValue);
+		const cookieValue = cookieName && this.cookies[cookieName];
+		const cookieLocales = parseAcceptLanguage(cookieValue ?? '');
 
 		const headerLocales = parseAcceptLanguage(
 			this.reqCtx.request.headers.get('accept-language') ?? ''
