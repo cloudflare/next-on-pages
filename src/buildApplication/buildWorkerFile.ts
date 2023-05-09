@@ -1,5 +1,4 @@
 import { writeFile } from 'fs/promises';
-import type { Plugin } from 'esbuild';
 import { join } from 'path';
 import { build } from 'esbuild';
 import { tmpdir } from 'os';
@@ -76,34 +75,7 @@ export async function buildWorkerFile(
 		},
 		outfile: outputFile,
 		minify,
-		plugins: [nodeBufferPlugin],
 	});
 
 	cliSuccess(`Generated '${outputFile}'.`);
 }
-
-// Chunks can contain `require("node:buffer")`, this is not allowed and breaks at runtime
-// the following fixes this by updating the require to a standard esm import from node:buffer
-const nodeBufferPlugin: Plugin = {
-	name: 'node:buffer',
-	setup(build) {
-		build.onResolve({ filter: /^node:buffer$/ }, ({ kind, path }) => {
-			// this plugin converts `require("node:buffer")` calls, those are the only ones that
-			// need updating (esm imports to "node:buffer" are totally valid), so here we tag with the
-			// node-buffer namespace only imports that are require calls
-			return kind === 'require-call'
-				? {
-						path,
-						namespace: 'node-buffer',
-				  }
-				: undefined;
-		});
-
-		// we convert the imports we tagged with the node-buffer namespace so that instead of `require("node:buffer")`
-		// they import from `export * from 'node:buffer;'`
-		build.onLoad({ filter: /.*/, namespace: 'node-buffer' }, () => ({
-			contents: `export * from 'node:buffer'`,
-			loader: 'js',
-		}));
-	},
-};
