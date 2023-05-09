@@ -1,6 +1,6 @@
 import { writeFile } from 'fs/promises';
-import { join } from 'path';
 import type { Plugin } from 'esbuild';
+import { join } from 'path';
 import { build } from 'esbuild';
 import { tmpdir } from 'os';
 import { cliSuccess } from '../cli';
@@ -14,17 +14,24 @@ import type { ProcessedVercelOutput } from './processVercelOutput';
  * @returns Record for the build output map.
  */
 export function constructBuildOutputRecord(item: BuildOutputItem) {
-	return item.type === 'static'
-		? `{ type: ${JSON.stringify(item.type)} }`
-		: item.type === 'override'
-		? `{
+	if (item.type === 'static') {
+		return `{ type: ${JSON.stringify(item.type)} }`;
+	}
+
+	if (item.type === 'override') {
+		return `{
 				type: ${JSON.stringify(item.type)},
 				path: ${item.path ? JSON.stringify(item.path) : undefined},
 				headers: ${item.headers ? JSON.stringify(item.headers) : undefined}
-			}`
-		: `{
+			}`;
+	}
+
+	return `{
 				type: ${JSON.stringify(item.type)},
-				entrypoint: AsyncLocalStoragePromise.then(() => import('${item.entrypoint}'))
+				entrypoint: AsyncLocalStoragePromise.then(() => import('${item.entrypoint.replace(
+					/^\.vercel\/output\/static\/_worker\.js\/__next-on-pages-dist__\//,
+					'./__next-on-pages-dist__/'
+				)}')),
 			}`;
 }
 
@@ -49,7 +56,13 @@ export async function buildWorkerFile(
 			.join(',')}};`
 	);
 
-	const outputFile = join('.vercel', 'output', 'static', '_worker.js');
+	const outputFile = join(
+		'.vercel',
+		'output',
+		'static',
+		'_worker.js',
+		'index.js'
+	);
 
 	await build({
 		entryPoints: [join(__dirname, '..', 'templates', '_worker.js')],
@@ -60,7 +73,7 @@ export async function buildWorkerFile(
 		inject: [functionsFile],
 		target: 'es2022',
 		platform: 'neutral',
-		external: ['node:async_hooks', 'node:buffer'],
+		external: ['node:async_hooks', 'node:buffer', './__next-on-pages-dist__/*'],
 		define: {
 			__CONFIG__: JSON.stringify(vercelConfig),
 		},
