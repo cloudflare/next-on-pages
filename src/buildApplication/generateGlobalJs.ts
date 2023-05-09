@@ -19,7 +19,5 @@ export function generateGlobalJs(): string {
 					set: (_, property, value) => Reflect.set(__ENV_ALS__.getStore(), property, value),
 			}),
 		};
-	`
-		.replace(/^\s+/, '')
-		.replace(/\n\s+/g, ' ');
+	`;
 }
