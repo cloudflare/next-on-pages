@@ -6,6 +6,7 @@ import { tmpdir } from 'os';
 import { cliSuccess } from '../cli';
 import { generateGlobalJs } from './generateGlobalJs';
 import type { ProcessedVercelOutput } from './processVercelOutput';
+import { getNodeEnv } from '../utils/getNodeEnv';
 
 /**
  * Construct a record for the build output map.
@@ -71,6 +72,7 @@ export async function buildWorkerFile(
 		external: ['node:*', './__next-on-pages-dist__/*'],
 		define: {
 			__CONFIG__: JSON.stringify(vercelConfig),
+			NODE_ENV: JSON.stringify(getNodeEnv()),
 		},
 		outfile: outputFile,
 		minify,
