@@ -104,6 +104,8 @@ A simplistic overview of the routing process is as follows.
 - Run the matched function, or fetch the matched static asset.
 - Return the final response.
 
+In order to prevent runaway phase checking, i.e. infinitely looping through phases, we have checks that determine whether we have processed phases too many times. This is indicative of records in the build output configuration causing infinite loops, and the counter resets each time the router is run for a request.
+
 ### Checking Phases
 
 When we receive a request, the router looks for matches in the different phases, starting at the `none` phase.
@@ -159,6 +161,18 @@ If the route was not a match, we simply skip it (i.e. it doesn't involve the cur
 
 In different phases, different things may be applied to our response object, or modify the current requests details. The first thing we check for is whether a (matching) source route wants to override the current headers and status code and, if so, reset them.
 
+#### Locale
+
+To support internationalization redirects, the Vercel build output configuration contains source routes that map locales to redirects for both [sub-path](https://nextjs.org/docs/pages/building-your-application/routing/internationalization#sub-path-routing) and [domain](https://nextjs.org/docs/pages/building-your-application/routing/internationalization#domain-routing) routing. Dealing with these is a little challenging due to the format of some of the records and, as such, has involved custom behaviour.
+
+When we encounter a list of a locale redirects, we have to check for any cookie value that is provided as a way to override the request's `Accept-Language` header. Both the cookie and the header have to be parsed into a form that represents the locales, sorted by [quality](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept-Language#directives). Vercel considers the locale in the cookie to take precendence over the header.
+
+If we find a locale that matches the current request, we apply a redirect for it and exit the routing process. At the same time, whenever we encounter a source route with a locale property, we store the list of locales for later use when dealing with edge cases.
+
+The custom behaviour that was referred to above comes into play when processing sub-path locale source routes. The `src` value that is used to match the request appears to only be for `/`, instead of `^/$`. This means that we have to check if the `src` value is a regular expression, and if not, handle it another way, to ensure that we are on the root. This is because automatic locale detection should [only](https://nextjs.org/docs/pages/building-your-application/routing/internationalization#automatic-locale-detection) occur at the root of the site.
+
+One of the edge cases that we have to deal with when internationalization is enabled is in the `miss` phase. Sometimes, the build output config has a record that rewrites all paths containing `/{locale}` to `/`, instead of `^/{locale}$`. This is an important distinction as it prevents us from reaching the next source route which handles including everything after the locale. Therefore, when checking source routes in the `miss` phase, we have to use the list of locales that we stored earlier to check if the current `src` value is a known locale, and if so, change the matcher to be `^/{locale}$` instead of `/{locale}`.
+
 #### Middleware
 
 Next up, any middleware is run. Middleware occurs during the `none` phase, at the very start of the routing process. The response headers from the middleware and taken and applied to the request and the response object, where appropriate.
@@ -191,9 +205,11 @@ This can be somewhat problematic.
 
 Requests that should be interpreted as requesting the `RSC` version of a page need to enter the `none` phase to receive a rewrite to the `RSC` path. However, if we assume that `check` should take us back to `filesytem`, instead of the routes that aren't in a phase, we would end up not supporting `RSC` pages properly.
 
-Therefore, when the rewritten path has changed, we send the request back to the `none` phase, so that it can be processed from the start.
+Therefore, when the rewritten path has changed and we are not in the `miss` phase, we send the request back to the `none` phase, so that it can be processed from the start.
 
 In the event that the rewritten path is the same as the current path, we opt to send the request to the next phase when the current phase is not `miss`. This custom check for the `miss` phase is necessary in order to prevent infite loops for requests to `/_next/static/...`, and `/_next/data/...`, as they may be rewritten to themselves when calling `check`. As such, if we are in the `miss` phase, we instead update the status code to 404.
+
+If the rewritten path was not equal to the current path but the current phase is `miss`, we instead send the request to the `filesystem` phase if the path does not exist in the build output. If it does exist, we just reset the status code if it was previously 404. This is to deal with the case where a rewrite in the `none` phase contrasts with one in the `miss` phase, e.g. with internationalization (i18n).
 
 #### Continuing with the Routing Process
 
@@ -206,17 +222,19 @@ flowchart TD
     checkRoute --> CheckSourceMatch{check source match}
     CheckSourceMatch -->|true| ApplyOverrides[apply overrides]
     CheckSourceMatch -->|false| EndRoutingSkip[`skip`]
-    ApplyOverrides --> HasMiddleware{has middleware}
+    ApplyOverrides --> ApplyInternationalization[apply internationalization\nredirects]
+    ApplyInternationalization --> HasMiddleware{has middleware}
     HasMiddleware --> |yes| RunMiddlewareResult{run middleware}
-    HasMiddleware --> |no| ApplyHeadersStatusAndDestination[apply headers\napply status code\napply destination]
-    RunMiddlewareResult --> |success| ApplyHeaders[apply headers]
+    HasMiddleware --> |no| ApplyHeadersStatusAndDestination[apply route headers\napply status code\napply destination]
+    RunMiddlewareResult --> |success| ApplyMiddlewareHeaders[apply middleware\nheaders]
     RunMiddlewareResult --> |error| EndRoutingError[`error`]
+    ApplyMiddlewareHeaders --> ApplyHeadersStatusAndDestination
     ApplyHeadersStatusAndDestination --> ShouldCheck{should check filesystem}
     ShouldCheck --> |yes| PathsEqual{new path is equal}
     PathsEqual --> |yes\n+\nphase = miss| Return404[set status to 404] --> ShouldContinue
     PathsEqual --> |yes\n+\nphase != miss| checkNextPhase[check next phase]
     PathsEqual --> |false| checkNonePhase[check `none` phase]
-    ShouldCheck --> |false| ShouldContinue{should continue}
+    ShouldCheck --> |false| ShouldContinue{should continue\n and has no\nredirect}
     ShouldContinue --> |true| ReturnNext[`next`]
     ShouldContinue --> |false| ReturnDone[`done`]
 ```
