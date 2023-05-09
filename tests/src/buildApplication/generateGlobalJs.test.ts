@@ -15,7 +15,7 @@ describe('generateGlobalJs', async () => {
 			expect(globalJs).toContain('const __ENV_ALS__ = new AsyncLocalStorage()');
 
 			const proxyRegexMatch = globalJs.match(
-				/globalThis.process = {(?:.*)Proxy\((.*)\)(?:.*)}/
+				/globalThis.process = {[\S\s]*Proxy\(([\s\S]+)\)[\s\S]+}/
 			);
 
 			expect(proxyRegexMatch?.length).toBe(2);
