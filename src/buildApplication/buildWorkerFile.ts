@@ -72,7 +72,7 @@ export async function buildWorkerFile(
 		external: ['node:*', './__next-on-pages-dist__/*'],
 		define: {
 			__CONFIG__: JSON.stringify(vercelConfig),
-			NODE_ENV: JSON.stringify(getNodeEnv()),
+			__NODE_ENV__: JSON.stringify(getNodeEnv()),
 		},
 		outfile: outputFile,
 		minify,

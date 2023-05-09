@@ -2,7 +2,7 @@ import { handleRequest } from './handleRequest';
 import { adjustRequestForVercel } from './utils';
 import type { AsyncLocalStorage } from 'node:async_hooks';
 
-declare const NODE_ENV: string;
+declare const __NODE_ENV__: string;
 
 declare const __CONFIG__: ProcessedVercelConfig;
 
@@ -14,7 +14,7 @@ declare const __ENV_ALS__: AsyncLocalStorage<unknown> & {
 
 export default {
 	async fetch(request, env, ctx) {
-		return __ENV_ALS__.run({ ...env, NODE_ENV }, () => {
+		return __ENV_ALS__.run({ ...env, NODE_ENV: __NODE_ENV__ }, () => {
 			const adjustedRequest = adjustRequestForVercel(request);
 
 			return handleRequest(
