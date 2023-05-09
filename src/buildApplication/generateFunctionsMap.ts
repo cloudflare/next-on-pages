@@ -33,9 +33,7 @@ import { fixPrerenderedRoutes } from './fixPrerenderedRoutes';
 export async function generateFunctionsMap(
 	functionsDir: string,
 	disableChunksDedup: CliOptions['disableChunksDedup']
-): Promise<
-	Pick<DirectoryProcessingResults, 'functionsMap' | 'invalidFunctions'>
-> {
+): Promise<DirectoryProcessingResults> {
 	const nextOnPagesDistDir = join(
 		'.vercel',
 		'output',
