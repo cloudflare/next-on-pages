@@ -1,4 +1,4 @@
-import { cliWarn } from "../cli";
+import { cliWarn } from '../cli';
 
 enum NextJsNodeEnv {
 	PRODUCTION = 'production',
