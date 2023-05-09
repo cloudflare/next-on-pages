@@ -13,6 +13,7 @@ import type { TestCase, TestSet } from '../_helpers';
 import { createRouterTestData } from '../_helpers';
 import type { RequestContext } from '../../src/utils/requestContext';
 import { handleRequest } from '../../templates/_worker.js/handleRequest';
+import { writeFile } from 'fs/promises';
 
 /**
  * Runs a test case.
@@ -88,6 +89,15 @@ async function runTestSet({ config, files, testCases }: TestSet) {
 		runTestCase(reqCtx, vercelConfig, buildOutput, testCase)
 	);
 }
+
+vi.mock('esbuild', async () => {
+	return {
+		build: (options: { stdin?: { contents: string }; outfile: string }) => {
+			const contents = options.stdin?.contents ?? 'built code';
+			writeFile(options.outfile, contents);
+		},
+	};
+});
 
 suite('router', () => {
 	[

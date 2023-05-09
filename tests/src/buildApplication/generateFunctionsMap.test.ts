@@ -4,6 +4,19 @@ import mockFs from 'mock-fs';
 import type { DirectoryItems } from 'mock-fs/lib/filesystem';
 import { join } from 'path';
 import { mockPrerenderConfigFile } from '../../_helpers';
+import { writeFile } from 'fs/promises';
+
+function getEsBuildMock() {
+	const esbuildMock = {
+		build: (options: { stdin?: { contents: string }; outfile: string }) => {
+			const contents = options.stdin?.contents ?? 'built code';
+			writeFile(options.outfile, contents);
+		},
+	};
+	return esbuildMock;
+}
+
+vi.mock('esbuild', async () => getEsBuildMock());
 
 describe('generateFunctionsMap', async () => {
 	describe('with chunks deduplication disabled should correctly handle', () => {
