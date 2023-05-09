@@ -1,4 +1,4 @@
-import { readFile, writeFile, mkdir, rm, readdir, copyFile } from 'fs/promises';
+import { readFile, mkdir, rm, readdir, copyFile } from 'fs/promises';
 import { exit } from 'process';
 import { dirname, join, relative, resolve } from 'path';
 import type { Node } from 'acorn';
@@ -17,6 +17,8 @@ import type * as AST from 'ast-types/gen/kinds';
 import assert from 'node:assert';
 import type { PrerenderedFileData } from './fixPrerenderedRoutes';
 import { fixPrerenderedRoutes } from './fixPrerenderedRoutes';
+import type { Plugin } from 'esbuild';
+import { build } from 'esbuild';
 
 /**
  * Creates new files containing the Vercel built functions but adjusted so that they can be later
@@ -233,8 +235,19 @@ async function processFuncDirectory(
 
 	const newFilePath = join(setup.distFunctionsDir, `${relativePath}.js`);
 	await mkdir(dirname(newFilePath), { recursive: true });
-	await writeFile(newFilePath, contents);
-
+	const relativeChunksPath = getRelativeChunksPath(functionFile);
+	await build({
+		stdin: {
+			contents,
+		},
+		target: 'es2022',
+		platform: 'neutral',
+		outfile: newFilePath,
+		bundle: true,
+		external: ['node:buffer', `${relativeChunksPath}/*`],
+		minify: true,
+		plugins: [nodeBufferPlugin],
+	});
 	const formattedPathName = formatRoutePath(relativePath);
 	const normalizedFilePath = normalizePath(newFilePath);
 
@@ -361,7 +374,18 @@ async function buildWebpackChunkFiles(
 	for (const [chunkIdentifier, code] of webpackChunks) {
 		const chunkFilePath = join(tmpWebpackDir, `${chunkIdentifier}.js`);
 		await mkdir(dirname(chunkFilePath), { recursive: true });
-		await writeFile(chunkFilePath, `export default ${code}`);
+		await build({
+			stdin: {
+				contents: `export default ${code}`,
+			},
+			target: 'es2022',
+			platform: 'neutral',
+			outfile: chunkFilePath,
+			bundle: true,
+			external: ['node:buffer'],
+			minify: true,
+			plugins: [nodeBufferPlugin],
+		});
 	}
 }
 
@@ -492,12 +516,17 @@ function getChunkIdentifier(chunkKey: number): string {
 	return `__chunk_${chunkKey}`;
 }
 
-function getChunkImportFn(functionPath: string): (chunkKey: number) => string {
+function getRelativeChunksPath(functionPath: string): string {
 	const functionNestingLevel = getFunctionNestingLevel(functionPath);
 	const accountForNestingPath = `../`.repeat(functionNestingLevel);
+	return `${accountForNestingPath}__next-on-pages-dist__/chunks`;
+}
+
+function getChunkImportFn(functionPath: string): (chunkKey: number) => string {
+	const relativeChunksPath = getRelativeChunksPath(functionPath);
 	return chunkKey => {
 		const chunkIdentifier = getChunkIdentifier(chunkKey);
-		const chunkPath = `${accountForNestingPath}__next-on-pages-dist__/chunks/${chunkKey}.js`;
+		const chunkPath = `${relativeChunksPath}/${chunkKey}.js`;
 		return `import ${chunkIdentifier} from '${chunkPath}'`;
 	};
 }
@@ -521,3 +550,29 @@ function getFunctionNestingLevel(functionPath: string): number {
 
 	return nestingLevel;
 }
+
+// Chunks can contain `require("node:buffer")`, this is not allowed and breaks at runtime
+// the following fixes this by updating the require to a standard esm import from node:buffer
+export const nodeBufferPlugin: Plugin = {
+	name: 'node:buffer',
+	setup(build) {
+		build.onResolve({ filter: /^node:buffer$/ }, ({ kind, path }) => {
+			// this plugin converts `require("node:buffer")` calls, those are the only ones that
+			// need updating (esm imports to "node:buffer" are totally valid), so here we tag with the
+			// node-buffer namespace only imports that are require calls
+			return kind === 'require-call'
+				? {
+						path,
+						namespace: 'node-buffer',
+				  }
+				: undefined;
+		});
+
+		// we convert the imports we tagged with the node-buffer namespace so that instead of `require("node:buffer")`
+		// they import from `export * from 'node:buffer;'`
+		build.onLoad({ filter: /.*/, namespace: 'node-buffer' }, () => ({
+			contents: `export * from 'node:buffer'`,
+			loader: 'js',
+		}));
+	},
+};
