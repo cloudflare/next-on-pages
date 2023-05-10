@@ -238,15 +238,15 @@ export function createValidFuncDir(data: string) {
 	};
 }
 
-// export function createInvalidFuncDir(data: string) {
-// 	return {
-// 		'.vc-config.json': JSON.stringify({
-// 			runtime: 'nodejs',
-// 			entrypoint: 'index.js',
-// 		}),
-// 		'index.js': data,
-// 	};
-// }
+export function createInvalidFuncDir(data: string) {
+	return {
+		'.vc-config.json': JSON.stringify({
+			runtime: 'nodejs',
+			entrypoint: 'index.js',
+		}),
+		'index.js': data,
+	};
+}
 
 /**
  * Create a fake prerender config file for testing.
@@ -273,19 +273,19 @@ export function mockPrerenderConfigFile(path: string): string {
 	return JSON.stringify(config);
 }
 
-// export function createPrerenderedRoute(
-// 	file: string,
-// 	base = ''
-// ): DirectoryItems {
-// 	const fileWithBase = `${base}/${file}`;
-// 	return {
-// 		[`${file}.func`]: createInvalidFuncDir(fileWithBase),
-// 		[`${file}.rsc.func`]: createInvalidFuncDir(`${fileWithBase}.rsc`),
-// 		[`${file}.prerender-config.json`]: mockPrerenderConfigFile(`${file}`),
-// 		[`${file}.prerender-fallback.html`]: `${fileWithBase}.prerender-fallback.html`,
-// 		[`${file}.rsc.prerender-config.json`]: mockPrerenderConfigFile(
-// 			`${file}.rsc`
-// 		),
-// 		[`${file}.rsc.prerender-fallback.rsc`]: `${fileWithBase}.rsc.prerender-fallback.rsc`,
-// 	};
-// }
+export function createPrerenderedRoute(
+	file: string,
+	base = ''
+): DirectoryItems {
+	const fileWithBase = `${base}/${file}`;
+	return {
+		[`${file}.func`]: createInvalidFuncDir(fileWithBase),
+		[`${file}.rsc.func`]: createInvalidFuncDir(`${fileWithBase}.rsc`),
+		[`${file}.prerender-config.json`]: mockPrerenderConfigFile(`${file}`),
+		[`${file}.prerender-fallback.html`]: `${fileWithBase}.prerender-fallback.html`,
+		[`${file}.rsc.prerender-config.json`]: mockPrerenderConfigFile(
+			`${file}.rsc`
+		),
+		[`${file}.rsc.prerender-fallback.rsc`]: `${fileWithBase}.rsc.prerender-fallback.rsc`,
+	};
+}
