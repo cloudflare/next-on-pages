@@ -45,7 +45,7 @@ Earlier and Later versions might be only partially supported, we don't fully kno
 
 | Option                                     | Support |
 | ------------------------------------------ | ------- |
-| environment variables                      | 🔄      |
+| environment variables                      | ✅      |
 | base path                                  | ✅      |
 | rewrites                                   | ✅      |
 | redirects                                  | ✅      |
