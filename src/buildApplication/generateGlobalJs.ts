@@ -16,7 +16,7 @@ export function generateGlobalJs(): string {
 				{},
 				{
 					get: (_, property) => {
-						${/* TODO: remove try-catch ASAP (after runtime fix) @dario */''}
+						${/* TODO: remove try-catch ASAP (after runtime fix) @dario */ ''}
 						try {
 							const result = Reflect.get(__ENV_ALS__.getStore(), property);
 							return result;

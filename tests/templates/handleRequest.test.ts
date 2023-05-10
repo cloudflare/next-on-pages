@@ -15,7 +15,7 @@
 // import { handleRequest } from '../../templates/_worker.js/handleRequest';
 // import { writeFile } from 'fs/promises';
 
-import { describe } from "vitest";
+import { describe } from 'vitest';
 
 // /**
 //  * Runs a test case.
