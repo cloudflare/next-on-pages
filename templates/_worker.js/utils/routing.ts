@@ -70,8 +70,10 @@ export async function runOrFetchBuildOutputItem(
 
 	try {
 		switch (item?.type) {
-			case 'function': {
-				resp = await (await item.entrypoint).default(req, ctx);
+			case 'function':
+			case 'middleware': {
+				const edgeFunction: EdgeFunction = await import(item.entrypoint);
+				resp = await edgeFunction.default(req, ctx);
 				break;
 			}
 			case 'override': {
@@ -86,10 +88,6 @@ export async function runOrFetchBuildOutputItem(
 			}
 			case 'static': {
 				resp = await assetsFetcher.fetch(createRouteRequest(req, path));
-				break;
-			}
-			case 'middleware': {
-				resp = await (await item.entrypoint).default(req, ctx);
 				break;
 			}
 			default: {

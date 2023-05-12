@@ -28,10 +28,10 @@ export function constructBuildOutputRecord(item: BuildOutputItem) {
 
 	return `{
 				type: ${JSON.stringify(item.type)},
-				entrypoint: import('${item.entrypoint.replace(
+				entrypoint: '${item.entrypoint.replace(
 					/^\.vercel\/output\/static\/_worker\.js\/__next-on-pages-dist__\//,
 					'./__next-on-pages-dist__/'
-				)}')
+				)}'
 			}`;
 }
 

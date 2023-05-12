@@ -167,7 +167,7 @@ type EdgeFunction = {
 type AdjustedBuildOutputFunction = Override<
 	BuildOutputFunction,
 	'entrypoint',
-	Promise<EdgeFunction>
+	string
 >;
 type VercelBuildOutputItem =
 	| AdjustedBuildOutputFunction

@@ -1,4 +1,4 @@
-import { describe, expect, suite, test, vi } from 'vitest';
+import { afterAll, expect, suite, test, vi } from 'vitest';
 import {
 	basicEdgeAppDirTestSet,
 	basicStaticAppDirTestSet,
@@ -14,6 +14,8 @@ import { createRouterTestData } from '../_helpers';
 import type { RequestContext } from '../../src/utils/requestContext';
 import { handleRequest } from '../../templates/_worker.js/handleRequest';
 import { writeFile } from 'fs/promises';
+
+import { describe } from 'vitest';
 
 /**
  * Runs a test case.
@@ -77,7 +79,7 @@ function runTestCase(
  * @param testSet Test set to run.
  */
 async function runTestSet({ config, files, testCases }: TestSet) {
-	const { vercelConfig, buildOutput, assetsFetcher } =
+	const { vercelConfig, buildOutput, assetsFetcher, restoreMocks } =
 		await createRouterTestData(config, files);
 
 	const reqCtx: Pick<RequestContext, 'assetsFetcher' | 'ctx'> = {
@@ -88,6 +90,8 @@ async function runTestSet({ config, files, testCases }: TestSet) {
 	testCases.forEach(testCase =>
 		runTestCase(reqCtx, vercelConfig, buildOutput, testCase)
 	);
+
+	afterAll(() => restoreMocks());
 }
 
 vi.mock('esbuild', async () => {

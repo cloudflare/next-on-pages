@@ -8,6 +8,7 @@ import {
 	processVercelOutput,
 } from '../../src/buildApplication/processVercelOutput';
 import type { VercelPrerenderConfig } from '../../src/buildApplication/fixPrerenderedRoutes';
+import { vi } from 'vitest';
 
 export type TestSet = {
 	name: string;
@@ -139,8 +140,7 @@ function createMockMiddlewareEntrypoint(file = '/'): EdgeFunction {
 }
 
 function constructBuildOutputRecord(
-	item: BuildOutputItem,
-	file: string
+	item: BuildOutputItem
 ): VercelBuildOutputItem {
 	if (item.type === 'static') {
 		return { type: item.type };
@@ -154,25 +154,24 @@ function constructBuildOutputRecord(
 		};
 	}
 
+	const fileContents = readFileSync(item.entrypoint, 'utf-8');
+
 	if (item.type === 'middleware') {
-		return {
-			type: item.type,
-			entrypoint: createMockMiddlewareEntrypoint(
-				file
-			) as unknown as Promise<EdgeFunction>,
-		};
+		vi.mock(item.entrypoint, () =>
+			createMockMiddlewareEntrypoint(fileContents)
+		);
+	} else if (item.type === 'function') {
+		vi.mock(item.entrypoint, () => createMockEntrypoint(fileContents));
 	}
 
-	return {
-		type: item.type,
-		entrypoint: createMockEntrypoint(file) as unknown as Promise<EdgeFunction>,
-	};
+	return item;
 }
 
 type RouterTestData = {
 	vercelConfig: ProcessedVercelConfig;
 	buildOutput: VercelBuildOutput;
 	assetsFetcher: MockAssetFetcher;
+	restoreMocks: () => void;
 };
 
 export async function createRouterTestData(
@@ -197,11 +196,7 @@ export async function createRouterTestData(
 
 	const buildOutput = [...vercelOutput.entries()].reduce(
 		(prev, [name, item]) => {
-			prev[name] = constructBuildOutputRecord(
-				item,
-				'entrypoint' in item ? readFileSync(item.entrypoint, 'utf-8') : ''
-			);
-
+			prev[name] = constructBuildOutputRecord(item);
 			return prev;
 		},
 		{} as VercelBuildOutput
@@ -225,7 +220,15 @@ export async function createRouterTestData(
 	const assetsFetcher = new MockAssetFetcher(staticAssetsForFetcher);
 
 	mockFs.restore();
-	return { vercelConfig, buildOutput, assetsFetcher };
+	return {
+		vercelConfig,
+		buildOutput,
+		assetsFetcher,
+		restoreMocks: () => {
+			mockFs.restore();
+			vi.clearAllMocks();
+		},
+	};
 }
 
 export function createValidFuncDir(data: string) {
