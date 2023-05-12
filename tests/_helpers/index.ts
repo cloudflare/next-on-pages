@@ -255,12 +255,13 @@ export function createInvalidFuncDir(data: string) {
  * Create a fake prerender config file for testing.
  *
  * @param path Path name for the file in the build output.
+ * @param ext File extension for the fallback file in the build output.
  * @returns The stringified prerender config file contents.
  */
-export function mockPrerenderConfigFile(path: string): string {
-	const fsPath = path.endsWith('.rsc')
-		? `${path}.prerender-fallback.rsc`
-		: `${path}.prerender-fallback.html`;
+export function mockPrerenderConfigFile(path: string, ext?: string): string {
+	const extension = ext || (path.endsWith('.rsc') ? 'rsc' : 'html');
+	const fsPath = `${path}.prerender-fallback.${extension}`;
+
 	const config: VercelPrerenderConfig = {
 		type: 'Prerender',
 		fallback: {
@@ -270,6 +271,7 @@ export function mockPrerenderConfigFile(path: string): string {
 		},
 		initialHeaders: {
 			...(path.endsWith('.rsc') && { 'content-type': 'text/x-component' }),
+			...(path.endsWith('.ico') && { 'content-type': 'image/x-icon' }),
 			vary: 'RSC, Next-Router-State-Tree, Next-Router-Prefetch',
 		},
 	};
