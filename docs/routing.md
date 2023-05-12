@@ -131,6 +131,7 @@ flowchart TD
     set404 --> nextPhaseIsWhat{path found\nsuccessfully?}
     nextPhaseIsWhat --> |true\nset next phase to hit| checkPhase
     nextPhaseIsWhat --> |false\nset next phase| checkPhase
+```
 
 ### Checking Source Routes
 
@@ -250,3 +251,4 @@ flowchart TD
     retrieveResponseForItem --> |success| applyHeadersAndStatus[apply headers + status]
     retrieveResponseForItem --> |error| returnError[return error response]
     applyHeadersAndStatus --> returnResponse[return final response object]
+```
