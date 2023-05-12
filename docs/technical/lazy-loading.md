@@ -44,6 +44,3 @@ flowchart TD
     classDef multi opacity:0.8,stroke:transparent,fill:transparent
     classDef worker fill:transparent
 ```
-
-> **Note**
-> The strategy also applies if you disable chunk deduplication (which anyhow is likely useful only for local development and debugging purposes), in such case there won't be any chunk file and the now much bigger route files will still get dynamically imported by the Worker.

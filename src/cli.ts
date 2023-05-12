@@ -97,13 +97,16 @@ export function printCliHelpMessage(): void {
 		--version, -v:                      Shows the version of the package
 
 		--skip-build, -s:                   Doesn't run 'vercel build' automatically
-
-		--disable-chunks-dedup, -d:         Disables the de-duplication of webpack chunks performed to reduce the output
-		                                    size of the application so that they can be deployed on Cloudflare Pages
-		                                    without hitting the javascript size limit (this option is generally useful only
-		                                    when there are issues with the de-duplication process, to speed up the building process
-		                                    during development or for debugging purposes)
-
+		${
+			// We don't currently document the disable chunks flag since we may need to significantly change the deduplication strategy
+			// when turbopack is introduces (see https://github.com/cloudflare/next-on-pages/pull/208/files#r1192279816)
+			// `--disable-chunks-dedup, -d:         Disables the de-duplication of webpack chunks performed to reduce the output
+			//                                 size of the application so that they can be deployed on Cloudflare Pages
+			//                                 without hitting the javascript size limit (this option is generally useful only
+			//                                 when there are issues with the de-duplication process, to speed up the building process
+			//                                 during development or for debugging purposes)`
+			''
+		}
 		--disable-worker-minification, -m:  Disabled the minification of the _worker.js script performed to reduce its javascript
 		                                    size (this option is generally useful only for debugging purposes)
 
