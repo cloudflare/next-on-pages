@@ -114,7 +114,7 @@ For every single source route in a phase, we check to see whether the route is a
 
 After all the source routes in the current phase have been checked, we move on to determine what will happen next. If the current phase is the `hit` phase, or the route has at some point been rewritten to an URL, the routing is complete and we're ready to server the the response.
 
-If the current phase is `miss`, we check the build output, if there is no file matching the requested one we set the status code to 404. Afterwards, if a file was found in the output, or the current phase is `error`, we move on to the `hit` phase. It is important that the hit phase is run every time a match is found in the build output or when the current phase is `miss` or `error`, because this allows us to update the headers for the response with the current matched path.
+If the current phase is `miss`, we check the build output, if there is no file matching the requested one we set the status code to 404. Afterwards, if a file was found in the output, or the current phase is `error`, we move on to the `hit` phase. It is important that the `hit` phase is run every time a match is found in the build output or when the current phase is `miss` or `error`, because this allows us to update the headers for the response with the current matched path.
 
 In all other cases, we attempt to retrieve the next phase, based on the current one, and iterate forward.
 
@@ -122,28 +122,15 @@ In all other cases, we attempt to retrieve the next phase, based on the current 
 
 ```mermaid
 flowchart TD
-    checkPhase --for each route--> checkRoute
-    checkRoute --> CheckRouteResult{check result}
-    CheckRouteResult -->|error| checkPhase
-    CheckRouteResult -->|done| IsPhaseHit{phase == hit}
-    CheckRouteResult -->|skip or next| CheckRouteResult
-    IsPhaseHit --> |yes| EndIsPhaseHit[matching done]
-    IsPhaseHit --> |no| IsPhaseMiss{phase == miss}
-    IsPhaseMiss --> |yes| Set404[set 404]
-    Set404 --> NextPhaseIsWhat{path found\nor\nphase == miss/error}
-    IsPhaseMiss --> |no| NextPhaseIsWhat
-    NextPhaseIsWhat --> |if true\nset next phase to hit| checkPhase
-    NextPhaseIsWhat --> |if false\nget next phase| getNextPhase --> checkPhase
-
-    NextPhaseIs{determine next phase} -->
-    getNextPhase --> NextPhaseIs{determine next phase}
-
-    NextPhaseIs --> |none| NextIsFS[filesystem]
-    NextPhaseIs --> |filesystem| NextIsRW[rewrite]
-    NextPhaseIs --> |rewrite| NextIsRS[resource]
-    NextPhaseIs --> |resource| NextIsMS[miss]
-    NextPhaseIs --> |all others| NextIsMS
-```
+    checkPhase[check phase] --for each route--> checkRoute
+    checkRoute[check route] -->|error| checkPhase
+    checkRoute -->|done| phaseHitMiss{is phase\nhit or miss?}
+    phaseHitMiss --> |phase == hit| matchingDone[matching done]
+    phaseHitMiss --> |phase == miss| set404[set 404]
+    phaseHitMiss --> |phase not neither| nextPhaseIsWhat{path found\nor\nphase == miss/error}
+    set404 --> nextPhaseIsWhat{path found\nsuccessfully?}
+    nextPhaseIsWhat --> |true\nset next phase to hit| checkPhase
+    nextPhaseIsWhat --> |false\nset next phase| checkPhase
 
 ### Checking Source Routes
 
@@ -255,12 +242,11 @@ Finally, we return the response.
 
 ```mermaid
 flowchart TD
-    serve --> CheckRedirect{check for location header}
-    CheckRedirect --> |true| ReturnRedirect[return redirect response]
-    CheckRedirect --> |false| FetchItemFromOutput[fetch item from build output]
-    FetchItemFromOutput --> ApplySearchParams[apply search params to request]
-    ApplySearchParams --> RetrieveResponseForItem{fetch or run\nitem response}
-    RetrieveResponseForItem --> |success| ApplyHeadersAndStatus[apply headers + status]
-    RetrieveResponseForItem --> |error| ReturnError[return error response]
-    ApplyHeadersAndStatus --> ReturnResponse[return final response object]
-```
+    serve --> checkRedirect{check for\n`location`\nheader}
+    checkRedirect --> |found| returnRedirect[return redirect response]
+    checkRedirect --> |not found| fetchItemFromOutput[fetch item from build output]
+    fetchItemFromOutput --> applySearchParams[apply search params to request]
+    applySearchParams --> retrieveResponseForItem{fetch item\nresponse}
+    retrieveResponseForItem --> |success| applyHeadersAndStatus[apply headers + status]
+    retrieveResponseForItem --> |error| returnError[return error response]
+    applyHeadersAndStatus --> returnResponse[return final response object]
