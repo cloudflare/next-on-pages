@@ -78,7 +78,7 @@ async function getRoutePath(
 /**
  * Retrieves the new destination for the prerendered file, if no file already exists.
  *
- * @examples
+ * @example
  * ```ts
  * // index.prerender-fallback.html -> index.html
  * // index.rsc.prerender-fallback.rsc -> index.rsc
