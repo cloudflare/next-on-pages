@@ -171,6 +171,33 @@ describe('generateFunctionsMap', async () => {
 			});
 		});
 
+		test('succeeds for prerendered favicon', async () => {
+			const { functionsMap, prerenderedRoutes } =
+				await generateFunctionsMapFrom({
+					'page.func': validFuncDir,
+					'page.rsc.func': validFuncDir,
+					'favicon.ico.func': invalidFuncDir,
+					'favicon.ico.prerender-config.json': mockPrerenderConfigFile(
+						'favicon.ico',
+						'body'
+					),
+					'favicon.ico.prerender-fallback.body': 'favicon.ico',
+				});
+
+			expect(functionsMap.size).toEqual(2);
+			expect(functionsMap.get('/page')).toMatch(/\/page\.func\.js$/);
+			expect(functionsMap.get('/page.rsc')).toMatch(/\/page\.rsc\.func\.js$/);
+
+			expect(prerenderedRoutes.size).toEqual(1);
+			expect(prerenderedRoutes.get('/favicon.ico')).toEqual({
+				headers: {
+					'content-type': 'image/x-icon',
+					vary: 'RSC, Next-Router-State-Tree, Next-Router-Prefetch',
+				},
+				overrides: [],
+			});
+		});
+
 		test('succeeds for nested prerendered routes', async () => {
 			const { functionsMap, prerenderedRoutes } =
 				await generateFunctionsMapFrom({

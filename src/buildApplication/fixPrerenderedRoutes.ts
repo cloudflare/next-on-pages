@@ -78,6 +78,13 @@ async function getRoutePath(
 /**
  * Retrieves the new destination for the prerendered file, if no file already exists.
  *
+ * @examples
+ * ```ts
+ * // index.prerender-fallback.html -> index.html
+ * // index.rsc.prerender-fallback.rsc -> index.rsc
+ * // favicon.ico.prerender-fallback.body -> favicon.ico
+ * ```
+ *
  * @param config.fallback Fallback file configuration.
  * @param dirName Directory name to use for the route.
  * @param outputDir Vercel build output directory.
@@ -91,7 +98,7 @@ async function getRouteDest(
 	const destRoute = normalizePath(
 		join(
 			dirName,
-			fallback.fsPath.replace(/(?:\.rsc)?\.prerender-fallback/gi, '')
+			fallback.fsPath.replace(/\.prerender-fallback(?:\.rsc)?(?:\.body)?/gi, '')
 		)
 	);
 	const destFile = join(outputDir, 'static', destRoute);
