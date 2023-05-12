@@ -34,8 +34,7 @@ function runNextOnPages(): void {
 		cliWarn(
 			`
 			Warning: the --experimental-minify|-e flag is deprecated and doesn't produce any effect, the
-			(previously named) experimental minification is now enabled by default, you can disable it
-			via the --disable-chunks-dedup|-d flag.
+			(previously named) experimental minification is now enabled by default.
 
 			Note: if you're using the --experimental-minify|-e flag in your build command please remove it
 			      as it will be removed in a future version of the package (causing your command to fail).
