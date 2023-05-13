@@ -131,6 +131,7 @@ flowchart TD
     set404 --> nextPhaseIsWhat{path found\nsuccessfully?}
     nextPhaseIsWhat --> |yes\nset next phase to hit| checkPhase
     nextPhaseIsWhat --> |no\nset next phase| checkPhase
+```
 
 ### Checking Source Routes
 
@@ -216,7 +217,7 @@ flowchart TD
     RunMiddlewareResult --> |success| ApplyMiddlewareHeaders[apply middleware\nheaders]
     RunMiddlewareResult --> |error| EndRoutingError[`error`]
     ApplyMiddlewareHeaders --> ApplyHeadersStatusAndDestination
-    ApplyHeadersStatusAndDestination --> ShouldCheck{route.check === true}
+    ApplyHeadersStatusAndDestination --> ShouldCheck{route.check == true}
     ShouldCheck --> |yes| PathsEqual{current path\n==\nrewritten path}
     PathsEqual --> |yes\n+\nphase = miss| Return404[set status to 404] --> ShouldContinue
     PathsEqual --> |yes\n+\nphase != miss| checkNextPhase[check next phase]
