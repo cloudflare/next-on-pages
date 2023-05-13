@@ -270,7 +270,9 @@ export function mockPrerenderConfigFile(path: string, ext?: string): string {
 			fsPath,
 		},
 		initialHeaders: {
-			...(path.endsWith('.rsc') && { 'content-type': 'text/x-component' }),
+			...((path.endsWith('.rsc') || path.endsWith('.json')) && {
+				'content-type': 'text/x-component',
+			}),
 			...(path.endsWith('.ico') && { 'content-type': 'image/x-icon' }),
 			vary: 'RSC, Next-Router-State-Tree, Next-Router-Prefetch',
 		},

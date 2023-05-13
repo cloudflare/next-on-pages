@@ -198,6 +198,37 @@ describe('generateFunctionsMap', async () => {
 			});
 		});
 
+		test('succeeds for prerendered json', async () => {
+			const { functionsMap, prerenderedRoutes } =
+				await generateFunctionsMapFrom({
+					_next: {
+						data: {
+							'data.json.func': invalidFuncDir,
+							'data.json.prerender-config.json': mockPrerenderConfigFile(
+								'data.json',
+								'json'
+							),
+							'data.json.prerender-fallback.json': 'data.json',
+						},
+					},
+					'page.func': validFuncDir,
+					'page.rsc.func': validFuncDir,
+				});
+
+			expect(functionsMap.size).toEqual(2);
+			expect(functionsMap.get('/page')).toMatch(/\/page\.func\.js$/);
+			expect(functionsMap.get('/page.rsc')).toMatch(/\/page\.rsc\.func\.js$/);
+
+			expect(prerenderedRoutes.size).toEqual(1);
+			expect(prerenderedRoutes.get('/_next/data/data.json')).toEqual({
+				headers: {
+					'content-type': 'text/x-component',
+					vary: 'RSC, Next-Router-State-Tree, Next-Router-Prefetch',
+				},
+				overrides: [],
+			});
+		});
+
 		test('succeeds for nested prerendered routes', async () => {
 			const { functionsMap, prerenderedRoutes } =
 				await generateFunctionsMapFrom({
