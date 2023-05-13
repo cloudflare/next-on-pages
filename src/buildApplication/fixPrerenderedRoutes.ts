@@ -83,6 +83,7 @@ async function getRoutePath(
  * // index.prerender-fallback.html -> index.html
  * // index.rsc.prerender-fallback.rsc -> index.rsc
  * // favicon.ico.prerender-fallback.body -> favicon.ico
+ * // 1.json.prerender-fallback.json -> 1.json
  * ```
  *
  * @param config.fallback Fallback file configuration.
@@ -98,7 +99,10 @@ async function getRouteDest(
 	const destRoute = normalizePath(
 		join(
 			dirName,
-			fallback.fsPath.replace(/\.prerender-fallback(?:\.rsc)?(?:\.body)?/gi, '')
+			fallback.fsPath.replace(
+				/\.prerender-fallback(\.((rsc)|(body)|(json)))?/gi,
+				''
+			)
 		)
 	);
 	const destFile = join(outputDir, 'static', destRoute);

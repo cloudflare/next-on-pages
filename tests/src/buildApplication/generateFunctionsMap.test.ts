@@ -171,9 +171,19 @@ describe('generateFunctionsMap', async () => {
 			});
 		});
 
-		test('succeeds for prerendered favicon', async () => {
+		test('succeeds for prerendered favicon + json', async () => {
 			const { functionsMap, prerenderedRoutes } =
 				await generateFunctionsMapFrom({
+					_next: {
+						data: {
+							'1.json.func': invalidFuncDir,
+							'1.json.prerender-config.json': mockPrerenderConfigFile(
+								'1.json',
+								'json'
+							),
+							'1.json.prerender-fallback.json': '1.json',
+						},
+					},
 					'page.func': validFuncDir,
 					'page.rsc.func': validFuncDir,
 					'favicon.ico.func': invalidFuncDir,
@@ -188,10 +198,17 @@ describe('generateFunctionsMap', async () => {
 			expect(functionsMap.get('/page')).toMatch(/\/page\.func\.js$/);
 			expect(functionsMap.get('/page.rsc')).toMatch(/\/page\.rsc\.func\.js$/);
 
-			expect(prerenderedRoutes.size).toEqual(1);
+			expect(prerenderedRoutes.size).toEqual(2);
 			expect(prerenderedRoutes.get('/favicon.ico')).toEqual({
 				headers: {
 					'content-type': 'image/x-icon',
+					vary: 'RSC, Next-Router-State-Tree, Next-Router-Prefetch',
+				},
+				overrides: [],
+			});
+			expect(prerenderedRoutes.get('/_next/data/1.json')).toEqual({
+				headers: {
+					'content-type': 'text/x-component',
 					vary: 'RSC, Next-Router-State-Tree, Next-Router-Prefetch',
 				},
 				overrides: [],
