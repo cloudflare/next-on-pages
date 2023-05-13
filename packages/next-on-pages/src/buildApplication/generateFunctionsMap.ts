@@ -34,12 +34,13 @@ import { build } from 'esbuild';
  */
 export async function generateFunctionsMap(
 	functionsDir: string,
-	disableChunksDedup: CliOptions['disableChunksDedup']
+	{
+		disableChunksDedup,
+		outdir,
+	}: Pick<CliOptions, 'disableChunksDedup' | 'outdir'>
 ): Promise<DirectoryProcessingResults> {
 	const nextOnPagesDistDir = join(
-		'.vercel',
-		'output',
-		'static',
+		outdir,
 		'_worker.js',
 		'__next-on-pages-dist__'
 	);

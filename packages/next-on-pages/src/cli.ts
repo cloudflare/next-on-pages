@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { argumentParser } from 'zodcli';
 import type { ChalkInstance } from 'chalk';
 import chalk from 'chalk';
+import { resolve } from 'path';
 import { nextOnPagesVersion } from './utils';
 import {
 	getBinaryVersion,
@@ -31,6 +32,14 @@ const cliOptions = z
 		version: flag,
 		noColor: flag,
 		info: flag,
+		outdir: z
+			.string()
+			.optional()
+			.default('.vercel/output/static')
+			.transform(path => resolve(path))
+			.refine(path => path.startsWith(resolve()), {
+				message: 'The output directory should be inside the current directory',
+			}),
 	})
 	.strict();
 
@@ -64,6 +73,16 @@ export function parseCliArgs() {
 			const label = `Unknown option${unknownKeys.length === 1 ? '' : 's'}`;
 			cliError(`${label}: ${unknownKeys.join(', ')}`, { spaced: true });
 			printCliHelpMessage();
+		} else if (
+			(issue?.code === 'custom' || issue?.code === 'invalid_type') &&
+			issue.path.length
+		) {
+			const plural = issue.path.length === 1 ? '' : 's';
+			cliError(
+				`Error parsing the ${issue.path.join(', ')} argument${plural}.
+				${issue.message}`,
+				{ spaced: true }
+			);
 		} else {
 			cliError(
 				(error as z.ZodError | Error)?.message ??
@@ -109,6 +128,8 @@ export function printCliHelpMessage(): void {
 		--no-color, -c:                     Disable colored output
 
 		--info, -i:                         Prints relevant details about the current system which can be used to report bugs
+
+		--outdir:                           The directory to output the worker and static assets to.
 
 		GitHub: https://github.com/cloudflare/next-on-pages
 		Docs: https://developers.cloudflare.com/pages/framework-guides/deploy-a-nextjs-site/
