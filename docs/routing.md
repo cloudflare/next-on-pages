@@ -129,9 +129,8 @@ flowchart TD
     phaseHitMiss --> |phase == miss| set404[set 404]
     phaseHitMiss --> |phase not neither| nextPhaseIsWhat{path found\nor\nphase == miss/error}
     set404 --> nextPhaseIsWhat{path found\nsuccessfully?}
-    nextPhaseIsWhat --> |true\nset next phase to hit| checkPhase
-    nextPhaseIsWhat --> |false\nset next phase| checkPhase
-```
+    nextPhaseIsWhat --> |yes\nset next phase to hit| checkPhase
+    nextPhaseIsWhat --> |no\nset next phase| checkPhase
 
 ### Checking Source Routes
 
@@ -207,9 +206,9 @@ After all of the above has been completed, the final part to check for a (matchi
 
 ```mermaid
 flowchart TD
-    checkRoute --> CheckSourceMatch{check source match}
-    CheckSourceMatch -->|true| ApplyOverrides[apply overrides]
-    CheckSourceMatch -->|false| EndRoutingSkip[`skip`]
+    checkRoute --> CheckSourceMatch{path matches source?}
+    CheckSourceMatch -->|yes| ApplyOverrides[apply overrides]
+    CheckSourceMatch -->|no| EndRoutingSkip[`skip`]
     ApplyOverrides --> ApplyInternationalization[apply internationalization\nredirects]
     ApplyInternationalization --> HasMiddleware{has middleware}
     HasMiddleware --> |yes| RunMiddlewareResult{run middleware}
@@ -217,14 +216,14 @@ flowchart TD
     RunMiddlewareResult --> |success| ApplyMiddlewareHeaders[apply middleware\nheaders]
     RunMiddlewareResult --> |error| EndRoutingError[`error`]
     ApplyMiddlewareHeaders --> ApplyHeadersStatusAndDestination
-    ApplyHeadersStatusAndDestination --> ShouldCheck{should check filesystem}
-    ShouldCheck --> |yes| PathsEqual{new path is equal}
+    ApplyHeadersStatusAndDestination --> ShouldCheck{route.check === true}
+    ShouldCheck --> |yes| PathsEqual{current path\n==\nrewritten path}
     PathsEqual --> |yes\n+\nphase = miss| Return404[set status to 404] --> ShouldContinue
     PathsEqual --> |yes\n+\nphase != miss| checkNextPhase[check next phase]
-    PathsEqual --> |false| checkNonePhase[check `none` phase]
-    ShouldCheck --> |false| ShouldContinue{should continue\n and has no\nredirect}
-    ShouldContinue --> |true| ReturnNext[`next`]
-    ShouldContinue --> |false| ReturnDone[`done`]
+    PathsEqual --> |no| checkNonePhase[check `none` phase]
+    ShouldCheck --> |no| ShouldContinue{should continue\n and has no\nredirect}
+    ShouldContinue --> |yes| ReturnNext[`next`]
+    ShouldContinue --> |no| ReturnDone[`done`]
 ```
 
 ### Serving Responses
