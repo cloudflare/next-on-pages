@@ -83,7 +83,7 @@ async function getRoutePath(
  * // index.prerender-fallback.html -> index.html
  * // index.rsc.prerender-fallback.rsc -> index.rsc
  * // favicon.ico.prerender-fallback.body -> favicon.ico
- * // 1.json.prerender-fallback.json -> 1.json
+ * // data.json.prerender-fallback.json -> data.json
  * ```
  *
  * @param config.fallback Fallback file configuration.

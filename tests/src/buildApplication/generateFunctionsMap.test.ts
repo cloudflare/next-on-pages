@@ -174,16 +174,6 @@ describe('generateFunctionsMap', async () => {
 		test('succeeds for prerendered favicon + json', async () => {
 			const { functionsMap, prerenderedRoutes } =
 				await generateFunctionsMapFrom({
-					_next: {
-						data: {
-							'1.json.func': invalidFuncDir,
-							'1.json.prerender-config.json': mockPrerenderConfigFile(
-								'1.json',
-								'json'
-							),
-							'1.json.prerender-fallback.json': '1.json',
-						},
-					},
 					'page.func': validFuncDir,
 					'page.rsc.func': validFuncDir,
 					'favicon.ico.func': invalidFuncDir,
@@ -198,7 +188,7 @@ describe('generateFunctionsMap', async () => {
 			expect(functionsMap.get('/page')).toMatch(/\/page\.func\.js$/);
 			expect(functionsMap.get('/page.rsc')).toMatch(/\/page\.rsc\.func\.js$/);
 
-			expect(prerenderedRoutes.size).toEqual(2);
+			expect(prerenderedRoutes.size).toEqual(1);
 			expect(prerenderedRoutes.get('/favicon.ico')).toEqual({
 				headers: {
 					'content-type': 'image/x-icon',
@@ -206,7 +196,31 @@ describe('generateFunctionsMap', async () => {
 				},
 				overrides: [],
 			});
-			expect(prerenderedRoutes.get('/_next/data/1.json')).toEqual({
+		});
+
+		test('succeeds for prerendered json', async () => {
+			const { functionsMap, prerenderedRoutes } =
+				await generateFunctionsMapFrom({
+					_next: {
+						data: {
+							'data.json.func': invalidFuncDir,
+							'data.json.prerender-config.json': mockPrerenderConfigFile(
+								'data.json',
+								'json'
+							),
+							'data.json.prerender-fallback.json': 'data.json',
+						},
+					},
+					'page.func': validFuncDir,
+					'page.rsc.func': validFuncDir,
+				});
+
+			expect(functionsMap.size).toEqual(2);
+			expect(functionsMap.get('/page')).toMatch(/\/page\.func\.js$/);
+			expect(functionsMap.get('/page.rsc')).toMatch(/\/page\.rsc\.func\.js$/);
+
+			expect(prerenderedRoutes.size).toEqual(1);
+			expect(prerenderedRoutes.get('/_next/data/data.json')).toEqual({
 				headers: {
 					'content-type': 'text/x-component',
 					vary: 'RSC, Next-Router-State-Tree, Next-Router-Prefetch',
