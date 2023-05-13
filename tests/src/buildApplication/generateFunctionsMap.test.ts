@@ -171,7 +171,7 @@ describe('generateFunctionsMap', async () => {
 			});
 		});
 
-		test('succeeds for prerendered favicon + json', async () => {
+		test('succeeds for prerendered favicon', async () => {
 			const { functionsMap, prerenderedRoutes } =
 				await generateFunctionsMapFrom({
 					'page.func': validFuncDir,
