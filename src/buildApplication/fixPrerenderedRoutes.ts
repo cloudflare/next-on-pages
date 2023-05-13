@@ -100,7 +100,7 @@ async function getRouteDest(
 		join(
 			dirName,
 			fallback.fsPath.replace(
-				/\.prerender-fallback(\.((rsc)|(body)|(json)))?/gi,
+				/\.prerender-fallback(?:\.(?:rsc|body|json))?/gi,
 				''
 			)
 		)
