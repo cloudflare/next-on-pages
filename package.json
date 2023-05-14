@@ -43,6 +43,7 @@
 		"@types/cookie": "^0.5.1",
 		"@types/js-yaml": "^4.0.5",
 		"@types/mock-fs": "^4.13.1",
+		"@types/node": "^20.1.4",
 		"@typescript-eslint/eslint-plugin": "^5.58.0",
 		"@typescript-eslint/parser": "^5.58.0",
 		"dedent-tabs": "^0.10.3",
