@@ -217,7 +217,9 @@ export async function createRouterTestData(
 		return newAcc;
 	}, {} as Record<string, Asset>);
 
-	const assetsFetcher = new MockAssetFetcher(staticAssetsForFetcher) as unknown as Fetcher;
+	const assetsFetcher = new MockAssetFetcher(
+		staticAssetsForFetcher
+	) as unknown as Fetcher;
 
 	mockFs.restore();
 	return {
