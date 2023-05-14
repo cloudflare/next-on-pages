@@ -157,11 +157,11 @@ function constructBuildOutputRecord(
 	const fileContents = readFileSync(item.entrypoint, 'utf-8');
 
 	if (item.type === 'middleware') {
-		vi.mock(item.entrypoint, () =>
+		vi.doMock(item.entrypoint, () =>
 			createMockMiddlewareEntrypoint(fileContents)
 		);
 	} else if (item.type === 'function') {
-		vi.mock(item.entrypoint, () => createMockEntrypoint(fileContents));
+		vi.doMock(item.entrypoint, () => createMockEntrypoint(fileContents));
 	}
 
 	return item;
