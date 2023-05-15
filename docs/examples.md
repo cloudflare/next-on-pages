@@ -52,7 +52,7 @@ module.exports = nextConfig;
 
 import { cookies } from 'next/headers';
 
-export const runtime = 'edge'; // 'nodejs' is the default
+export const runtime = 'edge';
 
 export async function GET(request: Request) {
 	const cookieStore = cookies();

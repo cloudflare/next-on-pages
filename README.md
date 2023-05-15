@@ -10,7 +10,7 @@ This tool is a best-effort library implemented by the Cloudflare team and the co
 
 ## Quick Start
 
-This section describes how to bundle and deploy a (new or existing) Next.js application to Pages, using `@cloudflare/next-on-pages`.
+This section describes how to bundle and deploy a (new or existing) Next.js application to [Cloudflare Pages](https://pages.cloudflare.com), using `@cloudflare/next-on-pages`.
 
 ### 1. Create a Next.js app
 
@@ -93,7 +93,7 @@ Next, in the [Cloudflare Dashboard](https://dash.cloudflare.com/?to=/:account/pa
 - Click on _Save and Deploy_ to start the deployment (this first deployment won't be fully functional as the next step is also necessary).
 - Go to the Pages project settings page (_Settings_ > _Functions_ > _Compatibility Flags_), **add the `nodejs_compat` flag** for both production and preview, and make sure that the **Compatibility Date** for both production and preview is set to at least `2022-11-30`.
 
-> If you don't want to set up a Git repository, you can build your `_worker.js` file (as indicated in [Local Development](#local-development)) and publish your application manually via the [`wrangler pages publish` command](https://developers.cloudflare.com/workers/wrangler/commands/#publish-1) instead (but you'll still need to set the **`nodejs_compat`** flag for your project in the Cloudflare dashboard).
+> If you don't want to set up a Git repository, you can build your application (as indicated in [Local Development](#local-development)) and publish it manually via the [`wrangler pages publish` command](https://developers.cloudflare.com/workers/wrangler/commands/#publish-1) instead (you'll still need to set the **`nodejs_compat`** flag for your project in the Cloudflare dashboard).
 
 ## Local development
 
