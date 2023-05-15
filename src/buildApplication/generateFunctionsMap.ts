@@ -246,7 +246,7 @@ async function processFuncDirectory(
 		platform: 'neutral',
 		outfile: newFilePath,
 		bundle: true,
-		external: ['node:buffer', `${relativeChunksPath}/*`],
+		external: ['node:buffer', `${relativeChunksPath}/*`, "node:events"],
 		minify: true,
 		plugins: [nodeBufferPlugin],
 	});
@@ -399,7 +399,7 @@ async function buildWebpackChunkFiles(
 			platform: 'neutral',
 			outfile: chunkFilePath,
 			bundle: true,
-			external: ['node:buffer'],
+			external: ['node:buffer', 'node:events'],
 			minify: true,
 			plugins: [nodeBufferPlugin],
 		});
