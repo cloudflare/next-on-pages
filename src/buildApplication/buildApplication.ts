@@ -125,18 +125,18 @@ function printInvalidFunctionsErrorMessage(invalidFunctions: string[]): void {
 				.join('\n')}
 
 			If this is a Next.js project:
+
+			- you can read more about configuring Edge API Routes here: https://nextjs.org/docs/api-routes/edge-api-route
 			
-			- You can try enabling the Edge Runtime for a specific route by exporting the following from your page:
+			- you can try enabling the Edge Runtime for a specific page by exporting the following from your page:
 
-				export const runtime = 'edge';
+					export const config = { runtime: 'edge' };
 
-			- Prior to Next.js v13.3.1, other syntax may also be available to opt into the edge runtime:
-				
-				https://github.com/cloudflare/next-on-pages/blob/main/docs/examples.md
+			- or you can try enabling the Edge Runtime for all pages in your project by adding the following to your 'next.config.js' file:
 
-			- You can read more about the Edge Runtime on the Next.js documentation:
+					const nextConfig = { experimental: { runtime: 'edge'} };
 
-				https://nextjs.org/docs/app/building-your-application/rendering/edge-and-nodejs-runtimes
+			You can read more about the Edge Runtime here: https://nextjs.org/docs/advanced-features/react-18/switchable-runtime
 	`,
 		{ spaced: true }
 	);
