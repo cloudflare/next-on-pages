@@ -81,11 +81,25 @@ async function runVercelBuild(pkgMng: PackageManager): Promise<void> {
 
 	cliLog('Building project...');
 
-	const vercelBuild = spawn(pkgMngCMD, [
-		...(pkgMng === 'yarn (berry)' ? ['dlx'] : []),
-		'vercel',
-		'build',
-	]);
+	let vercelBuild: ReturnType<typeof spawn>;
+
+	// If the package manager is yarn (berry), and the `vercel` package has not been installed,
+	// Then execute vercel building with `yarn dlx`.
+	if (
+		pkgMng === 'yarn (berry)' &&
+		// Check if the vercel package has been installed
+		!(await new Promise(resolve => {
+			const vercelChecking = spawn(pkgMngCMD, ['info', 'vercel']);
+
+			vercelChecking.on('exit', code => {
+				resolve(code === 0);
+			});
+		}))
+	) {
+		vercelBuild = spawn(pkgMngCMD, ['dlx', 'vercel', 'build']);
+	} else {
+		vercelBuild = spawn(pkgMngCMD, ['vercel', 'build']);
+	}
 
 	vercelBuild.stdout.on('data', data =>
 		cliLog(`\n${data}`, { fromVercelCli: true })
