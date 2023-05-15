@@ -4,7 +4,7 @@
 
 ## Edge Runtime
 
-To opt a route into the edge runtime in Next.js, it has to export a `runtime` variable.
+To opt a route into the edge runtime in Next.js, it has to export a `runtime` [route segment config](https://nextjs.org/docs/app/api-reference/file-conventions/route-segment-config#runtime) option.
 
 ```diff
 + export const runtime = 'edge';
@@ -71,7 +71,6 @@ export async function GET(request: Request) {
 // ./app/ssr/page.tsx
 
 export const runtime = 'edge';
-export const dynamic = 'force-dynamic';
 
 export default async function Page({ searchParams }: { searchParams: any }) {
 	return (

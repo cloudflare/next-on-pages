@@ -110,7 +110,7 @@ Next.js performs a form of static analysis on routes to determine whether they c
 
 #### `generateStaticParams`
 
-When doing static site generation (SSG) in the app directory, you need to tell the page that it is not possible for non-prerendered dynamic routes to occur, i.e. [they should 404](https://nextjs.org/docs/app/api-reference/file-conventions/route-segment-config#dynamicparams). This is so that it doesn't generate a Node.js Lamba function for the dynamic parameter, while generating prerendered HTMl files for all params provided by `generateStaticParams`.
+When doing static site generation (SSG) in the app directory, you need to tell the page that it is not possible for non-prerendered dynamic routes to occur, i.e. [they should 404](https://nextjs.org/docs/app/api-reference/file-conventions/route-segment-config#dynamicparams). This is so that it doesn't generate a Node.js Lamba function for the dynamic parameter, while generating prerendered HTML files for all params provided by `generateStaticParams`.
 
 ```diff
 + export const dynamicParams = false;
@@ -118,7 +118,7 @@ When doing static site generation (SSG) in the app directory, you need to tell t
 
 #### `getStaticPaths`
 
-In the pages directory, when doing static site generation (SSG), there is a similar scenario as there was with `generateStaticParams`. Because of how ISR functions work, you need to tell the page that [it should 404](https://nextjs.org/docs/pages/api-reference/functions/get-static-paths#fallback-false) for non-pregenerated dynamic routes. This is done by setting `fallback: false` in `getStaticPaths`.
+In the pages directory, when doing static site generation (SSG), there is a similar scenario as there was with `generateStaticParams`. Because of how ISR functions work, you need to tell the page that [it should 404](https://nextjs.org/docs/pages/api-reference/functions/get-static-paths#fallback-false) for non-prerendered dynamic routes. This is done by setting `fallback: false` in `getStaticPaths`.
 
 ```diff
 export async function getStaticPaths() {
@@ -141,7 +141,7 @@ export async function getStaticPaths() {
 
 Revalidation and `next/cache` are not supported on Cloudflare Pages due to how they are implemented in Next.js. They appear to depend on Vercel infrastructure to deal with something referred to as the [suspense cache](https://github.com/vercel/next.js/blob/canary/packages/next/src/server/lib/incremental-cache/fetch-cache.ts#L38). This is used by the default fetch cache, which forms part of the incremental cache for revalidation.
 
-Revalidating tags and paths goes through this functionality and appears to be what `next/cache` is built around. Because of this, it is highly unlikely that the default `next/cache` functionality will be supported on Cloudflare Pages in the future.
+Revalidating tags and paths goes through this functionality and appears to be what `next/cache` is built around. Because of this, it is highly unlikely that the default `next/cache` functionality will be supported on Cloudflare Pages.
 
 #### Fetch Cache
 
