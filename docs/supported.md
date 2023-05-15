@@ -145,7 +145,7 @@ Revalidating tags and paths goes through this functionality and appears to be wh
 
 #### Fetch Cache
 
-Cloudflare Pages' runtime does not support the `cache` property on the patched fetch used in Next.js. For example, the following piece of code would throw an error when run on Cloudflare Pages. This is due to the fact that the `cache` property is not supported by the [Fetch API](https://developers.cloudflare.com/workers/runtime-apis/request/#requestinit) implemented in the Workers runtime.
+Cloudflare Pages' runtime does not support the `cache` property on the [patched fetch](https://github.com/vercel/next.js/blob/canary/packages/next/src/server/lib/patch-fetch.ts) used in Next.js. For example, the following piece of code would throw an error when run on Cloudflare Pages. This is due to the fact that the `cache` property is not supported by the [Fetch API](https://developers.cloudflare.com/workers/runtime-apis/request/#requestinit) implemented in the Workers runtime.
 
 ```typescript
 fetch('https://...', { cache: 'no-store' });

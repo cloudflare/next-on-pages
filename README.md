@@ -4,7 +4,7 @@
   <p align="center">Build, develop, and deploy Next.js apps for Cloudflare Pages.</p>
 </p>
 
-`@cloudflare/next-on-pages` is a CLI tool that you can use to build and develop [Next.js](https://nextjs.org/) applications so that they can run on the [Cloudflare Pages](https://pages.cloudflare.com/) platform (and integrate with Cloudflare's various other product offerings, such as KV, D1, R2, and Durable Objects).
+`@cloudflare/next-on-pages` is a CLI tool that you can use to build and develop [Next.js](https://nextjs.org/) applications so that they can run on the [Cloudflare Pages](https://pages.cloudflare.com/) platform (and integrate with Cloudflare's various other [product offerings](https://developers.cloudflare.com/pages/platform/functions/bindings/), such as KV, D1, R2, and Durable Objects).
 
 This tool is a best-effort library implemented by the Cloudflare team and the community. As such, most, but not all, Next.js features are supported. See the [Supported Versions and Features document](./docs/supported.md) for more details.
 
@@ -12,9 +12,9 @@ This tool is a best-effort library implemented by the Cloudflare team and the co
 
 This section describes how to bundle and deploy a (new or existing) Next.js application to [Cloudflare Pages](https://pages.cloudflare.com), using `@cloudflare/next-on-pages`.
 
-### 1. Create a Next.js app
+### 1. Select your Next.js app
 
-To start using `@cloudflare/next-on-pages`, you must have a Next.js project that you wish to deploy. If you don't already have one, you can use the `create-next-app` command. Then, change your current directory to the newly created one.
+To start using `@cloudflare/next-on-pages`, you must have a Next.js project that you wish to deploy. If you already have one, change to its directory. Otherwise, you can use the `create-next-app` command to start a new one.
 
 ```sh
 npx create-next-app@latest my-next-app
@@ -28,8 +28,6 @@ We have confirmed support for the current version of Next.js at the time of writ
 
 </details>
 
-&NewLine;
-
 ### 2. Configure the application to use the Edge Runtime
 
 For your application to run on Cloudflare Pages, it needs to opt in to use the Edge Runtime for routes containing server-side code (e.g. API Routes or pages that use `getServerSideProps`). To do this, export a `runtime` [route segment config](https://nextjs.org/docs/app/api-reference/file-conventions/route-segment-config#runtime) option from each file, specifying that it should use the Edge Runtime.
@@ -38,42 +36,9 @@ For your application to run on Cloudflare Pages, it needs to opt in to use the E
 export const runtime = 'edge';
 ```
 
-<details>
-<summary>Prior to Next.js v13.3.1</summary>
-
-When using a Next.js version that is older than v13.3.1, it is possible to export a `config` object from a route and specify a `runtime` option inside that object. This can opt the route into the edge runtime.
-
-```typescript
-export const config = {
-	runtime: 'edge',
-};
-```
-
-</details>
-
-<details>
-<summary>Prior to Next.js v13.2.4</summary>
-
-When using a Next.js version that is older than v13.2.4, it is possible to specify a `runtime` to use for the entire application. This can be done in the root-level `next.config.js` file, under the `experimental` options.
-
-```typescript
-/** @type {import('next').NextConfig} */
-const nextConfig = {
-	experimental: {
-		runtime: 'experimental-edge',
-	},
-	reactStrictMode: true,
-	swcMinify: true,
-};
-
-module.exports = nextConfig;
-```
-
-</details>
-
 &NewLine;
 
-For more examples of this, take a look at our [examples document](/docs/examples.md). Additionally, ensure that your application is not using any [unsupported APIs](https://nextjs.org/docs/app/api-reference/edge#unsupported-apis) or [features](./docs/supported.md).
+For more examples of this and for Next.js versions prior to v13.3.1, take a look at our [examples document](/docs/examples.md). Additionally, ensure that your application is not using any [unsupported APIs](https://nextjs.org/docs/app/api-reference/edge#unsupported-apis) or [features](./docs/supported.md).
 
 ### 3. Deploy your application to Cloudflare Pages
 

@@ -23,26 +23,6 @@ export const config = {
 
 </details>
 
-<details>
-<summary>Prior to Next.js v13.2.4</summary>
-
-When using a Next.js version that is older than v13.2.4, it is possible to specify a `runtime` to use for the entire application. This can be done in the root-level `next.config.js` file, under the `experimental` options.
-
-```diff
-/** @type {import('next').NextConfig} */
-const nextConfig = {
-  experimental: {
-+   runtime: 'experimental-edge',
-  },
-  reactStrictMode: true,
-  swcMinify: true,
-};
-
-module.exports = nextConfig;
-```
-
-</details>
-
 ### App Directory
 
 #### [Edge Route Handlers](https://nextjs.org/docs/app/building-your-application/routing/router-handlers#edge-and-nodejs-runtimes)
