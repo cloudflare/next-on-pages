@@ -1,6 +1,6 @@
 # @cloudflare/next-on-pages
 
-## 1.0.0-rc.0
+## 1.0.0
 
 ### Major Changes
 
@@ -23,6 +23,12 @@
   - add a `--disable-worker-minification`|`-m` option to disable the minification of the \_worker.js script (which
     currently coincides with the experimental minification)
 
+- e053756: add nodejs_compat runtime check
+
+  add a runtime check for the presence of the nodejs_compat flag at runtime so that if developers
+  forget to use such flag instead of receiving an internal server error they receive an error specifically
+  telling them that they have not specified the flag
+
 - 87e183b: New routing system runtime handling and implementation.
 
   Improves support for advanced routing with Next.js applications on Pages, through leveraging the Vercel build output configuration. The Vercel build output specifies the relevant routing steps that are taken during the lifetime of a request, and this change implements a new system that handles these steps.
@@ -34,6 +40,7 @@
 
 ### Patch Changes
 
+- b3ff89f: Function generation now includes all node modules instead of only node:buffer
 - d81c2e3: add pnpm files to ignored list for watch mode
 
   add the following files to the list of files we ignore for watch mode:
