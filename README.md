@@ -90,14 +90,6 @@ Then in a separate terminal run:
 npx wrangler pages dev .vercel/output/static --compatibility-flag=nodejs_compat
 ```
 
-### Install `@cloudflare/next-on-pages` and vercel (optional)
-
-To speed up local development (especially the refresh speed when running in watch mode) you can optionally choose to install `@cloudflare/next-on-pages` and `vercel` as dev dependencies of your project:
-
-```sh
-npm install -D @cloudflare/next-on-pages vercel
-```
-
 ## Examples
 
 To see some examples on how to use Next.js features with `@cloudflare/next-on-pages`, see the [Examples document](./docs/examples.md).

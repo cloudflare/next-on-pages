@@ -33,7 +33,7 @@
 		"zodcli": "^0.0.4"
 	},
 	"peerDependencies": {
-		"vercel": "^28.0.2",
+		"next-on-pages-vercel-cli": "29.3.0-next-on-pages-fix-1",
 		"wrangler": "^2.20.0"
 	},
 	"devDependencies": {
@@ -43,6 +43,7 @@
 		"@types/cookie": "^0.5.1",
 		"@types/js-yaml": "^4.0.5",
 		"@types/mock-fs": "^4.13.1",
+		"@types/node": "^20.1.4",
 		"@typescript-eslint/eslint-plugin": "^5.58.0",
 		"@typescript-eslint/parser": "^5.58.0",
 		"dedent-tabs": "^0.10.3",
@@ -51,7 +52,7 @@
 		"p-limit": "^4.0.0",
 		"prettier": "^2.8.4",
 		"typescript": "^5.0.4",
-		"vitest": "^0.26.3",
+		"vitest": "^0.31.0",
 		"vitest-environment-miniflare": "^2.13.0"
 	}
 }
