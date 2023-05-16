@@ -1,5 +1,5 @@
 import { writeFile, mkdir, rm, rmdir } from 'fs/promises';
-import { spawn } from 'child_process';
+import { spawn, type ChildProcessWithoutNullStreams } from 'child_process';
 import { join, resolve } from 'path';
 import { cliLog } from '../cli';
 import { validateDir, validateFile } from '../utils';
@@ -81,25 +81,7 @@ async function runVercelBuild(pkgMng: PackageManager): Promise<void> {
 
 	cliLog('Building project...');
 
-	let vercelBuild: ReturnType<typeof spawn>;
-
-	// If the package manager is yarn (berry), and the `vercel` package has not been installed,
-	// Then execute vercel building with `yarn dlx`.
-	if (
-		pkgMng === 'yarn (berry)' &&
-		// Check if the vercel package has been installed
-		!(await new Promise(resolve => {
-			const vercelChecking = spawn(pkgMngCMD, ['info', 'vercel']);
-
-			vercelChecking.on('exit', code => {
-				resolve(code === 0);
-			});
-		}))
-	) {
-		vercelBuild = spawn(pkgMngCMD, ['dlx', 'vercel', 'build']);
-	} else {
-		vercelBuild = spawn(pkgMngCMD, ['vercel', 'build']);
-	}
+	const vercelBuild = await getVercelBuildChildProcess(pkgMng);
 
 	vercelBuild.stdout.on('data', data =>
 		cliLog(`\n${data}`, { fromVercelCli: true })
@@ -120,6 +102,30 @@ async function runVercelBuild(pkgMng: PackageManager): Promise<void> {
 			}
 		});
 	});
+}
+
+async function getVercelBuildChildProcess(
+	pkgMng: PackageManager
+): Promise<ChildProcessWithoutNullStreams> {
+	const pkgMngCMD = getPackageManagerSpawnCommand(pkgMng);
+	if (pkgMng === 'yarn (berry)') {
+		const vercelPackageIsInstalled = await isVercelPackageInstalled(pkgMng);
+		if (!vercelPackageIsInstalled) {
+			return spawn(pkgMngCMD, ['dlx', 'vercel', 'build']);
+		}
+	}
+
+	return spawn(pkgMngCMD, ['vercel', 'build']);
+}
+
+async function isVercelPackageInstalled(
+	pkgMng: PackageManager
+): Promise<boolean> {
+	const pkgMngCMD = getPackageManagerSpawnCommand(pkgMng);
+	const infoVercelExitCode = await new Promise(resolve =>
+		spawn(pkgMngCMD, ['info', 'vercel']).on('exit', resolve)
+	);
+	return infoVercelExitCode === 0;
 }
 
 /**
