@@ -42,7 +42,13 @@ For more examples of this and for Next.js versions prior to v13.3.1, take a look
 
 ### 3. Deploy your application to Cloudflare Pages
 
-You can easily deploy to Cloudflare Pages via the [automatic Git integration](https://developers.cloudflare.com/pages/platform/git-integration/). To do so, start by committing and pushing your application's code to a GitHub/GitLab repository.
+To deploy your application to Cloudflare Pages, you need to install the `@cloudflare/next-on-pages` package.
+
+```sh
+npm install -D @cloudflare/next-on-pages
+```
+
+Then you can deploy to Cloudflare Pages via the [automatic Git integration](https://developers.cloudflare.com/pages/platform/git-integration/). To do so, start by committing and pushing your application's code to a GitHub/GitLab repository.
 
 Next, in the [Cloudflare Dashboard](https://dash.cloudflare.com/?to=/:account/pages), create a new Pages project:
 
@@ -51,8 +57,8 @@ Next, in the [Cloudflare Dashboard](https://dash.cloudflare.com/?to=/:account/pa
 - Choose a project name and your production branch.
 - Select _Next.js_ as the _Framework preset_ and provide the following options:
   | Option | Value |
-  | ---------------------- | ----------------------------------------------------- |
-  | Build command | `npx @cloudflare/next-on-pages` |
+  | ---------------------- | ---------------------------------- |
+  | Build command | `npx @cloudflare/next-on-pages@1` |
   | Build output directory | `.vercel/output/static` |
 - In the _Environment variables (advanced)_ section, add a new variable named `NODE_VERSION` set to `16` or greater.
 - Click on _Save and Deploy_ to start the deployment (this first deployment won't be fully functional as the next step is also necessary).
