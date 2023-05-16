@@ -1,5 +1,19 @@
 # @cloudflare/next-on-pages
 
+## 1.0.0-rc.1
+
+### Minor Changes
+
+- e053756: add nodejs_compat runtime check
+
+  add a runtime check for the presence of the nodejs_compat flag at runtime so that if developers
+  forget to use such flag instead of receiving an internal server error they receive an error specifically
+  telling them that they have not specified the flag
+
+### Patch Changes
+
+- b3ff89f: Function generation now includes all node modules instead of only node:buffer
+
 ## 1.0.0-rc.0
 
 ### Major Changes
