@@ -42,7 +42,13 @@ For more examples of this and for Next.js versions prior to v13.3.1, take a look
 
 ### 3. Deploy your application to Cloudflare Pages
 
-You can easily deploy to Cloudflare Pages via the [automatic Git integration](https://developers.cloudflare.com/pages/platform/git-integration/). To do so, start by committing and pushing your application's code to a GitHub/GitLab repository.
+To deploy your application to Cloudflare Pages, you need to install the `@cloudflare/next-on-pages` package.
+
+```sh
+npm install -D @cloudflare/next-on-pages
+```
+
+Then you can deploy to Cloudflare Pages via the [automatic Git integration](https://developers.cloudflare.com/pages/platform/git-integration/). To do so, start by committing and pushing your application's code to a GitHub/GitLab repository.
 
 Next, in the [Cloudflare Dashboard](https://dash.cloudflare.com/?to=/:account/pages), create a new Pages project:
 
