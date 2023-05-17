@@ -1,5 +1,59 @@
 # @cloudflare/next-on-pages
 
+## 1.0.0
+
+### Major Changes
+
+- 3e2dad8: use and rely on AsyncLocalStorage
+
+  previously we've been using the node AsyncLocalStorage in a non-breaking way but now we are committing
+  to in and using it to store the global env variables as well
+
+  this is a breaking change since moving forward all app running using @cloudflare/next-on-pages must
+  have the nodejs_compat compatibility flag set (before not all needed that)
+
+### Minor Changes
+
+- 6fcb58b: make the experimental minification the default behavior and add an option to disabled it
+
+  as part of this:
+
+  - make `--experimental-minify`|`-e` a no-op argument which simply shows a warning which indicates that it is
+    a deprecated option (we aren't removing the flag so that we don't break existing build scripts)
+  - add a `--disable-worker-minification`|`-m` option to disable the minification of the \_worker.js script (which
+    currently coincides with the experimental minification)
+
+- e053756: add nodejs_compat runtime check
+
+  add a runtime check for the presence of the nodejs_compat flag at runtime so that if developers
+  forget to use such flag instead of receiving an internal server error they receive an error specifically
+  telling them that they have not specified the flag
+
+- 87e183b: New routing system runtime handling and implementation.
+
+  Improves support for advanced routing with Next.js applications on Pages, through leveraging the Vercel build output configuration. The Vercel build output specifies the relevant routing steps that are taken during the lifetime of a request, and this change implements a new system that handles these steps.
+
+- ea761b8: remove disable-chunks-dedup flag
+- 86df485: Support for the internationalization (`i18n`) option in `next.config.js`, and locale redirects.
+- 4d8a708: utilize Wrangler new capability of dynamically importing code to avoid the evaluation/run of javascript code
+  when not necessary, reducing the app's startup time (which causes apps to often hit the script startup CPU time limit)
+
+### Patch Changes
+
+- b3ff89f: Function generation now includes all node modules instead of only node:buffer
+- d81c2e3: add pnpm files to ignored list for watch mode
+
+  add the following files to the list of files we ignore for watch mode:
+
+  - `pnpm-lock.yaml`: for consistency since all the other lock files are ignored
+  - `.pnpm-store`: to prevent potential infinite loops (https://github.com/cloudflare/next-on-pages/issues/212)
+  - `_tmp_*`: to prevent infinite loops, this is needed because pnpm saves/deletes temporary files to get the relative path to its store (https://github.com/pnpm/pnpm/blob/3f85e75dad4f5560a17367e5faad5a387bd47d05/store/store-path/src/index.ts#L41), such files start with `_tmp_` (see: https://github.com/zkochan/packages/blob/f559aef5b63c2477dd72ce156f35d6111af780f6/path-temp/index.js#L6)
+
+- bb23b60: Exit with non-zero status if vercel build fails in non-watch mode
+- e2d2046: Fix the prerendered route handling for favicons.
+- f1d76cd: Fix the prerendered route handling for generated JSON files.
+- 701f0c2: Prevent infinite loops from occuring when checking phases during routing.
+
 ## 0.10.1
 
 ### Patch Changes

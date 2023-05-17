@@ -6,26 +6,29 @@
  */
 export function generateGlobalJs(): string {
 	return `
-		import { AsyncLocalStorage } from 'node:async_hooks';
-		globalThis.AsyncLocalStorage = AsyncLocalStorage;
+		const __ENV_ALS_PROMISE__ = import('node:async_hooks').then(({ AsyncLocalStorage }) => {
+			globalThis.AsyncLocalStorage = AsyncLocalStorage;
 
-		const __ENV_ALS__ = new AsyncLocalStorage();
+			const envAsyncLocalStorage = new AsyncLocalStorage();
 
-		globalThis.process = {
-			env: new Proxy(
-				{},
-				{
-					get: (_, property) => {
-						${/* TODO: remove try-catch ASAP (after runtime fix) @dario */ ''}
-						try {
-							const result = Reflect.get(__ENV_ALS__.getStore(), property);
-							return result;
-						} catch (e) {
-							return undefined;
-						}
-					},
-					set: (_, property, value) => Reflect.set(__ENV_ALS__.getStore(), property, value),
-			}),
-		};
+			globalThis.process = {
+				env: new Proxy(
+					{},
+					{
+						get: (_, property) => {
+							${/* TODO: remove try-catch ASAP (after runtime fix) @dario */ ''}
+							try {
+								const result = Reflect.get(envAsyncLocalStorage.getStore(), property);
+								return result;
+							} catch (e) {
+								return undefined;
+							}
+						},
+						set: (_, property, value) => Reflect.set(envAsyncLocalStorage.getStore(), property, value),
+				}),
+			};
+			return envAsyncLocalStorage;
+		})
+		.catch(() => null);
 	`;
 }

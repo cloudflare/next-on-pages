@@ -54,7 +54,11 @@ async function runVercelBuild(pkgMng: PackageManager): Promise<void> {
 			`Installing vercel as dev dependencies with 'yarn add vercel -D'...`
 		);
 
-		const installVercel = spawn(pkgMngCMD, ['add', 'vercel', '-D']);
+		const installVercel = spawn(pkgMngCMD, [
+			'add',
+			'next-on-pages-vercel-cli',
+			'-D',
+		]);
 
 		installVercel.stdout.on('data', data =>
 			cliLog(`\n${data}`, { fromVercelCli: true })
@@ -111,11 +115,11 @@ async function getVercelBuildChildProcess(
 	if (pkgMng === 'yarn (berry)') {
 		const vercelPackageIsInstalled = await isVercelPackageInstalled(pkgMng);
 		if (!vercelPackageIsInstalled) {
-			return spawn(pkgMngCMD, ['dlx', 'vercel', 'build']);
+			return spawn(pkgMngCMD, ['dlx', 'next-on-pages-vercel-cli', 'build']);
 		}
 	}
 
-	return spawn(pkgMngCMD, ['vercel', 'build']);
+	return spawn(pkgMngCMD, ['next-on-pages-vercel-cli', 'build']);
 }
 
 async function isVercelPackageInstalled(

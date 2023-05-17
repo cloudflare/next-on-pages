@@ -8,13 +8,19 @@ declare const __CONFIG__: ProcessedVercelConfig;
 
 declare const __BUILD_OUTPUT__: VercelBuildOutput;
 
-declare const __ENV_ALS__: AsyncLocalStorage<unknown> & {
-	NODE_ENV: string;
-};
+declare const __ENV_ALS_PROMISE__: Promise<null | AsyncLocalStorage<unknown>>;
 
 export default {
 	async fetch(request, env, ctx) {
-		return __ENV_ALS__.run({ ...env, NODE_ENV: __NODE_ENV__ }, () => {
+		const envAsyncLocalStorage = await __ENV_ALS_PROMISE__;
+		if (!envAsyncLocalStorage) {
+			return new Response(
+				'Error: Could not access built-in node modules, please make sure that your Cloudflare Pages' +
+					" project has the 'nodejs_compat' compatibility flag set.",
+				{ status: 503 }
+			);
+		}
+		return envAsyncLocalStorage.run({ ...env, NODE_ENV: __NODE_ENV__ }, () => {
 			const adjustedRequest = adjustRequestForVercel(request);
 
 			return handleRequest(
