@@ -20,12 +20,6 @@ import { fixPrerenderedRoutes } from './fixPrerenderedRoutes';
 import type { Plugin } from 'esbuild';
 import { build } from 'esbuild';
 
-type WasmModuleInfo = {
-	identifier: string;
-	importPath: string;
-	originalFileLocation: string;
-};
-
 /**
  * Creates new files containing the Vercel built functions but adjusted so that they can be later
  * bundled in our worker and generates a map that maps the Vercel original function paths (without the `.func` extension)
@@ -133,6 +127,12 @@ async function tryToFixInvalidFunctions({
 	}
 }
 
+type WasmModuleInfo = {
+	identifier: string;
+	importPath: string;
+	originalFileLocation: string;
+};
+
 async function processDirectoryRecursively(
 	setup: ProcessingSetup,
 	dir: string
@@ -220,8 +220,8 @@ async function processFuncDirectory(
 		functionConfig.entrypoint = 'index.js';
 	}
 
-	const functionFile = join(filepath, functionConfig.entrypoint);
-	if (!(await validateFile(functionFile))) {
+	const functionFilePath = join(filepath, functionConfig.entrypoint);
+	if (!(await validateFile(functionFilePath))) {
 		if (isMiddleware) {
 			// We sometimes encounter an uncompiled `middleware.js` with no compiled `index.js` outside of a base path.
 			// Outside the base path, it should not be utilised, so it should be safe to ignore the function.
@@ -239,34 +239,34 @@ async function processFuncDirectory(
 	const functionsMap = new Map<string, string>();
 	const webpackChunks = new Map<number, string>();
 
-	let contents = await readFile(functionFile, 'utf8');
+	let contents = await readFile(functionFilePath, 'utf8');
 	contents = fixFunctionContents(contents);
 
 	let wasmIdentifiers = new Map<string, WasmModuleInfo>();
 
-	const nestingLevel = getFunctionNestingLevel(functionFile);
+	const nestingLevel = getFunctionNestingLevel(functionFilePath);
 
 	if (!setup.disableChunksDedup) {
 		const {
 			updatedFunctionContents,
 			extractedWebpackChunks,
 			wasmIdentifiers: funcWasmIdentifiers,
-		} = await extractWebpackChunks(contents, functionFile, webpackChunks);
-		contents = updatedFunctionContents;
+		} = await extractWebpackChunks(contents, functionFilePath, webpackChunks);
 		extractedWebpackChunks.forEach((value, key) =>
 			webpackChunks.set(key, value)
 		);
+		contents = updatedFunctionContents;
 		wasmIdentifiers = funcWasmIdentifiers;
 	} else {
-		const { wasmIdentifiers: funcWasmIdentifiers, contents: updatedContents } =
-			await extractAndFixWasmRequires(functionFile, contents);
-		wasmIdentifiers = funcWasmIdentifiers;
+		const { wasmIdentifiers: funcWasmIdentifiers, updatedContents } =
+			await extractAndFixWasmRequires(functionFilePath, contents);
 		contents = updatedContents;
+		wasmIdentifiers = funcWasmIdentifiers;
 	}
 
 	const newFilePath = join(setup.distFunctionsDir, `${relativePath}.js`);
 	await mkdir(dirname(newFilePath), { recursive: true });
-	const relativeChunksPath = getRelativeChunksPath(functionFile);
+	const relativeChunksPath = getRelativeChunksPath(functionFilePath);
 	await build({
 		stdin: {
 			contents,
@@ -310,10 +310,31 @@ async function processFuncDirectory(
 	};
 }
 
+type RawWasmModuleInfo = {
+	identifier: string;
+	importPath: string;
+	start: number;
+	end: number;
+};
+
+/**
+ * Given the path of a function file and its content update the content so that it doesn't include dynamic
+ * requires to wasm modules. Such requires are instead converted into standard esm imports.
+ *
+ * As a side effect this function also updates the file with the new content.
+ *
+ * @param functionFilePath file path of the function file
+ * @param originalFileContents the (original) contents of the file
+ * @returns the updated content and a map of wasmIdentifiers that can be used to copy the wasm files in the correct location
+ *          after all the functions have been parsed
+ */
 async function extractAndFixWasmRequires(
 	functionFilePath: string,
 	originalFileContents: string
-) {
+): Promise<{
+	wasmIdentifiers: Map<string, WasmModuleInfo>;
+	updatedContents: string;
+}> {
 	const program = parse(originalFileContents, {
 		ecmaVersion: 'latest',
 		sourceType: 'module',
@@ -323,14 +344,9 @@ async function extractAndFixWasmRequires(
 
 	const rawWasmIdentifiers = program.body
 		.map(getWasmIdentifier)
-		.filter(Boolean) as {
-		identifier: string;
-		importPath: string;
-		start: number;
-		end: number;
-	}[];
+		.filter(Boolean) as RawWasmModuleInfo[];
 
-	let contents = originalFileContents;
+	let updatedContents = originalFileContents;
 	rawWasmIdentifiers.forEach(({ identifier, importPath, start, end }) => {
 		wasmIdentifiers.set(identifier, {
 			identifier,
@@ -341,8 +357,8 @@ async function extractAndFixWasmRequires(
 				`${identifier}.wasm`
 			),
 		});
-		const originalWasmModuleRequire = contents.slice(start, end);
-		contents = contents.replace(
+		const originalWasmModuleRequire = updatedContents.slice(start, end);
+		updatedContents = updatedContents.replace(
 			originalWasmModuleRequire,
 			`import ${identifier} from "${'../'.repeat(
 				getFunctionNestingLevel(functionFilePath) - 1
@@ -350,9 +366,9 @@ async function extractAndFixWasmRequires(
 		);
 	});
 
-	await writeFile(functionFilePath, contents);
+	await writeFile(functionFilePath, updatedContents);
 
-	return { wasmIdentifiers, contents };
+	return { wasmIdentifiers, updatedContents };
 }
 
 /**
@@ -408,10 +424,12 @@ async function extractWebpackChunks(
 
 	const webpackChunksImports: string[] = [];
 
-	const { wasmIdentifiers, contents: updatedFunctionContents } =
-		await extractAndFixWasmRequires(filePath, functionContents);
+	const { wasmIdentifiers, updatedContents } = await extractAndFixWasmRequires(
+		filePath,
+		functionContents
+	);
 
-	const parsedContents = parse(updatedFunctionContents, {
+	const parsedContents = parse(updatedContents, {
 		ecmaVersion: 'latest',
 		sourceType: 'module',
 	}) as unknown as AST.ProgramKind;
@@ -588,12 +606,9 @@ function getWebpackChunksFromStatement(
  * the following import:
  *   import wasm_fbeb8adedbc833032bda6f13925ba235b8d09114 from "../wasm/wasm_fbeb8adedbc833032bda6f13925ba235b8d09114.wasm";
  */
-function getWasmIdentifier(statement: AST.StatementKind): {
-	identifier: string;
-	importPath: string;
-	start: number;
-	end: number;
-} | null {
+function getWasmIdentifier(
+	statement: AST.StatementKind
+): RawWasmModuleInfo | null {
 	try {
 		assert(statement.type === 'VariableDeclaration');
 		assert(statement.declarations.length === 1);
@@ -693,10 +708,17 @@ export const nodeBufferPlugin: Plugin = {
 	},
 };
 
+/**
+ * Copies wasm files into the __next-on-pages-dist__/wasm folder which is the location from which
+ * function and chunk files import the wasm modules from
+ *
+ * @param distDir the __next-on-pages-dist__ directory's path
+ * @param wasmIdentifiers map containing all the wasm identifiers collected during the build process
+ */
 async function copyWasmFiles(
 	distDir: string,
 	wasmIdentifiers: Map<string, WasmModuleInfo>
-) {
+): Promise<void> {
 	const wasmDistDir = join(distDir, 'wasm');
 	await mkdir(wasmDistDir);
 	for (const { originalFileLocation, identifier } of wasmIdentifiers.values()) {
