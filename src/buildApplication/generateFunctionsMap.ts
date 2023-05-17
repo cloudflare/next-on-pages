@@ -251,49 +251,17 @@ async function processFuncDirectory(
 			updatedFunctionContents,
 			extractedWebpackChunks,
 			wasmIdentifiers: funcWasmIdentifiers,
-		} = extractWebpackChunks(contents, functionFile, webpackChunks);
+		} = await extractWebpackChunks(contents, functionFile, webpackChunks);
 		contents = updatedFunctionContents;
 		extractedWebpackChunks.forEach((value, key) =>
 			webpackChunks.set(key, value)
 		);
 		wasmIdentifiers = funcWasmIdentifiers;
 	} else {
-		const parsedContents = parse(contents, {
-			ecmaVersion: 'latest',
-			sourceType: 'module',
-		}) as unknown as AST.ProgramKind;
-
-		const rawWasmIdentifiers = parsedContents.body
-			.map(getWasmIdentifier)
-			.filter(Boolean) as {
-			identifier: string;
-			importPath: string;
-			start: number;
-			end: number;
-		}[];
-
-		wasmIdentifiers = new Map<string, WasmModuleInfo>();
-
-		rawWasmIdentifiers.forEach(({ identifier, importPath, start, end }) => {
-			wasmIdentifiers.set(identifier, {
-				identifier,
-				importPath,
-				originalFileLocation: join(
-					dirname(functionFile),
-					'wasm',
-					`${identifier}.wasm`
-				),
-			});
-			const originalWasmModuleRequire = contents.slice(start, end);
-			contents = contents.replace(
-				originalWasmModuleRequire,
-				`import ${identifier} from "${'../'.repeat(
-					nestingLevel - 1
-				)}wasm/${identifier}.wasm";`
-			);
-		});
-
-		await writeFile(functionFile, contents);
+		const { wasmIdentifiers: funcWasmIdentifiers, contents: updatedContents } =
+			await extractAndFixWasmRequires(functionFile, contents);
+		wasmIdentifiers = funcWasmIdentifiers;
+		contents = updatedContents;
 	}
 
 	const newFilePath = join(setup.distFunctionsDir, `${relativePath}.js`);
@@ -342,6 +310,51 @@ async function processFuncDirectory(
 	};
 }
 
+async function extractAndFixWasmRequires(
+	functionFilePath: string,
+	originalFileContents: string
+) {
+	const program = parse(originalFileContents, {
+		ecmaVersion: 'latest',
+		sourceType: 'module',
+	}) as unknown as AST.ProgramKind;
+
+	const wasmIdentifiers = new Map<string, WasmModuleInfo>();
+
+	const rawWasmIdentifiers = program.body
+		.map(getWasmIdentifier)
+		.filter(Boolean) as {
+		identifier: string;
+		importPath: string;
+		start: number;
+		end: number;
+	}[];
+
+	let contents = originalFileContents;
+	rawWasmIdentifiers.forEach(({ identifier, importPath, start, end }) => {
+		wasmIdentifiers.set(identifier, {
+			identifier,
+			importPath,
+			originalFileLocation: join(
+				dirname(functionFilePath),
+				'wasm',
+				`${identifier}.wasm`
+			),
+		});
+		const originalWasmModuleRequire = contents.slice(start, end);
+		contents = contents.replace(
+			originalWasmModuleRequire,
+			`import ${identifier} from "${'../'.repeat(
+				getFunctionNestingLevel(functionFilePath) - 1
+			)}wasm/${identifier}.wasm";`
+		);
+	});
+
+	await writeFile(functionFilePath, contents);
+
+	return { wasmIdentifiers, contents };
+}
+
 /**
  * Fixes the function contents in miscellaneous ways.
  *
@@ -379,15 +392,15 @@ function fixFunctionContents(contents: string) {
  * @returns an object containing the extractedWebpackChunks and the function's file content updated so that it imports/requires
  * those chunks
  */
-function extractWebpackChunks(
+async function extractWebpackChunks(
 	functionContents: string,
 	filePath: string,
 	existingWebpackChunks: Map<number, string>
-): {
+): Promise<{
 	updatedFunctionContents: string;
 	extractedWebpackChunks: Map<number, string>;
 	wasmIdentifiers: Map<string, WasmModuleInfo>;
-} {
+}> {
 	const getChunkImport = getChunkImportFn(filePath);
 
 	const webpackChunks = new Map<number, string>();
@@ -395,27 +408,13 @@ function extractWebpackChunks(
 
 	const webpackChunksImports: string[] = [];
 
-	const parsedContents = parse(functionContents, {
+	const { wasmIdentifiers, contents: updatedFunctionContents } =
+		await extractAndFixWasmRequires(filePath, functionContents);
+
+	const parsedContents = parse(updatedFunctionContents, {
 		ecmaVersion: 'latest',
 		sourceType: 'module',
 	}) as unknown as AST.ProgramKind;
-
-	const rawWasmIdentifiers = parsedContents.body
-		.map(getWasmIdentifier)
-		.filter(Boolean) as { identifier: string; importPath: string }[];
-
-	const wasmIdentifiers = new Map<string, WasmModuleInfo>();
-	rawWasmIdentifiers.forEach(({ identifier, importPath }) => {
-		wasmIdentifiers.set(identifier, {
-			identifier,
-			importPath,
-			originalFileLocation: join(
-				dirname(filePath),
-				'wasm',
-				`${identifier}.wasm`
-			),
-		});
-	});
 
 	const chunks = parsedContents.body.flatMap(getWebpackChunksFromStatement);
 
@@ -453,14 +452,6 @@ function extractWebpackChunks(
 
 	webpackChunksCodeReplaceMap.forEach((newChunkCode, chunkCode) => {
 		functionContents = functionContents.replace(chunkCode, newChunkCode);
-	});
-
-	wasmIdentifiers.forEach(({ importPath }, identifier) => {
-		functionContents = functionContents.replaceAll(
-			// for now let's assume that the wasm identifiers are only used in the chunks
-			`const ${identifier} = require("${importPath}");`,
-			''
-		);
 	});
 
 	return {
