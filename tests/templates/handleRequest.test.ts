@@ -17,6 +17,16 @@ import { writeFile } from 'fs/promises';
 
 import { describe } from 'vitest';
 
+vi.mock('acorn', async () => {
+	return {
+		parse: () => {
+			return {
+				body: [],
+			};
+		},
+	};
+});
+
 /**
  * Runs a test case.
  *

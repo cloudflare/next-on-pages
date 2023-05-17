@@ -597,9 +597,7 @@ function getWebpackChunksFromStatement(
  * the following import:
  *   import wasm_fbeb8adedbc833032bda6f13925ba235b8d09114 from "../wasm/wasm_fbeb8adedbc833032bda6f13925ba235b8d09114.wasm";
  */
-function getWasmIdentifier(
-	statement: AST.StatementKind
-): {
+function getWasmIdentifier(statement: AST.StatementKind): {
 	identifier: string;
 	importPath: string;
 	start: number;
