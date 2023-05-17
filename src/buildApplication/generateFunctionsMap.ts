@@ -307,9 +307,9 @@ async function processFuncDirectory(
 		platform: 'neutral',
 		outfile: newFilePath,
 		bundle: true,
-		external: ['node:*', `${relativeChunksPath}/*`, '/wasm*', '*.wasm'],
+		external: ['node:*', `${relativeChunksPath}/*`, '*.wasm'],
 		minify: true,
-		plugins: [nodeBufferPlugin /*, wasmPlugin*/],
+		plugins: [nodeBufferPlugin],
 	});
 	// TODO: remove ASAP (after runtime fix) @dario
 	const fileContents = await readFile(newFilePath, 'utf8');
