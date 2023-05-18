@@ -115,15 +115,18 @@ async function getVercelBuildChildProcess(
 	const pkgMngCMD = getPackageManagerSpawnCommand(pkgMng);
 	const isYarnBerry = pkgMng === 'yarn (berry)';
 	const isPnpm = pkgMngCMD.startsWith('pnpm');
+	let useDlx = false;
 
 	if (isYarnBerry || isPnpm) {
 		const vercelPackageIsInstalled = await isVercelPackageInstalled(pkgMng);
-		if (!vercelPackageIsInstalled) {
-			return spawn(pkgMngCMD, ['dlx', 'next-on-pages-vercel-cli', 'build']);
-		}
+		useDlx = !vercelPackageIsInstalled;
 	}
 
-	return spawn(pkgMngCMD, ['next-on-pages-vercel-cli', 'build']);
+	return spawn(pkgMngCMD, [
+		...(useDlx ? ['dlx'] : []),
+		'next-on-pages-vercel-cli',
+		'build',
+	]);
 }
 
 async function isVercelPackageInstalled(
