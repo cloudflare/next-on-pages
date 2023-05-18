@@ -1,5 +1,5 @@
 import { writeFile, mkdir, rm, rmdir } from 'fs/promises';
-import { spawn } from 'child_process';
+import { spawn, type ChildProcessWithoutNullStreams } from 'child_process';
 import { join, resolve } from 'path';
 import { cliLog } from '../cli';
 import { validateDir, validateFile } from '../utils';
@@ -85,11 +85,7 @@ async function runVercelBuild(pkgMng: PackageManager): Promise<void> {
 
 	cliLog('Building project...');
 
-	const vercelBuild = spawn(pkgMngCMD, [
-		...(pkgMng === 'yarn (berry)' ? ['dlx'] : []),
-		'next-on-pages-vercel-cli',
-		'build',
-	]);
+	const vercelBuild = await getVercelBuildChildProcess(pkgMng);
 
 	vercelBuild.stdout.on('data', data =>
 		cliLog(`\n${data}`, { fromVercelCli: true })
@@ -110,6 +106,30 @@ async function runVercelBuild(pkgMng: PackageManager): Promise<void> {
 			}
 		});
 	});
+}
+
+async function getVercelBuildChildProcess(
+	pkgMng: PackageManager
+): Promise<ChildProcessWithoutNullStreams> {
+	const pkgMngCMD = getPackageManagerSpawnCommand(pkgMng);
+	if (pkgMng === 'yarn (berry)') {
+		const vercelPackageIsInstalled = await isVercelPackageInstalled(pkgMng);
+		if (!vercelPackageIsInstalled) {
+			return spawn(pkgMngCMD, ['dlx', 'next-on-pages-vercel-cli', 'build']);
+		}
+	}
+
+	return spawn(pkgMngCMD, ['next-on-pages-vercel-cli', 'build']);
+}
+
+async function isVercelPackageInstalled(
+	pkgMng: PackageManager
+): Promise<boolean> {
+	const pkgMngCMD = getPackageManagerSpawnCommand(pkgMng);
+	const infoVercelExitCode = await new Promise(resolve =>
+		spawn(pkgMngCMD, ['info', 'vercel']).on('exit', resolve)
+	);
+	return infoVercelExitCode === 0;
 }
 
 /**
