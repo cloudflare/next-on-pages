@@ -517,7 +517,7 @@ async function buildWebpackChunkFiles(
 			.filter(([identifier]) => fileContents.includes(identifier))
 			.map(
 				([identifier, { importPath }]) =>
-					`import ${identifier} from '../${importPath}';`
+					`import ${identifier} from '..${importPath}';`
 			)
 			.join('\n');
 		await writeFile(chunkFilePath, `${wasmChunkImports}\n${fileContents}`);
