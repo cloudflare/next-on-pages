@@ -506,8 +506,11 @@ export class RoutesMatcher {
 			!pathExistsInOutput &&
 			/^\/(.+)\/$/.test(this.path)
 		) {
-			this.path = this.path.replace(/\/(.+)\//, '/$1');
-			pathExistsInOutput = this.path in this.output;
+			const newPath = this.path.replace(/^\/(.+)\/$/, '/$1');
+			pathExistsInOutput = newPath in this.output;
+			if (pathExistsInOutput) {
+				this.path = newPath;
+			}
 		}
 
 		// In the `miss` phase, set status to 404 if no path was found and it isn't an error code.

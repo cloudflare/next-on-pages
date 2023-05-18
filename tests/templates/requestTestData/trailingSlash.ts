@@ -30,7 +30,7 @@ const rawVercelConfig: VercelConfig = {
 		{ handle: 'resource' },
 		{ src: '/.*', status: 404 },
 		{ handle: 'rewrite' },
-		{ src: '^/(?<nxtPlang>[^/]+?)(?:/)?$', dest: '/[lang]?nxtPlang=$nxtPlang' },
+		{ src: '^/(?<lang>[^/]+?)(?:/)?$', dest: '/[lang]?lang=$lang' },
 		{ handle: 'hit' },
 		{
 			src: '/index',
@@ -87,7 +87,7 @@ export const testSet: TestSet = {
 			paths: ['/en/'],
 			expected: {
 				status: 200,
-				data: JSON.stringify({ file: '/[lang]', params: [['nxtPlang', 'en']] }),
+				data: JSON.stringify({ file: '/[lang]', params: [['lang', 'en']] }),
 				headers: {
 					'content-type': 'text/plain;charset=UTF-8',
 					'x-matched-path': '/[lang]',
