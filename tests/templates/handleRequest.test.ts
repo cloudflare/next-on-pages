@@ -8,6 +8,7 @@ import {
 	i18nTestSet,
 	infiniteLoopTestSet,
 	middlewareTestSet,
+	trailingSlashTestSet,
 } from './requestTestData';
 import type { TestCase, TestSet } from '../_helpers';
 import { createRouterTestData } from '../_helpers';
@@ -113,6 +114,7 @@ suite('router', () => {
 		i18nTestSet,
 		infiniteLoopTestSet,
 		middlewareTestSet,
+		trailingSlashTestSet,
 	].forEach(testSet => {
 		describe(testSet.name, () => runTestSet(testSet));
 	});
