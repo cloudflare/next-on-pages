@@ -99,7 +99,12 @@ export function getPackageVersion(
 		const command = getPackageManagerSpawnCommand(packageManager);
 		const commandOutput = execFileSync(
 			command,
-			['list', packageName, '--json', '--depth=0'],
+			[
+				command === 'yarn' ? 'info' : 'list',
+				packageName,
+				'--json',
+				...(command === 'yarn' ? [] : ['--depth=0']),
+			],
 			{ stdio: 'pipe' }
 		)
 			.toString()
@@ -108,7 +113,10 @@ export function getPackageVersion(
 		const commandJsonOuput = JSON.parse(commandOutput);
 		const packageInfo =
 			packageManager === 'pnpm' ? commandJsonOuput[0] : commandJsonOuput;
-		const packageVersion = packageInfo?.dependencies[packageName]?.version;
+		const packageVersion =
+			command === 'yarn'
+				? packageInfo?.children?.Version
+				: packageInfo?.dependencies[packageName]?.version;
 		return packageVersion ?? null;
 	} catch {
 		return null;
