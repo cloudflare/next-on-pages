@@ -496,7 +496,18 @@ export class RoutesMatcher {
 			return 'done';
 		}
 
-		const pathExistsInOutput = this.path in this.output;
+		let pathExistsInOutput = this.path in this.output;
+
+		// If a path with a trailing slash entered the `rewrite` phase and didn't find a match, it might
+		// be due to the `trailingSlash` setting in `next.config.js`. Therefore, we should remove the
+		// trailing slash and check again before entering the next phase.
+		if (phase === 'rewrite' && !pathExistsInOutput && this.path.endsWith('/')) {
+			const newPath = this.path.replace(/\/$/, '');
+			pathExistsInOutput = newPath in this.output;
+			if (pathExistsInOutput) {
+				this.path = newPath;
+			}
+		}
 
 		// In the `miss` phase, set status to 404 if no path was found and it isn't an error code.
 		if (phase === 'miss' && !pathExistsInOutput) {
