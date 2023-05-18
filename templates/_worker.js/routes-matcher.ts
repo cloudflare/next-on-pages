@@ -504,9 +504,9 @@ export class RoutesMatcher {
 		if (
 			phase === 'rewrite' &&
 			!pathExistsInOutput &&
-			/^\/(.+)\/$/.test(this.path)
+			this.path.endsWith('/')
 		) {
-			const newPath = this.path.replace(/^\/(.+)\/$/, '/$1');
+			const newPath = this.path.replace(/\/$/, '')
 			pathExistsInOutput = newPath in this.output;
 			if (pathExistsInOutput) {
 				this.path = newPath;
