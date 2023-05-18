@@ -37,8 +37,7 @@ the adopted solution consists in:
   import wasm_fbeb8adedbc833032bda6f13925ba235b8d09114 from '../wasm/wasm_fbeb8adedbc833032bda6f13925ba235b8d09114.wasm';
   ```
   so that any part of the func file will be able to reference the variable (so that this works with chunks deduplication disabled)
-- adding such relative imports in the chunk files themselves (only to chunk files actually using some of the identified wasm
-  identifiers), like for example:
+- adding similar import statements to any chunk files that reference these wasm identifiers, like for example:
   ```js
   // file: .vercel/output/static/_worker.js/__next-on-pages-dist__/chunks/649.js
   import wasm_fbeb8adedbc833032bda6f13925ba235b8d09114 from '../wasm/wasm_fbeb8adedbc833032bda6f13925ba235b8d09114.wasm';
