@@ -15,8 +15,7 @@ export default {
 		const envAsyncLocalStorage = await __ENV_ALS_PROMISE__;
 		if (!envAsyncLocalStorage) {
 			return new Response(
-				'Error: Could not access built-in node modules, please make sure that your Cloudflare Pages' +
-					" project has the 'nodejs_compat' compatibility flag set.",
+				`Error: Could not access built-in Node.js modules. Please make sure that your Cloudflare Pages project has the 'nodejs_compat' compatibility flag set.`,
 				{ status: 503 }
 			);
 		}
