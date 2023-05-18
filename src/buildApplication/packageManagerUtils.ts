@@ -1,5 +1,5 @@
 import YAML from 'js-yaml';
-import { spawn } from 'child_process';
+import { execFileSync, spawn } from 'child_process';
 import { readFile } from 'fs/promises';
 import { cliError } from '../cli';
 import { validateFile } from '../utils';
@@ -67,22 +67,61 @@ export async function getCurrentPackageExecuter(): Promise<string> {
 }
 
 const packageManagers = {
-	pnpm: 'pnpx',
+	pnpm: 'pnpm',
 	'yarn (berry)': 'yarn',
 	'yarn (classic)': 'yarn',
 	yarn: 'yarn',
 	npm: 'npx',
-};
+} as const;
 
 export type PackageManager = keyof typeof packageManagers;
 
+type PackageManagerCommand = `${(typeof packageManagers)[PackageManager]}${
+	| '.cmd'
+	| ''}`;
+
 export function getPackageManagerSpawnCommand(
 	pkgMng: keyof typeof packageManagers
-): string {
+): PackageManagerCommand {
 	const winCMD = isWindows() ? '.cmd' : '';
 	return `${packageManagers[pkgMng]}${winCMD}`;
 }
 
 function isWindows(): boolean {
 	return process.platform === 'win32';
+}
+
+export function getPackageVersion(
+	packageManager: PackageManager,
+	packageName: string
+): string | null {
+	try {
+		const command = getPackageManagerSpawnCommand(packageManager);
+		const commandOutput = execFileSync(
+			command,
+			['list', packageName, '--json', '--depth=0'],
+			{ stdio: 'pipe' }
+		)
+			.toString()
+			.trim();
+
+		const commandJsonOuput = JSON.parse(commandOutput);
+		const packageInfo =
+			packageManager === 'pnpm' ? commandJsonOuput[0] : commandJsonOuput;
+		const packageVersion = packageInfo?.dependencies[packageName]?.version;
+		return packageVersion ?? null;
+	} catch {
+		return null;
+	}
+}
+
+export function getBinaryVersion(binaryName: PackageManager): string | null {
+	const commandArgs = ['--version'];
+	try {
+		return execFileSync(getPackageManagerSpawnCommand(binaryName), commandArgs)
+			.toString()
+			.trim();
+	} catch {
+		return null;
+	}
 }

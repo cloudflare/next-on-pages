@@ -4,6 +4,7 @@ import { join, resolve } from 'path';
 import { cliLog } from '../cli';
 import { validateDir, validateFile } from '../utils';
 import type { PackageManager } from './packageManagerUtils';
+import { getPackageVersion } from './packageManagerUtils';
 import {
 	getCurrentPackageExecuter,
 	getCurrentPackageManager,
@@ -112,7 +113,10 @@ async function getVercelBuildChildProcess(
 	pkgMng: PackageManager
 ): Promise<ChildProcessWithoutNullStreams> {
 	const pkgMngCMD = getPackageManagerSpawnCommand(pkgMng);
-	if (pkgMng === 'yarn (berry)') {
+	const isYarnBerry = pkgMng === 'yarn (berry)';
+	const isPnpm = pkgMngCMD.startsWith('pnpm');
+
+	if (isYarnBerry || isPnpm) {
 		const vercelPackageIsInstalled = await isVercelPackageInstalled(pkgMng);
 		if (!vercelPackageIsInstalled) {
 			return spawn(pkgMngCMD, ['dlx', 'next-on-pages-vercel-cli', 'build']);
@@ -125,11 +129,8 @@ async function getVercelBuildChildProcess(
 async function isVercelPackageInstalled(
 	pkgMng: PackageManager
 ): Promise<boolean> {
-	const pkgMngCMD = getPackageManagerSpawnCommand(pkgMng);
-	const infoVercelExitCode = await new Promise(resolve =>
-		spawn(pkgMngCMD, ['info', 'vercel']).on('exit', resolve)
-	);
-	return infoVercelExitCode === 0;
+	const packageVersion = getPackageVersion(pkgMng, 'next-on-pages-vercel-cli');
+	return !!packageVersion;
 }
 
 /**

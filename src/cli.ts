@@ -1,16 +1,15 @@
 import os from 'os';
-import { execFileSync } from 'child_process';
 import dedent from 'dedent-tabs';
 import { z } from 'zod';
 import { argumentParser } from 'zodcli';
 import type { ChalkInstance } from 'chalk';
 import chalk from 'chalk';
 import { nextOnPagesVersion } from './utils';
-import type { PackageManager } from './buildApplication/packageManagerUtils';
 import {
-	getCurrentPackageManager,
-	getPackageManagerSpawnCommand,
+	getBinaryVersion,
+	getPackageVersion,
 } from './buildApplication/packageManagerUtils';
+import { getCurrentPackageManager } from './buildApplication/packageManagerUtils';
 
 // A helper type to handle command line flags. Defaults to false
 const flag = z
@@ -209,6 +208,7 @@ function prepareCliMessage(
 }
 
 export async function printEnvInfo(): Promise<void> {
+	const packageManager = await getCurrentPackageManager();
 	const envInfoMessage = dedent(`
 		System:
 			Platform: ${os.platform()}
@@ -219,44 +219,16 @@ export async function printEnvInfo(): Promise<void> {
 			Shell: ${process.env['SHELL']?.toString() ?? 'Unknown'}
 		Binaries:
 			Node: ${process.versions.node}
-			Yarn: ${getBinaryVersion('yarn')}
-			npm: ${getBinaryVersion('npm')}
-			pnpm: ${getBinaryVersion('pnpm')}
+			Yarn: ${getBinaryVersion('yarn') ?? 'N/A'}
+			npm: ${getBinaryVersion('npm') ?? 'N/A'}
+			pnpm: ${getBinaryVersion('pnpm') ?? 'N/A'}
 		Package Manager Used: ${await getCurrentPackageManager()}
 		Relevant Packages:
 			@cloudflare/next-on-pages: ${nextOnPagesVersion}
-			vercel: ${getPackageVersion('vercel')}
-			next: ${getPackageVersion('next')}
+			vercel: ${getPackageVersion(packageManager, 'vercel') ?? 'N/A'}
+			next: ${getPackageVersion(packageManager, 'next') ?? 'N/A'}
 	`);
 
 	// eslint-disable-next-line no-console
 	console.log(`\n${envInfoMessage}\n`);
-}
-
-function getPackageVersion(packageName: string): string {
-	try {
-		const command = getPackageManagerSpawnCommand('npm');
-		const commandOutput = execFileSync(
-			command,
-			['list', packageName, '--json', '--depth=0'],
-			{ stdio: 'pipe' }
-		)
-			.toString()
-			.trim();
-		const packageInfo = JSON.parse(commandOutput);
-		return packageInfo?.dependencies[packageName]?.version ?? 'N/A';
-	} catch {
-		return 'N/A';
-	}
-}
-
-function getBinaryVersion(binaryName: PackageManager): string {
-	const commandArgs = ['--version'];
-	try {
-		return execFileSync(getPackageManagerSpawnCommand(binaryName), commandArgs)
-			.toString()
-			.trim();
-	} catch {
-		return 'N/A';
-	}
 }
