@@ -402,14 +402,14 @@ function fixFunctionContents(contents: string) {
  * Given the contents of a function's file it extracts webpack chunks from it so that they can be de-duplicated.
  *
  * @param tmpWebpackDir path of tmp dir to use for the webpack chunks
- * @param functionContents the contents of the function's file
+ * @param originalFunctionContents the original contents of the function's file
  * @param existingWebpackChunks the existing collected webpack chunks (so that we can validate new ones against them)
  *
  * @returns an object containing the extractedWebpackChunks and the function's file content updated so that it imports/requires
  * those chunks
  */
 async function extractWebpackChunks(
-	functionContents: string,
+	originalFunctionContents: string,
 	filePath: string,
 	existingWebpackChunks: Map<number, string>
 ): Promise<{
@@ -426,10 +426,12 @@ async function extractWebpackChunks(
 
 	const { wasmIdentifiers, updatedContents } = await extractAndFixWasmRequires(
 		filePath,
-		functionContents
+		originalFunctionContents
 	);
 
-	const parsedContents = parse(updatedContents, {
+	let functionContents = updatedContents;
+
+	const parsedContents = parse(functionContents, {
 		ecmaVersion: 'latest',
 		sourceType: 'module',
 	}) as unknown as AST.ProgramKind;
