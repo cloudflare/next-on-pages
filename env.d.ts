@@ -6,6 +6,11 @@ declare global {
 			[key: string]: string | Fetcher;
 		}
 	}
+
+	type CloudflareGlobalContext = {
+		cf?: IncomingRequestCfProperties;
+		ctx: ExecutionContext;
+	};
 }
 
 export {};

@@ -1,13 +1,6 @@
 import type { AsyncLocalStorage } from 'node:async_hooks';
 
-export const cloudflareGlobalContextSymbol = Symbol.for(
-	'cloudflare-global-context'
-);
-
-export type CloudflareGlobalContext = {
-	cf?: IncomingRequestCfProperties;
-	ctx: ExecutionContext;
-};
+const cloudflareGlobalContextSymbol = Symbol.for('cloudflare-global-context');
 
 export function getCloudflareGlobalContextAls():
 	| AsyncLocalStorage<CloudflareGlobalContext>

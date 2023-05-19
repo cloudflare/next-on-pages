@@ -1,4 +1,3 @@
-import { getCloudflareGlobalContextAls } from '../../../utils/utils/cloudflareGlobalContext';
 import { handleRequest } from './handleRequest';
 import { adjustRequestForVercel } from './utils';
 import type { AsyncLocalStorage } from 'node:async_hooks';
@@ -21,7 +20,15 @@ export default {
 			);
 		}
 
-		const cloudflareGlobalContextAls = getCloudflareGlobalContextAls();
+		const cloudflareGlobalContextSymbol = Symbol.for(
+			'cloudflare-global-context'
+		);
+
+		const cloudflareGlobalContextAls = (
+			globalThis as unknown as {
+				[cloudflareGlobalContextSymbol]?: AsyncLocalStorage<CloudflareGlobalContext>;
+			}
+		)[cloudflareGlobalContextSymbol];
 
 		if (!cloudflareGlobalContextAls) {
 			return new Response(
