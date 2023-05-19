@@ -1,4 +1,3 @@
-import type { IncomingRequestCfProperties } from '@cloudflare/workers-types';
 import { getCloudflareGlobalContextAls } from './utils/cloudflareGlobalContext';
 
 export function getRequestCfProperties():

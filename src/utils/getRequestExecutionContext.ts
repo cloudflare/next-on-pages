@@ -1,4 +1,3 @@
-import type { ExecutionContext } from '@cloudflare/workers-types';
 import { getCloudflareGlobalContextAls } from './utils/cloudflareGlobalContext';
 
 export function getRequestExecutionContext(): ExecutionContext | undefined {

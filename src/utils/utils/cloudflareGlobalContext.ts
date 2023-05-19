@@ -1,8 +1,4 @@
 import type { AsyncLocalStorage } from 'node:async_hooks';
-import type {
-	IncomingRequestCfProperties,
-	ExecutionContext,
-} from '@cloudflare/workers-types';
 
 export const cloudflareGlobalContextSymbol = Symbol.for(
 	'cloudflare-global-context'
