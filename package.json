@@ -34,7 +34,7 @@
 	"files": [
 		"bin",
 		"dist",
-		"templates"
+		"src/cli/templates"
 	],
 	"dependencies": {
 		"acorn": "^8.8.0",
