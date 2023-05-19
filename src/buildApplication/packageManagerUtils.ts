@@ -98,7 +98,7 @@ export function getPackageVersion(
 	try {
 		const command = getPackageManagerSpawnCommand(packageManager);
 		const commandOutput = execFileSync(
-			command,
+			command.startsWith('npx') ? 'npm' : command,
 			[
 				command === 'yarn' ? 'info' : 'list',
 				packageName,
