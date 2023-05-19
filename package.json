@@ -3,10 +3,7 @@
 	"version": "1.0.0",
 	"bin": "./bin/index.js",
 	"exports": {
-		"./utils": {
-			"import": "./dist/utils/index.js",
-			"types": "./dist/utils/index.d.ts"
-		}
+		"./utils": "./dist/utils/index.js"
 	},
 	"typesVersions": {
 		"*": {
