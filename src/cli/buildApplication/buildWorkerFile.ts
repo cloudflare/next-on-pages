@@ -60,7 +60,9 @@ export async function buildWorkerFile(
 	);
 
 	await build({
-		entryPoints: [join(__dirname, '..', 'src', 'cli', 'templates', '_worker.js')],
+		entryPoints: [
+			join(__dirname, '..', 'src', 'cli', 'templates', '_worker.js'),
+		],
 		banner: {
 			js: generateGlobalJs(),
 		},

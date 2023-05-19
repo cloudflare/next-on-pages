@@ -2,14 +2,33 @@
 	"name": "@cloudflare/next-on-pages",
 	"version": "1.0.0",
 	"bin": "./bin/index.js",
+	"exports": {
+		"./utils": {
+			"import": "./dist/utils/index.js",
+			"types": "./dist/utils/index.d.ts"
+		}
+	},
+	"typesVersions": {
+		"*": {
+			"utils": [
+				"./dist/utils/index.d.ts"
+			]
+		}
+	},
 	"scripts": {
 		"prettier": "npx prettier --ignore-unknown --ignore-path=.gitignore .",
 		"prettier:check": "npm run prettier -- --check",
 		"prettier:fix": "npm run prettier -- --write",
 		"lint": "eslint src",
 		"types-check": "tsc --noEmit",
-		"build": "npx esbuild --bundle --platform=node ./src/cli/index.ts --external:esbuild --external:chokidar --outfile=./dist/index.js",
-		"build:watch": "npm run build -- --watch",
+		"build-cli": "npx esbuild --bundle --platform=node ./src/cli/index.ts --external:esbuild --external:chokidar --outfile=./dist/index.js",
+		"build-utils": "npx esbuild --bundle --platform=node --format=esm ./src/utils/index.ts --external:esbuild --external:chokidar --outfile=./dist/utils/index.js",
+		"build-utils-types": " tsc ./src/utils/index.ts --emitDeclarationOnly --declaration --outDir ./dist/utils",
+		"build": "npm run build-cli ; npm run build-utils ; npm run build-utils-types",
+		"build-cli:watch": "npm run build-cli -- --watch",
+		"build-utils:watch": "npm run build-utils -- --watch",
+		"build-utils-types:watch": " tsc --watch ./src/utils/index.ts --emitDeclarationOnly --declaration --outDir ./dist/utils",
+		"build:watch": "npm run build-cli:watch & npm run build-utils:watch & npm run build-utils-types:watch",
 		"prepare": "npm run build",
 		"publish": "npm run build && npx changeset publish",
 		"changeset": "npx changeset",
@@ -30,7 +49,8 @@
 		"js-yaml": "^4.1.0",
 		"pcre-to-regexp": "^1.1.0",
 		"zod": "^3.21.4",
-		"zodcli": "^0.0.4"
+		"zodcli": "^0.0.4",
+		"@cloudflare/workers-types": "^4.20230404.0"
 	},
 	"peerDependencies": {
 		"next-on-pages-vercel-cli": "29.3.0-next-on-pages-fix-3",
@@ -38,7 +58,6 @@
 	},
 	"devDependencies": {
 		"@changesets/cli": "^2.26.0",
-		"@cloudflare/workers-types": "^4.20230404.0",
 		"@tsconfig/strictest": "^2.0.0",
 		"@types/cookie": "^0.5.1",
 		"@types/js-yaml": "^4.0.5",

@@ -1,3 +1,4 @@
+import { getCloudflareGlobalContextAls } from '../../../utils/utils/cloudflareGlobalContext';
 import { handleRequest } from './handleRequest';
 import { adjustRequestForVercel } from './utils';
 import type { AsyncLocalStorage } from 'node:async_hooks';
@@ -19,18 +20,39 @@ export default {
 				{ status: 503 }
 			);
 		}
-		return envAsyncLocalStorage.run({ ...env, NODE_ENV: __NODE_ENV__ }, () => {
-			const adjustedRequest = adjustRequestForVercel(request);
 
-			return handleRequest(
-				{
-					request: adjustedRequest,
-					ctx,
-					assetsFetcher: env.ASSETS,
-				},
-				__CONFIG__,
-				__BUILD_OUTPUT__
+		const cloudflareGlobalContextAls = getCloudflareGlobalContextAls();
+
+		if (!cloudflareGlobalContextAls) {
+			return new Response(
+				`Internal Server Error: cannot retrieve the cloudflare global context AsyncLocalStorage`,
+				{ status: 500 }
 			);
-		});
+		}
+
+		return cloudflareGlobalContextAls.run(
+			{
+				cf: request.cf,
+				ctx,
+			},
+			() => {
+				return envAsyncLocalStorage.run(
+					{ ...env, NODE_ENV: __NODE_ENV__ },
+					() => {
+						const adjustedRequest = adjustRequestForVercel(request);
+
+						return handleRequest(
+							{
+								request: adjustedRequest,
+								ctx,
+								assetsFetcher: env.ASSETS,
+							},
+							__CONFIG__,
+							__BUILD_OUTPUT__
+						);
+					}
+				);
+			}
+		);
 	},
 } as ExportedHandler<{ ASSETS: Fetcher }>;

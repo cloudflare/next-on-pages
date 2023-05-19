@@ -37,5 +37,16 @@ describe('generateGlobalJs', async () => {
 				'Reflect.set(envAsyncLocalStorage.getStore()'
 			);
 		});
+
+		test('create an CloudflareGlobalContextAls in the global scope', async () => {
+			const globalJs = generateGlobalJs();
+			expect(globalJs).toContain(
+				"const cloudflareGlobalContextAlsSymbol = Symbol.for('cloudflare-global-context');"
+			);
+
+			expect(globalJs).toContain(
+				'globalThis[cloudflareGlobalContextAlsSymbol] = new AsyncLocalStorage();'
+			);
+		});
 	});
 });

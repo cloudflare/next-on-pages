@@ -11,6 +11,10 @@ export function generateGlobalJs(): string {
 
 			const envAsyncLocalStorage = new AsyncLocalStorage();
 
+			const cloudflareGlobalContextAlsSymbol = Symbol.for('cloudflare-global-context');
+
+			globalThis[cloudflareGlobalContextAlsSymbol] = new AsyncLocalStorage();
+
 			globalThis.process = {
 				env: new Proxy(
 					{},

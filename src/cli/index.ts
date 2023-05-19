@@ -2,7 +2,12 @@ import { watch } from 'chokidar';
 import pLimit from 'p-limit';
 import type { CliOptions } from './utils/cli';
 import { cliWarn } from './utils/cli';
-import { cliLog, parseCliArgs, printCliHelpMessage, printEnvInfo } from './utils/cli';
+import {
+	cliLog,
+	parseCliArgs,
+	printCliHelpMessage,
+	printEnvInfo,
+} from './utils/cli';
 import { buildApplication } from './buildApplication';
 import { nextOnPagesVersion } from './utils';
 
@@ -82,4 +87,3 @@ function setWatchMode(fn: () => void): void {
 		ignoreInitial: true,
 	}).on('all', fn);
 }
-

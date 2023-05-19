@@ -14,5 +14,11 @@
 
 		"exactOptionalPropertyTypes": false
 	},
-	"include": ["src", "src/cli/templates", "tests", "vercel.types.d.ts", "env.d.ts"]
+	"include": [
+		"src",
+		"src/cli/templates",
+		"tests",
+		"vercel.types.d.ts",
+		"env.d.ts"
+	]
 }
