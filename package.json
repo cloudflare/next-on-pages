@@ -8,7 +8,7 @@
 		"prettier:fix": "npm run prettier -- --write",
 		"lint": "eslint src",
 		"types-check": "tsc --noEmit",
-		"build": "npx esbuild --bundle --platform=node ./src/index.ts --external:esbuild --external:chokidar --outfile=./dist/index.js",
+		"build": "npx esbuild --bundle --platform=node ./src/cli/index.ts --external:esbuild --external:chokidar --outfile=./dist/index.js",
 		"build:watch": "npm run build -- --watch",
 		"prepare": "npm run build",
 		"publish": "npm run build && npx changeset publish",
