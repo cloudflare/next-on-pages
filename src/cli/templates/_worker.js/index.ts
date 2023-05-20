@@ -33,7 +33,7 @@ export default {
 		if (!cloudflareGlobalContextAls) {
 			return new Response(
 				`Internal Server Error: cannot retrieve the Cloudflare global context AsyncLocalStorage`,
-				{ status: 500 }
+				{ status: 503 }
 			);
 		}
 
