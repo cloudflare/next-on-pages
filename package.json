@@ -18,14 +18,14 @@
 		"prettier:fix": "npm run prettier -- --write",
 		"lint": "eslint src",
 		"types-check": "tsc --noEmit",
-		"build-cli": "npx esbuild --bundle --platform=node ./src/cli/index.ts --external:esbuild --external:chokidar --outfile=./dist/index.js",
-		"build-utils": "npx esbuild --bundle --platform=node --format=esm ./src/utils/index.ts --external:esbuild --external:chokidar --outfile=./dist/utils/index.js",
-		"build-utils-types": "tsc  -p ./tsconfig.utils.json --emitDeclarationOnly --declaration --outDir ./dist/utils",
-		"build": "npm run build-cli ; npm run build-utils ; npm run build-utils-types",
-		"build-cli:watch": "npm run build-cli -- --watch",
-		"build-utils:watch": "npm run build-utils -- --watch",
-		"build-utils-types:watch": " tsc --watch ./src/utils/index.ts --emitDeclarationOnly --declaration --outDir ./dist/utils",
-		"build:watch": "npm run build-cli:watch & npm run build-utils:watch & npm run build-utils-types:watch",
+		"build.cli": "npx esbuild --bundle --platform=node ./src/cli/index.ts --external:esbuild --external:chokidar --outfile=./dist/index.js",
+		"build.utils": "npx esbuild --bundle --platform=node --format=esm ./src/utils/index.ts --external:esbuild --external:chokidar --outfile=./dist/utils/index.js",
+		"build.utils-types": "tsc  -p ./tsconfig.utils.json --emitDeclarationOnly --declaration --outDir ./dist/utils",
+		"build": "run-p build.*",
+		"build:watch.cli": "npm run build.cli -- --watch",
+		"build:watch.utils": "npm run build.utils -- --watch",
+		"build:watch.utils-types": " npm run build.utils-types -- --watch",
+		"build:watch": "run-p build:watch.*",
 		"prepare": "npm run build",
 		"publish": "npm run build && npx changeset publish",
 		"changeset": "npx changeset",
@@ -37,6 +37,7 @@
 		"src/cli/templates"
 	],
 	"dependencies": {
+		"@cloudflare/workers-types": "^4.20230404.0",
 		"acorn": "^8.8.0",
 		"ast-types": "^0.14.2",
 		"chalk": "^5.2.0",
@@ -46,8 +47,7 @@
 		"js-yaml": "^4.1.0",
 		"pcre-to-regexp": "^1.1.0",
 		"zod": "^3.21.4",
-		"zodcli": "^0.0.4",
-		"@cloudflare/workers-types": "^4.20230404.0"
+		"zodcli": "^0.0.4"
 	},
 	"peerDependencies": {
 		"next-on-pages-vercel-cli": "29.3.0-next-on-pages-fix-3",
@@ -65,6 +65,7 @@
 		"dedent-tabs": "^0.10.3",
 		"eslint": "^8.35.0",
 		"mock-fs": "^5.2.0",
+		"npm-run-all": "^4.1.5",
 		"p-limit": "^4.0.0",
 		"prettier": "^2.8.4",
 		"typescript": "^5.0.4",
