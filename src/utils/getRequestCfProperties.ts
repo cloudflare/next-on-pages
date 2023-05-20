@@ -8,7 +8,9 @@ import { getCloudflareGlobalContext } from './utils/cloudflareGlobalContext';
  *
  * @returns the cf object if it was present in the request, undefined otherwise
  */
-export function getRequestCfProperties(): IncomingRequestCfProperties|undefined {
+export function getRequestCfProperties():
+	| IncomingRequestCfProperties
+	| undefined {
 	const cloudflareGlobalContext = getCloudflareGlobalContext();
 	if (!cloudflareGlobalContext) {
 		throw new Error(
