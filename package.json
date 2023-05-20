@@ -46,14 +46,14 @@
 		"js-yaml": "^4.1.0",
 		"pcre-to-regexp": "^1.1.0",
 		"zod": "^3.21.4",
-		"zodcli": "^0.0.4",
-		"@cloudflare/workers-types": "^4.20230404.0"
+		"zodcli": "^0.0.4"
 	},
 	"peerDependencies": {
 		"next-on-pages-vercel-cli": "29.3.0-next-on-pages-fix-3",
 		"wrangler": "^3.0.0"
 	},
 	"devDependencies": {
+		"@cloudflare/workers-types": "^4.20230404.0",
 		"@changesets/cli": "^2.26.0",
 		"@tsconfig/strictest": "^2.0.0",
 		"@types/cookie": "^0.5.1",
