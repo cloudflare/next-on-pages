@@ -20,7 +20,7 @@
 		"types-check": "tsc --noEmit",
 		"build.cli": "npx esbuild --bundle --platform=node ./src/cli/index.ts --external:esbuild --external:chokidar --outfile=./dist/index.js",
 		"build.utils": "npx esbuild --bundle --platform=node --format=esm ./src/utils/index.ts --external:esbuild --external:chokidar --outfile=./dist/utils/index.js",
-		"build.utils-types": "tsc  -p ./tsconfig.utils.json --emitDeclarationOnly --declaration --outDir ./dist/utils",
+		"build.utils-types": "tsc  -p ./src/utils --emitDeclarationOnly --declaration --outDir ./dist/utils",
 		"build": "run-p build.*",
 		"build:watch.cli": "npm run build.cli -- --watch",
 		"build:watch.utils": "npm run build.utils -- --watch",
