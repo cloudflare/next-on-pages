@@ -20,15 +20,15 @@ export default {
 			);
 		}
 
-		const cloudflareGlobalContextSymbol = Symbol.for(
-			'cloudflare-global-context'
+		const cloudflareGlobalContextAlsSymbol = Symbol.for(
+			'cloudflare-global-context-als'
 		);
 
 		const cloudflareGlobalContextAls = (
 			globalThis as unknown as {
-				[cloudflareGlobalContextSymbol]?: AsyncLocalStorage<CloudflareGlobalContext>;
+				[cloudflareGlobalContextAlsSymbol]?: AsyncLocalStorage<CloudflareGlobalContext>;
 			}
-		)[cloudflareGlobalContextSymbol];
+		)[cloudflareGlobalContextAlsSymbol];
 
 		if (!cloudflareGlobalContextAls) {
 			return new Response(

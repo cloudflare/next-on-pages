@@ -41,7 +41,7 @@ describe('generateGlobalJs', async () => {
 		test('create an CloudflareGlobalContextAls in the global scope', async () => {
 			const globalJs = generateGlobalJs();
 			expect(globalJs).toContain(
-				"const cloudflareGlobalContextAlsSymbol = Symbol.for('cloudflare-global-context');"
+				"const cloudflareGlobalContextAlsSymbol = Symbol.for('cloudflare-global-context-als');"
 			);
 
 			expect(globalJs).toContain(
