@@ -4,5 +4,5 @@
 		"types": ["node", "@cloudflare/workers-types"],
 		"declarationMap": true
 	},
-	"include": ["../../env.d.ts"]
+	"include": [".", "../../env.d.ts"]
 }
