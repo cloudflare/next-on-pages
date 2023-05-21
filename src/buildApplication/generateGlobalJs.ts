@@ -15,15 +15,7 @@ export function generateGlobalJs(): string {
 				env: new Proxy(
 					{},
 					{
-						get: (_, property) => {
-							${/* TODO: remove try-catch ASAP (after runtime fix) @dario */ ''}
-							try {
-								const result = Reflect.get(envAsyncLocalStorage.getStore(), property);
-								return result;
-							} catch (e) {
-								return undefined;
-							}
-						},
+						get: (_, property) => Reflect.get(envAsyncLocalStorage.getStore(), property),
 						set: (_, property, value) => Reflect.set(envAsyncLocalStorage.getStore(), property, value),
 				}),
 			};

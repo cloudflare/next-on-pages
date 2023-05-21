@@ -44,13 +44,6 @@ export async function generateFunctionsMap(
 		'__next-on-pages-dist__'
 	);
 
-	// TODO: remove ASAP (after runtime fix) @dario
-	await mkdir(nextOnPagesDistDir, { recursive: true });
-	await writeFile(
-		join(nextOnPagesDistDir, '..', 'node-buffer.js'),
-		'export * from "node:buffer"'
-	);
-	///////////////////////////////////////////////
 	const processingSetup = {
 		functionsDir,
 		distFunctionsDir: join(nextOnPagesDistDir, 'functions'),
@@ -244,8 +237,6 @@ async function processFuncDirectory(
 
 	let wasmIdentifiers = new Map<string, WasmModuleInfo>();
 
-	const nestingLevel = getFunctionNestingLevel(functionFilePath);
-
 	if (!setup.disableChunksDedup) {
 		const {
 			updatedFunctionContents,
@@ -279,20 +270,6 @@ async function processFuncDirectory(
 		minify: true,
 		plugins: [nodeBufferPlugin],
 	});
-	// TODO: remove ASAP (after runtime fix) @dario
-	const fileContents = await readFile(newFilePath, 'utf8');
-	if (fileContents.includes('node:buffer')) {
-		const updatedContents = fileContents.replace(
-			/import\*as (.*) from"node:buffer";/,
-			(_, symbol) =>
-				`import * as ${symbol} from "${'../'.repeat(
-					nestingLevel
-				)}node-buffer.js";`
-		);
-
-		await writeFile(newFilePath, updatedContents);
-	}
-	///////////////////////////////////////////////
 	const formattedPathName = formatRoutePath(relativePath);
 	const normalizedFilePath = normalizePath(newFilePath);
 
@@ -504,15 +481,6 @@ async function buildWebpackChunkFiles(
 			plugins: [nodeBufferPlugin],
 		});
 		const fileContents = await readFile(chunkFilePath, 'utf8');
-		// TODO: remove ASAP (after runtime fix) @dario
-		if (fileContents.includes('node:buffer')) {
-			const updatedContents = fileContents.replace(
-				/import\*as (.*) from"node:buffer";/,
-				(_, symbol) => `import * as ${symbol} from "../../node-buffer.js";`
-			);
-			await writeFile(chunkFilePath, updatedContents);
-		}
-		///////////////////////////////////////////////
 		const wasmChunkImports = Array.from(wasmIdentifiers.entries())
 			.filter(([identifier]) => fileContents.includes(identifier))
 			.map(
