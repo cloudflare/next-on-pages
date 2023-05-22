@@ -653,7 +653,7 @@ function getFunctionNestingLevel(functionPath: string): number {
 }
 
 // Chunks can contain `require("node:*")`, this is not allowed and breaks at runtime
-// the following fixes this by updating the require to a standard esm import from node:*
+// the following fixes this by updating the require to a standard esm import from "node:*"
 export const nodeBuiltInModulesPlugin: Plugin = {
 	name: 'node:built-in:modules',
 	setup(build) {
@@ -670,7 +670,7 @@ export const nodeBuiltInModulesPlugin: Plugin = {
 		});
 
 		// we convert the imports we tagged with the node-built-in-modules namespace so that instead of `require("node:*")`
-		// they import from `export * from 'node:*;'`
+		// they import from `export * from "node:*";`
 		build.onLoad(
 			{ filter: /.*/, namespace: 'node-built-in-modules' },
 			({ path }) => {
