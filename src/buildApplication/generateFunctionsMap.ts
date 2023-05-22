@@ -268,7 +268,7 @@ async function processFuncDirectory(
 		bundle: true,
 		external: ['node:*', `${relativeChunksPath}/*`, '*.wasm'],
 		minify: true,
-		plugins: [nodeBufferPlugin],
+		plugins: [nodeBuiltInModulesPlugin],
 	});
 	const formattedPathName = formatRoutePath(relativePath);
 	const normalizedFilePath = normalizePath(newFilePath);
@@ -478,7 +478,7 @@ async function buildWebpackChunkFiles(
 			bundle: true,
 			external: ['node:*'],
 			minify: true,
-			plugins: [nodeBufferPlugin],
+			plugins: [nodeBuiltInModulesPlugin],
 		});
 		const fileContents = await readFile(chunkFilePath, 'utf8');
 		const wasmChunkImports = Array.from(wasmIdentifiers.entries())
@@ -652,29 +652,34 @@ function getFunctionNestingLevel(functionPath: string): number {
 	return nestingLevel;
 }
 
-// Chunks can contain `require("node:buffer")`, this is not allowed and breaks at runtime
-// the following fixes this by updating the require to a standard esm import from node:buffer
-export const nodeBufferPlugin: Plugin = {
-	name: 'node:buffer',
+// Chunks can contain `require("node:*")`, this is not allowed and breaks at runtime
+// the following fixes this by updating the require to a standard esm import from "node:*"
+export const nodeBuiltInModulesPlugin: Plugin = {
+	name: 'node:built-in:modules',
 	setup(build) {
-		build.onResolve({ filter: /^node:buffer$/ }, ({ kind, path }) => {
-			// this plugin converts `require("node:buffer")` calls, those are the only ones that
-			// need updating (esm imports to "node:buffer" are totally valid), so here we tag with the
+		build.onResolve({ filter: /^node:/ }, ({ kind, path }) => {
+			// this plugin converts `require("node:*")` calls, those are the only ones that
+			// need updating (esm imports to "node:*" are totally valid), so here we tag with the
 			// node-buffer namespace only imports that are require calls
 			return kind === 'require-call'
 				? {
 						path,
-						namespace: 'node-buffer',
+						namespace: 'node-built-in-modules',
 				  }
 				: undefined;
 		});
 
-		// we convert the imports we tagged with the node-buffer namespace so that instead of `require("node:buffer")`
-		// they import from `export * from 'node:buffer;'`
-		build.onLoad({ filter: /.*/, namespace: 'node-buffer' }, () => ({
-			contents: `export * from 'node:buffer'`,
-			loader: 'js',
-		}));
+		// we convert the imports we tagged with the node-built-in-modules namespace so that instead of `require("node:*")`
+		// they import from `export * from "node:*";`
+		build.onLoad(
+			{ filter: /.*/, namespace: 'node-built-in-modules' },
+			({ path }) => {
+				return {
+					contents: `export * from '${path}'`,
+					loader: 'js',
+				};
+			}
+		);
 	},
 };
 
