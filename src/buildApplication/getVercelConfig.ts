@@ -28,6 +28,57 @@ export async function getVercelConfig(): Promise<VercelConfig> {
 	return config;
 }
 
+/**
+ * Gets the routes of a specific vercel phase
+ *
+ * @param config Vercel config object containing all the routes information
+ * @param phase the phase from which extract the routes
+ * @returns the phases' routes
+ */
+export function getPhaseRoutes(
+	config: VercelConfig,
+	phase: VercelPhase
+): VercelRoute[] {
+	const routes: VercelRoute[] = [];
+
+	if (!config.routes) {
+		return [];
+	}
+
+	let currentRouteIdx = 0;
+
+	if (phase === 'none') {
+		while (
+			config.routes[currentRouteIdx] &&
+			!(config.routes[currentRouteIdx] as VercelHandler).handle
+		) {
+			// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+			routes.push(config.routes[currentRouteIdx]!);
+			currentRouteIdx++;
+		}
+		return routes;
+	}
+
+	while (
+		config.routes[currentRouteIdx] &&
+		(config.routes[currentRouteIdx] as VercelHandler).handle !== phase
+	) {
+		currentRouteIdx++;
+	}
+	currentRouteIdx++;
+
+	while (
+		config.routes[currentRouteIdx] &&
+		!(config.routes[currentRouteIdx] as VercelHandler).handle
+	) {
+		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+		routes.push(config.routes[currentRouteIdx]!);
+		currentRouteIdx++;
+	}
+
+	return routes;
+}
+
 export function processVercelConfig(
 	config: VercelConfig
 ): ProcessedVercelConfig {
