@@ -334,7 +334,7 @@ async function extractAndFixWasmRequires(
 				`${identifier}.wasm`
 			),
 		});
-		const originalWasmModuleRequire = updatedContents.slice(start, end);
+		const originalWasmModuleRequire = originalFileContents.slice(start, end);
 		updatedContents = updatedContents.replace(
 			originalWasmModuleRequire,
 			`import ${identifier} from "${'../'.repeat(
