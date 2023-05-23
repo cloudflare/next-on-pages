@@ -12,12 +12,13 @@ export async function buildMetadataFiles() {
 
 async function buildNextStaticHeaders() {
 	const vercelConfig = await getVercelConfig();
+
 	const hitRoutes = getPhaseRoutes(vercelConfig, 'hit');
 
-	const nextStatic = hitRoutes.find(route =>
+	const nextStaticRoute = hitRoutes.find(route =>
 		route.src?.startsWith('/_next/static/')
 	);
-	const nextStaticHeaders = (nextStatic as VercelSource).headers;
+	const nextStaticHeaders = (nextStaticRoute as VercelSource).headers;
 
 	if (nextStaticHeaders) {
 		await writeFile(
