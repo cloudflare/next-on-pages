@@ -1,10 +1,7 @@
 import { describe, test, expect, beforeEach, afterEach } from 'vitest';
 import mockFs from 'mock-fs';
 import type { ProcessedVercelOutput } from '../../../src/buildApplication/processVercelOutput';
-import {
-	getVercelStaticAssets,
-	setupOutputDir,
-} from '../../../src/buildApplication/processVercelOutput';
+import { processOutputDir } from '../../../src/buildApplication/processVercelOutput';
 import { processVercelOutput } from '../../../src/buildApplication/processVercelOutput';
 import type { PrerenderedFileData } from '../../../src/buildApplication/fixPrerenderedRoutes';
 import { mockConsole } from '../../_helpers';
@@ -417,13 +414,12 @@ describe('processVercelOutput', () => {
 	});
 });
 
-describe('setupOutputDir', () => {
+describe('processOutputDir', () => {
 	beforeEach(() => {
 		mockFs({
 			'.vercel': {
 				output: {
 					static: {
-						_next: { __private: { trace: 'private trace file' } },
 						'index.js': 'console.log("hello world")',
 						nested: { 'index.html': '<html>Hello world</html>' },
 					},
@@ -437,50 +433,50 @@ describe('setupOutputDir', () => {
 
 	const vercelDir = resolve('.vercel', 'output', 'static');
 
-	test('default vercel output dir deletes telemetry file only', async () => {
-		const staticAssets = await getVercelStaticAssets();
+	test('default vercel output dir gets handled normally', async () => {
+		const staticAssets = ['index.js', 'nested/index.html'];
 		const outputDir = vercelDir;
 
-		expect(readdirSync(outputDir)).toEqual(['_next', 'index.js', 'nested']);
+		expect(readdirSync(outputDir)).toEqual(['index.js', 'nested']);
 		expect(existsSync(outputDir)).toEqual(true);
-		await setupOutputDir(outputDir, staticAssets);
+		await processOutputDir(outputDir, staticAssets);
 		expect(readdirSync(outputDir)).toEqual(['index.js', 'nested']);
 	});
 
-	test('custom output dir copies files and deletes telemetry file', async () => {
-		const staticAssets = await getVercelStaticAssets();
+	test('custom output dir copies files successfully', async () => {
+		const staticAssets = ['index.js', 'nested/index.html'];
 		const outputDir = resolve('custom');
 
 		const mockedConsole = mockConsole('log');
 
-		expect(readdirSync(vercelDir)).toEqual(['_next', 'index.js', 'nested']);
+		expect(readdirSync(vercelDir)).toEqual(['index.js', 'nested']);
 		expect(existsSync(outputDir)).toEqual(false);
-		await setupOutputDir(outputDir, staticAssets);
+		await processOutputDir(outputDir, staticAssets);
 		expect(readdirSync(vercelDir)).toEqual(['index.js', 'nested']);
 		expect(readdirSync(outputDir)).toEqual(['index.js', 'nested']);
 
 		mockedConsole.expectCalls([
 			/output directory: custom/,
-			/Copying 3 static assets/,
+			/Copying 2 static assets/,
 		]);
 		mockedConsole.restore();
 	});
 
 	test('custom existing output dir clears directory then copies files', async () => {
-		const staticAssets = await getVercelStaticAssets();
+		const staticAssets = ['index.js', 'nested/index.html'];
 		const outputDir = resolve('existing');
 
 		const mockedConsole = mockConsole('log');
 
-		expect(readdirSync(vercelDir)).toEqual(['_next', 'index.js', 'nested']);
+		expect(readdirSync(vercelDir)).toEqual(['index.js', 'nested']);
 		expect(readdirSync(outputDir)).toEqual(['file.txt']);
-		await setupOutputDir(outputDir, staticAssets);
+		await processOutputDir(outputDir, staticAssets);
 		expect(readdirSync(vercelDir)).toEqual(['index.js', 'nested']);
 		expect(readdirSync(outputDir)).toEqual(['index.js', 'nested']);
 
 		mockedConsole.expectCalls([
 			/output directory: existing/,
-			/Copying 3 static assets/,
+			/Copying 2 static assets/,
 		]);
 		mockedConsole.restore();
 	});

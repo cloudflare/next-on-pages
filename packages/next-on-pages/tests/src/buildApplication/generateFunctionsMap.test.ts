@@ -7,7 +7,7 @@ import { mockConsole, mockPrerenderConfigFile } from '../../_helpers';
 import { writeFile } from 'fs/promises';
 import {
 	getVercelStaticAssets,
-	setupOutputDir,
+	processOutputDir,
 } from '../../../src/buildApplication/processVercelOutput';
 import { readdirSync } from 'fs';
 
@@ -546,6 +546,16 @@ const invalidFuncDir = {
 	'index.js': '',
 };
 
+/**
+ * Generates a functions map from the given functions and static assets.
+ *
+ * @param functions Functions directory items
+ * @param staticAssets Static assets directory items
+ * @param disableChunksDedup Whether to disable chunks deduplication
+ * @param outputDir Output directory to use for worker and static assets
+ * @param otherDirs Other root-level directories to create in the mock file system
+ * @returns Results from generating the functions map
+ */
 async function generateFunctionsMapFrom(
 	functions: DirectoryItems,
 	staticAssets: DirectoryItems = {},
@@ -563,7 +573,7 @@ async function generateFunctionsMapFrom(
 		...otherDirs,
 	});
 
-	await setupOutputDir(outputDir, await getVercelStaticAssets());
+	await processOutputDir(outputDir, await getVercelStaticAssets());
 	const result = await generateFunctionsMap(
 		resolve('.vercel', 'output', 'functions'),
 		outputDir,

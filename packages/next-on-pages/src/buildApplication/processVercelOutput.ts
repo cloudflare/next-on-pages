@@ -14,7 +14,9 @@ import type { PrerenderedFileData } from './fixPrerenderedRoutes';
 import { deleteNextTelemetryFiles } from './buildVercelOutput';
 
 /**
- * Extract a list of static assets from the Vercel build output.
+ * Extracts a list of static assets from the Vercel build output.
+ *
+ * Purges the Next.js telemetry files from the static assets at the same time.
  *
  * @returns List of static asset paths.
  */
@@ -24,6 +26,8 @@ export async function getVercelStaticAssets(): Promise<string[]> {
 		cliLog('No static assets detected.');
 		return [];
 	}
+
+	await deleteNextTelemetryFiles(dir);
 
 	return (
 		(await readPathsRecursively(dir))
@@ -73,7 +77,7 @@ export async function copyVercelStaticAssets(
  * @param outputDir Custom output directory.
  * @param staticAssets List of static asset paths.
  */
-export async function setupOutputDir(
+export async function processOutputDir(
 	outputDir: string,
 	staticAssets: string[]
 ) {
@@ -81,17 +85,13 @@ export async function setupOutputDir(
 
 	// If the output directory is not the default Vercel one, delete it if exists and create a new one.
 	// Then, copy the static assets from the default Vercel output directory to the new one.
-	if (!outputDir.startsWith(vercelDir)) {
+	if (outputDir !== vercelDir) {
 		cliLog(`Using custom output directory: ${relative('.', outputDir)}`);
 
 		await rm(outputDir, { recursive: true, force: true });
 		await mkdir(outputDir, { recursive: true });
 		await copyVercelStaticAssets(outputDir, vercelDir, staticAssets);
-
-		await deleteNextTelemetryFiles(outputDir);
 	}
-
-	await deleteNextTelemetryFiles(vercelDir);
 }
 
 export type ProcessedVercelOutput = {

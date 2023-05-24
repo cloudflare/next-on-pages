@@ -12,7 +12,7 @@ import { validateDir } from '../utils';
 import {
 	getVercelStaticAssets,
 	processVercelOutput,
-	setupOutputDir,
+	processOutputDir,
 } from './processVercelOutput';
 import {
 	getCurrentPackageExecuter,
@@ -87,7 +87,7 @@ async function prepareAndBuildWorker(
 
 	const staticAssets = await getVercelStaticAssets();
 
-	await setupOutputDir(outputDir, staticAssets);
+	await processOutputDir(outputDir, staticAssets);
 
 	let generatedFunctionsMaps: DirectoryProcessingResults | undefined;
 

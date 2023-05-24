@@ -198,7 +198,7 @@ export async function fixPrerenderedRoutes(
 		if (!routeInfo) continue;
 
 		const { config, originalFile, destFile, destRoute } = routeInfo;
-		await copyFileWithDir(originalFile, destFile);
+		await copyFileWithDir(destFile, originalFile);
 
 		prerenderedRoutes.set(`/${destRoute}`, {
 			headers: config.initialHeaders,

@@ -159,7 +159,7 @@ describe('copyFileWithDir', () => {
 		});
 
 		await expect(validateDir('new-folder')).resolves.toEqual(false);
-		await copyFileWithDir('folder/index.js', 'new-folder/index.js');
+		await copyFileWithDir('new-folder/index.js', 'folder/index.js');
 		await expect(validateFile('new-folder/index.js')).resolves.toEqual(true);
 
 		mockFs.restore();
@@ -174,7 +174,7 @@ describe('copyFileWithDir', () => {
 		});
 
 		await expect(validateDir('new-folder')).resolves.toEqual(true);
-		await copyFileWithDir('folder/index.js', 'new-folder/index.js');
+		await copyFileWithDir('new-folder/index.js', 'folder/index.js');
 		await expect(validateFile('new-folder/index.js')).resolves.toEqual(true);
 
 		mockFs.restore();
