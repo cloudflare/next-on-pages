@@ -120,6 +120,7 @@ export function parseCliArgs() {
 		const { msg, showHelp, showReport } = parseCliError(error);
 
 		cliError(msg, { spaced: true, showReport });
+
 		if (showHelp) printCliHelpMessage();
 
 		process.exit(1);
