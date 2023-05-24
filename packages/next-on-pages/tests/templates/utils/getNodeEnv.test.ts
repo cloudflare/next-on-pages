@@ -21,10 +21,10 @@ describe('getNodeEnv', () => {
 
 	test('should set the NODE_ENV to a non-Next.js value correctly but generate a warning', async () => {
 		runWithNodeEnv('non-next-value', () => {
-			const mockedConsole = mockConsole(['warn']);
+			const mockedConsole = mockConsole('warn');
 			const nodeEnv = getNodeEnv();
 			expect(nodeEnv).toBe('non-next-value');
-			mockedConsole.expectCalls('warn', [/WARNING:/]);
+			mockedConsole.expectCalls([/WARNING:/]);
 			mockedConsole.restore();
 		});
 	});

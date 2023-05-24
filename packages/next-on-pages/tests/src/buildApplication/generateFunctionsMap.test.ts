@@ -122,7 +122,7 @@ describe('generateFunctionsMap', async () => {
 	});
 
 	test('should ignore a generated middleware.js file while also proving a warning', async () => {
-		const mockedConsole = mockConsole(['warn']);
+		const mockedConsole = mockConsole('warn');
 
 		const { invalidFunctions } = await generateFunctionsMapFrom({
 			'middlewarejs.func': {
@@ -137,7 +137,7 @@ describe('generateFunctionsMap', async () => {
 
 		expect(Array.from(invalidFunctions.values())).toEqual([]);
 
-		mockedConsole.expectCalls('warn', [
+		mockedConsole.expectCalls([
 			/invalid middleware function for middlewarejs.func/,
 		]);
 		mockedConsole.restore();
@@ -302,7 +302,7 @@ describe('generateFunctionsMap', async () => {
 		});
 
 		test('overwrites existing static file', async () => {
-			const mockedConsole = mockConsole(['warn']);
+			const mockedConsole = mockConsole('warn');
 
 			const { functionsMap, prerenderedRoutes } =
 				await generateFunctionsMapFrom(
@@ -333,14 +333,14 @@ describe('generateFunctionsMap', async () => {
 				overrides: [],
 			});
 
-			mockedConsole.expectCalls('warn', [
+			mockedConsole.expectCalls([
 				/Prerendered file already exists for index\.rsc, overwriting\.\.\./,
 			]);
 			mockedConsole.restore();
 		});
 
 		test('overwrites existing nested static file', async () => {
-			const mockedConsole = mockConsole(['warn']);
+			const mockedConsole = mockConsole('warn');
 
 			const { functionsMap, prerenderedRoutes } =
 				await generateFunctionsMapFrom(
@@ -373,14 +373,14 @@ describe('generateFunctionsMap', async () => {
 				overrides: [],
 			});
 
-			mockedConsole.expectCalls('warn', [
+			mockedConsole.expectCalls([
 				/Prerendered file already exists for nested\/page\.rsc, overwriting\.\.\./,
 			]);
 			mockedConsole.restore();
 		});
 
 		test('fails with missing file', async () => {
-			const mockedConsole = mockConsole(['warn']);
+			const mockedConsole = mockConsole('warn');
 
 			const { functionsMap, invalidFunctions, prerenderedRoutes } =
 				await generateFunctionsMapFrom({
@@ -405,14 +405,14 @@ describe('generateFunctionsMap', async () => {
 			expect(invalidFunctions.size).toEqual(1);
 			expect(invalidFunctions.has('nested/index.rsc.func')).toEqual(true);
 
-			mockedConsole.expectCalls('warn', [
+			mockedConsole.expectCalls([
 				/Could not find prerendered file for nested\/index.rsc.prerender-fallback.rsc/,
 			]);
 			mockedConsole.restore();
 		});
 
 		test('fails with invalid config', async () => {
-			const mockedConsole = mockConsole(['warn']);
+			const mockedConsole = mockConsole('warn');
 
 			const { functionsMap, invalidFunctions, prerenderedRoutes } =
 				await generateFunctionsMapFrom({
@@ -432,14 +432,15 @@ describe('generateFunctionsMap', async () => {
 			expect(invalidFunctions.size).toEqual(1);
 			expect(invalidFunctions.has('nested/index.func')).toEqual(true);
 
-			mockedConsole.expectCalls('warn', [
+			mockedConsole.expectCalls([
 				/Invalid prerender config for nested\/index.prerender-config.json/,
 			]);
 			mockedConsole.restore();
 		});
 
 		test('fails with custom output dir and existing static file', async () => {
-			const mockedConsole = mockConsole(['log', 'warn']);
+			const mockedConsoleLog = mockConsole('log');
+			const mockedConsoleWarn = mockConsole('warn');
 
 			const { functionsMap, invalidFunctions, prerenderedRoutes } =
 				await generateFunctionsMapFrom(
@@ -470,19 +471,20 @@ describe('generateFunctionsMap', async () => {
 				'index.rsc',
 			]);
 
-			mockedConsole.expectCalls('log', [
+			mockedConsoleLog.expectCalls([
 				/output directory: custom/,
 				/Copying 1 static asset/,
 			]);
-			mockedConsole.expectCalls('warn', [
+			mockedConsoleWarn.expectCalls([
 				/Prerendered file already exists for index.rsc/,
 			]);
 
-			mockedConsole.restore();
+			mockedConsoleLog.restore();
+			mockedConsoleWarn.restore();
 		});
 
 		test('succeeds with custom output dir', async () => {
-			const mockedConsole = mockConsole(['log']);
+			const mockedConsole = mockConsole('log');
 
 			const { functionsMap, prerenderedRoutes } =
 				await generateFunctionsMapFrom(
@@ -516,7 +518,7 @@ describe('generateFunctionsMap', async () => {
 				'index.rsc',
 			]);
 
-			mockedConsole.expectCalls('log', [/output directory: custom/]);
+			mockedConsole.expectCalls([/output directory: custom/]);
 			mockedConsole.restore();
 		});
 	});

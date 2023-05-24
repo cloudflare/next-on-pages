@@ -318,23 +318,15 @@ export function createPrerenderedRoute(
 }
 
 type ConsoleMethods = 'log' | 'warn' | 'error';
-export function mockConsole<TMethods extends ConsoleMethods>(
-	methods: TMethods[]
-) {
-	const mockedMethods = Object.fromEntries(
-		methods.map(method => [
-			method,
-			vi.spyOn(console, method).mockImplementation(() => null),
-		])
-	);
+export function mockConsole(method: ConsoleMethods) {
+	const mockedMethod = vi.spyOn(console, method).mockImplementation(() => null);
 
-	const restore = () =>
-		Object.values(mockedMethods).forEach(mock => mock.mockRestore());
+	const restore = () => mockedMethod.mockRestore();
 
-	const expectCalls = (method: TMethods, calls: (RegExp | unknown)[]) => {
-		expect(mockedMethods[method]).toHaveBeenCalledTimes(calls.length);
+	const expectCalls = (calls: (RegExp | unknown)[]) => {
+		expect(mockedMethod).toHaveBeenCalledTimes(calls.length);
 		calls.forEach(msg =>
-			expect(mockedMethods[method]).toHaveBeenCalledWith(
+			expect(mockedMethod).toHaveBeenCalledWith(
 				msg instanceof RegExp ? expect.stringMatching(msg) : msg
 			)
 		);

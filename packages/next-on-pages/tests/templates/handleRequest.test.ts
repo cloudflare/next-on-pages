@@ -52,8 +52,8 @@ function runTestCase(
 
 		const urls = paths.map(p => `http://${host}${p}`);
 		for (const url of urls) {
-			const mockedConsoleError = mockConsole(['error']);
-			const mockedConsoleLog = mockConsole(['log']);
+			const mockedConsoleError = mockConsole('error');
+			const mockedConsoleLog = mockConsole('log');
 
 			const req = new Request(url, { method, headers });
 			const res = await handleRequest(
@@ -73,9 +73,10 @@ function runTestCase(
 				);
 			}
 
-			mockedConsole.expectCalls('error', expected.mockConsole?.error ?? []);
-			mockedConsole.expectCalls('log', expected.mockConsole?.log ?? []);
-			mockedConsole.restore();
+			mockedConsoleError.expectCalls(expected.mockConsole?.error ?? []);
+			mockedConsoleError.restore();
+			mockedConsoleLog.expectCalls(expected.mockConsole?.log ?? []);
+			mockedConsoleLog.restore();
 		}
 	});
 }

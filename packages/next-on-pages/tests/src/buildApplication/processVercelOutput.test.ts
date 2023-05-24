@@ -451,7 +451,7 @@ describe('setupOutputDir', () => {
 		const staticAssets = await getVercelStaticAssets();
 		const outputDir = resolve('custom');
 
-		const mockedConsole = mockConsole(['log']);
+		const mockedConsole = mockConsole('log');
 
 		expect(readdirSync(vercelDir)).toEqual(['_next', 'index.js', 'nested']);
 		expect(existsSync(outputDir)).toEqual(false);
@@ -459,7 +459,7 @@ describe('setupOutputDir', () => {
 		expect(readdirSync(vercelDir)).toEqual(['index.js', 'nested']);
 		expect(readdirSync(outputDir)).toEqual(['index.js', 'nested']);
 
-		mockedConsole.expectCalls('log', [
+		mockedConsole.expectCalls([
 			/output directory: custom/,
 			/Copying 3 static assets/,
 		]);
@@ -470,7 +470,7 @@ describe('setupOutputDir', () => {
 		const staticAssets = await getVercelStaticAssets();
 		const outputDir = resolve('existing');
 
-		const mockedConsole = mockConsole(['log']);
+		const mockedConsole = mockConsole('log');
 
 		expect(readdirSync(vercelDir)).toEqual(['_next', 'index.js', 'nested']);
 		expect(readdirSync(outputDir)).toEqual(['file.txt']);
@@ -478,7 +478,7 @@ describe('setupOutputDir', () => {
 		expect(readdirSync(vercelDir)).toEqual(['index.js', 'nested']);
 		expect(readdirSync(outputDir)).toEqual(['index.js', 'nested']);
 
-		mockedConsole.expectCalls('log', [
+		mockedConsole.expectCalls([
 			/output directory: existing/,
 			/Copying 3 static assets/,
 		]);
