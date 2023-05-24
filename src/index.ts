@@ -48,9 +48,9 @@ function runBuild(options: CliOptions) {
 				`);
 			} else {
 				cliWarn(`
-					🚧  🚧  🚧  🚧  🚧  🚧  🚧  🚧  🚧  🚧  🚧  🚧  🚧  🚧  🚧  🚧  🚧  🚧
+					🚧  🛑  🚧  🛑  🚧  🛑  🚧  🛑  🚧  🛑  🚧  🛑  🚧  🛑  🚧  🛑  🚧  🛑  🚧
 					                            DEPRECATION WARNING
-					🚧  🚧  🚧  🚧  🚧  🚧  🚧  🚧  🚧  🚧  🚧  🚧  🚧  🚧  🚧  🚧  🚧  🚧
+					🚧  🛑  🚧  🛑  🚧  🛑  🚧  🛑  🚧  🛑  🚧  🛑  🚧  🛑  🚧  🛑  🚧  🛑  🚧
 
 					  You're using a beta version of @cloudflare/next-on-pages (v0.10.2), the
 					  package has moved to stable versions, please update to such as soon as
@@ -66,7 +66,7 @@ function runBuild(options: CliOptions) {
 					  file at:
 					  https://github.com/cloudflare/next-on-pages/blob/main/CHANGELOG.md
 
-					🚧  🚧  🚧  🚧  🚧  🚧  🚧  🚧  🚧  🚧  🚧  🚧  🚧  🚧  🚧  🚧  🚧  🚧
+					🚧  🛑  🚧  🛑  🚧  🛑  🚧  🛑  🚧  🛑  🚧  🛑  🚧  🛑  🚧  🛑  🚧  🛑  🚧
 				`, { spaced: true });
 			}
 		}
