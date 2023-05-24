@@ -47,27 +47,34 @@ function runBuild(options: CliOptions) {
 					Running in '--watch' mode. Awaiting changes... (Ctrl+C to exit.)"
 				`);
 			} else {
-				cliWarn(`
-					🚧  🛑  🚧  🛑  🚧  🛑  🚧  🛑  🚧  🛑  🚧  🛑  🚧  🛑  🚧  🛑  🚧  🛑  🚧
-					                            DEPRECATION WARNING
-					🚧  🛑  🚧  🛑  🚧  🛑  🚧  🛑  🚧  🛑  🚧  🛑  🚧  🛑  🚧  🛑  🚧  🛑  🚧
+				cliWarn(
+					`
+					🚧  🛑  🚧  🛑  🚧  🛑  🚧  🛑  🚧  🛑  🚧  🛑  🚧  🛑  🚧  🛑  🚧  🛑  🚧  🛑  🚧  🛑  🚧  🛑  🚧
+					                                        DEPRECATION WARNING
+					🚧  🛑  🚧  🛑  🚧  🛑  🚧  🛑  🚧  🛑  🚧  🛑  🚧  🛑  🚧  🛑  🚧  🛑  🚧  🛑  🚧  🛑  🚧  🛑  🚧
 
-					  You're using a beta version of @cloudflare/next-on-pages (v0.10.2), the
-					  package has moved to stable versions, please update to such as soon as
-					  possible to benefit from the improvements and bug fixes introduced.
+					  You're using an older unsupported version of @cloudflare/next-on-pages (${nextOnPagesVersion}),
+					  the package has moved to stable versions, please update to such as soon as possible to benefit
+					  from the improvements and bug fixes introduced.
 
-					  To do so simply install the package's latest version, via:
+					  To do so simply install the package latest version, via:
 					      \`npm i -D @cloudflare/next-on-pages@latest\`
-					  (and equivalents if you use other package managers)
+					      (and equivalents if you use other package managers)
+					  and make sure that your build command does not specify a version for the
+					  @cloudflare/next-on-pages package (e.g. \`npx @cloudflare/next-on-pages@pre-v1\`),
+					  for most projects the build command should simply be:
+					      \`npx @cloudflare/next-on-pages\`
+					      (and equivalents if you use other package managers)
 
-					  Note that when updating to a stable version your application can stop
-					  working due to introduced breaking changes, you can see what breaking
-					  changes have happened since v0.10.2 by checkout the package's changelog
-					  file at:
-					  https://github.com/cloudflare/next-on-pages/blob/main/CHANGELOG.md
+					  Note that when upgrading to a stable version your application can stop working due to introduced
+					  breaking changes, you can see what breaking changes have happened since version ${nextOnPagesVersion} by
+					  checking out the package's changelog file at:
+					    https://github.com/cloudflare/next-on-pages/blob/main/CHANGELOG.md
 
-					🚧  🛑  🚧  🛑  🚧  🛑  🚧  🛑  🚧  🛑  🚧  🛑  🚧  🛑  🚧  🛑  🚧  🛑  🚧
-				`, { spaced: true });
+					🚧  🛑  🚧  🛑  🚧  🛑  🚧  🛑  🚧  🛑  🚧  🛑  🚧  🛑  🚧  🛑  🚧  🛑  🚧  🛑  🚧  🛑  🚧  🛑  🚧
+				`,
+					{ spaced: true }
+				);
 			}
 		}
 	});
