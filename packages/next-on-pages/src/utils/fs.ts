@@ -118,10 +118,10 @@ export async function readPathsRecursively(dir: string): Promise<string[]> {
  * Copies a file from one location to another, it also creates the destination
  * directory if it doesn't exist
  *
- * @param destFile Destination for the file.
  * @param sourceFile Original file path.
+ * @param destFile Destination for the file.
  */
-export async function copyFileWithDir(destFile: string, sourceFile: string) {
+export async function copyFileWithDir(sourceFile: string, destFile: string) {
 	await mkdir(dirname(destFile), { recursive: true });
 	await copyFile(sourceFile, destFile);
 }

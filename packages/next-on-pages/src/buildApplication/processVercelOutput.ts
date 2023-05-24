@@ -40,13 +40,13 @@ export async function getVercelStaticAssets(): Promise<string[]> {
 /**
  * Copies the static assets from the default Vercel output directory to the custom output directory.
  *
- * @param outputDir Output directory to copy static assets to.
  * @param vercelDir Default Vercel output directory.
+ * @param outputDir Output directory to copy static assets to.
  * @param staticAssets List of static asset paths.
  */
 export async function copyVercelStaticAssets(
-	outputDir: string,
 	vercelDir: string,
+	outputDir: string,
 	staticAssets: string[]
 ): Promise<void> {
 	if (staticAssets.length === 0) return;
@@ -90,7 +90,7 @@ export async function processOutputDir(
 
 		await rm(outputDir, { recursive: true, force: true });
 		await mkdir(outputDir, { recursive: true });
-		await copyVercelStaticAssets(outputDir, vercelDir, staticAssets);
+		await copyVercelStaticAssets(vercelDir, outputDir, staticAssets);
 	}
 }
 
