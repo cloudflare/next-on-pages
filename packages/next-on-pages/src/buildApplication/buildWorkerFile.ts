@@ -37,7 +37,8 @@ export function constructBuildOutputRecord(item: BuildOutputItem) {
 
 export async function buildWorkerFile(
 	{ vercelConfig, vercelOutput }: ProcessedVercelOutput,
-	{ minify, outdir }: { minify: boolean; outdir: string }
+	outputDir: string,
+	minify: boolean
 ) {
 	const functionsFile = join(
 		tmpdir(),
@@ -51,7 +52,7 @@ export async function buildWorkerFile(
 			.join(',')}};`
 	);
 
-	const outputFile = join(outdir, '_worker.js', 'index.js');
+	const outputFile = join(outputDir, '_worker.js', 'index.js');
 
 	await build({
 		entryPoints: [join(__dirname, '..', 'templates', '_worker.js')],

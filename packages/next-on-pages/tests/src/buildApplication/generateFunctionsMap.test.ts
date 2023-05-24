@@ -1,10 +1,15 @@
-import { describe, test, expect, vi } from 'vitest';
+import { describe, test, expect, vi, afterEach } from 'vitest';
 import { generateFunctionsMap } from '../../../src/buildApplication/generateFunctionsMap';
 import mockFs from 'mock-fs';
 import type { DirectoryItems } from 'mock-fs/lib/filesystem';
-import { join } from 'path';
-import { mockPrerenderConfigFile } from '../../_helpers';
+import { resolve } from 'path';
+import { mockConsole, mockPrerenderConfigFile } from '../../_helpers';
 import { writeFile } from 'fs/promises';
+import {
+	getVercelStaticAssets,
+	setupOutputDir,
+} from '../../../src/buildApplication/processVercelOutput';
+import { readdirSync } from 'fs';
 
 function getEsBuildMock() {
 	const esbuildMock = {
@@ -19,6 +24,7 @@ function getEsBuildMock() {
 vi.mock('esbuild', async () => getEsBuildMock());
 
 describe('generateFunctionsMap', async () => {
+	afterEach(() => mockFs.restore());
 	describe('with chunks deduplication disabled should correctly handle', () => {
 		test('valid index routes', async () => {
 			const { functionsMap } = await generateFunctionsMapFrom({
@@ -116,7 +122,7 @@ describe('generateFunctionsMap', async () => {
 	});
 
 	test('should ignore a generated middleware.js file while also proving a warning', async () => {
-		const mockedWarn = vi.spyOn(console, 'warn').mockImplementation(() => null);
+		const mockedConsole = mockConsole(['warn']);
 
 		const { invalidFunctions } = await generateFunctionsMapFrom({
 			'middlewarejs.func': {
@@ -130,12 +136,11 @@ describe('generateFunctionsMap', async () => {
 		});
 
 		expect(Array.from(invalidFunctions.values())).toEqual([]);
-		expect(mockedWarn).toHaveBeenCalledTimes(1);
-		expect(mockedWarn).toHaveBeenLastCalledWith(
-			expect.stringMatching(/invalid middleware function for middlewarejs.func/)
-		);
 
-		mockedWarn.mockRestore();
+		mockedConsole.expectCalls('warn', [
+			/invalid middleware function for middlewarejs.func/,
+		]);
+		mockedConsole.restore();
 	});
 
 	describe('prerendered routes should be handled correctly', () => {
@@ -297,9 +302,7 @@ describe('generateFunctionsMap', async () => {
 		});
 
 		test('overwrites existing static file', async () => {
-			const mockedWarn = vi
-				.spyOn(console, 'warn')
-				.mockImplementation(() => null);
+			const mockedConsole = mockConsole(['warn']);
 
 			const { functionsMap, prerenderedRoutes } =
 				await generateFunctionsMapFrom(
@@ -330,19 +333,14 @@ describe('generateFunctionsMap', async () => {
 				overrides: [],
 			});
 
-			expect(mockedWarn).toHaveBeenCalledTimes(1);
-			expect(mockedWarn).toHaveBeenCalledWith(
-				expect.stringMatching(
-					/Prerendered file already exists for index\.rsc, overwriting\.\.\./
-				)
-			);
-			mockedWarn.mockRestore();
+			mockedConsole.expectCalls('warn', [
+				/Prerendered file already exists for index\.rsc, overwriting\.\.\./,
+			]);
+			mockedConsole.restore();
 		});
 
 		test('overwrites existing nested static file', async () => {
-			const mockedWarn = vi
-				.spyOn(console, 'warn')
-				.mockImplementation(() => null);
+			const mockedConsole = mockConsole(['warn']);
 
 			const { functionsMap, prerenderedRoutes } =
 				await generateFunctionsMapFrom(
@@ -375,19 +373,14 @@ describe('generateFunctionsMap', async () => {
 				overrides: [],
 			});
 
-			expect(mockedWarn).toHaveBeenCalledTimes(1);
-			expect(mockedWarn).toHaveBeenCalledWith(
-				expect.stringMatching(
-					/Prerendered file already exists for nested\/page\.rsc, overwriting\.\.\./
-				)
-			);
-			mockedWarn.mockRestore();
+			mockedConsole.expectCalls('warn', [
+				/Prerendered file already exists for nested\/page\.rsc, overwriting\.\.\./,
+			]);
+			mockedConsole.restore();
 		});
 
 		test('fails with missing file', async () => {
-			const mockedWarn = vi
-				.spyOn(console, 'warn')
-				.mockImplementation(() => null);
+			const mockedConsole = mockConsole(['warn']);
 
 			const { functionsMap, invalidFunctions, prerenderedRoutes } =
 				await generateFunctionsMapFrom({
@@ -412,19 +405,14 @@ describe('generateFunctionsMap', async () => {
 			expect(invalidFunctions.size).toEqual(1);
 			expect(invalidFunctions.has('nested/index.rsc.func')).toEqual(true);
 
-			expect(mockedWarn).toHaveBeenCalledTimes(1);
-			expect(mockedWarn).toHaveBeenCalledWith(
-				expect.stringMatching(
-					/Could not find prerendered file for nested\/index.rsc.prerender-fallback.rsc/
-				)
-			);
-			mockedWarn.mockRestore();
+			mockedConsole.expectCalls('warn', [
+				/Could not find prerendered file for nested\/index.rsc.prerender-fallback.rsc/,
+			]);
+			mockedConsole.restore();
 		});
 
 		test('fails with invalid config', async () => {
-			const mockedWarn = vi
-				.spyOn(console, 'warn')
-				.mockImplementation(() => null);
+			const mockedConsole = mockConsole(['warn']);
 
 			const { functionsMap, invalidFunctions, prerenderedRoutes } =
 				await generateFunctionsMapFrom({
@@ -444,13 +432,92 @@ describe('generateFunctionsMap', async () => {
 			expect(invalidFunctions.size).toEqual(1);
 			expect(invalidFunctions.has('nested/index.func')).toEqual(true);
 
-			expect(mockedWarn).toHaveBeenCalledTimes(1);
-			expect(mockedWarn).toHaveBeenCalledWith(
-				expect.stringMatching(
-					/Invalid prerender config for nested\/index.prerender-config.json/
-				)
-			);
-			mockedWarn.mockRestore();
+			mockedConsole.expectCalls('warn', [
+				/Invalid prerender config for nested\/index.prerender-config.json/,
+			]);
+			mockedConsole.restore();
+		});
+
+		test('fails with custom output dir and existing static file', async () => {
+			const mockedConsole = mockConsole(['log', 'warn']);
+
+			const { functionsMap, invalidFunctions, prerenderedRoutes } =
+				await generateFunctionsMapFrom(
+					{
+						'index.func': invalidFuncDir,
+						'index.rsc.func': invalidFuncDir,
+						'index.prerender-config.json': mockPrerenderConfigFile('index'),
+						'index.prerender-fallback.html': '',
+						'index.rsc.prerender-config.json':
+							mockPrerenderConfigFile('index.rsc'),
+						'index.rsc.prerender-fallback.rsc': '',
+					},
+					{ 'index.rsc': '' },
+					true,
+					resolve('custom')
+				);
+
+			expect(functionsMap.size).toEqual(0);
+
+			expect(prerenderedRoutes.size).toEqual(1);
+			expect(prerenderedRoutes.has('/index.html')).toEqual(true);
+
+			expect(invalidFunctions.size).toEqual(1);
+			expect(invalidFunctions.has('index.rsc.func')).toEqual(true);
+
+			expect(readdirSync(resolve('custom'))).toEqual([
+				'index.html',
+				'index.rsc',
+			]);
+
+			mockedConsole.expectCalls('log', [
+				/output directory: custom/,
+				/Copying 1 static asset/,
+			]);
+			mockedConsole.expectCalls('warn', [
+				/Prerendered file already exists for index.rsc/,
+			]);
+
+			mockedConsole.restore();
+		});
+
+		test('succeeds with custom output dir', async () => {
+			const mockedConsole = mockConsole(['log']);
+
+			const { functionsMap, prerenderedRoutes } =
+				await generateFunctionsMapFrom(
+					{
+						'page.func': validFuncDir,
+						'page.rsc.func': validFuncDir,
+						'index.func': invalidFuncDir,
+						'index.rsc.func': invalidFuncDir,
+						'index.prerender-config.json': mockPrerenderConfigFile('index'),
+						'index.prerender-fallback.html': '',
+						'index.rsc.prerender-config.json':
+							mockPrerenderConfigFile('index.rsc'),
+						'index.rsc.prerender-fallback.rsc': '',
+					},
+					{},
+					true,
+					resolve('custom')
+				);
+
+			expect(functionsMap.size).toEqual(2);
+			expect(functionsMap.get('/page')).toMatch(/\/page\.func\.js$/);
+			expect(functionsMap.get('/page.rsc')).toMatch(/\/page\.rsc\.func\.js$/);
+
+			expect(prerenderedRoutes.size).toEqual(2);
+			expect(prerenderedRoutes.has('/index.html')).toEqual(true);
+			expect(prerenderedRoutes.has('/index.rsc')).toEqual(true);
+
+			expect(readdirSync(resolve('custom'))).toEqual([
+				'_worker.js',
+				'index.html',
+				'index.rsc',
+			]);
+
+			mockedConsole.expectCalls('log', [/output directory: custom/]);
+			mockedConsole.restore();
 		});
 	});
 
@@ -480,7 +547,9 @@ const invalidFuncDir = {
 async function generateFunctionsMapFrom(
 	functions: DirectoryItems,
 	staticAssets: DirectoryItems = {},
-	disableChunksDedup = true
+	disableChunksDedup = true,
+	outputDir = resolve('.vercel', 'output', 'static'),
+	otherDirs: DirectoryItems = {}
 ) {
 	mockFs({
 		'.vercel': {
@@ -489,11 +558,14 @@ async function generateFunctionsMapFrom(
 				static: staticAssets,
 			},
 		},
+		...otherDirs,
 	});
+
+	await setupOutputDir(outputDir, await getVercelStaticAssets());
 	const result = await generateFunctionsMap(
-		join('.vercel', 'output', 'functions'),
+		resolve('.vercel', 'output', 'functions'),
+		outputDir,
 		disableChunksDedup
 	);
-	mockFs.restore();
 	return result;
 }

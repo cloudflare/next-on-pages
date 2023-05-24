@@ -105,7 +105,7 @@ async function getRouteDest(
 			)
 		)
 	);
-	const destFile = join(outputDir, 'static', destRoute);
+	const destFile = join(outputDir, destRoute);
 
 	// Check if a static file already exists at the new location.
 	if (await validateFile(destFile)) {
@@ -120,15 +120,21 @@ async function getRouteDest(
  *
  * @param baseDir Base directory for the prerendered routes.
  * @param file Prerendered config file name.
- * @param outputDir Vercel build output directory.
+ * @param vercelDir Vercel build output directory.
+ * @param outputDir Worker output directory.
  * @returns Information for a valid prerendered route, or null if the route is invalid.
  */
-async function validateRoute(baseDir: string, file: string, outputDir: string) {
-	const dirName = relative(join(outputDir, 'functions'), baseDir);
+async function validateRoute(
+	baseDir: string,
+	file: string,
+	vercelDir: string,
+	outputDir: string
+) {
+	const dirName = relative(join(vercelDir, 'functions'), baseDir);
 	const config = await getRouteConfig(baseDir, file, dirName);
 	if (!config) return null;
 
-	const originalFile = await getRoutePath(config, dirName, outputDir);
+	const originalFile = await getRoutePath(config, dirName, vercelDir);
 	if (!originalFile) return null;
 
 	const dest = await getRouteDest(config, dirName, outputDir);
@@ -171,14 +177,16 @@ function getRouteOverrides(newRoute: string): string[] {
  * @param prerenderedRoutes Map of prerendered files.
  * @param files File paths to check for prerendered routes.
  * @param baseDir Base directory for the routes.
+ * @param outputDir Worker output directory.
  * @returns List of non-prerendered routes.
  */
 export async function fixPrerenderedRoutes(
 	prerenderedRoutes: Map<string, PrerenderedFileData>,
 	files: string[],
-	baseDir: string
+	baseDir: string,
+	outputDir: string
 ): Promise<string[]> {
-	const outputDir = resolve('.vercel', 'output');
+	const vercelDir = resolve('.vercel', 'output');
 	const configs = files.filter(file =>
 		/.+\.prerender-config\.json$/gi.test(file)
 	);
@@ -186,7 +194,7 @@ export async function fixPrerenderedRoutes(
 	const validRoutePaths = new Set<string>();
 
 	for (const file of configs) {
-		const routeInfo = await validateRoute(baseDir, file, outputDir);
+		const routeInfo = await validateRoute(baseDir, file, vercelDir, outputDir);
 		if (!routeInfo) continue;
 
 		const { config, originalFile, destFile, destRoute } = routeInfo;

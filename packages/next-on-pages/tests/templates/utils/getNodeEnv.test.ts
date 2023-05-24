@@ -1,5 +1,6 @@
-import { describe, test, expect, vi } from 'vitest';
+import { describe, test, expect } from 'vitest';
 import { getNodeEnv } from '../../../src/utils/getNodeEnv';
+import { mockConsole } from '../../_helpers';
 
 describe('getNodeEnv', () => {
 	test('should default NODE_ENV to "production"', async () => {
@@ -20,10 +21,11 @@ describe('getNodeEnv', () => {
 
 	test('should set the NODE_ENV to a non-Next.js value correctly but generate a warning', async () => {
 		runWithNodeEnv('non-next-value', () => {
-			const spy = vi.spyOn(console, 'warn').mockImplementation(() => null);
+			const mockedConsole = mockConsole(['warn']);
 			const nodeEnv = getNodeEnv();
 			expect(nodeEnv).toBe('non-next-value');
-			expect(spy).toHaveBeenCalledWith(expect.stringContaining('WARNING:'));
+			mockedConsole.expectCalls('warn', [/WARNING:/]);
+			mockedConsole.restore();
 		});
 	});
 });

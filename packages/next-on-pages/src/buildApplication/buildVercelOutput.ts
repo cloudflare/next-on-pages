@@ -135,8 +135,10 @@ async function isVercelPackageInstalled(
  *
  * We do not need these files, nor do we want to run the risk of them being available. Therefore, we should delete them instead of uploading them to Cloudflare Pages.
  */
-export async function deleteNextTelemetryFiles(): Promise<void> {
-	const nextDir = resolve('.vercel', 'output', 'static', '_next');
+export async function deleteNextTelemetryFiles(
+	outputDir: string
+): Promise<void> {
+	const nextDir = resolve(outputDir, '_next');
 	const privateDir = join(nextDir, '__private');
 
 	if (await validateDir(privateDir)) {

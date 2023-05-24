@@ -4,8 +4,8 @@ import { z } from 'zod';
 import { argumentParser } from 'zodcli';
 import type { ChalkInstance } from 'chalk';
 import chalk from 'chalk';
-import { resolve } from 'path';
-import { nextOnPagesVersion } from './utils';
+import { join, resolve } from 'path';
+import { nextOnPagesVersion, normalizePath } from './utils';
 import {
 	getBinaryVersion,
 	getPackageVersion,
@@ -35,15 +35,65 @@ const cliOptions = z
 		outdir: z
 			.string()
 			.optional()
-			.default('.vercel/output/static')
-			.transform(path => resolve(path))
-			.refine(path => path.startsWith(resolve()), {
-				message: 'The output directory should be inside the current directory',
-			}),
+			.default(join('.vercel', 'output', 'static'))
+			.transform(path => normalizePath(resolve(path)))
+			.refine(
+				path =>
+					path.startsWith(normalizePath(resolve())) &&
+					path !== normalizePath(resolve()),
+				{
+					message:
+						'The output directory should be inside the current working directory',
+				}
+			),
 	})
 	.strict();
 
 export type CliOptions = z.infer<typeof cliOptions>;
+
+/**
+ * Process an error that occurred when parsing the CLI args.
+ *
+ * @param error Error to process.
+ * @returns An object with the error message and whether to show the help or report messages.
+ */
+function parseCliError(error: z.ZodError | Error | unknown): {
+	msg: string;
+	showHelp?: boolean;
+	showReport?: boolean;
+} {
+	if (error instanceof z.ZodError && error.issues.length > 0) {
+		const issue = error.issues[0] as z.ZodIssue;
+
+		if (issue.code === 'unrecognized_keys') {
+			const unknownKeys = issue.keys;
+			const label = `Unknown option${unknownKeys.length === 1 ? '' : 's'}`;
+
+			return {
+				msg: `${label}: ${unknownKeys.join(', ')}`,
+				showHelp: true,
+			};
+		}
+
+		if (
+			(issue?.code === 'custom' || issue?.code === 'invalid_type') &&
+			issue.path.length
+		) {
+			const args = issue.path.join(', ');
+			const plural = issue.path.length === 1 ? '' : 's';
+
+			return {
+				msg: `Error parsing the ${args} argument${plural}.\n${issue.message}`,
+			};
+		}
+	}
+
+	const fallbackMessage = 'Error: Could not parse the provided Cli arguments.';
+	return {
+		msg: error instanceof Error ? error.message : fallbackMessage,
+		showReport: true,
+	};
+}
 
 /**
  * parses the options provided to the CLI
@@ -67,29 +117,11 @@ export function parseCliArgs() {
 			},
 		}).parse(process.argv.slice(2));
 	} catch (error) {
-		const issue = (error as z.ZodError)?.issues?.[0];
-		if (issue?.code === 'unrecognized_keys') {
-			const unknownKeys = issue.keys;
-			const label = `Unknown option${unknownKeys.length === 1 ? '' : 's'}`;
-			cliError(`${label}: ${unknownKeys.join(', ')}`, { spaced: true });
-			printCliHelpMessage();
-		} else if (
-			(issue?.code === 'custom' || issue?.code === 'invalid_type') &&
-			issue.path.length
-		) {
-			const plural = issue.path.length === 1 ? '' : 's';
-			cliError(
-				`Error parsing the ${issue.path.join(', ')} argument${plural}.
-				${issue.message}`,
-				{ spaced: true }
-			);
-		} else {
-			cliError(
-				(error as z.ZodError | Error)?.message ??
-					'Error: Could not parse the provided Cli arguments.',
-				{ spaced: true, showReport: true }
-			);
-		}
+		const { msg, showHelp, showReport } = parseCliError(error);
+
+		cliError(msg, { spaced: true, showReport });
+		if (showHelp) printCliHelpMessage();
+
 		process.exit(1);
 	}
 }

@@ -11,6 +11,7 @@ import {
 	trailingSlashTestSet,
 } from './requestTestData';
 import type { TestCase, TestSet } from '../_helpers';
+import { mockConsole } from '../_helpers';
 import { createRouterTestData } from '../_helpers';
 import type { RequestContext } from '../../src/utils/requestContext';
 import { handleRequest } from '../../templates/_worker.js/handleRequest';
@@ -51,12 +52,8 @@ function runTestCase(
 
 		const urls = paths.map(p => `http://${host}${p}`);
 		for (const url of urls) {
-			const mockedConsoleError = vi
-				.spyOn(console, 'error')
-				.mockImplementation(() => null);
-			const mockedConsoleLog = vi
-				.spyOn(console, 'log')
-				.mockImplementation(() => null);
+			const mockedConsoleError = mockConsole(['error']);
+			const mockedConsoleLog = mockConsole(['log']);
 
 			const req = new Request(url, { method, headers });
 			const res = await handleRequest(
@@ -76,19 +73,9 @@ function runTestCase(
 				);
 			}
 
-			const consoleErrorExp = expected.mockConsole?.error ?? [];
-			expect(mockedConsoleError).toHaveBeenCalledTimes(consoleErrorExp.length);
-			consoleErrorExp.forEach((val, i) => {
-				expect(mockedConsoleError.mock.calls[i]?.[0]).toEqual(val);
-			});
-			mockedConsoleError.mockRestore();
-
-			const consoleLogExp = expected.mockConsole?.log ?? [];
-			expect(mockedConsoleLog).toHaveBeenCalledTimes(consoleLogExp.length);
-			consoleLogExp.forEach((val, i) => {
-				expect(mockedConsoleLog.mock.calls[i]?.[0]).toEqual(val);
-			});
-			mockedConsoleLog.mockRestore();
+			mockedConsole.expectCalls('error', expected.mockConsole?.error ?? []);
+			mockedConsole.expectCalls('log', expected.mockConsole?.log ?? []);
+			mockedConsole.restore();
 		}
 	});
 }

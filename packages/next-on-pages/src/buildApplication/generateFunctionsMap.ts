@@ -34,13 +34,11 @@ import { build } from 'esbuild';
  */
 export async function generateFunctionsMap(
 	functionsDir: string,
-	{
-		disableChunksDedup,
-		outdir,
-	}: Pick<CliOptions, 'disableChunksDedup' | 'outdir'>
+	outputDir: string,
+	disableChunksDedup: CliOptions['disableChunksDedup']
 ): Promise<DirectoryProcessingResults> {
 	const nextOnPagesDistDir = join(
-		outdir,
+		outputDir,
 		'_worker.js',
 		'__next-on-pages-dist__'
 	);
@@ -50,6 +48,7 @@ export async function generateFunctionsMap(
 		distFunctionsDir: join(nextOnPagesDistDir, 'functions'),
 		distWebpackDir: join(nextOnPagesDistDir, 'chunks'),
 		disableChunksDedup,
+		outputDir,
 	};
 
 	const processingResults = await processDirectoryRecursively(
@@ -141,7 +140,8 @@ async function processDirectoryRecursively(
 	const functionFiles = await fixPrerenderedRoutes(
 		prerenderedRoutes,
 		files,
-		dir
+		dir,
+		setup.outputDir
 	);
 
 	await Promise.all(
@@ -494,6 +494,7 @@ async function buildWebpackChunkFiles(
 }
 
 type ProcessingSetup = {
+	outputDir: string;
 	functionsDir: string;
 	distFunctionsDir: string;
 	distWebpackDir: string;

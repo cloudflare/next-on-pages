@@ -8,7 +8,7 @@ import {
 	processVercelOutput,
 } from '../../src/buildApplication/processVercelOutput';
 import type { VercelPrerenderConfig } from '../../src/buildApplication/fixPrerenderedRoutes';
-import { vi } from 'vitest';
+import { expect, vi } from 'vitest';
 
 export type TestSet = {
 	name: string;
@@ -190,12 +190,14 @@ type RouterTestData = {
 
 export async function createRouterTestData(
 	rawVercelConfig: VercelConfig,
-	files: DirectoryItems
+	files: DirectoryItems,
+	outputDir = join('.vercel', 'output', 'static')
 ): Promise<RouterTestData> {
 	mockFs({ '.vercel': { output: files } });
 
 	const { functionsMap, prerenderedRoutes } = await generateFunctionsMap(
 		join('.vercel', 'output', 'functions'),
+		outputDir,
 		true
 	);
 
@@ -313,4 +315,30 @@ export function createPrerenderedRoute(
 		),
 		[`${file}.rsc.prerender-fallback.rsc`]: `${fileWithBase}.rsc.prerender-fallback.rsc`,
 	};
+}
+
+type ConsoleMethods = 'log' | 'warn' | 'error';
+export function mockConsole<TMethods extends ConsoleMethods>(
+	methods: TMethods[]
+) {
+	const mockedMethods = Object.fromEntries(
+		methods.map(method => [
+			method,
+			vi.spyOn(console, method).mockImplementation(() => null),
+		])
+	);
+
+	const restore = () =>
+		Object.values(mockedMethods).forEach(mock => mock.mockRestore());
+
+	const expectCalls = (method: TMethods, calls: (RegExp | unknown)[]) => {
+		expect(mockedMethods[method]).toHaveBeenCalledTimes(calls.length);
+		calls.forEach(msg =>
+			expect(mockedMethods[method]).toHaveBeenCalledWith(
+				msg instanceof RegExp ? expect.stringMatching(msg) : msg
+			)
+		);
+	};
+
+	return { restore, expectCalls };
 }
