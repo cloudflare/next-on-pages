@@ -88,7 +88,7 @@ function parseCliError(error: z.ZodError | Error | unknown): {
 		}
 	}
 
-	const fallbackMessage = 'Error: Could not parse the provided Cli arguments.';
+	const fallbackMessage = 'Error: Could not parse the provided CLI arguments.';
 	return {
 		msg: error instanceof Error ? error.message : fallbackMessage,
 		showReport: true,
@@ -114,6 +114,7 @@ export function parseCliArgs() {
 				w: 'watch',
 				c: 'noColor',
 				i: 'info',
+				o: 'outdir',
 			},
 		}).parse(process.argv.slice(2));
 	} catch (error) {
@@ -162,7 +163,7 @@ export function printCliHelpMessage(): void {
 
 		--info, -i:                         Prints relevant details about the current system which can be used to report bugs
 
-		--outdir:                           The directory to output the worker and static assets to.
+		--outdir, -o:                       The directory to output the worker and static assets to.
 
 		GitHub: https://github.com/cloudflare/next-on-pages
 		Docs: https://developers.cloudflare.com/pages/framework-guides/deploy-a-nextjs-site/
