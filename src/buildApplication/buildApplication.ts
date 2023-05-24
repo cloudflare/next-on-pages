@@ -28,9 +28,14 @@ export async function buildApplication({
 	disableChunksDedup,
 	disableWorkerMinification,
 	watch,
+	ignoreRoutes,
 }: Pick<
 	CliOptions,
-	'skipBuild' | 'disableChunksDedup' | 'disableWorkerMinification' | 'watch'
+	| 'skipBuild'
+	| 'disableChunksDedup'
+	| 'disableWorkerMinification'
+	| 'ignoreRoutes'
+	| 'watch'
 >) {
 	let buildSuccess = true;
 	if (!skipBuild) {
@@ -58,12 +63,16 @@ export async function buildApplication({
 	await prepareAndBuildWorker({
 		disableChunksDedup,
 		disableWorkerMinification,
+		ignoreRoutes,
 	});
 	await buildMetadataFiles();
 }
 
 async function prepareAndBuildWorker(
-	options: Pick<CliOptions, 'disableChunksDedup' | 'disableWorkerMinification'>
+	options: Pick<
+		CliOptions,
+		'disableChunksDedup' | 'disableWorkerMinification' | 'ignoreRoutes'
+	>
 ): Promise<void> {
 	let vercelConfig: VercelConfig;
 	try {
@@ -85,7 +94,8 @@ async function prepareAndBuildWorker(
 	} else {
 		generatedFunctionsMaps = await generateFunctionsMap(
 			functionsDir,
-			options.disableChunksDedup
+			options.disableChunksDedup,
+			options.ignoreRoutes
 		);
 
 		if (generatedFunctionsMaps.invalidFunctions.size > 0) {

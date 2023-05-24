@@ -34,7 +34,8 @@ import { build } from 'esbuild';
  */
 export async function generateFunctionsMap(
 	functionsDir: string,
-	disableChunksDedup: CliOptions['disableChunksDedup']
+	disableChunksDedup: CliOptions['disableChunksDedup'],
+	ignoreRoutes: CliOptions['ignoreRoutes']
 ): Promise<DirectoryProcessingResults> {
 	const nextOnPagesDistDir = join(
 		'.vercel',
@@ -49,6 +50,7 @@ export async function generateFunctionsMap(
 		distFunctionsDir: join(nextOnPagesDistDir, 'functions'),
 		distWebpackDir: join(nextOnPagesDistDir, 'chunks'),
 		disableChunksDedup,
+		routesToIgnore: new Set(ignoreRoutes),
 	};
 
 	const processingResults = await processDirectoryRecursively(
@@ -194,6 +196,10 @@ async function processFuncDirectory(
 ): Promise<Partial<DirectoryProcessingResults>> {
 	const relativePath = relative(setup.functionsDir, filepath);
 
+	if (shouldFuncDirectoryBeIgnored(setup, filepath)) {
+		return {};
+	}
+
 	const functionConfig = await readJsonFile<FunctionConfig>(
 		join(filepath, '.vc-config.json')
 	);
@@ -293,6 +299,19 @@ type RawWasmModuleInfo = {
 	start: number;
 	end: number;
 };
+
+function shouldFuncDirectoryBeIgnored(
+	setup: ProcessingSetup,
+	filepath: string
+): boolean {
+	const regexp = new RegExp(
+		`${setup.functionsDir.replaceAll('.', '\\.')}/(.*)\\.func`
+	);
+
+	const routeName = filepath.match(regexp)?.[1];
+
+	return !!routeName && setup.routesToIgnore.has(routeName);
+}
 
 /**
  * Given the path of a function file and its content update the content so that it doesn't include dynamic
@@ -497,6 +516,7 @@ type ProcessingSetup = {
 	distFunctionsDir: string;
 	distWebpackDir: string;
 	disableChunksDedup: boolean;
+	routesToIgnore: Set<string>;
 };
 
 export type DirectoryProcessingResults = {

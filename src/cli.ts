@@ -20,6 +20,9 @@ const flag = z
 	])
 	.default('false');
 
+// A helper type to handle command line flags that accept an array of strings
+const stringOptionsFlag = z.array(z.string()).optional();
+
 const cliOptions = z
 	.object({
 		help: flag,
@@ -31,6 +34,7 @@ const cliOptions = z
 		version: flag,
 		noColor: flag,
 		info: flag,
+		ignoreRoutes: stringOptionsFlag,
 	})
 	.strict();
 
@@ -55,6 +59,7 @@ export function parseCliArgs() {
 				w: 'watch',
 				c: 'noColor',
 				i: 'info',
+				r: 'ignoreRoutes',
 			},
 		}).parse(process.argv.slice(2));
 	} catch (error) {

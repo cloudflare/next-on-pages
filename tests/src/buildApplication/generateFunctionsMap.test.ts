@@ -482,7 +482,8 @@ async function generateFunctionsMapFrom(
 	});
 	const result = await generateFunctionsMap(
 		join('.vercel', 'output', 'functions'),
-		disableChunksDedup
+		disableChunksDedup,
+		[]
 	);
 	mockFs.restore();
 	return result;
