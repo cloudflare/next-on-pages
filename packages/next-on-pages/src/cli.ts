@@ -38,9 +38,13 @@ const cliOptions = z
 			.default(join('.vercel', 'output', 'static'))
 			.transform(path => normalizePath(resolve(path)))
 			.refine(
-				path =>
-					path.startsWith(normalizePath(resolve())) &&
-					path !== normalizePath(resolve()),
+				path => {
+					const currentWorkingDirectory = normalizePath(resolve());
+					return (
+						path.startsWith(currentWorkingDirectory) &&
+						path !== currentWorkingDirectory
+					);
+				},
 				{
 					message:
 						'The output directory should be inside the current working directory',
@@ -76,7 +80,7 @@ function parseCliError(error: z.ZodError | Error | unknown): {
 		}
 
 		if (
-			(issue?.code === 'custom' || issue?.code === 'invalid_type') &&
+			(issue.code === 'custom' || issue.code === 'invalid_type') &&
 			issue.path.length
 		) {
 			const args = issue.path.join(', ');

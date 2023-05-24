@@ -138,7 +138,7 @@ describe('generateFunctionsMap', async () => {
 		expect(Array.from(invalidFunctions.values())).toEqual([]);
 
 		mockedConsole.expectCalls([
-			/invalid middleware function for middlewarejs.func/,
+			/invalid middleware function for middlewarejs\.func/,
 		]);
 		mockedConsole.restore();
 	});
@@ -406,7 +406,7 @@ describe('generateFunctionsMap', async () => {
 			expect(invalidFunctions.has('nested/index.rsc.func')).toEqual(true);
 
 			mockedConsole.expectCalls([
-				/Could not find prerendered file for nested\/index.rsc.prerender-fallback.rsc/,
+				/Could not find prerendered file for nested\/index\.rsc\.prerender-fallback\.rsc/,
 			]);
 			mockedConsole.restore();
 		});
@@ -433,12 +433,12 @@ describe('generateFunctionsMap', async () => {
 			expect(invalidFunctions.has('nested/index.func')).toEqual(true);
 
 			mockedConsole.expectCalls([
-				/Invalid prerender config for nested\/index.prerender-config.json/,
+				/Invalid prerender config for nested\/index\.prerender-config\.json/,
 			]);
 			mockedConsole.restore();
 		});
 
-		test('fails with custom output dir and existing static file', async () => {
+		test('fails with custom output dir and existing conflicting index.rsc static file', async () => {
 			const mockedConsoleLog = mockConsole('log');
 			const mockedConsoleWarn = mockConsole('warn');
 
@@ -476,7 +476,7 @@ describe('generateFunctionsMap', async () => {
 				/Copying 1 static asset/,
 			]);
 			mockedConsoleWarn.expectCalls([
-				/Prerendered file already exists for index.rsc/,
+				/Prerendered file already exists for index\.rsc/,
 			]);
 
 			mockedConsoleLog.restore();
