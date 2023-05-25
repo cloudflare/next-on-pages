@@ -16,7 +16,11 @@ import {
 	getVercelStaticAssets,
 	processVercelOutput,
 } from './processVercelOutput';
-import { getCurrentPackageExecuter } from './packageManagerUtils';
+import {
+	getCurrentPackageExecuter,
+	getPackageVersion,
+} from './packageManagerUtils';
+import { gtr as versionGreaterThan, coerce } from 'semver';
 
 /**
  * Builds the _worker.js with static assets implementing the Next.js application
@@ -89,7 +93,7 @@ async function prepareAndBuildWorker(
 		);
 
 		if (generatedFunctionsMaps.invalidFunctions.size > 0) {
-			printInvalidFunctionsErrorMessage(
+			await printInvalidFunctionsErrorMessage(
 				Array.from(generatedFunctionsMaps.invalidFunctions)
 			);
 			exit(1);
@@ -115,28 +119,39 @@ async function prepareAndBuildWorker(
 	);
 }
 
-function printInvalidFunctionsErrorMessage(invalidFunctions: string[]): void {
+async function printInvalidFunctionsErrorMessage(
+	invalidFunctions: string[]
+): Promise<void> {
+	const nextVersion = coerce(await getPackageVersion('next'));
+
+	const { exportText, exampleCode } =
+		!nextVersion || versionGreaterThan(nextVersion, '13.1.2')
+			? {
+					exportText: 'the following edge runtime route segment config',
+					exampleCode: "export const runtime = 'edge';",
+			  }
+			: {
+					exportText: 'a config object specifying the edge runtime, like',
+					exampleCode: "export const config = { runtime: 'edge' };",
+			  };
+
+	const invalidRoutes = Array.from(
+		new Set(invalidFunctions.map(fn => fn.replace(/(\.rsc)?\.func$/, '')))
+	);
+
 	cliError(
 		`
 		ERROR: Failed to produce a Cloudflare Pages build from the project.
 
-			The following functions were not configured to run with the Edge Runtime:\n${invalidFunctions
-				.map(fn => `				- ${fn}`)
+			The following routes were not configured to run with the Edge Runtime:\n${invalidRoutes
+				.map(route => `			  - ${route}`)
 				.join('\n')}
 
-			If this is a Next.js project:
+			Please make sure that all your non-static routes export ${exportText}:
+			  ${exampleCode}
 
-			- you can read more about configuring Edge API Routes here: https://nextjs.org/docs/api-routes/edge-api-route
-			
-			- you can try enabling the Edge Runtime for a specific page by exporting the following from your page:
-
-					export const config = { runtime: 'edge' };
-
-			- or you can try enabling the Edge Runtime for all pages in your project by adding the following to your 'next.config.js' file:
-
-					const nextConfig = { experimental: { runtime: 'edge'} };
-
-			You can read more about the Edge Runtime here: https://nextjs.org/docs/advanced-features/react-18/switchable-runtime
+			You can read more about the Edge Runtime on the Next.js documentation:
+				https://nextjs.org/docs/app/building-your-application/rendering/edge-and-nodejs-runtimes
 	`,
 		{ spaced: true }
 	);

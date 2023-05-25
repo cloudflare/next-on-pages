@@ -225,8 +225,8 @@ export async function printEnvInfo(): Promise<void> {
 		Package Manager Used: ${await getCurrentPackageManager()}
 		Relevant Packages:
 			@cloudflare/next-on-pages: ${nextOnPagesVersion}
-			vercel: ${getPackageVersion(packageManager, 'vercel') ?? 'N/A'}
-			next: ${getPackageVersion(packageManager, 'next') ?? 'N/A'}
+			vercel: ${getPackageVersion('vercel', packageManager) ?? 'N/A'}
+			next: ${getPackageVersion('next', packageManager) ?? 'N/A'}
 	`);
 
 	// eslint-disable-next-line no-console
