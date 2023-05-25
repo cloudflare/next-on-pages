@@ -1,5 +1,87 @@
 # @cloudflare/next-on-pages
 
+## 1.0.1
+
+### Patch Changes
+
+- 29b7547: improve no nodejs_compat flag runtime error message
+- c0ecec3: introduce wasm support
+
+  introduce wasm support by tweaking how the wasm modules are imported, what `vercel build` does is adding dynamic
+  requires at the top of the func files, like for example:
+
+  ```js
+  // file: .vercel/output/functions/index.func/index.js
+  const wasm_fbeb8adedbc833032bda6f13925ba235b8d09114 = require('/wasm/wasm_fbeb8adedbc833032bda6f13925ba235b8d09114.wasm');
+  ```
+
+  then such identifier is used in the rest of the file (likely only inside chunks), as in:
+
+  ```js
+      // file: .vercel/output/functions/index.func/index.js
+      649:e=>{e.exports=wasm_fbeb8adedbc833032bda6f13925ba235b8d09114}
+  ```
+
+  the above can't work with next-on-pages because:
+
+  - dynamic requires are not supported
+  - when we perform the chunks deduplication chunks containing such identifiers will not find their declaration causing
+    (e.g. a chunk file containing the `649` chunk code illustrated above won't know where `wasm_fbeb8adedbc833032bda6f13925ba235b8d09114`
+    comes from and would just provide a runtime error saying that it is not defined)
+  - `/wasm/...` isn't a real directory, just some sort of convention used by vercel, the wasm files are located in the same
+    directory as the func file
+
+  the adopted solution consists in:
+
+  - copying the wasm files from their func relative locations into the `__next-on-pages-dist/wasm` directory
+  - converting the func top level requires into standard relative esm imports, like for example:
+    ```js
+    // file: .vercel/output/functions/index.func/index.js
+    import wasm_fbeb8adedbc833032bda6f13925ba235b8d09114 from '../wasm/wasm_fbeb8adedbc833032bda6f13925ba235b8d09114.wasm';
+    ```
+    so that any part of the func file will be able to reference the variable (so that this works with chunks deduplication disabled)
+  - adding similar import statements to any chunk files that reference these wasm identifiers, like for example:
+    ```js
+    // file: .vercel/output/static/_worker.js/__next-on-pages-dist__/chunks/649.js
+    import wasm_fbeb8adedbc833032bda6f13925ba235b8d09114 from '../wasm/wasm_fbeb8adedbc833032bda6f13925ba235b8d09114.wasm';
+    var a = b => {
+    	b.exports = wasm_fbeb8adedbc833032bda6f13925ba235b8d09114;
+    };
+    export { a as default };
+    ```
+    (so that this works with chunks deduplication enabled)
+
+- 3f05e81: update wrangler peer dependency (^2.20.0 -> ^3.0.0)
+- 4f43b9b: Fix the issue of refetching the vercel package every single time when using yarn berry.
+- 81bfcdb: allow any node built-in module to be statically imported correctly
+
+  currently only static imports from "node:buffer" work correctly, other
+  imports, although supported by the workers runtime, aren't handled correctly
+  (such as "node:events" and "node:util"), fix this by making sure we handle
+  imports from any of the node built-in modules
+
+  > **Note**
+  > some node built-in modules supported by the workers runtime still cannot be
+  > correctly imported (like "node:path" for example), but this is because they
+  > seem to be not allowed by vercel/next itself (so it's something unrelated to
+  > next-on-pages)
+
+- 95b1704: Fix non-dynamic trailing slash pages not matching when using `trailingSlash: true`.
+- fd51777: remove hacks/workarounds for runtime bugs which are no longer needed
+- 97c8739: fix getPackageVersion and use it to discern use of dlx
+
+  fix the `getPackageVersion` function so that it doesn't wrongly produce `N/A` (thus
+  improving the `-i|--info` results)
+
+  the when running `vercel build`, use the function to discern if `dlx` should be added
+  (for `yarn (berry)` and `pnpm` commands), ensuring that the vercel package is not
+  unnecessarily re-fetched/installed
+
+  > **Note**
+  > Currently the aforementioned check (and build command) runs `next-on-pages-vercel-cli`
+  > anyways that's a temporary solution, the changes here will also apply when we switch
+  > back to the proper vercel cli package
+
 ## 1.0.0
 
 ### Major Changes
