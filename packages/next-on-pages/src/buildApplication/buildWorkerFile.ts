@@ -1,5 +1,5 @@
 import { writeFile } from 'fs/promises';
-import { join } from 'path';
+import { join, relative } from 'path';
 import { build } from 'esbuild';
 import { tmpdir } from 'os';
 import { cliSuccess } from '../cli';
@@ -72,5 +72,5 @@ export async function buildWorkerFile(
 		minify,
 	});
 
-	cliSuccess(`Generated '${outputFile}'.`);
+	cliSuccess(`Generated '${relative('.', outputFile)}'.`);
 }
