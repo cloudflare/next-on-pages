@@ -132,7 +132,7 @@ async function getVercelBuildChildProcess(
 async function isVercelPackageInstalled(
 	pkgMng: PackageManager
 ): Promise<boolean> {
-	const packageVersion = getPackageVersion(pkgMng, 'next-on-pages-vercel-cli');
+	const packageVersion = getPackageVersion('next-on-pages-vercel-cli', pkgMng);
 	return !!packageVersion;
 }
 

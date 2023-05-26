@@ -91,11 +91,12 @@ function isWindows(): boolean {
 	return process.platform === 'win32';
 }
 
-export function getPackageVersion(
-	packageManager: PackageManager,
-	packageName: string
-): string | null {
+export async function getPackageVersion(
+	packageName: string,
+	packageManager?: PackageManager
+): Promise<string | null> {
 	try {
+		packageManager ??= await getCurrentPackageManager();
 		const command = getPackageManagerSpawnCommand(packageManager);
 		const commandOutput = execFileSync(
 			command.startsWith('npx') ? 'npm' : command,
