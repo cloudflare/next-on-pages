@@ -27,7 +27,7 @@ export async function getVercelStaticAssets(): Promise<string[]> {
 		(await readPathsRecursively(dir))
 			.map(file => addLeadingSlash(normalizePath(relative(dir, file))))
 			// Filter out the worker script output directory contents as those are not valid static assets.
-			.filter(path => !/^\/?_worker\.js\//.test(path))
+			.filter(path => !/^\/_worker\.js\//.test(path))
 	);
 }
 
