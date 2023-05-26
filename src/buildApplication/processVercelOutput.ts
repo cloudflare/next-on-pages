@@ -1,4 +1,5 @@
 import { relative, resolve } from 'path';
+import { rmSync } from 'fs';
 import {
 	addLeadingSlash,
 	normalizePath,
@@ -22,8 +23,11 @@ export async function getVercelStaticAssets(): Promise<string[]> {
 		return [];
 	}
 
-	return (await readPathsRecursively(dir)).map(file =>
-		addLeadingSlash(normalizePath(relative(dir, file)))
+	return (
+		(await readPathsRecursively(dir))
+			.map(file => addLeadingSlash(normalizePath(relative(dir, file))))
+			// Filter out the worker script output directory contents as those are not valid static assets.
+			.filter(path => !/^\/_worker\.js\//.test(path))
 	);
 }
 
@@ -63,6 +67,11 @@ export function processVercelOutput(
 			// `TypeError: Cannot read properties of undefined (reading 'default')`
 			entrypoint: value.replace(/\.rsc\.func\.js$/i, '.func.js'),
 		});
+
+		// Remove the RSC functions from the dist directory as they are not needed since we replace them with non-rsc variants for the runtime routing
+		if (/\.rsc\.func\.js$/i.test(value)) {
+			rmSync(value);
+		}
 	});
 
 	// Apply the overrides from the build output config to the processed output map.
