@@ -68,7 +68,7 @@ export function processVercelOutput(
 			entrypoint: value.replace(/\.rsc\.func\.js$/i, '.func.js'),
 		});
 
-		// Remove the RSC functions from the dist directory as they are not needed.
+		// Remove the RSC functions from the dist directory as they are not needed since we replace them with non-rsc variants for the runtime routing
 		if (/\.rsc\.func\.js$/i.test(value)) {
 			rmSync(value);
 		}
