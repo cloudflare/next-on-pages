@@ -151,7 +151,7 @@ async function printInvalidFunctionsErrorMessage(
 			  ${exampleCode}
 
 			You can read more about the Edge Runtime on the Next.js documentation:
-				https://nextjs.org/docs/app/building-your-application/rendering/edge-and-nodejs-runtimes
+			  https://nextjs.org/docs/app/building-your-application/rendering/edge-and-nodejs-runtimes
 	`,
 		{ spaced: true }
 	);
