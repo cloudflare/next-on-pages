@@ -49,6 +49,7 @@ async function findMatch(
 		status: matcher.status,
 		headers: matcher.headers,
 		searchParams: matcher.searchParams,
+		body: matcher.body,
 	};
 }
 
@@ -61,7 +62,7 @@ async function findMatch(
  */
 async function generateResponse(
 	reqCtx: RequestContext,
-	{ path = '/404', status, headers, searchParams }: MatchedSet,
+	{ path = '/404', status, headers, searchParams, body }: MatchedSet,
 	output: VercelBuildOutput
 ): Promise<Response> {
 	// Redirect user to external URL for redirects.
@@ -76,12 +77,16 @@ async function generateResponse(
 		return new Response(null, { status, headers: headers.normal });
 	}
 
-	let resp = await runOrFetchBuildOutputItem(output[path], reqCtx, {
-		path,
-		status,
-		headers,
-		searchParams,
-	});
+	let resp =
+		body !== undefined
+			? // If we have a response body from matching, use it instead.
+			  new Response(body, { status })
+			: await runOrFetchBuildOutputItem(output[path], reqCtx, {
+					path,
+					status,
+					headers,
+					searchParams,
+			  });
 
 	const newHeaders = headers.normal;
 	applyHeaders(newHeaders, resp.headers);

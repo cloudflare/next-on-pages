@@ -1,7 +1,7 @@
 import type { TestSet } from '../../_helpers';
 import { createValidFuncDir } from '../../_helpers';
 
-// routes using middleware: redirect, rewrite, set headers, set cookies, override request headers.
+// routes using middleware: redirect, rewrite, set headers, set cookies, override request headers, return new NextResponse.
 
 const rawVercelConfig: VercelConfig = {
 	version: 3,
@@ -81,7 +81,6 @@ export const testSet: TestSet = {
 				headers: {
 					'content-type': 'text/plain;charset=UTF-8',
 					'x-matched-path': '/api/hello',
-					'x-middleware-next': '1',
 				},
 			},
 		},
@@ -119,7 +118,6 @@ export const testSet: TestSet = {
 					'x-matched-path': '/api/hello',
 					'set-cookie': 'x-hello-from-middleware2=hello; Path=/',
 					'x-hello-from-middleware2': 'hello',
-					'x-middleware-next': '1',
 				},
 			},
 		},
@@ -141,7 +139,6 @@ export const testSet: TestSet = {
 					'x-matched-path': '/api/hello',
 					'set-cookie': 'x-hello-from-middleware2=hello; Path=/',
 					'x-hello-from-middleware2': 'hello',
-					'x-middleware-next': '1',
 				},
 				reqHeaders: {
 					'not-overriden': 'should not be overriden',
@@ -161,6 +158,17 @@ export const testSet: TestSet = {
 					'x-matched-path': '/500',
 				},
 				mockConsole: { error: [new Error('Middleware error')] },
+			},
+		},
+		{
+			name: 'middleware route returns custom response when returning a new NextResponse',
+			paths: ['/api/hello?returns'],
+			expected: {
+				status: 401,
+				data: '<html>Hello from middleware</html>',
+				headers: {
+					'content-type': 'text/html',
+				},
 			},
 		},
 	],

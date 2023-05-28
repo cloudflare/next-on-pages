@@ -127,6 +127,15 @@ function createMockMiddlewareEntrypoint(file = '/'): EdgeFunction {
 				});
 			}
 
+			if (url.searchParams.has('returns')) {
+				return new Response('<html>Hello from middleware</html>', {
+					status: 401,
+					headers: new Headers({
+						'content-type': 'text/html',
+					}),
+				});
+			}
+
 			return new Response(null, {
 				status: 200,
 				headers: new Headers({
