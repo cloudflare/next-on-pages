@@ -167,10 +167,10 @@ export class RoutesMatcher {
 			resp.headers.delete(rewriteKey);
 		}
 
-		const nextKey = 'x-middleware-next';
-		const nextHeader = resp.headers.get(nextKey);
-		if (nextHeader) {
-			resp.headers.delete(nextKey);
+		const middlewareNextKey = 'x-middleware-next';
+		const middlewareNextHeader = resp.headers.get(middlewareNextKey);
+		if (middlewareNextHeader) {
+			resp.headers.delete(middlewareNextKey);
 		} else if (!rewriteHeader && !resp.headers.has('location')) {
 			// We should set the final response body and status to the middleware's if it does not want
 			// to continue and did not rewrite/redirect the URL.
