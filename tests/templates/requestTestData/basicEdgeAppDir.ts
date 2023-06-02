@@ -92,6 +92,8 @@ export const testSet: TestSet = {
 			api: { 'hello.func': createValidFuncDir('/api/hello') },
 			'index.func': createValidFuncDir('/index'),
 			'index.rsc.func': createValidFuncDir('/index.rsc'),
+			'alternative.func': createValidFuncDir('/alternative'),
+			'alternative.rsc.func': createValidFuncDir('/alternative.rsc'),
 		},
 		static: {
 			_next: {
@@ -232,6 +234,20 @@ export const testSet: TestSet = {
 				headers: {
 					'content-type': 'text/plain;charset=UTF-8',
 					'x-matched-path': '/',
+				},
+			},
+		},
+		{
+			name: "non-index page with trailing slash and rsc header doesn't redirect to /index",
+			paths: ['/alternative/'],
+			headers: { rsc: '1' },
+			expected: {
+				status: 200,
+				data: JSON.stringify({ file: '/alternative', params: [] }),
+				headers: {
+					'content-type': 'text/plain;charset=UTF-8',
+					'x-matched-path': '/alternative.rsc',
+					vary: 'RSC, Next-Router-State-Tree, Next-Router-Prefetch',
 				},
 			},
 		},
