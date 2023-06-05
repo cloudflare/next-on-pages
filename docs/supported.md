@@ -141,7 +141,7 @@ export async function getStaticPaths() {
 
 Revalidation and `next/cache` are not supported on Cloudflare Pages. This is used by the default `fetch` cache, which forms part of the incremental cache for revalidating data inside the App Router. Revalidating tags and data for an entire path also uses `next/cache`.
 
-Because of this, `next/cache` functionality currently is not supported on Cloudflare Pages. The Next.js cache does work when self-hosting, and can be optionally provided a [custom cache handler](https://nextjs.org/docs/app/api-reference/next-config-js/incrementalCacheHandlerPath). It's possible this could use Cloudflare KV or Durable Objects in the future.
+The Next.js cache does however work when self-hosting by optionally providing a [custom cache handler](https://nextjs.org/docs/app/api-reference/next-config-js/incrementalCacheHandlerPath). It's possible this could use Cloudflare KV or Durable Objects in the future.
 
 #### Fetch Cache
 
