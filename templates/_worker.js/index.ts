@@ -1,4 +1,4 @@
-import { handleRequest } from './handleRequest';
+import { handleNextCacheRequest, handleRequest } from './handleRequest';
 import { adjustRequestForVercel } from './utils';
 import type { AsyncLocalStorage } from 'node:async_hooks';
 
@@ -12,6 +12,11 @@ declare const __ENV_ALS_PROMISE__: Promise<null | AsyncLocalStorage<unknown>>;
 
 export default {
 	async fetch(request, env, ctx) {
+		const response = await handleNextCacheRequest(request)
+		if (response) {
+			return response
+		}
+		
 		const envAsyncLocalStorage = await __ENV_ALS_PROMISE__;
 		if (!envAsyncLocalStorage) {
 			return new Response(
