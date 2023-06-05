@@ -11,6 +11,7 @@ export type MatchedSet = {
 	status: number | undefined;
 	headers: { normal: Headers; important: Headers };
 	searchParams: URLSearchParams;
+	body: BodyInit | undefined | null;
 };
 
 /**
@@ -59,7 +60,7 @@ export function getNextPhase(phase: VercelPhase): VercelHandleValue {
 export async function runOrFetchBuildOutputItem(
 	item: VercelBuildOutputItem | undefined,
 	{ request, assetsFetcher, ctx }: RequestContext,
-	{ path, searchParams }: MatchedSet
+	{ path, searchParams }: Omit<MatchedSet, 'body'>
 ) {
 	let resp: Response | undefined = undefined;
 

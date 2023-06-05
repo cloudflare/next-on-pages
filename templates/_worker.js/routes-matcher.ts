@@ -33,6 +33,8 @@ export class RoutesMatcher {
 	public headers: { normal: Headers; important: Headers };
 	/** Search params for the response object */
 	public searchParams: URLSearchParams;
+	/** Custom response body from middleware */
+	public body: BodyInit | undefined | null;
 
 	/** Counter for how many times the function to check a phase has been called */
 	public checkPhaseCounter;
@@ -165,6 +167,17 @@ export class RoutesMatcher {
 			resp.headers.delete(rewriteKey);
 		}
 
+		const middlewareNextKey = 'x-middleware-next';
+		const middlewareNextHeader = resp.headers.get(middlewareNextKey);
+		if (middlewareNextHeader) {
+			resp.headers.delete(middlewareNextKey);
+		} else if (!rewriteHeader && !resp.headers.has('location')) {
+			// We should set the final response body and status to the middleware's if it does not want
+			// to continue and did not rewrite/redirect the URL.
+			this.body = resp.body;
+			this.status = resp.status;
+		}
+
 		applyHeaders(this.headers.normal, resp.headers);
 	}
 
@@ -192,8 +205,8 @@ export class RoutesMatcher {
 			status: this.status,
 		});
 
-		if (resp.status >= 400) {
-			// The middleware function errored. Set the status and bail out.
+		if (resp.status === 500) {
+			// The middleware function threw an error. Set the status and bail out.
 			this.status = resp.status;
 			return false;
 		}
@@ -407,6 +420,8 @@ export class RoutesMatcher {
 		// Call and process the middleware if this is a middleware route.
 		const success = await this.runRouteMiddleware(route.middlewarePath);
 		if (!success) return 'error';
+		// If the middleware set a response body, we are done.
+		if (this.body !== undefined) return 'done';
 
 		// Update final headers with the ones from this route.
 		this.applyRouteHeaders(route, srcMatch, captureGroupKeys);
