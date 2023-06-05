@@ -152,7 +152,9 @@ export async function handleNextCacheRequest(request: Request) {
 			const tags = tagsParam.split(',');
 
 			// Fetch the existing tags manifest
-			const manifestKey = new Request(new URL('/tags-manifest.json', cacheUrl.origin));
+			const manifestKey = new Request(
+				new URL('/tags-manifest.json', cacheUrl.origin)
+			);
 			const manifestResponse = await cache.match(manifestKey);
 			if (!manifestResponse) {
 				return new Response('Tags manifest not found', { status: 404 });
@@ -199,7 +201,9 @@ export async function handleNextCacheRequest(request: Request) {
 			if (tagHeader) {
 				// Fetch the existing tags manifest
 				// we should probably try to use DO or R2 to have a unique global tags-manifest
-				const manifestKey = new Request(new URL('/tags-manifest.json', cacheUrl.origin));
+				const manifestKey = new Request(
+					new URL('/tags-manifest.json', cacheUrl.origin)
+				);
 				const manifestResponse = await cache.match(manifestKey);
 				let manifest: TagsManifest;
 				if (manifestResponse) {

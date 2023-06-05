@@ -12,11 +12,11 @@ declare const __ENV_ALS_PROMISE__: Promise<null | AsyncLocalStorage<unknown>>;
 
 export default {
 	async fetch(request, env, ctx) {
-		const response = await handleNextCacheRequest(request)
+		const response = await handleNextCacheRequest(request);
 		if (response) {
-			return response
+			return response;
 		}
-		
+
 		const envAsyncLocalStorage = await __ENV_ALS_PROMISE__;
 		if (!envAsyncLocalStorage) {
 			return new Response(
