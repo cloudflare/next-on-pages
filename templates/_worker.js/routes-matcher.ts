@@ -275,7 +275,7 @@ export class RoutesMatcher {
 		// NOTE: Special handling for `/index` RSC routes. Sometimes the Vercel build output config
 		// has a record to rewrite `^/` to `/index.rsc`, however, this will hit requests to pages
 		// that aren't `/`. In this case, we should check that the previous path is `/`.
-		if (/\/index\.rsc$/i.test(this.path) && !/\/(?:index)?$/i.test(prevPath)) {
+		if (/\/index\.rsc$/i.test(this.path) && !/^\/(?:index)?$/i.test(prevPath)) {
 			this.path = prevPath;
 		}
 
