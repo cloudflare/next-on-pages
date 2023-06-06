@@ -55,7 +55,7 @@ export function getPhaseRoutes(
 	return collectedRoutes;
 }
 
-function getPhaseStart(routes: VercelRoute[], phase: string): number {
+function getPhaseStart(routes: VercelRoute[], phase: VercelPhase): number {
 	if (phase === 'none') {
 		return 0;
 	} else {
