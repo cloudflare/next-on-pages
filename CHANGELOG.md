@@ -1,5 +1,15 @@
 # @cloudflare/next-on-pages
 
+## 1.0.2
+
+### Patch Changes
+
+- f687d25: update the runtime error message so that it provides accurate up-to-date information
+- ff90dde: Remove rsc functions from the worker output directory as we replace them with non-rsc variants in the config given to the router. This reduces the final bundle size.
+- cb62938: Fix dynamic params not being derived correctly in some cases when running a page's function.
+- d91b24b: Fix middleware not returning a response with `new NextResponse` and when there is no `x-middleware-next` header present.
+- 7deb9d8: Fix non-index pages with trailing slash rewriting to /index for rsc requests.
+
 ## 1.0.1
 
 ### Patch Changes
