@@ -40,6 +40,8 @@ export function isUrl(url: string): boolean {
  *
  * Only updates the a parameter if the target does not contain it, or the source value is not empty.
  *
+ * For params prefixed with `nxtP`, it also sets the param without the prefix if it does not exist.
+ *
  * @param target Target that search params will be applied to.
  * @param source Source search params to apply to the target.
  */
@@ -50,6 +52,11 @@ export function applySearchParams(
 	for (const [key, value] of source.entries()) {
 		if (!target.has(key) || !!value) {
 			target.set(key, value);
+
+			const paramMatch = /^nxtP(.+)$/.exec(key);
+			if (paramMatch?.[1] && !target.has(paramMatch[1])) {
+				target.set(paramMatch[1], value);
+			}
 		}
 	}
 }
