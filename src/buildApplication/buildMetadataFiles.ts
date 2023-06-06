@@ -18,7 +18,7 @@ async function buildNextStaticHeaders() {
 	const nextStaticRoute = hitRoutes.find(route =>
 		route.src?.startsWith('/_next/static/')
 	);
-	const nextStaticHeaders = (nextStaticRoute as VercelSource).headers;
+	const nextStaticHeaders = (nextStaticRoute as VercelSource)?.headers;
 
 	if (nextStaticHeaders) {
 		await writeFile(
