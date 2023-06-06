@@ -259,7 +259,10 @@ export const testSet: TestSet = {
 				status: 200,
 				data: JSON.stringify({
 					file: '/gsp/[slug]',
-					params: [['nxtPslug', 'test']],
+					params: [
+						['nxtPslug', 'test'],
+						['slug', 'test'],
+					],
 				}),
 				headers: {
 					'content-type': 'text/plain;charset=UTF-8',
