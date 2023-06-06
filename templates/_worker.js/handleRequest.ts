@@ -131,21 +131,28 @@ type TagsManifest = {
  * Handles a next/cache request by checking the pathname.
  *
  * @param request Request object (contains all we need in to know regarding the request in order to handle it).
- * @param env The environment binding of the worker.
+ * @param buildId The build_id of nextjs.
  * @returns A response object if we match the correct pathname or null.
  */
-export async function handleNextCacheRequest(request: Request) {
-	const cacheUrl = new URL(request.url);
-	const key = cacheUrl.pathname.split('/')[5] as string;
-	if (cacheUrl.pathname.startsWith('/__next/cache/v1/suspense-cache/')) {
+export async function handleNextCacheRequest(request: Request, buildId: string) {
+	const clonedUrl = new URL(request.url);
+
+	const cacheKeyUrl = new URL(request.url);
+	// Add the buildId  at the beginning of the path
+	cacheKeyUrl.pathname = `/${buildId}` + cacheKeyUrl.pathname;
+	const cacheKeyRequest = new Request(cacheKeyUrl);
+
+	const key = clonedUrl.pathname.split('/')[5] as string;
+
+	if (clonedUrl.pathname.startsWith('/__next/cache/v1/suspense-cache/')) {
 		const cache = await caches.default;
 
 		// Condition to handle /v1/suspense-cache/revalidate requests
 		if (
 			request.method === 'POST' &&
-			cacheUrl.pathname === '/__next/cache/v1/suspense-cache/revalidate'
+			clonedUrl.pathname === '/__next/cache/v1/suspense-cache/revalidate'
 		) {
-			const tagsParam = cacheUrl.searchParams.get('tags');
+			const tagsParam = clonedUrl.searchParams.get('tags');
 			if (!tagsParam) {
 				return new Response('Missing tags parameter', { status: 400 });
 			}
@@ -153,7 +160,7 @@ export async function handleNextCacheRequest(request: Request) {
 
 			// Fetch the existing tags manifest
 			const manifestKey = new Request(
-				new URL('/tags-manifest.json', cacheUrl.origin)
+				new URL(`/${buildId}/tags-manifest.json`, clonedUrl.origin)
 			);
 			const manifestResponse = await cache.match(manifestKey);
 			if (!manifestResponse) {
@@ -168,7 +175,7 @@ export async function handleNextCacheRequest(request: Request) {
 				if (tagItem) {
 					// Invalidate related cache entries
 					for (const key of tagItem.keys) {
-						await cache.delete(new Request(new URL(key, cacheUrl.origin)));
+						await cache.delete(new Request(new URL(`/${buildId}${key}`, clonedUrl.origin)));
 					}
 					// Delete the tag from the manifest
 					delete manifest.items[tag];
@@ -193,8 +200,8 @@ export async function handleNextCacheRequest(request: Request) {
 				status: 200,
 				headers: responseHeaders,
 			});
-			const cacheKey = new Request(cacheUrl);
-			await cache.put(cacheKey, response);
+
+			await cache.put(cacheKeyRequest, response);
 
 			// Process the x-vercel-cache-tags header
 			const tagHeader = request.headers.get('x-vercel-cache-tags');
@@ -202,7 +209,7 @@ export async function handleNextCacheRequest(request: Request) {
 				// Fetch the existing tags manifest
 				// we should probably try to use DO or R2 to have a unique global tags-manifest
 				const manifestKey = new Request(
-					new URL('/tags-manifest.json', cacheUrl.origin)
+					new URL(`/${buildId}/tags-manifest.json`, clonedUrl.origin)
 				);
 				const manifestResponse = await cache.match(manifestKey);
 				let manifest: TagsManifest;
@@ -222,8 +229,8 @@ export async function handleNextCacheRequest(request: Request) {
 					if (!manifest.items[tag]) {
 						manifest.items[tag] = { keys: [] };
 					}
-					if (!manifest.items[tag]?.keys.includes(cacheUrl.pathname)) {
-						manifest.items[tag]?.keys.push(cacheUrl.pathname);
+					if (!manifest.items[tag]?.keys.includes(clonedUrl.pathname)) {
+						manifest.items[tag]?.keys.push(clonedUrl.pathname);
 					}
 				}
 
@@ -243,7 +250,7 @@ export async function handleNextCacheRequest(request: Request) {
 		}
 
 		// Check whether the value is already available in the cache API
-		const cachedResponse = await cache.match(request);
+		const cachedResponse = await cache.match(cacheKeyRequest);
 		if (!cachedResponse) {
 			return new Response(`no fetch cache entry for key ${key}`, {
 				status: 404,

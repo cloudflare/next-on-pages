@@ -8,11 +8,13 @@ declare const __CONFIG__: ProcessedVercelConfig;
 
 declare const __BUILD_OUTPUT__: VercelBuildOutput;
 
+declare const __BUILD_ID__: string;
+
 declare const __ENV_ALS_PROMISE__: Promise<null | AsyncLocalStorage<unknown>>;
 
 export default {
 	async fetch(request, env, ctx) {
-		const response = await handleNextCacheRequest(request);
+		const response = await handleNextCacheRequest(request, __BUILD_ID__);
 		if (response) {
 			return response;
 		}

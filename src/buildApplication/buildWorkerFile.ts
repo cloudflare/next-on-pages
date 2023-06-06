@@ -6,6 +6,7 @@ import { cliSuccess } from '../cli';
 import { generateGlobalJs } from './generateGlobalJs';
 import type { ProcessedVercelOutput } from './processVercelOutput';
 import { getNodeEnv } from '../utils/getNodeEnv';
+import { getBuildId } from '../utils/getBuildId';
 
 /**
  * Construct a record for the build output map.
@@ -72,6 +73,7 @@ export async function buildWorkerFile(
 		define: {
 			__CONFIG__: JSON.stringify(vercelConfig),
 			__NODE_ENV__: JSON.stringify(getNodeEnv()),
+			__BUILD_ID__: JSON.stringify(await getBuildId())
 		},
 		outfile: outputFile,
 		minify,
