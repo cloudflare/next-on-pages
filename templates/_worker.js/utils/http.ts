@@ -41,6 +41,9 @@ export function isUrl(url: string): boolean {
  * Only updates the a parameter if the target does not contain it, or the source value is not empty.
  *
  * For params prefixed with `nxtP`, it also sets the param without the prefix if it does not exist.
+ * The `nxtP` prefix indicates that it is for Next.js dynamic route parameters. In some cases,
+ * Next.js fails to derive the correct route parameters and so we need to set them manually.
+ * https://github.com/vercel/next.js/blob/canary/packages/next/src/lib/constants.ts#L3
  *
  * @param target Target that search params will be applied to.
  * @param source Source search params to apply to the target.
