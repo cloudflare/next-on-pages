@@ -44,26 +44,26 @@ export function getPhaseRoutes(
 	}
 
 	const phaseStart = getPhaseStart(routes, phase);
-	const collectedRoutes: VercelRoute[] = [];
-	for (let i = phaseStart; i < routes.length; i++) {
-		const route = routes[i];
-		if (!route || isVercelHandler(route)) {
-			break;
-		}
-		collectedRoutes.push(route);
-	}
-	return collectedRoutes;
+	const phaseEnd = getPhaseEnd(routes, phaseStart);
+	return routes.slice(phaseStart, phaseEnd);
 }
 
 function getPhaseStart(routes: VercelRoute[], phase: VercelPhase): number {
 	if (phase === 'none') {
 		return 0;
-	} else {
-		const index = routes.findIndex(
-			route => isVercelHandler(route) && route.handle === phase
-		);
-		return index === -1 ? routes.length : index + 1;
 	}
+
+	const index = routes.findIndex(
+		route => isVercelHandler(route) && route.handle === phase
+	);
+	return index === -1 ? routes.length : index + 1;
+}
+
+function getPhaseEnd(routes: VercelRoute[], phaseStart: number): number {
+	const index = routes
+		.slice(phaseStart)
+		.findIndex(route => isVercelHandler(route));
+	return index === -1 ? routes.length : phaseStart + index;
 }
 
 export function processVercelConfig(
