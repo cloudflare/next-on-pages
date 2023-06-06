@@ -13,7 +13,7 @@ export async function buildMetadataFiles() {
 async function buildNextStaticHeaders() {
 	const vercelConfig = await getVercelConfig();
 
-	const hitRoutes = getPhaseRoutes(vercelConfig, 'hit');
+	const hitRoutes = getPhaseRoutes(vercelConfig.routes ?? [], 'hit');
 
 	const nextStaticRoute = hitRoutes.find(route =>
 		route.src?.startsWith('/_next/static/')

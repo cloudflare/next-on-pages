@@ -34,49 +34,39 @@ describe('processVercelConfig', () => {
 
 describe('getPhaseRoutes', () => {
 	test('return an empty array if there are no routes', () => {
-		const config: VercelConfig = {
-			version: 3,
-			routes: [],
-		};
-
-		const result = getPhaseRoutes(config, 'none');
+		const routes: VercelRoute[] = [];
+		const result = getPhaseRoutes(routes, 'none');
 		const expected: VercelRoute[] = [];
 		expect(result).toEqual(expected);
 	});
 
 	test('return an empty array if there are no routes in the specified phase', () => {
-		const config: VercelConfig = {
-			version: 3,
-			routes: [
-				{ src: '/test-A' },
-				{ handle: 'filesystem' },
-				{ src: '/test-B' },
-				{ handle: 'miss' },
-				{ src: '/test-C' },
-			],
-		};
+		const routes: VercelRoute[] = [
+			{ src: '/test-A' },
+			{ handle: 'filesystem' },
+			{ src: '/test-B' },
+			{ handle: 'miss' },
+			{ src: '/test-C' },
+		];
 
-		const result = getPhaseRoutes(config, 'rewrite');
+		const result = getPhaseRoutes(routes, 'rewrite');
 		const expected: VercelRoute[] = [];
 		expect(result).toEqual(expected);
 	});
 
 	test("return 'none' routes", () => {
-		const config: VercelConfig = {
-			version: 3,
-			routes: [
-				{ src: '/test-A' },
-				{ src: '/test-B' },
-				{ src: '/test-C' },
-				{ handle: 'filesystem' },
-				{ src: '/test-D' },
-				{ src: '/test-E' },
-				{ handle: 'miss' },
-				{ src: '/test-F' },
-			],
-		};
+		const routes: VercelRoute[] = [
+			{ src: '/test-A' },
+			{ src: '/test-B' },
+			{ src: '/test-C' },
+			{ handle: 'filesystem' },
+			{ src: '/test-D' },
+			{ src: '/test-E' },
+			{ handle: 'miss' },
+			{ src: '/test-F' },
+		];
 
-		const result = getPhaseRoutes(config, 'none');
+		const result = getPhaseRoutes(routes, 'none');
 		const expected: VercelRoute[] = [
 			{ src: '/test-A' },
 			{ src: '/test-B' },
@@ -87,26 +77,23 @@ describe('getPhaseRoutes', () => {
 	});
 
 	test("return 'miss' routes", () => {
-		const config: VercelConfig = {
-			version: 3,
-			routes: [
-				{ src: '/test-A' },
-				{ src: '/test-B' },
-				{ src: '/test-C' },
-				{ handle: 'filesystem' },
-				{ src: '/test-D' },
-				{ src: '/test-E' },
-				{ handle: 'miss' },
-				{ src: '/test-F' },
-				{ src: '/test-G' },
-				{ src: '/test-H' },
-				{ handle: 'hit' },
-				{ src: '/test-I' },
-				{ src: '/test-J' },
-			],
-		};
+		const routes: VercelRoute[] = [
+			{ src: '/test-A' },
+			{ src: '/test-B' },
+			{ src: '/test-C' },
+			{ handle: 'filesystem' },
+			{ src: '/test-D' },
+			{ src: '/test-E' },
+			{ handle: 'miss' },
+			{ src: '/test-F' },
+			{ src: '/test-G' },
+			{ src: '/test-H' },
+			{ handle: 'hit' },
+			{ src: '/test-I' },
+			{ src: '/test-J' },
+		];
 
-		const result = getPhaseRoutes(config, 'miss');
+		const result = getPhaseRoutes(routes, 'miss');
 		const expected: VercelRoute[] = [
 			{ src: '/test-F' },
 			{ src: '/test-G' },
@@ -117,22 +104,19 @@ describe('getPhaseRoutes', () => {
 	});
 
 	test("return 'miss' routes", () => {
-		const config: VercelConfig = {
-			version: 3,
-			routes: [
-				{ src: '/test-A' },
-				{ handle: 'filesystem' },
-				{ src: '/test-B' },
-				{ handle: 'miss' },
-				{ handle: 'rewrite' },
-				{ handle: 'resource' },
-				{ handle: 'hit' },
-				{ src: '/test-C' },
-				{ src: '/test-D' },
-			],
-		};
+		const routes: VercelRoute[] = [
+			{ src: '/test-A' },
+			{ handle: 'filesystem' },
+			{ src: '/test-B' },
+			{ handle: 'miss' },
+			{ handle: 'rewrite' },
+			{ handle: 'resource' },
+			{ handle: 'hit' },
+			{ src: '/test-C' },
+			{ src: '/test-D' },
+		];
 
-		const result = getPhaseRoutes(config, 'hit');
+		const result = getPhaseRoutes(routes, 'hit');
 		const expected: VercelRoute[] = [{ src: '/test-C' }, { src: '/test-D' }];
 
 		expect(result).toEqual(expected);

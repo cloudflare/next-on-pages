@@ -36,47 +36,34 @@ export async function getVercelConfig(): Promise<VercelConfig> {
  * @returns the phases' routes
  */
 export function getPhaseRoutes(
-	config: VercelConfig,
+	routes: VercelRoute[],
 	phase: VercelPhase
 ): VercelRoute[] {
-	const routes: VercelRoute[] = [];
-
-	if (!config.routes) {
+	if (!routes.length) {
 		return [];
 	}
 
-	let currentRouteIdx = 0;
-
-	if (phase === 'none') {
-		while (
-			config.routes[currentRouteIdx] &&
-			!(config.routes[currentRouteIdx] as VercelHandler).handle
-		) {
-			// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-			routes.push(config.routes[currentRouteIdx]!);
-			currentRouteIdx++;
+	const phaseStart = getPhaseStart(routes, phase);
+	const collectedRoutes: VercelRoute[] = [];
+	for (let i = phaseStart; i < routes.length; i++) {
+		const route = routes[i];
+		if (!route || isVercelHandler(route)) {
+			break;
 		}
-		return routes;
+		collectedRoutes.push(route);
 	}
+	return collectedRoutes;
+}
 
-	while (
-		config.routes[currentRouteIdx] &&
-		(config.routes[currentRouteIdx] as VercelHandler).handle !== phase
-	) {
-		currentRouteIdx++;
+function getPhaseStart(routes: VercelRoute[], phase: string): number {
+	if (phase === 'none') {
+		return 0;
+	} else {
+		const index = routes.findIndex(
+			route => isVercelHandler(route) && route.handle === phase
+		);
+		return index === -1 ? routes.length : index + 1;
 	}
-	currentRouteIdx++;
-
-	while (
-		config.routes[currentRouteIdx] &&
-		!(config.routes[currentRouteIdx] as VercelHandler).handle
-	) {
-		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-		routes.push(config.routes[currentRouteIdx]!);
-		currentRouteIdx++;
-	}
-
-	return routes;
 }
 
 export function processVercelConfig(
@@ -97,7 +84,7 @@ export function processVercelConfig(
 
 	let currentPhase: VercelHandleValue | 'none' = 'none';
 	config.routes?.forEach(route => {
-		if ('handle' in route) {
+		if (isVercelHandler(route)) {
 			currentPhase = route.handle;
 		} else {
 			processedConfig.routes[currentPhase].push(route);
@@ -105,4 +92,8 @@ export function processVercelConfig(
 	});
 
 	return processedConfig;
+}
+
+function isVercelHandler(route: VercelRoute): route is VercelHandler {
+	return 'handle' in route;
 }
