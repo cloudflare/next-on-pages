@@ -42,6 +42,16 @@ describe('applyHeaders', () => {
 			other: 'path/to/index.html',
 		});
 	});
+
+	test('appends `set-cookie` headers instead of overriding', () => {
+		const headers = new Headers({ 'set-cookie': 'first-value' });
+		applyHeaders(headers, { 'set-cookie': 'second-value' });
+
+		expect([...headers.entries()]).toEqual([
+			['set-cookie', 'first-value'],
+			['set-cookie', 'second-value'],
+		]);
+	});
 });
 
 describe('isUrl', () => {
