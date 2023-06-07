@@ -61,8 +61,7 @@ function getPhaseStart(routes: VercelRoute[], phase: VercelPhase): number {
 
 function getPhaseEnd(routes: VercelRoute[], phaseStart: number): number {
 	const index = routes
-		.slice(phaseStart)
-		.findIndex(route => isVercelHandler(route));
+		.findIndex((route, i) => i >= phaseStart && isVercelHandler(route));
 	return index === -1 ? routes.length : phaseStart + index;
 }
 
