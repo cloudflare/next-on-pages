@@ -30,7 +30,8 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Publish Beta to NPM
+      - name: Publish next-on-pages Beta to NPM
+        working-directory: ./packages/next-on-pages
         run: npm publish --tag beta
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

@@ -31,11 +31,12 @@ jobs:
         env:
           NODE_ENV: 'production'
 
-      - name: Create package
+      - name: Create next-on-pages package
+        working-directory: ./packages/next-on-pages
         run: npm pack
 
       - name: Upload packaged next-on-pages artifact
         uses: actions/upload-artifact@v2
         with:
           name: npm-package-next-on-pages-${{ github.event.number }} # encode the PR number into the artifact name
-          path: cloudflare-next-on-pages-*.tgz
+          path: ./packages/next-on-pages/cloudflare-next-on-pages-*.tgz
