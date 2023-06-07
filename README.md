@@ -6,7 +6,7 @@
 
 `@cloudflare/next-on-pages` is a CLI tool that you can use to build and develop [Next.js](https://nextjs.org/) applications so that they can run on the [Cloudflare Pages](https://pages.cloudflare.com/) platform (and integrate with Cloudflare's various other [product offerings](https://developers.cloudflare.com/pages/platform/functions/bindings/), such as KV, D1, R2, and Durable Objects).
 
-This tool is a best-effort library implemented by the Cloudflare team and the community. As such, most, but not all, Next.js features are supported. See the [Supported Versions and Features document](./docs/supported.md) for more details.
+This tool is a best-effort library implemented by the Cloudflare team and the community. As such, most, but not all, Next.js features are supported. See the [Supported Versions and Features document](https://github.com/cloudflare/next-on-pages/blob/main/docs/supported.md) for more details.
 
 ## Quick Start
 
@@ -38,7 +38,7 @@ export const runtime = 'edge';
 
 &NewLine;
 
-For more examples of this and for Next.js versions prior to v13.3.1, take a look at our [examples document](/docs/examples.md). Additionally, ensure that your application is not using any [unsupported APIs](https://nextjs.org/docs/app/api-reference/edge#unsupported-apis) or [features](./docs/supported.md).
+For more examples of this and for Next.js versions prior to v13.3.1, take a look at our [examples document](https://github.com/cloudflare/next-on-pages/blob/main/docs/examples.md). Additionally, ensure that your application is not using any [unsupported APIs](https://nextjs.org/docs/app/api-reference/edge#unsupported-apis) or [features](https://github.com/cloudflare/next-on-pages/blob/main/docs/supported.md).
 
 ### 3. Deploy your application to Cloudflare Pages
 
@@ -98,11 +98,11 @@ npx wrangler pages dev .vercel/output/static --compatibility-flag=nodejs_compat
 
 ## Examples
 
-To see some examples on how to use Next.js features with `@cloudflare/next-on-pages`, see the [Examples document](./docs/examples.md).
+To see some examples on how to use Next.js features with `@cloudflare/next-on-pages`, see the [Examples document](https://github.com/cloudflare/next-on-pages/blob/main/docs/examples.md).
 
 ## Contributing
 
-If you want to contribute to this project please refer to the [Contributing document](./docs/contributing.md).
+If you want to contribute to this project please refer to the [Contributing document](https://github.com/cloudflare/next-on-pages/blob/main/docs/contributing.md).
 
 ## References
 
@@ -116,6 +116,6 @@ Extra references you might be interested in:
 
   Cloudflare guide on how to create and deploy a Next.js application. The application can be either static (and deployed as simple static assets) or dynamic using the edge runtime (using `@cloudflare/next-on-pages`).
 
-- [Technical Documentation](./docs/technical)
+- [Technical Documentation](https://github.com/cloudflare/next-on-pages/blob/main/docs/technical)
 
   Explanations and insights into how `@cloudflare/next-on-pages` works, design decisions behind different aspects, and how it handles different Next.js features.
