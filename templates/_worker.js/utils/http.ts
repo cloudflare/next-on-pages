@@ -4,6 +4,9 @@ import { applyPCREMatches } from './pcre';
 /**
  * Applies a set of headers to a response.
  *
+ * If the header key is `set-cookie`, the value will be appended. Otherwise, the value will be set
+ * and overriden to prevent duplicates which sometimes happens with headers like `x-matched-path`.
+ *
  * @param target Headers object to apply to.
  * @param source Headers to apply.
  * @param pcreMatch PCRE match result to apply to header values.
