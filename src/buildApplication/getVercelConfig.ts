@@ -60,8 +60,9 @@ function getPhaseStart(routes: VercelRoute[], phase: VercelPhase): number {
 }
 
 function getPhaseEnd(routes: VercelRoute[], phaseStart: number): number {
-	const index = routes
-		.findIndex((route, i) => i >= phaseStart && isVercelHandler(route));
+	const index = routes.findIndex(
+		(route, i) => i >= phaseStart && isVercelHandler(route)
+	);
 	return index === -1 ? routes.length : index;
 }
 
