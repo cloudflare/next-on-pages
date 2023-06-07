@@ -2,7 +2,7 @@ const fs = require('fs');
 const { exec } = require('child_process');
 
 try {
-	const package = JSON.parse(fs.readFileSync('./package.json'));
+	const package = JSON.parse(fs.readFileSync('./packages/next-on-pages/package.json'));
 	exec('git rev-parse --short HEAD', (err, stdout) => {
 		if (err) {
 			console.log(err);
@@ -14,7 +14,7 @@ try {
 			beta: getIsBeta(),
 		};
 		fs.writeFileSync(
-			'./package.json',
+			'./packages/next-on-pages/package.json',
 			JSON.stringify(package, null, '\t') + '\n'
 		);
 	});

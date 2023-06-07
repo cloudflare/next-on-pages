@@ -10,7 +10,8 @@
 		"types-check": "FORCE_COLOR=1 turbo types-check",
 		"build": "FORCE_COLOR=1 turbo build",
 		"build:watch": "FORCE_COLOR=1 turbo build:watch",
-		"test:unit": "FORCE_COLOR=1 turbo test:unit"
+		"test:unit": "FORCE_COLOR=1 turbo test:unit",
+		"publish": "turbo publish"
 	},
 	"devDependencies": {
 		"turbo": "^1.10.2"
