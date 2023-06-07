@@ -134,7 +134,10 @@ type TagsManifest = {
  * @param buildId The build_id of nextjs.
  * @returns A response object if we match the correct pathname or null.
  */
-export async function handleNextCacheRequest(request: Request, buildId: string) {
+export async function handleNextCacheRequest(
+	request: Request,
+	buildId: string
+) {
 	const clonedUrl = new URL(request.url);
 
 	const cacheKeyUrl = new URL(request.url);
@@ -175,7 +178,9 @@ export async function handleNextCacheRequest(request: Request, buildId: string) 
 				if (tagItem) {
 					// Invalidate related cache entries
 					for (const key of tagItem.keys) {
-						await cache.delete(new Request(new URL(`/${buildId}${key}`, clonedUrl.origin)));
+						await cache.delete(
+							new Request(new URL(`/${buildId}${key}`, clonedUrl.origin))
+						);
 					}
 					// Delete the tag from the manifest
 					delete manifest.items[tag];

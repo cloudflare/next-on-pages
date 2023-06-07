@@ -1,11 +1,10 @@
 import { cliWarn } from '../cli';
 
-import { readFile } from "fs/promises";
-import { join } from "path";
-
+import { readFile } from 'fs/promises';
+import { join } from 'path';
 
 export async function getBuildId(): Promise<string> {
-	let buildId = "undefined";
+	let buildId = 'undefined';
 	try {
 		buildId = await readFile(join('.next', 'BUILD_ID'), 'utf8');
 	} catch (e) {

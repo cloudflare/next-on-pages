@@ -73,7 +73,7 @@ export async function buildWorkerFile(
 		define: {
 			__CONFIG__: JSON.stringify(vercelConfig),
 			__NODE_ENV__: JSON.stringify(getNodeEnv()),
-			__BUILD_ID__: JSON.stringify(await getBuildId())
+			__BUILD_ID__: JSON.stringify(await getBuildId()),
 		},
 		outfile: outputFile,
 		minify,
