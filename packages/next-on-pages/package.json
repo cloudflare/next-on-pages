@@ -3,7 +3,7 @@
 	"version": "1.0.2",
 	"bin": "./bin/index.js",
 	"scripts": {
-		"prettier": "npx prettier --ignore-unknown --ignore-path=.gitignore .",
+		"prettier": "npx prettier --ignore-unknown src templates tests",
 		"prettier:check": "npm run prettier -- --check",
 		"prettier:fix": "npm run prettier -- --write",
 		"lint": "eslint src",
