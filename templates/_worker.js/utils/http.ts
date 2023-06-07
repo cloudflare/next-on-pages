@@ -16,12 +16,16 @@ export function applyHeaders(
 	const entries =
 		source instanceof Headers ? source.entries() : Object.entries(source);
 	for (const [key, value] of entries) {
-		target.set(
-			key.toLowerCase(),
-			pcreMatch?.match
-				? applyPCREMatches(value, pcreMatch.match, pcreMatch.captureGroupKeys)
-				: value
-		);
+		const lowerKey = key.toLowerCase();
+		const newValue = pcreMatch?.match
+			? applyPCREMatches(value, pcreMatch.match, pcreMatch.captureGroupKeys)
+			: value;
+
+		if (lowerKey === 'set-cookie') {
+			target.append(lowerKey, newValue);
+		} else {
+			target.set(lowerKey, newValue);
+		}
 	}
 }
 
