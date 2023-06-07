@@ -28,6 +28,44 @@ export async function getVercelConfig(): Promise<VercelConfig> {
 	return config;
 }
 
+/**
+ * Gets the routes of a specific vercel phase
+ *
+ * @param config Vercel config object containing all the routes information
+ * @param phase the phase from which extract the routes
+ * @returns the phases' routes
+ */
+export function getPhaseRoutes(
+	routes: VercelRoute[],
+	phase: VercelPhase
+): VercelRoute[] {
+	if (!routes.length) {
+		return [];
+	}
+
+	const phaseStart = getPhaseStart(routes, phase);
+	const phaseEnd = getPhaseEnd(routes, phaseStart);
+	return routes.slice(phaseStart, phaseEnd);
+}
+
+function getPhaseStart(routes: VercelRoute[], phase: VercelPhase): number {
+	if (phase === 'none') {
+		return 0;
+	}
+
+	const index = routes.findIndex(
+		route => isVercelHandler(route) && route.handle === phase
+	);
+	return index === -1 ? routes.length : index + 1;
+}
+
+function getPhaseEnd(routes: VercelRoute[], phaseStart: number): number {
+	const index = routes.findIndex(
+		(route, i) => i >= phaseStart && isVercelHandler(route)
+	);
+	return index === -1 ? routes.length : index;
+}
+
 export function processVercelConfig(
 	config: VercelConfig
 ): ProcessedVercelConfig {
@@ -46,7 +84,7 @@ export function processVercelConfig(
 
 	let currentPhase: VercelHandleValue | 'none' = 'none';
 	config.routes?.forEach(route => {
-		if ('handle' in route) {
+		if (isVercelHandler(route)) {
 			currentPhase = route.handle;
 		} else {
 			processedConfig.routes[currentPhase].push(route);
@@ -54,4 +92,8 @@ export function processVercelConfig(
 	});
 
 	return processedConfig;
+}
+
+function isVercelHandler(route: VercelRoute): route is VercelHandler {
+	return 'handle' in route;
 }
