@@ -35,3 +35,9 @@ jobs:
         run: npm publish --tag beta
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish eslint-plugin-next-on-pages Beta to NPM
+        working-directory: ./packages/eslint-plugin-next-on-pages
+        run: npm publish --tag beta
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

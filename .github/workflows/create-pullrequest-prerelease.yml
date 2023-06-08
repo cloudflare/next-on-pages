@@ -40,3 +40,13 @@ jobs:
         with:
           name: npm-package-next-on-pages-${{ github.event.number }} # encode the PR number into the artifact name
           path: ./packages/next-on-pages/cloudflare-next-on-pages-*.tgz
+
+      - name: Create eslint-plugin-next-on-pages package
+        working-directory: ./packages/eslint-plugin-next-on-pages
+        run: npm pack
+
+      - name: Upload packaged eslint-plugin-next-on-pages artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: npm-package-eslint-plugin-next-on-pages-${{ github.event.number }} # encode the PR number into the artifact name
+          path: ./packages/eslint-plugin-next-on-pages/cloudflare-eslint-plugin-next-on-pages-*.tgz

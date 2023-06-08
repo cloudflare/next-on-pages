@@ -1,0 +1,16 @@
+{
+	"$schema": "https://json.schemastore.org/tsconfig",
+	"extends": "@tsconfig/strictest/tsconfig.json",
+	"compilerOptions": {
+		"target": "ES2022",
+		"module": "CommonJS",
+		"lib": ["ES2022"],
+		"types": ["@cloudflare/workers-types"],
+
+		"moduleResolution": "node",
+		"resolveJsonModule": true,
+		"checkJs": false,
+
+		"exactOptionalPropertyTypes": false
+	}
+}
