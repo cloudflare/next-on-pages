@@ -14,6 +14,13 @@ describe('routing', () => {
 		expect(stripRouteGroups('/(route-group)/path')).toEqual('/path');
 	});
 
+	test('stripRouteGroups does not strip intercepts', () => {
+		expect(stripRouteGroups('/(.)intercept')).toEqual('/(.)intercept');
+		expect(stripRouteGroups('/(..)(..)intercept')).toEqual(
+			'/(..)(..)intercept'
+		);
+	});
+
 	test('stripIndexRoute', () => {
 		expect(stripIndexRoute('/index')).toEqual('/');
 		expect(stripIndexRoute('/path/index')).toEqual('/path');
