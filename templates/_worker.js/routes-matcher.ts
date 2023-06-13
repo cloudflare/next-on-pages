@@ -24,6 +24,8 @@ export class RoutesMatcher {
 	private url: URL;
 	/** Cookies from the request to match */
 	private cookies: Record<string, string>;
+	/** Wildcard match from the Vercel build output config */
+	private wildcardMatch: VercelWildCard | undefined;
 
 	/** Path for the matched route */
 	public path: string;
@@ -47,7 +49,7 @@ export class RoutesMatcher {
 	 * @param routes The processed Vercel build output config routes.
 	 * @param output Vercel build output.
 	 * @param reqCtx Request context object; request object, assets fetcher, and execution context.
-	 * @param prevMatch The previous match from a routing phase to initialize the matcher with.
+	 * @param wildcardMatch Wildcard options from the Vercel build output config.
 	 * @returns The matched set of path, status, headers, and search params.
 	 */
 	constructor(
@@ -57,8 +59,7 @@ export class RoutesMatcher {
 		private output: VercelBuildOutput,
 		/** Request Context object for the request to match */
 		private reqCtx: RequestContext,
-		/** Wildcard options from the Vercel build output config. */
-		private wildcardConfig?: VercelWildcardConfig
+		wildcardConfig?: VercelWildcardConfig
 	) {
 		this.url = new URL(reqCtx.request.url);
 		this.cookies = parse(reqCtx.request.headers.get('cookie') || '');
@@ -69,6 +70,10 @@ export class RoutesMatcher {
 		applySearchParams(this.searchParams, this.url.searchParams);
 
 		this.checkPhaseCounter = 0;
+
+		this.wildcardMatch = wildcardConfig?.find(
+			w => w.domain === this.url.hostname
+		);
 	}
 
 	/**
@@ -268,17 +273,14 @@ export class RoutesMatcher {
 		if (!route.dest) return this.path;
 
 		const prevPath = this.path;
+		let processedDest = route.dest;
 
 		// Apply wildcard matches before PCRE matches
-		let processedDest = route.dest;
-		if (/\$wildcard/.test(processedDest)) {
-			const match = this.wildcardConfig?.find(
-				w => w.domain === this.url.hostname
+		if (this.wildcardMatch && /\$wildcard/.test(processedDest)) {
+			processedDest = processedDest.replace(
+				/\$wildcard/g,
+				this.wildcardMatch.value
 			);
-
-			if (match) {
-				processedDest = processedDest.replace(/\$wildcard/g, match.value);
-			}
 		}
 
 		this.path = applyPCREMatches(processedDest, srcMatch, captureGroupKeys);
