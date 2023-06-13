@@ -10,7 +10,7 @@ import { normalizePath } from './fs';
  * @returns Path name with route groups stripped.
  */
 export function stripRouteGroups(path: string) {
-	return path.replace(/\/\(([^)]+)\)/g, '');
+	return path.replace(/\/\(([^).]+)\)/g, '');
 }
 
 /**
