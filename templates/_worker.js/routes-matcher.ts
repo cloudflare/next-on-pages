@@ -49,7 +49,7 @@ export class RoutesMatcher {
 	 * @param routes The processed Vercel build output config routes.
 	 * @param output Vercel build output.
 	 * @param reqCtx Request context object; request object, assets fetcher, and execution context.
-	 * @param wildcardMatch Wildcard options from the Vercel build output config.
+	 * @param wildcardConfig Wildcard options from the Vercel build output config.
 	 * @returns The matched set of path, status, headers, and search params.
 	 */
 	constructor(
