@@ -16,6 +16,7 @@ describe('routing', () => {
 
 	test('stripRouteGroups does not strip intercepts', () => {
 		expect(stripRouteGroups('/(.)intercept')).toEqual('/(.)intercept');
+		expect(stripRouteGroups('/(..)(..)intercept')).toEqual('/(..)(..)intercept');
 	});
 
 	test('stripIndexRoute', () => {

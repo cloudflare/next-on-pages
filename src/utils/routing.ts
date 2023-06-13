@@ -5,6 +5,9 @@ import { normalizePath } from './fs';
  *
  * The build output config does not rewrite requests to route groups, so we need to strip route
  * groups from the path name for file system matching.
+ * 
+ * Does not strip brackets containing `.` characters, as these are used for route intercepts.
+ * https://nextjs.org/docs/app/building-your-application/routing/intercepting-routes
  *
  * @param path Path name to strip route groups from.
  * @returns Path name with route groups stripped.
