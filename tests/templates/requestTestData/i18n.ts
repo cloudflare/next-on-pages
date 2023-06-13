@@ -118,6 +118,7 @@ const rawVercelConfig: VercelConfig = {
 		},
 		{ src: '/.*', dest: '/en/500', status: 500 },
 	],
+	wildcard: [{ domain: 'example.es', value: '/es' }],
 	overrides: {
 		'en/gsp.html': { path: 'en/gsp', contentType: 'text/html; charset=utf-8' },
 		'fr/gsp.html': { path: 'fr/gsp', contentType: 'text/html; charset=utf-8' },
@@ -342,6 +343,19 @@ export const testSet: TestSet = {
 				headers: {
 					'content-type': 'text/html; charset=utf-8',
 					'x-matched-path': '/fr',
+				},
+			},
+		},
+		{
+			name: 'Vercel wildcard rewrites work: example.es -> /es',
+			paths: ['/'],
+			host: 'example.es',
+			expected: {
+				status: 200,
+				data: '<html>es</html>',
+				headers: {
+					'content-type': 'text/html; charset=utf-8',
+					'x-matched-path': '/es',
 				},
 			},
 		},

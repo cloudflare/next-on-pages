@@ -16,7 +16,12 @@ export async function handleRequest(
 	config: ProcessedVercelConfig,
 	output: VercelBuildOutput
 ): Promise<Response> {
-	const matcher = new RoutesMatcher(config.routes, output, reqCtx);
+	const matcher = new RoutesMatcher(
+		config.routes,
+		output,
+		reqCtx,
+		config.wildcard
+	);
 	const match = await findMatch(matcher);
 
 	return generateResponse(reqCtx, match, output);

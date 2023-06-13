@@ -28,7 +28,7 @@ Earlier and Later versions might be only partially supported, we don't fully kno
 | routes `locale`         | ✅      |
 | routes `middlewarePath` | ✅      |
 | images<sup>1</sup>      | 🔄      |
-| wildcard                | 🔄      |
+| wildcard                | ✅      |
 | overrides               | ✅      |
 | cache                   | ❌      |
 | crons                   | ❌      |
