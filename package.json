@@ -49,7 +49,7 @@
 		"zodcli": "^0.0.4"
 	},
 	"peerDependencies": {
-		"next-on-pages-vercel-cli": "29.3.0-next-on-pages-fix-3",
+		"vercel": "^30.0.0",
 		"wrangler": "^3.0.0"
 	},
 	"devDependencies": {
