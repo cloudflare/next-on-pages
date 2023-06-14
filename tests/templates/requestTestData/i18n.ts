@@ -233,7 +233,7 @@ export const testSet: TestSet = {
 					data: JSON.stringify({ file: '/index', params: [] }),
 					headers: {
 						'content-type': 'text/plain;charset=UTF-8',
-						'x-matched-path': `/`,
+						'x-matched-path': '/',
 					},
 				},
 			};
