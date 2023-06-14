@@ -50,7 +50,7 @@ If you're application is using a package which relies on unsupported Node.js API
 | routes `locale`         | ✅      |
 | routes `middlewarePath` | ✅      |
 | images<sup>1</sup>      | 🔄      |
-| wildcard                | 🔄      |
+| wildcard                | ✅      |
 | overrides               | ✅      |
 | cache                   | ❌      |
 | crons                   | ❌      |

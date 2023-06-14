@@ -1,5 +1,5 @@
 import { parse } from 'cookie';
-import type { MatchPCREResult, MatchedSet } from './utils';
+import type { MatchPCREResult } from './utils';
 import { parseAcceptLanguage } from './utils';
 import {
 	applyHeaders,
@@ -24,6 +24,8 @@ export class RoutesMatcher {
 	private url: URL;
 	/** Cookies from the request to match */
 	private cookies: Record<string, string>;
+	/** Wildcard match from the Vercel build output config */
+	private wildcardMatch: VercelWildCard | undefined;
 
 	/** Path for the matched route */
 	public path: string;
@@ -49,7 +51,7 @@ export class RoutesMatcher {
 	 * @param routes The processed Vercel build output config routes.
 	 * @param output Vercel build output.
 	 * @param reqCtx Request context object; request object, assets fetcher, and execution context.
-	 * @param prevMatch The previous match from a routing phase to initialize the matcher with.
+	 * @param wildcardConfig Wildcard options from the Vercel build output config.
 	 * @returns The matched set of path, status, headers, and search params.
 	 */
 	constructor(
@@ -59,21 +61,21 @@ export class RoutesMatcher {
 		private output: VercelBuildOutput,
 		/** Request Context object for the request to match */
 		private reqCtx: RequestContext,
-		prevMatch?: MatchedSet
+		wildcardConfig?: VercelWildcardConfig
 	) {
 		this.url = new URL(reqCtx.request.url);
 		this.cookies = parse(reqCtx.request.headers.get('cookie') || '');
 
-		this.path = prevMatch?.path || this.url.pathname || '/';
-		this.status = prevMatch?.status;
-		this.headers = prevMatch?.headers || {
-			normal: new Headers(),
-			important: new Headers(),
-		};
-		this.searchParams = prevMatch?.searchParams || new URLSearchParams();
+		this.path = this.url.pathname || '/';
+		this.headers = { normal: new Headers(), important: new Headers() };
+		this.searchParams = new URLSearchParams();
 		applySearchParams(this.searchParams, this.url.searchParams);
 
 		this.checkPhaseCounter = 0;
+
+		this.wildcardMatch = wildcardConfig?.find(
+			w => w.domain === this.url.hostname
+		);
 	}
 
 	/**
@@ -269,6 +271,8 @@ export class RoutesMatcher {
 	/**
 	 * Applies the route's destination for the matching the path to the Vercel build output.
 	 *
+	 * Applies any wildcard matches to the destination.
+	 *
 	 * @param route Build output config source route.
 	 * @param srcMatch Matches from the PCRE matcher.
 	 * @param captureGroupKeys Named capture group keys from the PCRE matcher.
@@ -282,8 +286,17 @@ export class RoutesMatcher {
 		if (!route.dest) return this.path;
 
 		const prevPath = this.path;
+		let processedDest = route.dest;
 
-		this.path = applyPCREMatches(route.dest, srcMatch, captureGroupKeys);
+		// Apply wildcard matches before PCRE matches
+		if (this.wildcardMatch && /\$wildcard/.test(processedDest)) {
+			processedDest = processedDest.replace(
+				/\$wildcard/g,
+				this.wildcardMatch.value
+			);
+		}
+
+		this.path = applyPCREMatches(processedDest, srcMatch, captureGroupKeys);
 
 		// NOTE: Special handling for `/index` RSC routes. Sometimes the Vercel build output config
 		// has a record to rewrite `^/` to `/index.rsc`, however, this will hit requests to pages
