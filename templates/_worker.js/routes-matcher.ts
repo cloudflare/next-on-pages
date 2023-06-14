@@ -382,6 +382,11 @@ export class RoutesMatcher {
 	 * the locale to `/`. This is problematic for matching, and should only do this if the path is
 	 * exactly the locale, i.e. `^/{locale}$`.
 	 *
+	 * There is a source route generated for rewriting `/{locale}/*` to `/*` when no file was found
+	 * for the path. This causes issues when using an SSR function for the index page as the request
+	 * to `/{locale}` will not be caught by the regex. Therefore, the regex needs to be updated to
+	 * also match requests to solely `/{locale}` when the path has no trailing slash.
+	 *
 	 * @param route Build output config source route.
 	 * @param phase Current phase of the routing process.
 	 * @returns The route with the locale friendly regex.
@@ -390,19 +395,26 @@ export class RoutesMatcher {
 		route: VercelSource,
 		phase: VercelPhase
 	): VercelSource {
-		if (
-			!this.locales ||
-			phase !== 'miss' ||
-			!/^\//.test(route.src) ||
-			!(route.src.slice(1) in this.locales)
-		) {
+		if (!this.locales || phase !== 'miss') {
 			return route;
 		}
 
-		return {
-			...route,
-			src: `^${route.src}$`,
-		};
+		if (/^\//.test(route.src) && route.src.slice(1) in this.locales) {
+			return { ...route, src: `^${route.src}$` };
+		}
+
+		const trailingSlashRegex = /^\^\/\/\?\(\?:([a-zA-Z|]+)\)\/\(\.\*\)$/;
+		const trailingSlashMatch = trailingSlashRegex.exec(route.src);
+		if (
+			trailingSlashMatch?.[1]
+				?.split('|')
+				// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+				?.every(locale => locale in this.locales!)
+		) {
+			return { ...route, src: route.src.replace(/\/\(\.\*\)$/, '(?:/(.*))?$') };
+		}
+
+		return route;
 	}
 
 	/**
