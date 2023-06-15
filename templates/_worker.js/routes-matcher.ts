@@ -1,6 +1,6 @@
 import { parse } from 'cookie';
 import type { MatchPCREResult } from './utils';
-import { parseAcceptLanguage } from './utils';
+import { isLocaleTrailingSlashRegex, parseAcceptLanguage } from './utils';
 import {
 	applyHeaders,
 	applyPCREMatches,
@@ -405,14 +405,7 @@ export class RoutesMatcher {
 			return { ...route, src: `^${route.src}$` };
 		}
 
-		const trailingSlashRegex = /^\^\/\/\?\(\?:([a-zA-Z|]+)\)\/\(\.\*\)$/;
-		const trailingSlashMatch = trailingSlashRegex.exec(route.src);
-		if (
-			trailingSlashMatch?.[1]
-				?.split('|')
-				// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-				?.every(locale => locale in this.locales!)
-		) {
+		if (isLocaleTrailingSlashRegex(route.src, this.locales)) {
 			return { ...route, src: route.src.replace(/\/\(\.\*\)$/, '(?:/(.*))?$') };
 		}
 
