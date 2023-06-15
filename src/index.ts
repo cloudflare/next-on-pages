@@ -78,6 +78,7 @@ function setWatchMode(fn: () => void): void {
 			'pnpm-lock.yaml',
 			'.pnpm-store',
 			'_tmp_*',
+			'package.json',
 		],
 		ignoreInitial: true,
 	}).on('all', fn);
