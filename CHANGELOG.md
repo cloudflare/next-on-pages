@@ -1,5 +1,18 @@
 # @cloudflare/next-on-pages
 
+## 1.1.0
+
+### Minor Changes
+
+- 1be5e72: Support for the `wildcard` option in the Vercel build output config.
+
+### Patch Changes
+
+- 783dc79: Added package.json to list of ignored files in watch mode to ensure compatibility with yarn (classic)
+- fb818bf: Fix i18n locale index routes not matching for SSR'd index pages.
+- 016b8d3: Fix `set-cookie` headers overriding when more than one is set, instead of appending.
+- d835933: Prevent the route group stripping regex from removing intercept routes.
+
 ## 1.0.2
 
 ### Patch Changes
