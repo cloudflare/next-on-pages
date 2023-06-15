@@ -19,12 +19,12 @@ const rawVercelConfig: VercelConfig = {
 			continue: true,
 		},
 		{
-			src: '^/(?!(?:_next/.*|en|fr|nl|es)(?:/.*|$))(.*)$',
+			src: '^/(?!(?:_next/.*|en|fr|nl|es|de)(?:/.*|$))(.*)$',
 			dest: '$wildcard/$1',
 			continue: true,
 		},
 		{
-			src: '^//?(?:en|fr|nl|es)?/?$',
+			src: '^//?(?:en|fr|nl|es|de)?/?$',
 			locale: {
 				redirect: { es: 'https://example.es/' },
 				cookie: 'NEXT_LOCALE',
@@ -34,24 +34,24 @@ const rawVercelConfig: VercelConfig = {
 		{
 			src: '/',
 			locale: {
-				redirect: { en: '/', fr: '/fr', nl: '/nl', es: '/es' },
+				redirect: { en: '/', fr: '/fr', nl: '/nl', es: '/es', de: '/de' },
 				cookie: 'NEXT_LOCALE',
 			},
 			continue: true,
 		},
 		{ src: '^/$', dest: '/en', continue: true },
 		{
-			src: '^/(?!(?:_next/.*|en|fr|nl|es)(?:/.*|$))(.*)$',
+			src: '^/(?!(?:_next/.*|en|fr|nl|es|de)(?:/.*|$))(.*)$',
 			dest: '/en/$1',
 			continue: true,
 		},
 		{
-			src: '/(?:en|fr|nl|es)?[/]?404/?',
+			src: '/(?:en|fr|nl|es|de)?[/]?404/?',
 			status: 404,
 			continue: true,
 			missing: [{ type: 'header', key: 'x-prerender-revalidate' }],
 		},
-		{ src: '/(?:en|fr|nl|es)?[/]?500', status: 500, continue: true },
+		{ src: '/(?:en|fr|nl|es|de)?[/]?500', status: 500, continue: true },
 		{ handle: 'filesystem' },
 		{ src: '/_next/data/(.*)', dest: '/_next/data/$1', check: true },
 		{ handle: 'resource' },
@@ -64,23 +64,23 @@ const rawVercelConfig: VercelConfig = {
 			dest: '$0',
 		},
 		{ src: '/en', dest: '/', check: true },
-		{ src: '^//?(?:en|fr|nl|es)/(.*)', dest: '/$1', check: true },
+		{ src: '^//?(?:en|fr|nl|es|de)/(.*)', dest: '/$1', check: true },
 		{ handle: 'rewrite' },
 		{
-			src: '^/_next/data/_LMNvx1uNzgkLzYi9\\-YVv/(?<nextLocale>en|fr|nl|es)/gsp.json$',
+			src: '^/_next/data/_LMNvx1uNzgkLzYi9\\-YVv/(?<nextLocale>en|fr|nl|es|de)/gsp.json$',
 			dest: '/$nextLocale/gsp',
 		},
 		{
-			src: '^/_next/data/_LMNvx1uNzgkLzYi9\\-YVv/(?<nextLocale>en|fr|nl|es)/gsp/(?<nxtPslug>[^/]+?)\\.json$',
+			src: '^/_next/data/_LMNvx1uNzgkLzYi9\\-YVv/(?<nextLocale>en|fr|nl|es|de)/gsp/(?<nxtPslug>[^/]+?)\\.json$',
 			dest: '/$nextLocale/gsp/[slug]?nxtPslug=$nxtPslug',
 		},
 		{
-			src: '^/_next/data/_LMNvx1uNzgkLzYi9\\-YVv/(?<nextLocale>en|fr|nl|es)/gssp.json$',
+			src: '^/_next/data/_LMNvx1uNzgkLzYi9\\-YVv/(?<nextLocale>en|fr|nl|es|de)/gssp.json$',
 			dest: '/$nextLocale/gssp',
 		},
 		{ src: '/_next/data/(.*)', dest: '/404', status: 404 },
 		{
-			src: '^[/]?(?<nextLocale>en|fr|nl|es)?/gsp/(?<nxtPslug>[^/]+?)(?:/)?$',
+			src: '^[/]?(?<nextLocale>en|fr|nl|es|de)?/gsp/(?<nxtPslug>[^/]+?)(?:/)?$',
 			dest: '/$nextLocale/gsp/[slug]?nxtPslug=$nxtPslug',
 		},
 		{ handle: 'hit' },
@@ -104,14 +104,14 @@ const rawVercelConfig: VercelConfig = {
 		},
 		{ handle: 'error' },
 		{
-			src: '/(?<nextLocale>en|fr|nl|es)(/.*|$)',
+			src: '/(?<nextLocale>en|fr|nl|es|de)(/.*|$)',
 			dest: '/$nextLocale/404',
 			status: 404,
 			caseSensitive: true,
 		},
 		{ src: '/.*', dest: '/en/404', status: 404 },
 		{
-			src: '/(?<nextLocale>en|fr|nl|es)(/.*|$)',
+			src: '/(?<nextLocale>en|fr|nl|es|de)(/.*|$)',
 			dest: '/$nextLocale/500',
 			status: 500,
 			caseSensitive: true,
@@ -135,10 +135,14 @@ const rawVercelConfig: VercelConfig = {
 		'es.html': { path: 'es', contentType: 'text/html; charset=utf-8' },
 		'es/404.html': { path: 'es/404', contentType: 'text/html; charset=utf-8' },
 		'es/500.html': { path: 'es/500', contentType: 'text/html; charset=utf-8' },
+		'de/404.html': { path: 'de/404', contentType: 'text/html; charset=utf-8' },
+		'de/500.html': { path: 'de/500', contentType: 'text/html; charset=utf-8' },
 	},
 };
 
-const locales = ['en', 'nl', 'fr', 'es'] as const;
+const staticLocales = ['en', 'fr', 'nl', 'es'] as const;
+const nonStaticLocales = ['de'] as const;
+const locales = [...staticLocales, ...nonStaticLocales] as const;
 
 export const testSet: TestSet = {
 	name: 'routes using middleware',
@@ -147,6 +151,7 @@ export const testSet: TestSet = {
 		functions: {
 			gsp: { '[slug].func': createValidFuncDir('/gsp/[slug]') },
 			'gssp.func': createValidFuncDir('/gssp'),
+			'index.func': createValidFuncDir('/index'),
 		},
 		static: {
 			_next: {
@@ -164,7 +169,9 @@ export const testSet: TestSet = {
 			...locales.reduce(
 				(acc, locale) => ({
 					...acc,
-					[`${locale}.html`]: `<html>${locale}</html>`,
+					...(staticLocales.includes(locale as (typeof staticLocales)[number])
+						? { [`${locale}.html`]: `<html>${locale}</html>` }
+						: {}),
 					[locale]: {
 						'404.html': `<html>${locale}: 404</html>`,
 						'500.html': `<html>${locale}: 500</html>`,
@@ -200,7 +207,7 @@ export const testSet: TestSet = {
 				},
 			},
 		},
-		...locales.map(locale => {
+		...staticLocales.map(locale => {
 			const path = `/${locale}`;
 			return {
 				name: `${path} matches ${path} static page for the correct locale`,
@@ -211,6 +218,21 @@ export const testSet: TestSet = {
 					headers: {
 						'content-type': 'text/html; charset=utf-8',
 						'x-matched-path': `${path}`,
+					},
+				},
+			};
+		}),
+		...nonStaticLocales.map(locale => {
+			const path = `/${locale}`;
+			return {
+				name: `${path} matches /index function as it is not statically generated`,
+				paths: [path],
+				expected: {
+					status: 200,
+					data: JSON.stringify({ file: '/index', params: [] }),
+					headers: {
+						'content-type': 'text/plain;charset=UTF-8',
+						'x-matched-path': '/',
 					},
 				},
 			};
