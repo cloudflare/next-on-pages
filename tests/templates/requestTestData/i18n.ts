@@ -169,8 +169,7 @@ export const testSet: TestSet = {
 			...locales.reduce(
 				(acc, locale) => ({
 					...acc,
-					// @ts-expect-error - static locales is a subset of locales so this is fine
-					...(staticLocales.includes(locale)
+					...(staticLocales.includes(locale as (typeof staticLocales)[number])
 						? { [`${locale}.html`]: `<html>${locale}</html>` }
 						: {}),
 					[locale]: {
