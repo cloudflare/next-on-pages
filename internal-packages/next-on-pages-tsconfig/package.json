@@ -1,5 +1,5 @@
 {
-	"name": "next-on-pages-tsconfig",
+	"name": "@cloudflare/next-on-pages-tsconfig",
 	"version": "0.0.0",
 	"private": true,
 	"description": "Shared tsconfig for next-on-pages packages"

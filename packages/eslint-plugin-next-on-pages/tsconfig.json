@@ -1,5 +1,5 @@
 {
-  "extends": "next-on-pages-tsconfig/tsconfig.json",
+  "extends": "@cloudflare/next-on-pages-tsconfig/tsconfig.json",
   "exclude": ["vitest.config.ts"],
   "compilerOptions": {
     "types": ["@types/node", "@types/estree-jsx"]
