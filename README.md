@@ -9,8 +9,8 @@
 Alongside the `@cloudflare/next-on-pages` there is an additional package `eslint-plugin-next-on-pages` implementing an Eslint plugin which aim is to aid developers at using the `@cloudflare/next-on-pages` more efficiently and improve their overall developer experience when working with it.
 
 You can see the packages contents (with their documentation) in their respective package directories:
- - [`@cloudflare/next-on-pages`](https://github.com/cloudflare/next-on-pages/tree/main/src/packages/next-on-pages)
- - [`eslint-plugin-next-on-pages`](https://github.com/cloudflare/next-on-pages/tree/main/src/packages/eslint-plugin-next-on-pages)
+ - [`@cloudflare/next-on-pages`](https://github.com/cloudflare/next-on-pages/tree/main/packages/next-on-pages#cloudflarenext-on-pages)
+ - [`eslint-plugin-next-on-pages`](https://github.com/cloudflare/next-on-pages/tree/main/packages/eslint-plugin-next-on-pages#eslint-plugin-next-on-pages)
 
 ## Contributing
 
