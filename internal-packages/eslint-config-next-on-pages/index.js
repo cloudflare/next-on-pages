@@ -1,4 +1,4 @@
-{
+module.exports = {
 	"env": {
 		"es2021": true,
 		"node": true
@@ -8,7 +8,7 @@
 	"parser": "@typescript-eslint/parser",
 	"parserOptions": {
 		"sourceType": "module",
-		"project": "./tsconfig.json"
+		"project": true
 	},
 	"plugins": ["@typescript-eslint"],
 	"rules": {
@@ -23,4 +23,4 @@
 		"@typescript-eslint/consistent-type-imports": "error"
 	},
 	"ignorePatterns": ["vitest.config.ts"]
-}
+};

@@ -8,11 +8,9 @@
 		"types": ["@cloudflare/workers-types"],
 
 		"moduleResolution": "node",
-		"verbatimModuleSyntax": false,
 		"resolveJsonModule": true,
 		"checkJs": false,
 
 		"exactOptionalPropertyTypes": false
-	},
-	"include": ["src", "templates", "tests", "vercel.types.d.ts", "env.d.ts"]
+	}
 }

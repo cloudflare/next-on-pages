@@ -1,0 +1,4 @@
+{
+	"extends": "@cloudflare/next-on-pages-tsconfig/tsconfig.json",
+	"include": ["src", "templates", "tests", "vercel.types.d.ts", "env.d.ts", ".eslintrc.js"]
+}

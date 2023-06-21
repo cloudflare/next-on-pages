@@ -2,20 +2,31 @@ const fs = require('fs');
 const { exec } = require('child_process');
 
 try {
-	const package = JSON.parse(fs.readFileSync('./package.json'));
+	const nextOnPagesPackage = JSON.parse(fs.readFileSync('./packages/next-on-pages/package.json'));
+	const eslintPluginPackage = JSON.parse(fs.readFileSync('./packages/eslint-plugin-next-on-pages/package.json'));
+
 	exec('git rev-parse --short HEAD', (err, stdout) => {
 		if (err) {
 			console.log(err);
 			process.exit(1);
 		}
-		package.version = '0.0.0-' + stdout.trim();
-		package.nextOnPagesMetadata = {
+		const version = '0.0.0-' + stdout.trim();
+		const nextOnPagesMetadata = {
 			pullRequest: getPullRequestNumber(),
 			beta: getIsBeta(),
 		};
+		nextOnPagesPackage.version = version;
+		nextOnPagesPackage.nextOnPagesMetadata = nextOnPagesMetadata;
+		eslintPluginPackage.version = version;
+		nextOnPagesPackage.nextOnPagesMetadata = nextOnPagesMetadata;
+
 		fs.writeFileSync(
-			'./package.json',
-			JSON.stringify(package, null, '\t') + '\n'
+			'./packages/next-on-pages/package.json',
+			JSON.stringify(nextOnPagesPackage, null, '\t') + '\n'
+		);
+		fs.writeFileSync(
+			'./packages/eslint-plugin-next-on-pages/package.json',
+			JSON.stringify(eslintPluginPackage, null, '\t') + '\n'
 		);
 	});
 } catch (error) {
