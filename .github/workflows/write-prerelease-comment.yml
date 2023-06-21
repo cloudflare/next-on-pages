@@ -40,7 +40,7 @@ jobs:
         with:
           number: ${{ env.WORKFLOW_RUN_PR }}
           message: |
-            🧪 A prereleases are available for testing 🧪
+            🧪 Prereleases are available for testing 🧪
 
             <details>
 
