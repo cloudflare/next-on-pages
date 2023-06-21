@@ -76,7 +76,7 @@ async function validatePathType(path: string, type: 'file' | 'directory') {
  * @param path Path to check.
  * @returns Whether a file exists at the given path.
  */
-export function validateFile(path: string) {
+export async function validateFile(path: string) {
 	return validatePathType(path, 'file');
 }
 
@@ -86,7 +86,7 @@ export function validateFile(path: string) {
  * @param path Path to check.
  * @returns Whether a directory exists at the given path.
  */
-export function validateDir(path: string) {
+export async function validateDir(path: string) {
 	return validatePathType(path, 'directory');
 }
 
@@ -105,7 +105,7 @@ export async function readPathsRecursively(dir: string): Promise<string[]> {
 				const path = resolve(dir, file);
 
 				return (await validateDir(path))
-					? await readPathsRecursively(path)
+					? readPathsRecursively(path)
 					: [path];
 			})
 		);
