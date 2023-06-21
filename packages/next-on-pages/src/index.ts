@@ -1,7 +1,7 @@
 import { watch } from 'chokidar';
 import pLimit from 'p-limit';
 import type { CliOptions } from './cli';
-import { cliWarn , cliError } from './cli';
+import { cliWarn, cliError } from './cli';
 import { cliLog, parseCliArgs, printCliHelpMessage, printEnvInfo } from './cli';
 import { buildApplication } from './buildApplication';
 import { nextOnPagesVersion } from './utils';

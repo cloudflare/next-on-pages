@@ -104,9 +104,7 @@ export async function readPathsRecursively(dir: string): Promise<string[]> {
 			files.map(async file => {
 				const path = resolve(dir, file);
 
-				return (await validateDir(path))
-					? readPathsRecursively(path)
-					: [path];
+				return (await validateDir(path)) ? readPathsRecursively(path) : [path];
 			})
 		);
 
