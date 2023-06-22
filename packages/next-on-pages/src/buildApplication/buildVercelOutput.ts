@@ -124,7 +124,7 @@ async function getVercelBuildChildProcess(
 async function isVercelPackageInstalled(
 	pkgMng: PackageManager
 ): Promise<boolean> {
-	const packageVersion = getPackageVersion('vercel', pkgMng);
+	const packageVersion = await getPackageVersion('vercel', pkgMng);
 	return !!packageVersion;
 }
 

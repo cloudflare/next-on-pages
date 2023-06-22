@@ -1,16 +1,16 @@
 import { watch } from 'chokidar';
 import pLimit from 'p-limit';
 import type { CliOptions } from './cli';
-import { cliWarn } from './cli';
+import { cliWarn, cliError } from './cli';
 import { cliLog, parseCliArgs, printCliHelpMessage, printEnvInfo } from './cli';
 import { buildApplication } from './buildApplication';
 import { nextOnPagesVersion } from './utils';
 
 const limit = pLimit(1);
 
-runNextOnPages();
+void runNextOnPages();
 
-function runNextOnPages(): void {
+async function runNextOnPages(): Promise<void> {
 	const args = parseCliArgs();
 
 	if (args.version) {
@@ -19,7 +19,7 @@ function runNextOnPages(): void {
 		return;
 	}
 	if (args.info) {
-		printEnvInfo();
+		await printEnvInfo();
 		return;
 	}
 
@@ -62,7 +62,7 @@ function runBuild(options: CliOptions) {
 				`);
 			}
 		}
-	});
+	}).catch(error => cliError(`Watch mode unexpected error: ${error}`));
 }
 
 function setWatchMode(fn: () => void): void {
