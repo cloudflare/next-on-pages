@@ -30,6 +30,12 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: copy .changeset directory to next-on-pages
+        run: cp -r .changeset packages/next-on-pages
+
+      - name: copy .changeset directory to eslint-plugin-next-on-pages
+        run: cp -r .changeset packages/eslint-plugin-next-on-pages
+
       - name: Publish next-on-pages Beta to NPM
         working-directory: ./packages/next-on-pages
         run: npm publish --tag beta
