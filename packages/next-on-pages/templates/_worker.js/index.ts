@@ -1,5 +1,9 @@
 import { handleRequest } from './handleRequest';
-import { adjustRequestForVercel, handleImageResizingRequest } from './utils';
+import {
+	adjustRequestForVercel,
+	handleImageResizingRequest,
+	patchFetchToAllowBundledAssets,
+} from './utils';
 import type { AsyncLocalStorage } from 'node:async_hooks';
 
 declare const __NODE_ENV__: string;
@@ -12,6 +16,7 @@ declare const __ENV_ALS_PROMISE__: Promise<null | AsyncLocalStorage<unknown>>;
 
 export default {
 	async fetch(request, env, ctx) {
+		patchFetchToAllowBundledAssets();
 		const envAsyncLocalStorage = await __ENV_ALS_PROMISE__;
 		if (!envAsyncLocalStorage) {
 			return new Response(
