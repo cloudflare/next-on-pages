@@ -86,8 +86,14 @@ export function printBuildSummary(
 		wasmIdentifiers = new Map(),
 	}: Partial<DirectoryProcessingResults> = {}
 ): void {
-	const functions = processItemsMap(functionsMap);
+	let functions = processItemsMap(functionsMap);
 	const prerendered = processItemsMap(prerenderedRoutes);
+
+	// When collecting functions during building, we add an alias for `/index` to `/`, so we need
+	// to dedupe them here before they get printed in the summary.
+	if (functions.filter(path => path === '/').length > 1) {
+		functions = ['/', ...functions.filter(path => path !== '/')];
+	}
 
 	let otherStatic = staticAssets
 		.filter(path => !prerenderedRoutes.has(path))
