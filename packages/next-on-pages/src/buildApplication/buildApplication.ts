@@ -114,10 +114,15 @@ async function prepareAndBuildWorker(
 		generatedFunctionsMaps?.functionsMap
 	);
 
-	printBuildSummary(staticAssets, generatedFunctionsMaps);
+	printBuildSummary(
+		staticAssets,
+		processedVercelOutput,
+		generatedFunctionsMaps
+	);
 	await writeBuildInfo(
 		join('.vercel', 'output', 'static', '_worker.js'),
 		staticAssets,
+		processedVercelOutput,
 		generatedFunctionsMaps
 	);
 

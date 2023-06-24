@@ -3,6 +3,7 @@ import { join, relative, resolve } from 'node:path';
 import { cliLog } from '../cli';
 import { addLeadingSlash, nextOnPagesVersion, stripIndexRoute } from '../utils';
 import type { DirectoryProcessingResults } from './generateFunctionsMap';
+import type { ProcessedVercelOutput } from './processVercelOutput';
 
 /**
  * Processes a map of items into a list that can be used in the build summary.
@@ -76,25 +77,28 @@ ${formattedItems}`;
  * Prints a build summary to the console.
  *
  * @param staticAssets List of static assets collected during the build.
+ * @param processedVercelOutput Results of processing the Vercel output directory.
  * @param directoryProcessingResults Results of processing the output directory.
  */
 export function printBuildSummary(
 	staticAssets: string[],
+	{ vercelOutput }: ProcessedVercelOutput,
 	{
 		functionsMap = new Map(),
 		prerenderedRoutes = new Map(),
 		wasmIdentifiers = new Map(),
 	}: Partial<DirectoryProcessingResults> = {}
 ): void {
-	let functions = processItemsMap(functionsMap);
+	const middlewareFunctions = [...vercelOutput.entries()]
+		.filter(([, { type }]) => type === 'middleware')
+		.map(([path]) => path)
+		.sort((a, b) => a.localeCompare(b));
+	const routeFunctions = new Set(
+		processItemsMap(functionsMap).filter(
+			path => !middlewareFunctions.includes(path.replace(/^\//, ''))
+		)
+	);
 	const prerendered = processItemsMap(prerenderedRoutes);
-
-	// When collecting functions during building, we add an alias for `/index` to `/`, so we need
-	// to dedupe them here before they get printed in the summary.
-	if (functions.filter(path => path === '/').length > 1) {
-		functions = ['/', ...functions.filter(path => path !== '/')];
-	}
-
 	let otherStatic = staticAssets
 		.filter(path => !prerenderedRoutes.has(path))
 		.sort((a, b) => a.localeCompare(b));
@@ -106,7 +110,8 @@ export function printBuildSummary(
 	];
 
 	let summary = `Build Summary (@cloudflare/next-on-pages v${nextOnPagesVersion})`;
-	summary = addToSummary(summary, 'Edge Function Routes', functions);
+	summary = addToSummary(summary, 'Middleware Functions', middlewareFunctions);
+	summary = addToSummary(summary, 'Edge Function Routes', [...routeFunctions]);
 	summary = addToSummary(summary, 'Prerendered Routes', prerendered, 20);
 	summary = addToSummary(summary, 'Wasm Files', [...wasmIdentifiers.keys()]);
 	summary = addToSummary(summary, 'Other Static Assets', otherStatic, 5);
@@ -119,11 +124,13 @@ export function printBuildSummary(
  *
  * @param outputDir Output directory.
  * @param staticAssets List of static assets collected during the build.
+ * @param processedVercelOutput Results of processing the Vercel output directory.
  * @param directoryProcessingResults Results of processing the output directory.
  */
 export async function writeBuildInfo(
 	outputDir: string,
 	staticAssets: string[],
+	{ vercelOutput }: ProcessedVercelOutput,
 	{
 		invalidFunctions = new Set(),
 		functionsMap = new Map(),
@@ -152,6 +159,9 @@ export async function writeBuildInfo(
 				outputDir: relative(currentDir, outputDir),
 				buildFiles: {
 					invalidFunctions: [...invalidFunctions.values()],
+					middlewareFunctions: [...vercelOutput.entries()]
+						.filter(([, { type }]) => type === 'middleware')
+						.map(([path]) => path),
 					edgeFunctions: [...functionsMap.keys()],
 					prerenderFunctionFallbackFiles: [...prerenderedRoutes.keys()],
 					wasmFiles: desensitizedWasmIdentifiers,
