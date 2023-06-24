@@ -13,7 +13,7 @@ import type { DirectoryProcessingResults } from './generateFunctionsMap';
  * @param items A map of items to process.
  * @returns A list of items to be used in the build summary.
  */
-function processItemsMap(items: Map<string, unknown>) {
+function processItemsMap(items: Map<string, unknown>): string[] {
 	return [...items.keys()]
 		.filter(path => !/\.rsc$/.test(path))
 		.map(path => addLeadingSlash(stripIndexRoute(path.replace(/\.html$/, ''))))
@@ -51,7 +51,7 @@ function addToSummary(
 	name: string,
 	rawItems: string[],
 	limit?: number
-) {
+): string {
 	if (rawItems.length === 0) return summary;
 
 	const items =
@@ -124,7 +124,7 @@ export async function writeBuildInfo(
 		prerenderedRoutes = new Map(),
 		wasmIdentifiers = new Map(),
 	}: Partial<DirectoryProcessingResults> = {}
-) {
+): Promise<void> {
 	const currentDir = resolve();
 	const filePath = join(outputDir, 'nop-build-info.json');
 
