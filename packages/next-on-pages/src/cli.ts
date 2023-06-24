@@ -75,11 +75,6 @@ export function parseCliArgs() {
 	}
 }
 
-type LogOptions = {
-	fromVercelCli?: boolean;
-	spaced?: boolean;
-};
-
 /**
  * Prints the help message that users get when they provide the help option
  *
@@ -120,47 +115,41 @@ export function printCliHelpMessage(): void {
 	`);
 }
 
-export function cliLog(
-	message: string,
-	{ fromVercelCli, spaced }: LogOptions = {}
-): void {
+type LogOptions = {
+	fromVercelCli?: boolean;
+	spaced?: boolean;
+	skipDedent?: boolean;
+};
+
+export function cliLog(message: string, opts: LogOptions = {}): void {
 	// eslint-disable-next-line no-console
-	console.log(prepareCliMessage(message, { fromVercelCli, spaced }));
+	console.log(prepareCliMessage(message, opts));
 }
 
-export function cliSuccess(
-	message: string,
-	{ fromVercelCli, spaced }: LogOptions = {}
-): void {
+export function cliSuccess(message: string, opts: LogOptions = {}): void {
 	// eslint-disable-next-line no-console
 	console.log(
-		prepareCliMessage(message, {
-			fromVercelCli,
-			styleFormatter: chalk.green,
-			spaced,
-		})
+		prepareCliMessage(message, { ...opts, styleFormatter: chalk.green })
 	);
 }
 
 export function cliError(
 	message: string,
 	{
-		showReport: shouldReport,
+		showReport,
 		fromVercelCli,
-		spaced,
-	}: LogOptions & {
-		showReport?: boolean;
-	} = {}
+		...opts
+	}: LogOptions & { showReport?: boolean } = {}
 ): void {
 	// eslint-disable-next-line no-console
 	console.error(
 		prepareCliMessage(message, {
+			...opts,
 			fromVercelCli,
 			styleFormatter: chalk.red,
-			spaced,
 		})
 	);
-	if (shouldReport) {
+	if (showReport) {
 		cliError(
 			'Please report this at https://github.com/cloudflare/next-on-pages/issues.',
 			{ fromVercelCli }
@@ -168,17 +157,10 @@ export function cliError(
 	}
 }
 
-export function cliWarn(
-	message: string,
-	{ fromVercelCli, spaced }: LogOptions = {}
-): void {
+export function cliWarn(message: string, opts: LogOptions = {}): void {
 	// eslint-disable-next-line no-console
 	console.warn(
-		prepareCliMessage(message, {
-			fromVercelCli,
-			styleFormatter: chalk.yellow,
-			spaced,
-		})
+		prepareCliMessage(message, { ...opts, styleFormatter: chalk.yellow })
 	);
 }
 
@@ -194,12 +176,13 @@ function prepareCliMessage(
 		fromVercelCli,
 		styleFormatter,
 		spaced,
+		skipDedent,
 	}: LogOptions & {
 		styleFormatter?: ChalkInstance;
 	}
 ): string {
 	const prefix = fromVercelCli ? '▲ ' : '⚡️';
-	const preparedMessage = dedent(message)
+	const preparedMessage = (skipDedent ? message : dedent(message))
 		.split('\n')
 		.map(line => `${prefix} ${styleFormatter ? styleFormatter(line) : line}`)
 		.join('\n');
