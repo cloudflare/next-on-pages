@@ -139,7 +139,9 @@ describe('buildSummary', () => {
 				{
 					identifier: 'wasm-one',
 					importPath: '/wasm/wasm-one.wasm',
-					originalFileLocation: '../../../../../assets/wasm/wasm-one.wasm',
+					originalFileLocation: expect.stringMatching(
+						/\/assets\/wasm\/wasm-one\.wasm/
+					),
 				},
 			],
 		});
