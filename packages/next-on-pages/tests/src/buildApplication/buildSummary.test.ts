@@ -15,7 +15,14 @@ describe('buildSummary', () => {
 			.spyOn(console, 'log')
 			.mockImplementation(() => null);
 
-		const staticAssets = ['/static-one', '/static-two'];
+		const staticAssets = [
+			'/static-a',
+			'/_next/static-a',
+			'/_next/static-b',
+			'/_next/static-c',
+			'/static-b',
+			'/_next/static-d',
+		];
 		const processedVercelOutput: ProcessedVercelOutput = {
 			vercelConfig: {} as ProcessedVercelConfig,
 			vercelOutput: new Map<string, BuildOutputFunction>([
@@ -29,8 +36,9 @@ describe('buildSummary', () => {
 				['/nested/home', '/nested/home'],
 			]),
 			prerenderedRoutes: new Map([
-				['/prerendered-one', {}],
-				['/prerendered-two', {}],
+				['/prerendered-a', {}],
+				['/prerendered-b', {}],
+				['/prerendered-c', {}],
 			]),
 			wasmIdentifiers: new Map([
 				[
@@ -51,27 +59,33 @@ describe('buildSummary', () => {
 		);
 
 		expect(mockedConsole).toHaveBeenCalledTimes(1);
-		expect(mockedConsole).lastCalledWith(`
-⚡️ Build Summary (@cloudflare/next-on-pages v${nextOnPagesVersion})
-⚡️ 
-⚡️ Middleware Functions (1)
-⚡️   - middleware
-⚡️ 
-⚡️ Edge Function Routes (2)
-⚡️   ┌ /home
-⚡️   └ /nested/home
-⚡️ 
-⚡️ Prerendered Routes (2)
-⚡️   ┌ /prerendered-one
-⚡️   └ /prerendered-two
-⚡️ 
-⚡️ Wasm Files (1)
-⚡️   - wasm-one
-⚡️ 
-⚡️ Other Static Assets (2)
-⚡️   ┌ /static-one
-⚡️   └ /static-two
-`);
+		expect(mockedConsole).lastCalledWith(
+			`
+			⚡️ Build Summary (@cloudflare/next-on-pages v${nextOnPagesVersion})
+			⚡️ 
+			⚡️ Middleware Functions (1)
+			⚡️   - middleware
+			⚡️ 
+			⚡️ Edge Function Routes (2)
+			⚡️   ┌ /home
+			⚡️   └ /nested/home
+			⚡️ 
+			⚡️ Prerendered Routes (3)
+			⚡️   ┌ /prerendered-a
+			⚡️   ├ /prerendered-b
+			⚡️   └ /prerendered-c
+			⚡️ 
+			⚡️ Wasm Files (1)
+			⚡️   - wasm-one
+			⚡️ 
+			⚡️ Other Static Assets (6)
+			⚡️   ┌ /static-a
+			⚡️   ├ /static-b
+			⚡️   ├ /_next/static-a
+			⚡️   ├ /_next/static-b
+			⚡️   └ ... 2 more
+			`.replace(/\n\t{3}/g, '\n')
+		);
 
 		mockedConsole.mockRestore();
 	});

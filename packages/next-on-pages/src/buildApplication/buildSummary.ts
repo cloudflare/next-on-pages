@@ -184,7 +184,7 @@ function constructSummarySections(
 				limit && rawItems.length > limit
 					? [
 							...rawItems.slice(0, limit - 1),
-							`... ${rawItems.length - limit - 1} more`,
+							`... ${rawItems.length - limit + 1} more`,
 					  ]
 					: rawItems;
 
