@@ -86,7 +86,7 @@ export async function writeBuildInfo(
 		})
 	);
 
-	const buildLogObject = {
+	const buildLogObject: BuildLog = {
 		timestamp: Date.now(),
 		outputDir: relative(currentDir, outputDir),
 		versions: {
@@ -110,6 +110,26 @@ export async function writeBuildInfo(
 
 	cliLog(`Build log saved to '${relative(currentDir, buildLogFilePath)}'`);
 }
+
+export type BuildLog = {
+	timestamp: number;
+	outputDir: string;
+	versions: {
+		'@cloudflare/next-on-pages': string;
+	};
+	buildFiles: {
+		invalidFunctions: string[];
+		middlewareFunctions: string[];
+		edgeFunctions: string[];
+		prerenderFunctionFallbackFiles: string[];
+		wasmFiles: {
+			originalFileLocation: string;
+			identifier: string;
+			importPath: string;
+		}[];
+		staticAssets: string[];
+	};
+};
 
 /**
  * Processes a map of items into a list that can be used in the build summary.
