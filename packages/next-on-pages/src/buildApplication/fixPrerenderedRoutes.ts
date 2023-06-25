@@ -95,7 +95,7 @@ async function getRouteDest(
 	{ fallback }: VercelPrerenderConfig,
 	dirName: string,
 	outputDir: string
-): Promise<{ destFile: string; destRoute: string } | null> {
+): Promise<{ destFile: string; destRoute: string }> {
 	const destRoute = normalizePath(
 		join(
 			dirName,
@@ -109,8 +109,7 @@ async function getRouteDest(
 
 	// Check if a static file already exists at the new location.
 	if (await validateFile(destFile)) {
-		cliWarn(`Prerendered file already exists for ${destRoute}`);
-		return null;
+		cliWarn(`Prerendered file already exists for ${destRoute}, overwriting...`);
 	}
 
 	return { destFile, destRoute };
@@ -133,7 +132,6 @@ async function validateRoute(baseDir: string, file: string, outputDir: string) {
 	if (!originalFile) return null;
 
 	const dest = await getRouteDest(config, dirName, outputDir);
-	if (!dest) return null;
 
 	return {
 		config,
