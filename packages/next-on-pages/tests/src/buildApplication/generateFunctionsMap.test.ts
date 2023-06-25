@@ -296,12 +296,12 @@ describe('generateFunctionsMap', async () => {
 			});
 		});
 
-		test('fails with existing static file', async () => {
+		test('overwrites existing static file', async () => {
 			const mockedWarn = vi
 				.spyOn(console, 'warn')
 				.mockImplementation(() => null);
 
-			const { functionsMap, invalidFunctions, prerenderedRoutes } =
+			const { functionsMap, prerenderedRoutes } =
 				await generateFunctionsMapFrom(
 					{
 						'index.func': invalidFuncDir,
@@ -317,28 +317,34 @@ describe('generateFunctionsMap', async () => {
 
 			expect(functionsMap.size).toEqual(0);
 
-			expect(prerenderedRoutes.size).toEqual(1);
+			expect(prerenderedRoutes.size).toEqual(2);
 			expect(prerenderedRoutes.get('/index.html')).toEqual({
 				headers: { vary: 'RSC, Next-Router-State-Tree, Next-Router-Prefetch' },
 				overrides: ['/index', '/'],
 			});
-
-			expect(invalidFunctions.size).toEqual(1);
-			expect(invalidFunctions.has('index.rsc.func')).toEqual(true);
+			expect(prerenderedRoutes.get('/index.rsc')).toEqual({
+				headers: {
+					'content-type': 'text/x-component',
+					vary: 'RSC, Next-Router-State-Tree, Next-Router-Prefetch',
+				},
+				overrides: [],
+			});
 
 			expect(mockedWarn).toHaveBeenCalledTimes(1);
 			expect(mockedWarn).toHaveBeenCalledWith(
-				expect.stringMatching(/Prerendered file already exists for index.rsc/)
+				expect.stringMatching(
+					/Prerendered file already exists for index\.rsc, overwriting\.\.\./
+				)
 			);
 			mockedWarn.mockRestore();
 		});
 
-		test('fails with existing nested static file', async () => {
+		test('overwrites existing nested static file', async () => {
 			const mockedWarn = vi
 				.spyOn(console, 'warn')
 				.mockImplementation(() => null);
 
-			const { functionsMap, invalidFunctions, prerenderedRoutes } =
+			const { functionsMap, prerenderedRoutes } =
 				await generateFunctionsMapFrom(
 					{
 						nested: {
@@ -356,19 +362,23 @@ describe('generateFunctionsMap', async () => {
 
 			expect(functionsMap.size).toEqual(0);
 
-			expect(prerenderedRoutes.size).toEqual(1);
+			expect(prerenderedRoutes.size).toEqual(2);
 			expect(prerenderedRoutes.get('/nested/page.html')).toEqual({
 				headers: { vary: 'RSC, Next-Router-State-Tree, Next-Router-Prefetch' },
 				overrides: ['/nested/page'],
 			});
-
-			expect(invalidFunctions.size).toEqual(1);
-			expect(invalidFunctions.has('nested/page.rsc.func')).toEqual(true);
+			expect(prerenderedRoutes.get('/nested/page.rsc')).toEqual({
+				headers: {
+					'content-type': 'text/x-component',
+					vary: 'RSC, Next-Router-State-Tree, Next-Router-Prefetch',
+				},
+				overrides: [],
+			});
 
 			expect(mockedWarn).toHaveBeenCalledTimes(1);
 			expect(mockedWarn).toHaveBeenCalledWith(
 				expect.stringMatching(
-					/Prerendered file already exists for nested\/page.rsc/
+					/Prerendered file already exists for nested\/page\.rsc, overwriting\.\.\./
 				)
 			);
 			mockedWarn.mockRestore();
