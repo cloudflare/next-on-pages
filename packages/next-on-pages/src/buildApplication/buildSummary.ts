@@ -67,10 +67,7 @@ function addToSummary(
 		.map((path, idx) => `  ${getItemPrefix(items.length, idx)} ${path}`)
 		.join('\n');
 
-	return `${summary}
-	
-${name} (${rawItems.length})
-${formattedItems}`;
+	return `${summary}\n\n${name} (${rawItems.length})\n${formattedItems}`;
 }
 
 /**
@@ -99,15 +96,17 @@ export function printBuildSummary(
 		)
 	);
 	const prerendered = processItemsMap(prerenderedRoutes);
-	let otherStatic = staticAssets
+	const otherStatic = staticAssets
 		.filter(path => !prerenderedRoutes.has(path))
-		.sort((a, b) => a.localeCompare(b));
+		.sort((a, b) => {
+			// Note: `/_next` and `/__next` assets are sorted to the end of the static assets list
+			const aIsNextAsset = /^\/__?next/.test(a);
+			const bIsNextAsset = /^\/__?next/.test(b);
+			if (!aIsNextAsset && bIsNextAsset) return -1;
+			if (aIsNextAsset && !bIsNextAsset) return 1;
 
-	// Move the `/_next` and `/__next` assets to the end of the static assets list
-	otherStatic = [
-		...otherStatic.filter(path => !/^\/__?next/.test(path)),
-		...otherStatic.filter(path => /^\/__?next/.test(path)),
-	];
+			return a.localeCompare(b);
+		});
 
 	let summary = `Build Summary (@cloudflare/next-on-pages v${nextOnPagesVersion})`;
 	summary = addToSummary(summary, 'Middleware Functions', middlewareFunctions);
@@ -120,7 +119,7 @@ export function printBuildSummary(
 }
 
 /**
- * Writes information about the build to a specific directory.
+ * Writes information about the build to a json log file.
  *
  * @param outputDir Output directory.
  * @param staticAssets List of static assets collected during the build.
@@ -139,7 +138,7 @@ export async function writeBuildInfo(
 	}: Partial<DirectoryProcessingResults> = {}
 ): Promise<void> {
 	const currentDir = resolve();
-	const filePath = join(outputDir, 'nop-build-info.json');
+	const filePath = join(outputDir, 'nop-build-log.json');
 
 	// Change wasm paths to be relative to avoid leaking file system structure or account username.
 	const desensitizedWasmIdentifiers = [...wasmIdentifiers.values()].map(
@@ -175,5 +174,5 @@ export async function writeBuildInfo(
 		)
 	);
 
-	cliLog(`Build info saved to '${relative(currentDir, filePath)}'`);
+	cliLog(`Build log saved to '${relative(currentDir, filePath)}'`);
 }
