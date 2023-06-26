@@ -2,10 +2,10 @@
 	"$schema": "https://unpkg.com/@changesets/config@2.3.0/schema.json",
 	"changelog": "@changesets/cli/changelog",
 	"commit": false,
-	"fixed": [],
+	"fixed": [["*"]],
 	"linked": [],
 	"access": "public",
 	"baseBranch": "main",
 	"updateInternalDependencies": "patch",
-	"ignore": ["!@cloudflare/next-on-pages"]
+	"ignore": []
 }

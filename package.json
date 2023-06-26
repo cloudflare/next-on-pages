@@ -1,5 +1,6 @@
 {
 	"name": "next-on-pages-monorepo",
+	"private": true,
 	"workspaces": [
 		"internal-packages/*",
 		"packages/*"
@@ -12,7 +13,7 @@
 		"build": "FORCE_COLOR=1 turbo build",
 		"build:watch": "FORCE_COLOR=1 turbo build:watch",
 		"test:unit": "FORCE_COLOR=1 turbo test:unit",
-		"publish": "turbo publish",
+		"publish": "turbo build & changeset publish",
 		"changeset": "npx changeset"
 	},
 	"devDependencies": {
