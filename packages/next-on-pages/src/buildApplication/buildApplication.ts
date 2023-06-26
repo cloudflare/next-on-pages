@@ -6,15 +6,13 @@ import { getVercelConfig } from './getVercelConfig';
 import { buildWorkerFile } from './buildWorkerFile';
 import type { DirectoryProcessingResults } from './generateFunctionsMap';
 import { generateFunctionsMap } from './generateFunctionsMap';
-import {
-	buildVercelOutput,
-	deleteNextTelemetryFiles,
-} from './buildVercelOutput';
+import { buildVercelOutput } from './buildVercelOutput';
 import { buildMetadataFiles } from './buildMetadataFiles';
 import { validateDir } from '../utils';
 import {
 	getVercelStaticAssets,
 	processVercelOutput,
+	processOutputDir,
 } from './processVercelOutput';
 import {
 	getCurrentPackageExecuter,
@@ -33,9 +31,14 @@ export async function buildApplication({
 	disableChunksDedup,
 	disableWorkerMinification,
 	watch,
+	outdir: outputDir,
 }: Pick<
 	CliOptions,
-	'skipBuild' | 'disableChunksDedup' | 'disableWorkerMinification' | 'watch'
+	| 'skipBuild'
+	| 'disableChunksDedup'
+	| 'disableWorkerMinification'
+	| 'watch'
+	| 'outdir'
 >) {
 	let buildSuccess = true;
 	if (!skipBuild) {
@@ -58,17 +61,19 @@ export async function buildApplication({
 		return;
 	}
 
-	await deleteNextTelemetryFiles();
-
-	await prepareAndBuildWorker({
+	await prepareAndBuildWorker(outputDir, {
 		disableChunksDedup,
 		disableWorkerMinification,
 	});
-	await buildMetadataFiles();
+	await buildMetadataFiles(outputDir);
 }
 
 async function prepareAndBuildWorker(
-	options: Pick<CliOptions, 'disableChunksDedup' | 'disableWorkerMinification'>
+	outputDir: string,
+	{
+		disableChunksDedup,
+		disableWorkerMinification,
+	}: Pick<CliOptions, 'disableChunksDedup' | 'disableWorkerMinification'>
 ): Promise<void> {
 	let vercelConfig: VercelConfig;
 	try {
@@ -80,6 +85,10 @@ async function prepareAndBuildWorker(
 		exit(1);
 	}
 
+	const staticAssets = await getVercelStaticAssets();
+
+	await processOutputDir(outputDir, staticAssets);
+
 	let generatedFunctionsMaps: DirectoryProcessingResults | undefined;
 
 	const functionsDir = resolve('.vercel', 'output', 'functions');
@@ -90,7 +99,8 @@ async function prepareAndBuildWorker(
 	} else {
 		generatedFunctionsMaps = await generateFunctionsMap(
 			functionsDir,
-			options.disableChunksDedup
+			outputDir,
+			disableChunksDedup
 		);
 
 		if (generatedFunctionsMaps.invalidFunctions.size > 0) {
@@ -105,8 +115,6 @@ async function prepareAndBuildWorker(
 		}
 	}
 
-	const staticAssets = await getVercelStaticAssets();
-
 	const processedVercelOutput = processVercelOutput(
 		vercelConfig,
 		staticAssets,
@@ -120,7 +128,7 @@ async function prepareAndBuildWorker(
 		generatedFunctionsMaps
 	);
 	await writeBuildInfo(
-		join('.vercel', 'output', 'static', '_worker.js'),
+		join(outputDir, '_worker.js'),
 		staticAssets,
 		processedVercelOutput,
 		generatedFunctionsMaps
@@ -128,7 +136,8 @@ async function prepareAndBuildWorker(
 
 	await buildWorkerFile(
 		processedVercelOutput,
-		!options.disableWorkerMinification
+		outputDir,
+		!disableWorkerMinification
 	);
 }
 

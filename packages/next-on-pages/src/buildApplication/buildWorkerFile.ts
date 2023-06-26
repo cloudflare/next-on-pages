@@ -1,5 +1,5 @@
 import { writeFile } from 'fs/promises';
-import { join } from 'path';
+import { join, relative } from 'path';
 import { build } from 'esbuild';
 import { tmpdir } from 'os';
 import { cliSuccess } from '../cli';
@@ -37,6 +37,7 @@ export function constructBuildOutputRecord(item: BuildOutputItem) {
 
 export async function buildWorkerFile(
 	{ vercelConfig, vercelOutput }: ProcessedVercelOutput,
+	outputDir: string,
 	minify: boolean
 ) {
 	const functionsFile = join(
@@ -51,13 +52,7 @@ export async function buildWorkerFile(
 			.join(',')}};`
 	);
 
-	const outputFile = join(
-		'.vercel',
-		'output',
-		'static',
-		'_worker.js',
-		'index.js'
-	);
+	const outputFile = join(outputDir, '_worker.js', 'index.js');
 
 	await build({
 		entryPoints: [join(__dirname, '..', 'templates', '_worker.js')],
@@ -77,5 +72,5 @@ export async function buildWorkerFile(
 		minify,
 	});
 
-	cliSuccess(`Generated '${outputFile}'.`);
+	cliSuccess(`Generated '${relative('.', outputFile)}'.`);
 }

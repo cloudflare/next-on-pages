@@ -1,4 +1,5 @@
-import { relative, resolve } from 'path';
+import { dirname, join, relative, resolve } from 'path';
+import { copyFile, mkdir, rm } from 'fs/promises';
 import { rmSync } from 'fs';
 import {
 	addLeadingSlash,
@@ -7,12 +8,15 @@ import {
 	stripIndexRoute,
 	validateDir,
 } from '../utils';
-import { cliLog, cliWarn } from '../cli';
+import { cliError, cliLog, cliWarn } from '../cli';
 import { processVercelConfig } from './getVercelConfig';
 import type { PrerenderedFileData } from './fixPrerenderedRoutes';
+import { deleteNextTelemetryFiles } from './buildVercelOutput';
 
 /**
- * Extract a list of static assets from the Vercel build output.
+ * Extracts a list of static assets from the Vercel build output.
+ *
+ * Purges the Next.js telemetry files from the static assets at the same time.
  *
  * @returns List of static asset paths.
  */
@@ -23,12 +27,71 @@ export async function getVercelStaticAssets(): Promise<string[]> {
 		return [];
 	}
 
+	await deleteNextTelemetryFiles(dir);
+
 	return (
 		(await readPathsRecursively(dir))
 			.map(file => addLeadingSlash(normalizePath(relative(dir, file))))
 			// Filter out the worker script output directory contents as those are not valid static assets.
 			.filter(path => !/^\/_worker\.js\//.test(path))
 	);
+}
+
+/**
+ * Copies the static assets from the default Vercel output directory to the custom output directory.
+ *
+ * @param vercelDir Default Vercel output directory.
+ * @param outputDir Output directory to copy static assets to.
+ * @param staticAssets List of static asset paths.
+ */
+export async function copyVercelStaticAssets(
+	vercelDir: string,
+	outputDir: string,
+	staticAssets: string[]
+): Promise<void> {
+	if (staticAssets.length === 0) return;
+	const plural = staticAssets.length > 1 ? 's' : '';
+	cliLog(
+		`Copying ${staticAssets.length} static asset${plural} to output directory...`
+	);
+
+	await Promise.all(
+		staticAssets.map(async file => {
+			const src = join(vercelDir, file);
+			const dest = join(outputDir, file);
+			try {
+				await mkdir(dirname(dest), { recursive: true });
+				await copyFile(src, dest);
+			} catch (e) {
+				cliError(`Failed to copy static asset '${file}' to output directory.`);
+			}
+		})
+	);
+}
+
+/**
+ * Prepares the custom output directory for the worker and static assets.
+ *
+ * Deletes the custom directory and its contents if it already exists.
+ *
+ * @param outputDir Custom output directory.
+ * @param staticAssets List of static asset paths.
+ */
+export async function processOutputDir(
+	outputDir: string,
+	staticAssets: string[]
+) {
+	const vercelDir = normalizePath(resolve('.vercel', 'output', 'static'));
+
+	// If the output directory is not the default Vercel one, delete it if exists and create a new one.
+	// Then, copy the static assets from the default Vercel output directory to the new one.
+	if (outputDir !== vercelDir) {
+		cliLog(`Using custom output directory: ${relative('.', outputDir)}`);
+
+		await rm(outputDir, { recursive: true, force: true });
+		await mkdir(outputDir, { recursive: true });
+		await copyVercelStaticAssets(vercelDir, outputDir, staticAssets);
+	}
 }
 
 export type ProcessedVercelOutput = {

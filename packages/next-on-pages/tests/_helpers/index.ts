@@ -8,7 +8,7 @@ import {
 	processVercelOutput,
 } from '../../src/buildApplication/processVercelOutput';
 import type { VercelPrerenderConfig } from '../../src/buildApplication/fixPrerenderedRoutes';
-import { vi } from 'vitest';
+import { expect, vi } from 'vitest';
 
 export type TestSet = {
 	name: string;
@@ -190,12 +190,14 @@ type RouterTestData = {
 
 export async function createRouterTestData(
 	rawVercelConfig: VercelConfig,
-	files: DirectoryItems
+	files: DirectoryItems,
+	outputDir = join('.vercel', 'output', 'static')
 ): Promise<RouterTestData> {
 	mockFs({ '.vercel': { output: files } });
 
 	const { functionsMap, prerenderedRoutes } = await generateFunctionsMap(
 		join('.vercel', 'output', 'functions'),
+		outputDir,
 		true
 	);
 
@@ -313,4 +315,27 @@ export function createPrerenderedRoute(
 		),
 		[`${file}.rsc.prerender-fallback.rsc`]: `${fileWithBase}.rsc.prerender-fallback.rsc`,
 	};
+}
+
+type ConsoleMethods = {
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	[Method in keyof Console]: Console[Method] extends (...args: any[]) => any
+		? Method
+		: never;
+}[keyof Console];
+export function mockConsole(method: ConsoleMethods) {
+	const mockedMethod = vi.spyOn(console, method).mockImplementation(() => null);
+
+	const restore = () => mockedMethod.mockRestore();
+
+	const expectCalls = (calls: (RegExp | unknown)[]) => {
+		expect(mockedMethod).toHaveBeenCalledTimes(calls.length);
+		calls.forEach(msg =>
+			expect(mockedMethod).toHaveBeenCalledWith(
+				msg instanceof RegExp ? expect.stringMatching(msg) : msg
+			)
+		);
+	};
+
+	return { restore, expectCalls };
 }
