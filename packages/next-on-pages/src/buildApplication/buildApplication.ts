@@ -1,5 +1,5 @@
 import { exit } from 'process';
-import { resolve } from 'path';
+import { join, resolve } from 'path';
 import type { CliOptions } from '../cli';
 import { cliError, cliLog } from '../cli';
 import { getVercelConfig } from './getVercelConfig';
@@ -21,6 +21,7 @@ import {
 	getPackageVersion,
 } from './packageManagerUtils';
 import { gtr as versionGreaterThan, coerce } from 'semver';
+import { printBuildSummary, writeBuildInfo } from './buildSummary';
 
 /**
  * Builds the _worker.js with static assets implementing the Next.js application
@@ -111,6 +112,18 @@ async function prepareAndBuildWorker(
 		staticAssets,
 		generatedFunctionsMaps?.prerenderedRoutes,
 		generatedFunctionsMaps?.functionsMap
+	);
+
+	printBuildSummary(
+		staticAssets,
+		processedVercelOutput,
+		generatedFunctionsMaps
+	);
+	await writeBuildInfo(
+		join('.vercel', 'output', 'static', '_worker.js'),
+		staticAssets,
+		processedVercelOutput,
+		generatedFunctionsMaps
 	);
 
 	await buildWorkerFile(
