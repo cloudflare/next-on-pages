@@ -11,9 +11,13 @@ import { getNodeEnv } from '../utils/getNodeEnv';
  * Construct a record for the build output map.
  *
  * @param item The build output item to construct a record for.
+ * @param outputDir The output directory.
  * @returns Record for the build output map.
  */
-export function constructBuildOutputRecord(item: BuildOutputItem) {
+export function constructBuildOutputRecord(
+	item: BuildOutputItem,
+	outputDir: string
+) {
 	if (item.type === 'static') {
 		return `{ type: ${JSON.stringify(item.type)} }`;
 	}
@@ -28,10 +32,12 @@ export function constructBuildOutputRecord(item: BuildOutputItem) {
 
 	return `{
 				type: ${JSON.stringify(item.type)},
-				entrypoint: '${item.entrypoint.replace(
-					/^\.vercel\/output\/static\/_worker\.js\/__next-on-pages-dist__\//,
-					'./__next-on-pages-dist__/'
-				)}'
+				entrypoint: '${item.entrypoint
+					.replace(outputDir, '')
+					.replace(
+						/^\/_worker\.js\/__next-on-pages-dist__\//,
+						'./__next-on-pages-dist__/'
+					)}'
 			}`;
 }
 
@@ -48,7 +54,10 @@ export async function buildWorkerFile(
 	await writeFile(
 		functionsFile,
 		`export const __BUILD_OUTPUT__ = {${[...vercelOutput.entries()]
-			.map(([name, item]) => `"${name}": ${constructBuildOutputRecord(item)}`)
+			.map(
+				([name, item]) =>
+					`"${name}": ${constructBuildOutputRecord(item, outputDir)}`
+			)
 			.join(',')}};`
 	);
 
