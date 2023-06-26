@@ -72,13 +72,6 @@ async function generateResponse(
 ): Promise<Response> {
 	// Redirect user to external URL for redirects.
 	if (headers.normal.has('location')) {
-		// Apply the search params to the location header.
-		const location = headers.normal.get('location') ?? '/';
-		const paramsStr = [...searchParams.keys()].length
-			? `?${searchParams.toString()}`
-			: '';
-		headers.normal.set('location', `${location}${paramsStr}`);
-
 		return new Response(null, { status, headers: headers.normal });
 	}
 
