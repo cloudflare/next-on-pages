@@ -40,6 +40,8 @@ export class RoutesMatcher {
 
 	/** Counter for how many times the function to check a phase has been called */
 	public checkPhaseCounter;
+	/** Tracker for the middleware that have been invoked in a phase */
+	private middlewareInvoked: string[];
 	/** Locales found during routing */
 	public locales: Record<string, string> | undefined;
 
@@ -72,6 +74,7 @@ export class RoutesMatcher {
 		applySearchParams(this.searchParams, this.url.searchParams);
 
 		this.checkPhaseCounter = 0;
+		this.middlewareInvoked = [];
 
 		this.wildcardMatch = wildcardConfig?.find(
 			w => w.domain === this.url.hostname
@@ -206,6 +209,7 @@ export class RoutesMatcher {
 			headers: this.headers,
 			status: this.status,
 		});
+		this.middlewareInvoked.push(path);
 
 		if (resp.status === 500) {
 			// The middleware function threw an error. Set the status and bail out.
@@ -429,6 +433,14 @@ export class RoutesMatcher {
 		// If this route doesn't match, continue to the next one.
 		if (!routeMatch?.match) return 'skip';
 
+		// If this route is a middleware route, check if it has already been invoked.
+		if (
+			route.middlewarePath &&
+			this.middlewareInvoked.includes(route.middlewarePath)
+		) {
+			return 'skip';
+		}
+
 		const { match: srcMatch, captureGroupKeys } = routeMatch;
 
 		// If this route overrides, replace the response headers and status.
@@ -507,6 +519,8 @@ export class RoutesMatcher {
 			return 'error';
 		}
 
+		// Reset the middleware invoked list as this is a new phase.
+		this.middlewareInvoked = [];
 		let shouldContinue = true;
 
 		for (const route of this.routes[phase]) {

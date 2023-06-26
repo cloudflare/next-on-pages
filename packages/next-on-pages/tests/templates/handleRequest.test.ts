@@ -54,6 +54,9 @@ function runTestCase(
 			const mockedConsoleError = vi
 				.spyOn(console, 'error')
 				.mockImplementation(() => null);
+			const mockedConsoleLog = vi
+				.spyOn(console, 'log')
+				.mockImplementation(() => null);
 
 			const req = new Request(url, { method, headers });
 			const res = await handleRequest(
@@ -78,8 +81,14 @@ function runTestCase(
 			consoleErrorExp.forEach((val, i) => {
 				expect(mockedConsoleError.mock.calls[i]?.[0]).toEqual(val);
 			});
-
 			mockedConsoleError.mockRestore();
+
+			const consoleLogExp = expected.mockConsole?.log ?? [];
+			expect(mockedConsoleLog).toHaveBeenCalledTimes(consoleLogExp.length);
+			consoleLogExp.forEach((val, i) => {
+				expect(mockedConsoleLog.mock.calls[i]?.[0]).toEqual(val);
+			});
+			mockedConsoleLog.mockRestore();
 		}
 	});
 }
@@ -126,6 +135,6 @@ suite('router', () => {
 		middlewareTestSet,
 		trailingSlashTestSet,
 	].forEach(testSet => {
-		describe(testSet.name, () => runTestSet(testSet));
+		describe(testSet.name, async () => runTestSet(testSet));
 	});
 });
