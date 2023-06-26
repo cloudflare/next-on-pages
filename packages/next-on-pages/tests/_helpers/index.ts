@@ -318,9 +318,8 @@ export function createPrerenderedRoute(
 }
 
 type ConsoleMethods = {
-	[Method in keyof Console]: Console[Method] extends (
-		...args: unknown[]
-	) => unknown
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	[Method in keyof Console]: Console[Method] extends (...args: any[]) => any
 		? Method
 		: never;
 }[keyof Console];
