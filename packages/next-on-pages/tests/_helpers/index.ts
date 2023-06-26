@@ -318,7 +318,9 @@ export function createPrerenderedRoute(
 }
 
 type ConsoleMethods = {
-	[Method in keyof Console]: Console[Method] extends (...args: any[]) => any
+	[Method in keyof Console]: Console[Method] extends (
+		...args: unknown[]
+	) => unknown
 		? Method
 		: never;
 }[keyof Console];
