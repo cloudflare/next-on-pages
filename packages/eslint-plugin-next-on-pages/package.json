@@ -1,14 +1,14 @@
 {
   "name": "eslint-plugin-next-on-pages",
-	"version": "1.0.2",
+  "version": "1.0.3",
   "main": "dist/index.js",
   "scripts": {
     "prebuild": "rimraf dist",
-		"build": "esbuild --bundle --platform=node ./src/index.ts --outfile=./dist/index.js",
-		"build:watch": "npm run build -- --watch=forever",
-		"prettier": "prettier --ignore-unknown src tests",
-		"prettier:check": "npm run prettier -- --check",
-		"prettier:fix": "npm run prettier -- --write",
+    "build": "esbuild --bundle --platform=node ./src/index.ts --outfile=./dist/index.js",
+    "build:watch": "npm run build -- --watch=forever",
+    "prettier": "prettier --ignore-unknown src tests",
+    "prettier:check": "npm run prettier -- --check",
+    "prettier:fix": "npm run prettier -- --write",
     "lint": "eslint src",
     "types-check": "tsc --noEmit",
     "test:unit": "vitest"
@@ -24,16 +24,16 @@
     "nextjs",
     "next-on-pages"
   ],
-	"license": "MIT",
+  "license": "MIT",
   "homepage": "https://github.com/cloudflare/next-on-pages/blob/main/packages/eslint-plugin-next-on-pages/README.md",
-	"bugs": {
-		"url": "https://github.com/cloudflare/next-on-pages/issues"
-	},
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/cloudflare/next-on-pages.git",
+  "bugs": {
+    "url": "https://github.com/cloudflare/next-on-pages/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cloudflare/next-on-pages.git",
     "directory": "packages/eslint-plugin-next-on-pages"
-	},
+  },
   "dependencies": {
     "@types/estree-jsx": "^1.0.0"
   },
