@@ -1,6 +1,10 @@
 # @cloudflare/next-on-pages
 
-## 1.0.3
+## 1.1.1
+
+### Minor Changes
+
+- 2c87481: Display a summary about the build at the end of the build process.
 
 ### Patch Changes
 
