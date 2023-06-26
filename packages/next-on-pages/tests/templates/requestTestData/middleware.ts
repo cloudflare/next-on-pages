@@ -13,6 +13,20 @@ const rawVercelConfig: VercelConfig = {
 			continue: true,
 			override: true,
 		},
+		{
+			continue: true,
+			src: '^(?:\\/(_next\\/data\\/[^/]{1,}))?\\/api(?:\\/((?:[^\\/#\\?]+?)(?:\\/(?:[^\\/#\\?]+?))*))?(.json)?[\\/#\\?]?$',
+			missing: [
+				{
+					type: 'header',
+					key: 'x-prerender-revalidate',
+					value: 'fbb77d6d4d2724d8afc1ba5be7461f98',
+				},
+			],
+			middlewarePath: 'middleware',
+			middlewareRawSrc: ['/:nextData(_next/data/[^/]{1,})?/api/:path*(.json)?'],
+			override: true,
+		},
 		{ handle: 'resource' },
 		{ src: '/.*', status: 404 },
 		{ handle: 'hit' },
@@ -168,6 +182,22 @@ export const testSet: TestSet = {
 				data: '<html>Hello from middleware</html>',
 				headers: {
 					'content-type': 'text/html',
+				},
+			},
+		},
+		{
+			name: 'middleware is only invoked once in a phase when the config contains two entries',
+			paths: ['/api/hello?log'],
+
+			expected: {
+				status: 200,
+				data: JSON.stringify({ file: '/api/hello', params: [['log', '']] }),
+				mockConsole: { log: ['Hello from middleware'] },
+				headers: {
+					'content-type': 'text/plain;charset=UTF-8',
+					'set-cookie': 'x-hello-from-middleware2=hello; Path=/',
+					'x-hello-from-middleware2': 'hello',
+					'x-matched-path': '/api/hello',
 				},
 			},
 		},

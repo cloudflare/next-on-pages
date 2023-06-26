@@ -27,7 +27,7 @@ export type TestCase = {
 		data: string;
 		headers?: Record<string, string>;
 		reqHeaders?: Record<string, string>;
-		mockConsole?: { error?: (string | Error)[] };
+		mockConsole?: { log?: string[]; error?: (string | Error)[] };
 	};
 };
 
@@ -41,7 +41,7 @@ export class MockAssetFetcher {
 		);
 	}
 
-	public fetch = (req: Request) => {
+	public fetch = async (req: Request) => {
 		const { pathname } = new URL(req.url);
 		const noExt = pathname.replace(/\.html$/, '');
 		const withExt = `${noExt.replace(/^\/$/, '/index')}.html`;
@@ -66,7 +66,7 @@ export class MockAssetFetcher {
 
 function createMockEntrypoint(file = 'unknown'): EdgeFunction {
 	return {
-		default: (request: Request) => {
+		default: async (request: Request) => {
 			const params = [...new URL(request.url).searchParams.entries()];
 
 			return Promise.resolve(
@@ -78,7 +78,7 @@ function createMockEntrypoint(file = 'unknown'): EdgeFunction {
 
 function createMockMiddlewareEntrypoint(file = '/'): EdgeFunction {
 	return {
-		default: (request: Request) => {
+		default: async (request: Request) => {
 			const url = new URL(request.url);
 			if (url.pathname !== file) {
 				return Promise.resolve(new Response(null, { status: 200 }));
@@ -134,6 +134,11 @@ function createMockMiddlewareEntrypoint(file = '/'): EdgeFunction {
 						'content-type': 'text/html',
 					}),
 				});
+			}
+
+			if (url.searchParams.has('log')) {
+				// eslint-disable-next-line no-console
+				console.log('Hello from middleware');
 			}
 
 			return new Response(null, {
