@@ -1,5 +1,16 @@
 # @cloudflare/next-on-pages
 
+## 1.0.3
+
+### Patch Changes
+
+- b1c3a33: fix --info showing [object Promise] for relevant packages instead of their versions
+- a9b8c3c: Overwrite prerendered files if they already exist in the output directory.
+
+  When using `--skip-build`, it would fail if a prerendered file already existed, so we need to override the files so that the build process can continue like normal. This was problematic as after the first build, the prerendered files would now exist in the output directory as static assets, preventing any additional builds.
+
+- b1c3a33: fix vercel command not found issue
+
 ## 1.1.0
 
 ### Minor Changes
@@ -35,7 +46,7 @@
 
   ```js
   // file: .vercel/output/functions/index.func/index.js
-  const wasm_fbeb8adedbc833032bda6f13925ba235b8d09114 = require('/wasm/wasm_fbeb8adedbc833032bda6f13925ba235b8d09114.wasm');
+  const wasm_fbeb8adedbc833032bda6f13925ba235b8d09114 = require("/wasm/wasm_fbeb8adedbc833032bda6f13925ba235b8d09114.wasm");
   ```
 
   then such identifier is used in the rest of the file (likely only inside chunks), as in:
@@ -60,15 +71,15 @@
   - converting the func top level requires into standard relative esm imports, like for example:
     ```js
     // file: .vercel/output/functions/index.func/index.js
-    import wasm_fbeb8adedbc833032bda6f13925ba235b8d09114 from '../wasm/wasm_fbeb8adedbc833032bda6f13925ba235b8d09114.wasm';
+    import wasm_fbeb8adedbc833032bda6f13925ba235b8d09114 from "../wasm/wasm_fbeb8adedbc833032bda6f13925ba235b8d09114.wasm";
     ```
     so that any part of the func file will be able to reference the variable (so that this works with chunks deduplication disabled)
   - adding similar import statements to any chunk files that reference these wasm identifiers, like for example:
     ```js
     // file: .vercel/output/static/_worker.js/__next-on-pages-dist__/chunks/649.js
-    import wasm_fbeb8adedbc833032bda6f13925ba235b8d09114 from '../wasm/wasm_fbeb8adedbc833032bda6f13925ba235b8d09114.wasm';
-    var a = b => {
-    	b.exports = wasm_fbeb8adedbc833032bda6f13925ba235b8d09114;
+    import wasm_fbeb8adedbc833032bda6f13925ba235b8d09114 from "../wasm/wasm_fbeb8adedbc833032bda6f13925ba235b8d09114.wasm";
+    var a = (b) => {
+      b.exports = wasm_fbeb8adedbc833032bda6f13925ba235b8d09114;
     };
     export { a as default };
     ```
