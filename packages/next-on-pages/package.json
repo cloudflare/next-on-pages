@@ -11,7 +11,6 @@
 		"build": "esbuild --bundle --platform=node ./src/index.ts --external:esbuild --external:chokidar --outfile=./dist/index.js",
 		"build:watch": "npm run build -- --watch=forever",
 		"prepare": "npm run build",
-		"publish": "npm run build && changeset publish",
 		"test:unit": "npx vitest --config vitest.config.ts"
 	},
 	"files": [
@@ -69,7 +68,7 @@
 		"typescript": "^5.0.4",
 		"vitest": "^0.31.0",
 		"vitest-environment-miniflare": "^2.13.0",
-		"@cloudflare/next-on-pages-tsconfig": "*",
-		"@cloudflare/eslint-config-next-on-pages": "*"
+		"@cloudflare/next-on-pages-tsconfig": "latest",
+		"@cloudflare/eslint-config-next-on-pages": "latest"
 	}
 }
