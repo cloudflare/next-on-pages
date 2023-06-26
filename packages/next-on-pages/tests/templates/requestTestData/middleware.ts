@@ -105,7 +105,7 @@ export const testSet: TestSet = {
 				status: 307,
 				data: '',
 				headers: {
-					location: 'http://localhost/somewhere-else',
+					location: 'http://localhost/somewhere-else?redirect=',
 				},
 			},
 		},
