@@ -1,5 +1,5 @@
 import { parse } from 'cookie';
-import type { MatchPCREResult } from './utils';
+import type { MatchPCREResult, MatchedSetHeaders } from './utils';
 import { isLocaleTrailingSlashRegex, parseAcceptLanguage } from './utils';
 import {
 	applyHeaders,
@@ -32,7 +32,7 @@ export class RoutesMatcher {
 	/** Status for the response object */
 	public status: number | undefined;
 	/** Headers for the response object */
-	public headers: { normal: Headers; important: Headers };
+	public headers: MatchedSetHeaders;
 	/** Search params for the response object */
 	public searchParams: URLSearchParams;
 	/** Custom response body from middleware */
@@ -184,6 +184,7 @@ export class RoutesMatcher {
 		}
 
 		applyHeaders(this.headers.normal, resp.headers);
+		this.headers.middlewareLocation = resp.headers.get('location');
 	}
 
 	/**

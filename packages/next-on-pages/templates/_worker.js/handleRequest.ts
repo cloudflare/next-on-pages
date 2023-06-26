@@ -71,13 +71,17 @@ async function generateResponse(
 	output: VercelBuildOutput
 ): Promise<Response> {
 	// Redirect user to external URL for redirects.
-	if (headers.normal.has('location')) {
-		// Apply the search params to the location header.
-		const location = headers.normal.get('location') ?? '/';
-		const paramsStr = [...searchParams.keys()].length
-			? `?${searchParams.toString()}`
-			: '';
-		headers.normal.set('location', `${location}${paramsStr}`);
+	const locationHeader = headers.normal.get('location');
+	if (locationHeader) {
+		// Apply the search params to the location header if it was not from middleware.
+		// Middleware that returns a redirect will specify the destination, including any search params
+		// that they want to include. Therefore, we should not be appending search params to those.
+		if (locationHeader !== headers.middlewareLocation) {
+			const paramsStr = [...searchParams.keys()].length
+				? `?${searchParams.toString()}`
+				: '';
+			headers.normal.set('location', `${locationHeader ?? '/'}${paramsStr}`);
+		}
 
 		return new Response(null, { status, headers: headers.normal });
 	}
