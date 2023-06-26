@@ -37,11 +37,11 @@ describe('no-unsupported-configs', () => {
 					errors: [
 						{
 							message:
-								'The "compress" configuration is not supported by next-on-pages (and will likely never be).',
+								'The "compress" configuration is not supported by next-on-pages (and is unlikely to be supported in the future).',
 						},
 						{
 							message:
-								'The "serverRuntimeConfig" configuration is not supported by next-on-pages (and will likely never be).',
+								'The "serverRuntimeConfig" configuration is not supported by next-on-pages (and is unlikely to be supported in the future).',
 						},
 					],
 				},
@@ -78,7 +78,7 @@ describe('no-unsupported-configs', () => {
 					errors: [
 						{
 							message:
-								'The "compress" configuration is not supported by next-on-pages (and will likely never be).',
+								'The "compress" configuration is not supported by next-on-pages (and is unlikely to be supported in the future).',
 						},
 					],
 				},
@@ -110,7 +110,7 @@ describe('no-unsupported-configs', () => {
 					errors: [
 						{
 							message:
-								'The "distDir" configuration is not supported by next-on-pages (and will likely never be).',
+								'The "distDir" configuration is not supported by next-on-pages (and is unlikely to be supported in the future).',
 						},
 					],
 				},
@@ -123,7 +123,7 @@ describe('no-unsupported-configs', () => {
     /** @type {import('next').NextConfig} */
     const nextConfig = {
       assetPrefix: 'test',
-      reactStrictMode: true,
+      incrementalCacheHandlerPath: true,
     }
 
     module.exports = nextConfig
@@ -148,7 +148,7 @@ describe('no-unsupported-configs', () => {
 						},
 						{
 							message:
-								'The "reactStrictMode" configuration is not currently supported by next-on-pages.',
+								'The "incrementalCacheHandlerPath" configuration is not currently supported by next-on-pages.',
 						},
 					],
 				},
@@ -219,7 +219,7 @@ describe('no-unsupported-configs', () => {
 					errors: [
 						{
 							message:
-								'The "compress" configuration is not supported by next-on-pages (and will likely never be).',
+								'The "compress" configuration is not supported by next-on-pages (and is unlikely to be supported in the future).',
 						},
 						{
 							message:
@@ -227,15 +227,11 @@ describe('no-unsupported-configs', () => {
 						},
 						{
 							message:
-								'The "serverRuntimeConfig" configuration is not supported by next-on-pages (and will likely never be).',
+								'The "serverRuntimeConfig" configuration is not supported by next-on-pages (and is unlikely to be supported in the future).',
 						},
 						{
 							message:
 								'The "invalidTestConfig2" configuration is not recognized by next-on-pages (it might or might not be supported).',
-						},
-						{
-							message:
-								'The "trailingSlash" configuration is not currently supported by next-on-pages.',
 						},
 					],
 				},
@@ -248,7 +244,7 @@ describe('no-unsupported-configs', () => {
 					errors: [
 						{
 							message:
-								'The "compress" configuration is not supported by next-on-pages (and will likely never be).',
+								'The "compress" configuration is not supported by next-on-pages (and is unlikely to be supported in the future).',
 						},
 						{
 							message:
@@ -256,7 +252,7 @@ describe('no-unsupported-configs', () => {
 						},
 						{
 							message:
-								'The "serverRuntimeConfig" configuration is not supported by next-on-pages (and will likely never be).',
+								'The "serverRuntimeConfig" configuration is not supported by next-on-pages (and is unlikely to be supported in the future).',
 						},
 						{
 							message:
@@ -273,15 +269,11 @@ describe('no-unsupported-configs', () => {
 					errors: [
 						{
 							message:
-								'The "compress" configuration is not supported by next-on-pages (and will likely never be).',
+								'The "compress" configuration is not supported by next-on-pages (and is unlikely to be supported in the future).',
 						},
 						{
 							message:
-								'The "serverRuntimeConfig" configuration is not supported by next-on-pages (and will likely never be).',
-						},
-						{
-							message:
-								'The "trailingSlash" configuration is not currently supported by next-on-pages.',
+								'The "serverRuntimeConfig" configuration is not supported by next-on-pages (and is unlikely to be supported in the future).',
 						},
 					],
 				},
@@ -294,11 +286,11 @@ describe('no-unsupported-configs', () => {
 					errors: [
 						{
 							message:
-								'The "compress" configuration is not supported by next-on-pages (and will likely never be).',
+								'The "compress" configuration is not supported by next-on-pages (and is unlikely to be supported in the future).',
 						},
 						{
 							message:
-								'The "serverRuntimeConfig" configuration is not supported by next-on-pages (and will likely never be).',
+								'The "serverRuntimeConfig" configuration is not supported by next-on-pages (and is unlikely to be supported in the future).',
 						},
 					],
 				},

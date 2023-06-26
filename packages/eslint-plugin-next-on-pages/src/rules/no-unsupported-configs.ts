@@ -184,7 +184,7 @@ function checkConfigPropsRecursively(
 
 		if (indefinitelyUnsupportedConfigs.has(fullPropName)) {
 			context.report({
-				message: `The "${fullPropName}" configuration is not supported by next-on-pages (and will likely never be).`,
+				message: `The "${fullPropName}" configuration is not supported by next-on-pages (and is unlikely to be supported in the future).`,
 				node: prop.key,
 			});
 			return;
