@@ -6,10 +6,16 @@ import {
 	applySearchParams,
 } from './http';
 
+export type MatchedSetHeaders = {
+	normal: Headers;
+	important: Headers;
+	middlewareLocation?: string | null;
+};
+
 export type MatchedSet = {
 	path: string;
 	status: number | undefined;
-	headers: { normal: Headers; important: Headers };
+	headers: MatchedSetHeaders;
 	searchParams: URLSearchParams;
 	body: BodyInit | undefined | null;
 };
