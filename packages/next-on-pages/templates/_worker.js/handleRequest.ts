@@ -74,6 +74,8 @@ async function generateResponse(
 	const locationHeader = headers.normal.get('location');
 	if (locationHeader) {
 		// Apply the search params to the location header if it was not from middleware.
+		// Middleware that returns a redirect will specify the destination, including any search params
+		// that they want to include. Therefore, we should not be appending search params to those.
 		if (locationHeader !== headers.middlewareLocation) {
 			const paramsStr = [...searchParams.keys()].length
 				? `?${searchParams.toString()}`

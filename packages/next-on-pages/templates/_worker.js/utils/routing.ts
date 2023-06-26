@@ -7,8 +7,19 @@ import {
 } from './http';
 
 export type MatchedSetHeaders = {
+	/**
+	 * The headers present on a source route.
+	 * Gets applied to the final response before the response headers from running a function.
+	 */
 	normal: Headers;
+	/**
+	 * The *important* headers - the ones present on a source route that specifies `important: true`.
+	 * Gets applied to the final response after the response headers from running a function.
+	 */
 	important: Headers;
+	/**
+	 * Tracks if a location header is found, and what the value is, after running a middleware function.
+	 */
 	middlewareLocation?: string | null;
 };
 
