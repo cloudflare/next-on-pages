@@ -438,7 +438,7 @@ describe('generateFunctionsMap', async () => {
 			mockedConsole.restore();
 		});
 
-		test('fails with custom output dir and existing conflicting index.rsc static file', async () => {
+		test('overwrites with custom output dir and existing conflicting index.rsc static file', async () => {
 			const mockedConsoleLog = mockConsole('log');
 			const mockedConsoleWarn = mockConsole('warn');
 
@@ -460,11 +460,11 @@ describe('generateFunctionsMap', async () => {
 
 			expect(functionsMap.size).toEqual(0);
 
-			expect(prerenderedRoutes.size).toEqual(1);
+			expect(prerenderedRoutes.size).toEqual(2);
 			expect(prerenderedRoutes.has('/index.html')).toEqual(true);
+			expect(prerenderedRoutes.has('/index.rsc')).toEqual(true);
 
-			expect(invalidFunctions.size).toEqual(1);
-			expect(invalidFunctions.has('index.rsc.func')).toEqual(true);
+			expect(invalidFunctions.size).toEqual(0);
 
 			expect(readdirSync(resolve('custom'))).toEqual([
 				'index.html',
@@ -476,7 +476,7 @@ describe('generateFunctionsMap', async () => {
 				/Copying 1 static asset/,
 			]);
 			mockedConsoleWarn.expectCalls([
-				/Prerendered file already exists for index\.rsc/,
+				/Prerendered file already exists for index\.rsc, overwriting\.\.\./,
 			]);
 
 			mockedConsoleLog.restore();

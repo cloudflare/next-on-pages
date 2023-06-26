@@ -128,7 +128,7 @@ async function prepareAndBuildWorker(
 		generatedFunctionsMaps
 	);
 	await writeBuildInfo(
-		join('.vercel', 'output', 'static', '_worker.js'),
+		join(outputDir, '_worker.js'),
 		staticAssets,
 		processedVercelOutput,
 		generatedFunctionsMaps
