@@ -317,7 +317,11 @@ export function createPrerenderedRoute(
 	};
 }
 
-type ConsoleMethods = 'log' | 'warn' | 'error';
+type ConsoleMethods = {
+	[Method in keyof Console]: Console[Method] extends (...args: any[]) => any
+		? Method
+		: never;
+}[keyof Console];
 export function mockConsole(method: ConsoleMethods) {
 	const mockedMethod = vi.spyOn(console, method).mockImplementation(() => null);
 
