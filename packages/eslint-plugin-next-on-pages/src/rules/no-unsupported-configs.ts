@@ -94,7 +94,7 @@ const rule: Rule.RuleModule = {
 	create: context => {
 		const code = context.getSourceCode();
 		const exportedConfigName = context.getFilename().match(/next\.config\.js$/)
-			? getExportedConfigName(code.ast)
+			? getConfigVariableName(code.ast)
 			: null;
 
 		const options = (context.options[0] ?? {
@@ -211,10 +211,17 @@ function checkConfigPropsRecursively(
 }
 
 /**
- * Gets the name of the config exported by next.config.js (by taking the name from the `module.exports = ...` line)
- * If no name is found it returns null
+ * Gets the name of the config variable defined in next.config.js
+ *
+ * It does that by trying two different strategies:
+ *  - First it tries to take the config's name from the `module.exports = ...` line
+ *  - If the above attempt fails then it tries to get the variable name of the variable
+ *    declared just after the next.js import type comment: "type {import('next').NextConfig}"
+ *
+ * @param ast the AST to analyze
+ * @returns the detected config name, or null if no name could be detected
  */
-function getExportedConfigName(ast: Program): string | null {
+function getConfigVariableName(ast: Program): string | null {
 	for (const node of ast.body) {
 		try {
 			const exportedValue = extractModuleExportValue(node);
@@ -225,7 +232,50 @@ function getExportedConfigName(ast: Program): string | null {
 			/*  empty */
 		}
 	}
+
+	// we get the node right after /** @type {import('next').NextConfig} */
+	const nodeAfterNextConfigComment = getNodeAfterComment(
+		ast,
+		/@type\s+\{\s*import\((['"])next\1\)\.NextConfig\}/
+	);
+	try {
+		assert(nodeAfterNextConfigComment);
+		assert(nodeAfterNextConfigComment.type === 'VariableDeclaration');
+		assert(nodeAfterNextConfigComment.declarations.length === 1);
+		assert(
+			nodeAfterNextConfigComment.declarations[0]?.id.type === 'Identifier'
+		);
+		return nodeAfterNextConfigComment.declarations[0]?.id.name;
+	} catch {
+		/*  empty */
+	}
+
 	return null;
+}
+
+/**
+ * Gets an AST node present right after a target comment.
+ *
+ * @param ast the AST to analyze
+ * @param commentRegex a regex to be used to identify the target comment
+ * @returns the AST node present right after the target comment, or null if the comment was not present or no node was after it
+ */
+function getNodeAfterComment(ast: Program, commentRegex: RegExp): Node | null {
+	const nextConfigTypeImportComment = ast.comments?.find(comment =>
+		commentRegex.test(comment.value)
+	);
+	const commentEnd = nextConfigTypeImportComment?.loc?.end;
+	if (!commentEnd) return null;
+
+	const nodeAfterComment = ast.body.find(node => {
+		const nodeStart = node.loc?.start;
+		if (!nodeStart) return false;
+		if (nodeStart.line < commentEnd.line) return false;
+		if (nodeStart.line > commentEnd.line) return true;
+		return nodeStart.column > commentEnd.column;
+	});
+
+	return nodeAfterComment ?? null;
 }
 
 /**

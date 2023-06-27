@@ -86,6 +86,53 @@ describe('no-unsupported-configs', () => {
 		});
 	});
 
+	test('should work with configs wrapped inside a function call', () => {
+		tester.run('no-unsupported-configs', rule, {
+			valid: [
+				{
+					filename: 'next.config.js',
+					code: `
+						const withMDX = require('@next/mdx')()
+
+						/** @type {import('next').NextConfig} */
+						const nextConfig = {
+							experimental: {
+								mdxRs: true,
+							},
+						}
+
+						module.exports = withMDX(nextConfig)
+					`,
+					options: [{ includeUnrecognized: true }],
+				},
+			],
+			invalid: [
+				{
+					filename: 'next.config.js',
+					code: `
+						const withMDX = require('@next/mdx')()
+
+						/** @type {import('next').NextConfig} */
+						const nextConfig = {
+							experimental: {
+								mdxRs: true,
+							},
+							compress: true,
+						}
+
+						module.exports = withMDX(nextConfig)
+					`,
+					errors: [
+						{
+							message:
+								'The "compress" configuration is not supported by next-on-pages (and is unlikely to be supported in the future).',
+						},
+					],
+				},
+			],
+		});
+	});
+
 	test('should work with directly exported configs', () => {
 		tester.run('no-unsupported-configs', rule, {
 			valid: [
