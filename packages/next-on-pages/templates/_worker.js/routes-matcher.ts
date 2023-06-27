@@ -537,11 +537,12 @@ export class RoutesMatcher {
 			}
 		}
 
-		// In the `hit` phase or for external urls/redirects, return the match.
+		// In the `hit` phase or for external urls/redirects/middleware responses, return the match.
 		if (
 			phase === 'hit' ||
 			isUrl(this.path) ||
-			this.headers.normal.has('location')
+			this.headers.normal.has('location') ||
+			!!this.body
 		) {
 			return 'done';
 		}

@@ -201,5 +201,16 @@ export const testSet: TestSet = {
 				},
 			},
 		},
+		{
+			name: 'middleware route returns custom response when returning a new NextResponse on an invalid route',
+			paths: ['/api/hello/invalid-route?returns200'],
+			expected: {
+				status: 200,
+				data: 'Hello, World!',
+				headers: {
+					'content-type': 'text/html',
+				},
+			},
+		},
 	],
 };
