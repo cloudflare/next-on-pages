@@ -1,7 +1,8 @@
-import type { Rule } from 'eslint';
-import type { Node, Program, Property } from 'estree';
+import type { Rule, SourceCode } from 'eslint';
+import type { Node, Property } from 'estree';
 import assert, { AssertionError } from 'node:assert';
 import { extractPaths } from '../utils/extract-paths';
+import { parse as parseComment } from 'comment-parser';
 
 // Note: the rule now only checks for property name, it will probably need to also include case in which we do accept a property but not
 //       certain values for it
@@ -94,7 +95,7 @@ const rule: Rule.RuleModule = {
 	create: context => {
 		const code = context.getSourceCode();
 		const exportedConfigName = context.getFilename().match(/next\.config\.js$/)
-			? getConfigVariableName(code.ast)
+			? getConfigVariableName(code)
 			: null;
 
 		const options = (context.options[0] ?? {
@@ -218,10 +219,11 @@ function checkConfigPropsRecursively(
  *  - If the above attempt fails then it tries to get the variable name of the variable
  *    declared just after the next.js import type comment: "type {import('next').NextConfig}"
  *
- * @param ast the AST to analyze
+ * @param code SourceCode of the target file
  * @returns the detected config name, or null if no name could be detected
  */
-function getConfigVariableName(ast: Program): string | null {
+function getConfigVariableName(code: SourceCode): string | null {
+	const { ast } = code;
 	for (const node of ast.body) {
 		try {
 			const exportedValue = extractModuleExportValue(node);
@@ -233,11 +235,7 @@ function getConfigVariableName(ast: Program): string | null {
 		}
 	}
 
-	// we get the node right after /** @type {import('next').NextConfig} */
-	const nodeAfterNextConfigComment = getNodeAfterComment(
-		ast,
-		/@type\s+\{\s*import\((['"])next\1\)\.NextConfig\}/
-	);
+	const nodeAfterNextConfigComment = getNodeAfterNextConfigTypeComment(code);
 	try {
 		assert(nodeAfterNextConfigComment);
 		assert(nodeAfterNextConfigComment.type === 'VariableDeclaration');
@@ -254,28 +252,25 @@ function getConfigVariableName(ast: Program): string | null {
 }
 
 /**
- * Gets an AST node present right after a target comment.
+ * Gets an AST node present right after the Next config type import: "import('next').NextConfig"
  *
- * @param ast the AST to analyze
- * @param commentRegex a regex to be used to identify the target comment
+ * @param code SourceCode of the target file
  * @returns the AST node present right after the target comment, or null if the comment was not present or no node was after it
  */
-function getNodeAfterComment(ast: Program, commentRegex: RegExp): Node | null {
-	const nextConfigTypeImportComment = ast.comments?.find(comment =>
-		commentRegex.test(comment.value)
+function getNodeAfterNextConfigTypeComment(code: SourceCode): Node | null {
+	return (
+		code.ast.body.find(node => {
+			const comments = code.getCommentsBefore(node);
+			return comments.find(comment => {
+				const parsedComment = parseComment(`/*${comment.value}*/`)[0];
+				return parsedComment?.tags.find(
+					({ tag, type }) =>
+						tag === 'type' &&
+						/^import\s*\(\s*(['"])next\1\s*\)\s*\.\s*NextConfig$/.test(type)
+				);
+			});
+		}) ?? null
 	);
-	const commentEnd = nextConfigTypeImportComment?.loc?.end;
-	if (!commentEnd) return null;
-
-	const nodeAfterComment = ast.body.find(node => {
-		const nodeStart = node.loc?.start;
-		if (!nodeStart) return false;
-		if (nodeStart.line < commentEnd.line) return false;
-		if (nodeStart.line > commentEnd.line) return true;
-		return nodeStart.column > commentEnd.column;
-	});
-
-	return nodeAfterComment ?? null;
 }
 
 /**

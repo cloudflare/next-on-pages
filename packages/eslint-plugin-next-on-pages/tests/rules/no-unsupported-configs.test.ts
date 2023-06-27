@@ -129,6 +129,36 @@ describe('no-unsupported-configs', () => {
 						},
 					],
 				},
+				{
+					filename: 'next.config.js',
+					code: `
+						const withMDX = require('@next/mdx')()
+
+						/**
+						 *
+						 * @type {import(    "next"   )   .     
+						 *  NextConfig}
+						 * 
+						 * The following is my config object
+						 * */
+						
+						/* this is another comment, surprisingly it doesn't break the type import! */
+						const nextConfig = {
+							experimental: {
+								mdxRs: true,
+							},
+							compress: true,
+						}
+
+						module.exports = withMDX(nextConfig)
+					`,
+					errors: [
+						{
+							message:
+								'The "compress" configuration is not supported by next-on-pages (and is unlikely to be supported in the future).',
+						},
+					],
+				},
 			],
 		});
 	});
