@@ -6,44 +6,64 @@ import { extractPaths } from '../utils/extract-paths';
 // Note: the rule now only checks for property name, it will probably need to also include case in which we do accept a property but not
 //       certain values for it
 
-/** configs that next-on-pages does support */
-const supportedConfigs: Readonly<Set<string>> = new Set([
-	'env',
-	'basePath',
-	'rewrites',
-	'redirects',
-	'headers',
-	'pageExtensions',
-	'webpack',
-	'generateBuildId',
-	'eslint',
-	'typescript',
-	'experimental/appDir',
-]);
+type Config = { name: string; support: '✅' | 'N/A' | '❌' | '🔄' };
 
-/** configs that next-on-pages does not support and likely never will */
-const indefinitelyUnsupportedConfigs: Readonly<Set<string>> = new Set([
-	'compress',
-	'serverRuntimeConfig',
-	'publicRuntimeConfig',
-	'httpAgentOptions',
-	'distDir',
-	'onDemandEntries',
-	'exportPathMap',
-	'devIndicators',
-]);
+// configs taken from https://github.com/cloudflare/next-on-pages/blob/main/packages/next-on-pages/docs/supported.md#nextconfigjs-properties
+// NOTE: to some we need to add the `experimental/` prefix and the Runtime Config is split into two
+const configs: Config[] = [
+	{ name: 'experimental/appDir', support: '✅' },
+	{ name: 'assetPrefix', support: '🔄' },
+	{ name: 'basePath', support: '✅' },
+	{ name: 'compress', support: 'N/A' },
+	{ name: 'devIndicators', support: '❌' },
+	{ name: 'distDir', support: 'N/A' },
+	{ name: 'env', support: '✅' },
+	{ name: 'eslint', support: '✅' },
+	{ name: 'exportPathMap', support: 'N/A' },
+	{ name: 'generateBuildId', support: '✅' },
+	{ name: 'generateEtags', support: '🔄' },
+	{ name: 'headers', support: '✅' },
+	{ name: 'httpAgentOptions', support: 'N/A' },
+	{ name: 'images', support: '✅' },
+	{ name: 'incrementalCacheHandlerPath', support: '🔄' },
+	{ name: 'experimental/mdxRs', support: '✅' },
+	{ name: 'onDemandEntries', support: 'N/A' },
+	{ name: 'output', support: 'N/A' },
+	{ name: 'pageExtensions', support: '✅' },
+	{ name: 'poweredByHeader', support: '🔄' },
+	{ name: 'productionBrowserSourceMaps', support: '🔄' },
+	{ name: 'reactStrictMode', support: '❌' },
+	{ name: 'redirects', support: '✅' },
+	{ name: 'rewrites', support: '✅' },
+	// Runtime Config
+	{ name: 'serverRuntimeConfig', support: '❌' },
+	{ name: 'publicRuntimeConfig', support: '❌' },
+	{ name: 'serverComponentsExternalPackages', support: 'N/A' },
+	{ name: 'trailingSlash', support: '✅' },
+	{ name: 'transpilePackages', support: '✅' },
+	{ name: 'experimental/turbo', support: '🔄' },
+	{ name: 'typedRoutes', support: '✅' },
+	{ name: 'typescript', support: '✅' },
+	{ name: 'experimental/urlImports', support: '✅' },
+	{ name: 'webpack', support: '✅' },
+	{ name: 'experimental/webVitalsAttribution', support: '✅' },
+];
 
-/** configs that next-on-pages does not support right now but likely will */
-const currentlyUnsupportedConfigs: Readonly<Set<string>> = new Set([
-	'assetPrefix',
-	'images',
-	'poweredByHeader',
-	'generateEtags',
-	'trailingSlash',
-	'reactStrictMode',
-	'i18n',
-	'experimental/turbo',
-]);
+function filterAndExtractConfigs(
+	support: Config['support'] | Config['support'][]
+): string[] {
+	const comparisonFn = (config: Config) =>
+		Array.isArray(support)
+			? support.includes(config.support)
+			: config.support === support;
+	return configs.filter(comparisonFn).map(config => config.name);
+}
+
+const supportedConfigs = new Set(filterAndExtractConfigs('✅'));
+const indefinitelyUnsupportedConfigs = new Set(
+	filterAndExtractConfigs(['❌', 'N/A'])
+);
+const currentlyUnsupportedConfigs = new Set(filterAndExtractConfigs('🔄'));
 
 /** nested Next.js configs that need to be explored
  * (For example 'experimental' because there are props such as 'experimental/appDir' and 'experimental/turbo')
@@ -164,7 +184,7 @@ function checkConfigPropsRecursively(
 
 		if (indefinitelyUnsupportedConfigs.has(fullPropName)) {
 			context.report({
-				message: `The "${fullPropName}" configuration is not supported by next-on-pages (and will likely never be).`,
+				message: `The "${fullPropName}" configuration is not supported by next-on-pages (and is unlikely to be supported in the future).`,
 				node: prop.key,
 			});
 			return;
