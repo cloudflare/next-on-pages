@@ -149,33 +149,34 @@ async function processDirectoryRecursively(
 		setup.outputDir
 	);
 
-	await Promise.all(
-		functionFiles.map(async file => {
-			const filepath = join(dir, file);
-			if (await validateDir(filepath)) {
-				const dirResultsPromise = file.endsWith('.func')
-					? processFuncDirectory(setup, filepath)
-					: processDirectoryRecursively(setup, filepath);
-				const dirResults = await dirResultsPromise;
-				dirResults.invalidFunctions?.forEach(fn => invalidFunctions.add(fn));
-				dirResults.functionsMap?.forEach((value, key) =>
-					functionsMap.set(key, value)
-				);
-				dirResults.webpackChunks?.forEach((value, key) =>
-					webpackChunks.set(key, value)
-				);
-				dirResults.prerenderedRoutes?.forEach((value, key) =>
-					prerenderedRoutes.set(key, value)
-				);
-				dirResults.wasmIdentifiers?.forEach((value, key) =>
-					wasmIdentifiers.set(key, value)
-				);
-				dirResults.nextJsManifests?.forEach((value, key) =>
-					nextJsManifests.set(key, value)
-				);
-			}
-		})
-	);
+	// Note: the following could be implemented via `await Promise.all` since different directories are independent to each other
+	//       unfortunately this can cause large application to require unreasonably large memory to build, so we need to do a
+	//       simpler and slower loop with awaits instead
+	for (const file of functionFiles) {
+		const filepath = join(dir, file);
+		if (await validateDir(filepath)) {
+			const dirResultsPromise = file.endsWith('.func')
+				? processFuncDirectory(setup, filepath)
+				: processDirectoryRecursively(setup, filepath);
+			const dirResults = await dirResultsPromise;
+			dirResults.invalidFunctions?.forEach(fn => invalidFunctions.add(fn));
+			dirResults.functionsMap?.forEach((value, key) =>
+				functionsMap.set(key, value)
+			);
+			dirResults.webpackChunks?.forEach((value, key) =>
+				webpackChunks.set(key, value)
+			);
+			dirResults.prerenderedRoutes?.forEach((value, key) =>
+				prerenderedRoutes.set(key, value)
+			);
+			dirResults.wasmIdentifiers?.forEach((value, key) =>
+				wasmIdentifiers.set(key, value)
+			);
+			dirResults.nextJsManifests?.forEach((value, key) =>
+				nextJsManifests.set(key, value)
+			);
+		}
+	}
 
 	return {
 		invalidFunctions,
