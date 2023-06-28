@@ -70,10 +70,12 @@ export async function generateFunctionsMap(
 		await copyWasmFiles(nextOnPagesDistDir, processingResults.wasmIdentifiers);
 	}
 
-	await createNextJsManifestFiles(
-		nextOnPagesDistDir,
-		processingResults.nextJsManifests
-	);
+	if (processingResults.nextJsManifests.size) {
+		await createNextJsManifestFiles(
+			nextOnPagesDistDir,
+			processingResults.nextJsManifests
+		);
+	}
 
 	return processingResults;
 }
