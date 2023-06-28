@@ -392,32 +392,26 @@ async function extractNextJsManifests(
 		sourceType: 'module',
 	}) as unknown as AST.ProgramKind;
 
-	const manifestLocations: {
-		identifier: string;
-		start: number;
-		end: number;
-	}[] = program.body.map(getManifestStartEnd).filter(Boolean) as {
-		identifier: string;
-		start: number;
-		end: number;
-	}[];
+	const manifestStatementInfos = program.body
+		.map(extractManifestStatementInfo)
+		.filter(Boolean) as ManifestStatementInfo[];
 
 	let updatedContents = originalFileContents;
 
 	const manifests = new Map<string, string>();
-	manifestLocations.forEach(({ identifier, start, end }) => {
+	manifestStatementInfos.forEach(({ manifestIdentifier, start, end }) => {
 		const originalManifestCode = originalFileContents.slice(start, end);
-		updatedContents = `${`import ${identifier} from "${'../'.repeat(
+		updatedContents = `${`import ${manifestIdentifier} from "${'../'.repeat(
 			getFunctionNestingLevel(functionFilePath) - 1
-		)}../__next-on-pages-dist__/nextjs-manifests/${identifier}.js";`}${updatedContents}`;
+		)}../__next-on-pages-dist__/nextjs-manifests/${manifestIdentifier}.js";`}${updatedContents}`;
 		updatedContents = updatedContents.replace(
 			originalManifestCode,
-			`self.${identifier}=${identifier};`
+			`self.${manifestIdentifier}=${manifestIdentifier};`
 		);
-		const manifest = originalManifestCode
-			.slice(`self.${identifier}=`.length)
+		const manifestContent = originalManifestCode
+			.slice(`self.${manifestIdentifier}=`.length)
 			.replace(/;$/, '');
-		manifests.set(identifier, manifest);
+		manifests.set(manifestIdentifier, manifestContent);
 	});
 
 	await writeFile(functionFilePath, updatedContents);
@@ -425,9 +419,23 @@ async function extractNextJsManifests(
 	return { manifests, updatedContents };
 }
 
-function getManifestStartEnd(
+type ManifestStatementInfo = {
+	manifestIdentifier: string;
+	start: number;
+	end: number;
+};
+
+/**
+ * Extracts statement manifest information (i.e. the manifest identifier and the start and end locations of the statement)
+ * from an AST statement representing the following format: "self.MANIFEST_NAME = { MANIFEST_CONTENT }"
+ * where MANIFEST_NAME is one of the name of the manifests that Next.js generates and MANIFEST_CONTENT is its content in js object form
+ *
+ * @param statement the target AST statement
+ * @returns information about the manifest statement if it follows the required format, null otherwise
+ */
+function extractManifestStatementInfo(
 	statement: AST.StatementKind
-): { identifier: string; start: number; end: number } | null {
+): ManifestStatementInfo | null {
 	try {
 		assert(statement.type === 'ExpressionStatement');
 		assert(statement.expression.type === 'AssignmentExpression');
@@ -448,7 +456,11 @@ function getManifestStartEnd(
 		assert(nextJsManifests.includes(statement.expression.left.property.name));
 
 		const { start, end } = statement as unknown as Node;
-		return { identifier: statement.expression.left.property.name, start, end };
+		return {
+			manifestIdentifier: statement.expression.left.property.name,
+			start,
+			end,
+		};
 	} catch {
 		return null;
 	}
