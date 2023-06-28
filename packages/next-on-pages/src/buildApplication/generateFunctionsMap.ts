@@ -70,6 +70,11 @@ export async function generateFunctionsMap(
 		await copyWasmFiles(nextOnPagesDistDir, processingResults.wasmIdentifiers);
 	}
 
+	await createNextJsManifestFiles(
+		nextOnPagesDistDir,
+		processingResults.nextJsManifests
+	);
+
 	return processingResults;
 }
 
@@ -135,6 +140,7 @@ async function processDirectoryRecursively(
 	const webpackChunks = new Map<number, string>();
 	const prerenderedRoutes = new Map<string, PrerenderedFileData>();
 	const wasmIdentifiers = new Map<string, WasmModuleInfo>();
+	const nextJsManifests = new Map<string, string>();
 
 	const files = await readdir(dir);
 	const functionFiles = await fixPrerenderedRoutes(
@@ -165,6 +171,9 @@ async function processDirectoryRecursively(
 				dirResults.wasmIdentifiers?.forEach((value, key) =>
 					wasmIdentifiers.set(key, value)
 				);
+				dirResults.nextJsManifests?.forEach((value, key) =>
+					nextJsManifests.set(key, value)
+				);
 			}
 		})
 	);
@@ -175,6 +184,7 @@ async function processDirectoryRecursively(
 		webpackChunks,
 		prerenderedRoutes,
 		wasmIdentifiers,
+		nextJsManifests,
 	};
 }
 
@@ -256,9 +266,14 @@ async function processFuncDirectory(
 		wasmIdentifiers = funcWasmIdentifiers;
 	}
 
+	const { manifests: nextJsManifests, updatedContents } =
+		await extractNextJsManifests(functionFilePath, contents);
+	contents = updatedContents;
+
 	const newFilePath = join(setup.distFunctionsDir, `${relativePath}.js`);
 	await mkdir(dirname(newFilePath), { recursive: true });
-	const relativeChunksPath = getRelativeChunksPath(functionFilePath);
+	const relativeNextOnPagesDistPath =
+		getRelativeNextOnPagesDistPath(functionFilePath);
 	await build({
 		stdin: {
 			contents,
@@ -267,7 +282,7 @@ async function processFuncDirectory(
 		platform: 'neutral',
 		outfile: newFilePath,
 		bundle: true,
-		external: ['node:*', `${relativeChunksPath}/*`, '*.wasm'],
+		external: ['node:*', `${relativeNextOnPagesDistPath}/*`, '*.wasm'],
 		minify: true,
 		plugins: [nodeBuiltInModulesPlugin],
 	});
@@ -285,6 +300,7 @@ async function processFuncDirectory(
 		functionsMap,
 		webpackChunks,
 		wasmIdentifiers,
+		nextJsManifests,
 	};
 }
 
@@ -347,6 +363,92 @@ async function extractAndFixWasmRequires(
 	await writeFile(functionFilePath, updatedContents);
 
 	return { wasmIdentifiers, updatedContents };
+}
+
+/**
+ * Given the path of a function file and its content update the content so that it doesn't include Next.js manifests but imports them
+ * from the __next-on-pages-dist__/nextjs-manifests directory.
+ *
+ * Note: Such manifests are always the same for all functions so we need to share them across the various function files instead of costly duplicating them in each file.
+ *
+ * As a side effect this function also updates the file with the new content.
+ *
+ * @param functionFilePath file path of the function file
+ * @param originalFileContents the (original) contents of the file
+ * @returns the updated content and a map that maps manifest identifiers to the manifest's js object code.
+ */
+async function extractNextJsManifests(
+	functionFilePath: string,
+	originalFileContents: string
+): Promise<{
+	manifests: Map<string, string>;
+	updatedContents: string;
+}> {
+	const program = parse(originalFileContents, {
+		ecmaVersion: 'latest',
+		sourceType: 'module',
+	}) as unknown as AST.ProgramKind;
+
+	const manifestLocations: {
+		identifier: string;
+		start: number;
+		end: number;
+	}[] = program.body.map(getManifestStartEnd).filter(Boolean) as {
+		identifier: string;
+		start: number;
+		end: number;
+	}[];
+
+	let updatedContents = originalFileContents;
+
+	const manifests = new Map<string, string>();
+	manifestLocations.forEach(({ identifier, start, end }) => {
+		const originalManifestCode = originalFileContents.slice(start, end);
+		updatedContents = `${`import ${identifier} from "${'../'.repeat(
+			getFunctionNestingLevel(functionFilePath) - 1
+		)}../__next-on-pages-dist__/nextjs-manifests/${identifier}.js";`}${updatedContents}`;
+		updatedContents = updatedContents.replace(
+			originalManifestCode,
+			`self.${identifier}=${identifier};`
+		);
+		const manifest = originalManifestCode
+			.slice(`self.${identifier}=`.length)
+			.replace(/;$/, '');
+		manifests.set(identifier, manifest);
+	});
+
+	await writeFile(functionFilePath, updatedContents);
+
+	return { manifests, updatedContents };
+}
+
+function getManifestStartEnd(
+	statement: AST.StatementKind
+): { identifier: string; start: number; end: number } | null {
+	try {
+		assert(statement.type === 'ExpressionStatement');
+		assert(statement.expression.type === 'AssignmentExpression');
+
+		assert(statement.expression.left.type === 'MemberExpression');
+		assert(statement.expression.left.object.type === 'Identifier');
+		assert(statement.expression.left.object.name === 'self');
+		assert(statement.expression.left.property.type === 'Identifier');
+
+		const nextJsManifests = [
+			'__RSC_SERVER_MANIFEST',
+			'__RSC_MANIFEST',
+			'__RSC_CSS_MANIFEST',
+			'__BUILD_MANIFEST',
+			'__REACT_LOADABLE_MANIFEST',
+			'__NEXT_FONT_MANIFEST',
+		];
+		assert(nextJsManifests.includes(statement.expression.left.property.name));
+
+		const { start, end } = statement as unknown as Node;
+		return { identifier: statement.expression.left.property.name, start, end };
+	} catch {
+		return null;
+	}
 }
 
 /**
@@ -507,6 +609,7 @@ export type DirectoryProcessingResults = {
 	webpackChunks: Map<number, string>;
 	prerenderedRoutes: Map<string, PrerenderedFileData>;
 	wasmIdentifiers: Map<string, WasmModuleInfo>;
+	nextJsManifests: Map<string, string>;
 };
 
 /**
@@ -619,14 +722,16 @@ function getChunkIdentifier(chunkKey: number): string {
 	return `__chunk_${chunkKey}`;
 }
 
-function getRelativeChunksPath(functionPath: string): string {
+function getRelativeNextOnPagesDistPath(functionPath: string): string {
 	const functionNestingLevel = getFunctionNestingLevel(functionPath);
 	const accountForNestingPath = `../`.repeat(functionNestingLevel);
-	return `${accountForNestingPath}__next-on-pages-dist__/chunks`;
+	return `${accountForNestingPath}__next-on-pages-dist__`;
 }
 
 function getChunkImportFn(functionPath: string): (chunkKey: number) => string {
-	const relativeChunksPath = getRelativeChunksPath(functionPath);
+	const relativeChunksPath = `${getRelativeNextOnPagesDistPath(
+		functionPath
+	)}/chunks`;
 	return chunkKey => {
 		const chunkIdentifier = getChunkIdentifier(chunkKey);
 		const chunkPath = `${relativeChunksPath}/${chunkKey}.js`;
@@ -701,5 +806,24 @@ async function copyWasmFiles(
 	for (const { originalFileLocation, identifier } of wasmIdentifiers.values()) {
 		const newLocation = join(wasmDistDir, `${identifier}.wasm`);
 		await copyFile(originalFileLocation, newLocation);
+	}
+}
+
+/**
+ * Creates js files into the __next-on-pages-dist__/nextjs-manifest folder which export a default
+ * value containing a Next.js manifest object
+ *
+ * @param distDir the __next-on-pages-dist__ directory's path
+ * @param manifests map mapping next manifest identifiers to the manifest objects
+ */
+async function createNextJsManifestFiles(
+	distDir: string,
+	manifests: Map<string, string>
+): Promise<void> {
+	const manifestsDistDir = join(distDir, 'nextjs-manifests');
+	await mkdir(manifestsDistDir);
+	for (const [identifier, manifest] of manifests.entries()) {
+		const path = join(manifestsDistDir, `${identifier}.js`);
+		await writeFile(path, `export default ${manifest}`);
 	}
 }
