@@ -29,7 +29,7 @@ module.exports = {
 		"@typescript-eslint/no-floating-promises": "error",
 		"@typescript-eslint/promise-function-async": "error",
 
-		"deprecation/deprecation": "warn",
+		"deprecation/deprecation": "error",
 	},
 	ignorePatterns: ["vitest.config.ts"]
 };
