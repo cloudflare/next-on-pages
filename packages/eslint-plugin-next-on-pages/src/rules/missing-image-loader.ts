@@ -4,7 +4,7 @@ import assert, { AssertionError } from 'node:assert';
 
 const rule: Rule.RuleModule = {
 	create: context => {
-		const ast = context.getSourceCode().ast;
+		const ast = context.sourceCode.ast;
 		const imageComponentName = getImportedImageName(ast);
 
 		return {

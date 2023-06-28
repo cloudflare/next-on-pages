@@ -10,7 +10,7 @@ module.exports = {
 		sourceType: "module",
 		project: true
 	},
-	plugins: ["@typescript-eslint"],
+	plugins: ["@typescript-eslint", "deprecation"],
 	rules: {
 		"no-case-declarations": "error",
 		"no-console": "error",
@@ -28,6 +28,8 @@ module.exports = {
 		"@typescript-eslint/await-thenable": "error",
 		"@typescript-eslint/no-floating-promises": "error",
 		"@typescript-eslint/promise-function-async": "error",
+
+		"deprecation/deprecation": "warn",
 	},
 	ignorePatterns: ["vitest.config.ts"]
 };
