@@ -1,5 +1,21 @@
 # @cloudflare/next-on-pages
 
+## 1.2.0
+
+### Minor Changes
+
+- 2f9cf97: Support for using a custom output directory for the generated worker and static assets, through a `--outdir` flag.
+
+### Patch Changes
+
+- f879ffd: Prevent middleware redirects applying search params.
+
+  When a middleware function results in a redirect, the location header specified in the response is the full destination, including any search params, as written by the developer. Previously, we always applied search params to redirects found during the routing process, no matter what. This meant that we accidentally were applying search params to middleware redirects, which would alter the intended final destination. This change prevents that from happening.
+
+- 6212bfd: Fix entrypoint not being resolved.
+- 3a95489: Fix middleware returning `new NextResponse` resulting in 404 for routes that don't exist in the build output.
+- 2dceb75: Fix middleware being invoked multiple times in a phase during routing when there is more than one config entry.
+
 ## 1.1.1
 
 ### Minor Changes
