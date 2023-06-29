@@ -176,6 +176,8 @@ export async function getStaticPaths() {
 }
 ```
 
+> Note that the `paths` array cannot be empty as that causes Next.js to ignore the provided `fallback` value, so make sure that at build time at least one entry is present in the array
+
 #### Revalidating Data and `next/cache`
 
 Revalidation and `next/cache` are not supported on Cloudflare Pages. This is used by the default `fetch` cache, which forms part of the incremental cache for revalidating data inside the App Router. Revalidating tags and data for an entire path also uses `next/cache`.
