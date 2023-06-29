@@ -1,6 +1,5 @@
 import type { Rule } from 'eslint';
 import type { Node, Program } from 'estree';
-import assert, { AssertionError } from 'node:assert';
 
 const rule: Rule.RuleModule = {
 	create: context => {
@@ -13,28 +12,27 @@ const rule: Rule.RuleModule = {
 					// We could not find an imported name for the Image component, it's likely actually not imported so we can skip this file
 					return;
 				}
-				try {
-					assert(node.type === 'JSXElement');
-					assert(node.openingElement.name.type === 'JSXIdentifier');
-					assert(node.openingElement.name.name === imageComponentName);
 
-					const loaderAttr = node.openingElement.attributes.find(
-						attr =>
-							attr.type === 'JSXAttribute' &&
-							attr.name.type === 'JSXIdentifier' &&
-							attr.name.name === 'loader' &&
-							attr.value?.type === 'JSXExpressionContainer'
-					);
-					assert(loaderAttr === undefined);
+				if (
+					node.type !== 'JSXElement' ||
+					node.openingElement.name.type !== 'JSXIdentifier' ||
+					node.openingElement.name.name !== imageComponentName
+				) {
+					return;
+				}
 
+				const loaderAttr = node.openingElement.attributes.find(
+					attr =>
+						attr.type === 'JSXAttribute' &&
+						attr.name.type === 'JSXIdentifier' &&
+						attr.name.name === 'loader' &&
+						attr.value?.type === 'JSXExpressionContainer'
+				);
+				if (!loaderAttr) {
 					context.report({
 						message: 'No custom loader specified for the Image element.',
 						node: node.openingElement.name as unknown as Node,
 					});
-				} catch (e) {
-					if (!(e instanceof AssertionError)) {
-						throw e;
-					}
 				}
 			},
 		};
@@ -55,19 +53,14 @@ export = rule;
  */
 function getImportedImageName(ast: Program): string | null {
 	for (const node of ast.body) {
-		try {
-			assert(node.type === 'ImportDeclaration');
-			assert(node.source.type === 'Literal');
-			assert(node.source.value === 'next/image');
-			const specifier = node.specifiers[0];
-			assert(specifier);
-			assert(
-				specifier.type === 'ImportDefaultSpecifier' ||
-					specifier.type === 'ImportNamespaceSpecifier'
-			);
-			return specifier.local.name;
-		} catch {
-			/* empty */
+		if (
+			node.type === 'ImportDeclaration' &&
+			node.source.type === 'Literal' &&
+			node.source.value === 'next/image' &&
+			(node.specifiers[0]?.type === 'ImportDefaultSpecifier' ||
+				node.specifiers[0]?.type === 'ImportNamespaceSpecifier')
+		) {
+			return node.specifiers[0].local.name;
 		}
 	}
 	return null;
