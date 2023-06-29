@@ -14,7 +14,6 @@ import {
 import type { CliOptions } from '../cli';
 import { cliError, cliWarn } from '../cli';
 import type * as AST from 'ast-types/gen/kinds';
-import assert from 'node:assert';
 import type { PrerenderedFileData } from './fixPrerenderedRoutes';
 import { fixPrerenderedRoutes } from './fixPrerenderedRoutes';
 import type { Plugin } from 'esbuild';
@@ -531,39 +530,31 @@ export type DirectoryProcessingResults = {
 function getWebpackChunksFromStatement(
 	statement: AST.StatementKind
 ): AST.PropertyKind[] {
-	try {
-		assert(statement.type === 'ExpressionStatement');
-		const expr = statement.expression;
-
-		assert(expr.type === 'CallExpression');
-		assert(expr.callee.type === 'MemberExpression');
-		assert(expr.callee.property.type === 'Identifier');
-		assert(expr.callee.property.name === 'push');
-		const calleeObj = expr.callee.object;
-
-		assert(calleeObj.type === 'AssignmentExpression');
-
-		assertSelfWebpackChunk_N_E(calleeObj.left);
-
-		assert(calleeObj.right.type === 'LogicalExpression');
-		assert(calleeObj.right.operator === '||');
-		assertSelfWebpackChunk_N_E(calleeObj.right.left);
-		assert(calleeObj.right.right.type === 'ArrayExpression');
-		assert(calleeObj.right.right.elements.length === 0);
-
-		assert(expr.arguments[0]?.type === 'ArrayExpression');
-		assert(expr.arguments[0].elements[1]?.type === 'ObjectExpression');
-
-		return expr.arguments[0].elements[1].properties.filter(
-			p =>
-				p.type === 'Property' &&
-				p.key.type === 'Literal' &&
-				typeof p.key.value === 'number' &&
-				p.value.type === 'ArrowFunctionExpression'
-		) as AST.PropertyKind[];
-	} catch {
+	if (
+		statement.type !== 'ExpressionStatement' ||
+		statement.expression.type !== 'CallExpression' ||
+		statement.expression.callee.type !== 'MemberExpression' ||
+		statement.expression.callee.property.type !== 'Identifier' ||
+		statement.expression.callee.property.name !== 'push' ||
+		statement.expression.callee.object.type !== 'AssignmentExpression' ||
+		!isSelfWebpackChunk_N_E(statement.expression.callee.object.left) ||
+		statement.expression.callee.object.right.type !== 'LogicalExpression' ||
+		!isSelfWebpackChunk_N_E(statement.expression.callee.object.right.left) ||
+		statement.expression.callee.object.right.right.type !== 'ArrayExpression' ||
+		statement.expression.callee.object.right.right.elements.length !== 0 ||
+		statement.expression.arguments[0]?.type !== 'ArrayExpression' ||
+		statement.expression.arguments[0].elements[1]?.type !== 'ObjectExpression'
+	) {
 		return [];
 	}
+
+	return statement.expression.arguments[0].elements[1].properties.filter(
+		p =>
+			p.type === 'Property' &&
+			p.key.type === 'Literal' &&
+			typeof p.key.value === 'number' &&
+			p.value.type === 'ArrowFunctionExpression'
+	) as AST.PropertyKind[];
 }
 
 /**
@@ -581,38 +572,42 @@ function getWebpackChunksFromStatement(
 function getWasmIdentifier(
 	statement: AST.StatementKind
 ): RawWasmModuleInfo | null {
-	try {
-		assert(statement.type === 'VariableDeclaration');
-		assert(statement.declarations.length === 1);
-		const declaration = statement.declarations[0];
-		assert(declaration?.type === 'VariableDeclarator');
-		assert(declaration.id.type === 'Identifier');
-		const identifier = declaration.id.name;
-		const init = declaration.init;
-		assert(init?.type === 'CallExpression');
-		assert(init.callee.type === 'Identifier');
-		assert(init.callee.name === 'require');
-		assert(init.arguments.length === 1);
-		assert(init.arguments[0]?.type === 'Literal');
-		assert(typeof init.arguments[0]?.value === 'string');
-		const importPath = init.arguments[0].value;
-		const { start, end } = statement as unknown as Node;
-		return { identifier, importPath, start, end };
-	} catch {
+	if (
+		statement.type !== 'VariableDeclaration' ||
+		statement.declarations.length !== 1 ||
+		statement.declarations[0]?.type !== 'VariableDeclarator' ||
+		statement.declarations[0].id.type !== 'Identifier' ||
+		statement.declarations[0].init?.type !== 'CallExpression' ||
+		statement.declarations[0].init.callee.type !== 'Identifier' ||
+		statement.declarations[0].init.callee.name !== 'require' ||
+		statement.declarations[0].init.arguments.length !== 1 ||
+		statement.declarations[0].init.arguments[0]?.type !== 'Literal' ||
+		typeof statement.declarations[0].init.arguments[0]?.value !== 'string'
+	) {
 		return null;
 	}
+
+	const importPath = statement.declarations[0].init.arguments[0].value;
+	const { start, end } = statement as unknown as Node;
+	return {
+		identifier: statement.declarations[0].id.name,
+		importPath,
+		start,
+		end,
+	};
 }
 
 /**
- * Asserts whether the provided AST node represents `self.webpackChunk_N_E`
- * (throws an AssertionError it doesn't)
+ * check whether the provided AST node represents `self.webpackChunk_N_E`
  */
-function assertSelfWebpackChunk_N_E(expression: AST.NodeKind): void {
-	assert(expression.type === 'MemberExpression');
-	assert(expression.object.type === 'Identifier');
-	assert(expression.object.name === 'self');
-	assert(expression.property.type === 'Identifier');
-	assert(expression.property.name === 'webpackChunk_N_E');
+function isSelfWebpackChunk_N_E(expression: AST.NodeKind): boolean {
+	return (
+		expression.type === 'MemberExpression' &&
+		expression.object.type === 'Identifier' &&
+		expression.object.name === 'self' &&
+		expression.property.type === 'Identifier' &&
+		expression.property.name === 'webpackChunk_N_E'
+	);
 }
 
 function getChunkIdentifier(chunkKey: number): string {
