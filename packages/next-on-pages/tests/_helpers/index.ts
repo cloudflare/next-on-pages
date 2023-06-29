@@ -80,7 +80,7 @@ function createMockMiddlewareEntrypoint(file = '/'): EdgeFunction {
 	return {
 		default: async (request: Request) => {
 			const url = new URL(request.url);
-			if (url.pathname !== file) {
+			if (!url.pathname.startsWith(file)) {
 				return Promise.resolve(new Response(null, { status: 200 }));
 			}
 
@@ -130,6 +130,15 @@ function createMockMiddlewareEntrypoint(file = '/'): EdgeFunction {
 			if (url.searchParams.has('returns')) {
 				return new Response('<html>Hello from middleware</html>', {
 					status: 401,
+					headers: new Headers({
+						'content-type': 'text/html',
+					}),
+				});
+			}
+
+			if (url.searchParams.has('returns200')) {
+				return new Response('Hello, World!', {
+					status: 200,
 					headers: new Headers({
 						'content-type': 'text/html',
 					}),
