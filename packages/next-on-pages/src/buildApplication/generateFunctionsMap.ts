@@ -43,13 +43,27 @@ export async function generateFunctionsMap(
 		'__next-on-pages-dist__'
 	);
 
-	const processingSetup = {
+	const processingSetup: ProcessingSetup = {
 		functionsDir,
 		distFunctionsDir: join(nextOnPagesDistDir, 'functions'),
 		distWebpackDir: join(nextOnPagesDistDir, 'chunks'),
 		disableChunksDedup,
+		chunksNotToDedup: new Set(),
 		outputDir,
 	};
+
+	if (!disableChunksDedup) {
+		const chunksInfos = await collectChunksInfoRecursively(
+			processingSetup,
+			functionsDir
+		);
+		const singleUseChunks = Array.from(chunksInfos.values()).filter(
+			chunkInfo => chunkInfo.usedBy.size === 1
+		);
+		singleUseChunks.forEach(chunk =>
+			processingSetup.chunksNotToDedup.add(chunk.number)
+		);
+	}
 
 	const processingResults = await processDirectoryRecursively(
 		processingSetup,
@@ -256,7 +270,12 @@ async function processFuncDirectory(
 			updatedFunctionContents,
 			extractedWebpackChunks,
 			wasmIdentifiers: funcWasmIdentifiers,
-		} = await extractWebpackChunks(contents, functionFilePath, webpackChunks);
+		} = await extractWebpackChunks(
+			contents,
+			functionFilePath,
+			webpackChunks,
+			setup.chunksNotToDedup
+		);
 		extractedWebpackChunks.forEach((value, key) =>
 			webpackChunks.set(key, value)
 		);
@@ -506,7 +525,8 @@ function fixFunctionContents(contents: string) {
 async function extractWebpackChunks(
 	originalFunctionContents: string,
 	filePath: string,
-	existingWebpackChunks: Map<number, string>
+	existingWebpackChunks: Map<number, string>,
+	chunksNotToExtract: Set<number>
 ): Promise<{
 	updatedFunctionContents: string;
 	extractedWebpackChunks: Map<number, string>;
@@ -533,37 +553,42 @@ async function extractWebpackChunks(
 
 	const chunks = parsedContents.body.flatMap(getWebpackChunksFromStatement);
 
-	chunks.forEach(chunk => {
-		const key = (chunk.key as AST.NumericLiteralKind).value;
+	chunks
+		.filter(chunk => {
+			const chunkNumber = (chunk.key as AST.NumericLiteralKind).value;
+			return !chunksNotToExtract.has(chunkNumber);
+		})
+		.forEach(chunk => {
+			const key = (chunk.key as AST.NumericLiteralKind).value;
 
-		const chunkExpressionCode = functionContents.slice(
-			(chunk.value as Node).start,
-			(chunk.value as Node).end
-		);
+			const chunkExpressionCode = functionContents.slice(
+				(chunk.value as Node).start,
+				(chunk.value as Node).end
+			);
 
-		if (
-			existingWebpackChunks.has(key) &&
-			existingWebpackChunks.get(key) !== chunkExpressionCode
-		) {
-			cliError(
-				`
+			if (
+				existingWebpackChunks.has(key) &&
+				existingWebpackChunks.get(key) !== chunkExpressionCode
+			) {
+				cliError(
+					`
 							ERROR: Detected a collision with the webpack chunks deduplication.
 							       Try adding the '--disable-chunks-dedup' argument to temporarily solve the issue.
 						`,
-				{ spaced: true, showReport: true }
+					{ spaced: true, showReport: true }
+				);
+				exit(1);
+			}
+
+			webpackChunks.set(key, chunkExpressionCode);
+
+			webpackChunksImports.push(getChunkImport(key));
+
+			webpackChunksCodeReplaceMap.set(
+				chunkExpressionCode,
+				getChunkIdentifier(key)
 			);
-			exit(1);
-		}
-
-		webpackChunks.set(key, chunkExpressionCode);
-
-		webpackChunksImports.push(getChunkImport(key));
-
-		webpackChunksCodeReplaceMap.set(
-			chunkExpressionCode,
-			getChunkIdentifier(key)
-		);
-	});
+		});
 
 	webpackChunksCodeReplaceMap.forEach((newChunkCode, chunkCode) => {
 		functionContents = functionContents.replace(chunkCode, newChunkCode);
@@ -616,6 +641,7 @@ type ProcessingSetup = {
 	distFunctionsDir: string;
 	distWebpackDir: string;
 	disableChunksDedup: boolean;
+	chunksNotToDedup: Set<number>;
 };
 
 export type DirectoryProcessingResults = {
@@ -841,4 +867,87 @@ async function createNextJsManifestFiles(
 		const path = join(manifestsDistDir, `${identifier}.js`);
 		await writeFile(path, `export default ${manifest}`);
 	}
+}
+
+type ChunkInfo = {
+	number: number;
+	content: string;
+	usedBy: Set<string>;
+};
+
+type ChunksInfos = Map<number, ChunkInfo>;
+
+async function collectChunksInfoRecursively(
+	setup: ProcessingSetup,
+	dir: string
+): Promise<ChunksInfos> {
+	const chunksInfos: ChunksInfos = new Map();
+
+	const files = await readdir(dir);
+
+	for (const file of files) {
+		const filepath = join(dir, file);
+		if (await validateDir(filepath)) {
+			if (!file.endsWith('.rsc.func')) {
+				const dirResultsPromise = file.endsWith('.func')
+					? collectChunksFromFuncDirectory(filepath)
+					: collectChunksInfoRecursively(setup, filepath);
+
+				const dirResults = await dirResultsPromise;
+				dirResults.forEach((chunkInfo, chunkNumber) => {
+					if (!chunksInfos.has(chunkNumber)) {
+						chunksInfos.set(chunkNumber, chunkInfo);
+					} else {
+						const existingChunkInfo = chunksInfos.get(chunkNumber);
+						if (existingChunkInfo) {
+							for (const user of chunkInfo.usedBy.values()) {
+								existingChunkInfo.usedBy.add(user);
+							}
+						}
+					}
+				});
+			}
+		}
+	}
+
+	return chunksInfos;
+}
+
+async function collectChunksFromFuncDirectory(
+	filepath: string
+): Promise<ChunksInfos> {
+	const chunksInfos: ChunksInfos = new Map();
+
+	const functionConfig = await readJsonFile<FunctionConfig>(
+		join(filepath, '.vc-config.json')
+	);
+
+	if (!functionConfig) {
+		return chunksInfos;
+	}
+
+	const functionFilePath = join(filepath, functionConfig.entrypoint);
+
+	const webpackChunks = new Map<number, string>();
+
+	let contents = await readFile(functionFilePath, 'utf8');
+	contents = fixFunctionContents(contents);
+
+	const { extractedWebpackChunks } = await extractWebpackChunks(
+		contents,
+		functionFilePath,
+		webpackChunks,
+		new Set()
+	);
+	extractedWebpackChunks.forEach((value, key) => webpackChunks.set(key, value));
+
+	extractedWebpackChunks.forEach((content, number) => {
+		chunksInfos.set(number, {
+			number,
+			content,
+			usedBy: new Set([functionFilePath]),
+		});
+	});
+
+	return chunksInfos;
 }
