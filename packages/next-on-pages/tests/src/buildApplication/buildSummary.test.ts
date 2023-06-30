@@ -62,22 +62,22 @@ describe('buildSummary', () => {
 		expect(mockedConsole).lastCalledWith(
 			`
 			⚡️ Build Summary (@cloudflare/next-on-pages v${nextOnPagesVersion})
-			⚡️ 
+			⚡️
 			⚡️ Middleware Functions (1)
 			⚡️   - middleware
-			⚡️ 
+			⚡️
 			⚡️ Edge Function Routes (2)
 			⚡️   ┌ /home
 			⚡️   └ /nested/home
-			⚡️ 
+			⚡️
 			⚡️ Prerendered Routes (3)
 			⚡️   ┌ /prerendered-a
 			⚡️   ├ /prerendered-b
 			⚡️   └ /prerendered-c
-			⚡️ 
+			⚡️
 			⚡️ Wasm Files (1)
 			⚡️   - wasm-one
-			⚡️ 
+			⚡️
 			⚡️ Other Static Assets (6)
 			⚡️   ┌ /static-a
 			⚡️   ├ /static-b

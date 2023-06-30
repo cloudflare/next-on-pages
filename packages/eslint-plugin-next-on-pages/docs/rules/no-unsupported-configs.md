@@ -7,10 +7,11 @@ As documented in the [support documentation](https://github.com/cloudflare/next-
 This rule helps you making sure that your code is not using config options that aren't supported by `@cloudflare/next-on-pages` (it always reports config options that we don't plan on supporting, other options can be set/unset using the rule's options).
 
 ## Rule Options:
- - __`includeCurrentlyUnsupported`__ (`type: boolean`, `default: true`)
-   Indicates if config options that we plan on supporting but we currently don't should be reported.
- - __`includeUnrecognized`__ (`type: boolean`, `default: false`)\
-   Indicates if config options that haven't tested/documented should be reported (they might or might not be actually supported).
+
+- **`includeCurrentlyUnsupported`** (`type: boolean`, `default: true`)
+  Indicates if config options that we plan on supporting but we currently don't should be reported.
+- **`includeUnrecognized`** (`type: boolean`, `default: false`)\
+  Indicates if config options that haven't tested/documented should be reported (they might or might not be actually supported).
 
 ## ❌ Invalid Code
 

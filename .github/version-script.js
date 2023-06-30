@@ -2,8 +2,12 @@ const fs = require('fs');
 const { exec } = require('child_process');
 
 try {
-	const nextOnPagesPackage = JSON.parse(fs.readFileSync('./packages/next-on-pages/package.json'));
-	const eslintPluginPackage = JSON.parse(fs.readFileSync('./packages/eslint-plugin-next-on-pages/package.json'));
+	const nextOnPagesPackage = JSON.parse(
+		fs.readFileSync('./packages/next-on-pages/package.json')
+	);
+	const eslintPluginPackage = JSON.parse(
+		fs.readFileSync('./packages/eslint-plugin-next-on-pages/package.json')
+	);
 
 	exec('git rev-parse --short HEAD', (err, stdout) => {
 		if (err) {
