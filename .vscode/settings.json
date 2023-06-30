@@ -1,0 +1,16 @@
+{
+	"json.schemas": [
+		{
+			"fileMatch": ["main.fixture"],
+			"url": "./node_modules/@cfpreview/pages-e2e-test-runner-cli/schemas/fixture-schema.jsonc"
+		},
+		{
+			"fileMatch": ["main.feature"],
+			"url": "./node_modules/@cfpreview/pages-e2e-test-runner-cli/schemas/fixture-schema.jsonc"
+		}
+	],
+	"files.associations": {
+		"main.fixture": "jsonc",
+		"main.feature": "jsonc"
+	}
+}

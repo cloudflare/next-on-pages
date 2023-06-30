@@ -3,7 +3,8 @@
 	"private": true,
 	"workspaces": [
 		"internal-packages/*",
-		"packages/*"
+		"packages/*",
+		"pages-e2e/features/*"
 	],
 	"scripts": {
 		"prettier:check": "FORCE_COLOR=1 turbo prettier:check",
@@ -13,10 +14,12 @@
 		"build": "FORCE_COLOR=1 turbo build",
 		"build:watch": "FORCE_COLOR=1 turbo build:watch",
 		"test:unit": "FORCE_COLOR=1 turbo test:unit",
+		"test:e2e": "npx @cfpreview/pages-e2e-test-runner-cli --environment=local",
 		"publish": "turbo build & changeset publish",
 		"changeset": "npx changeset"
 	},
 	"devDependencies": {
+		"@cfpreview/pages-e2e-test-runner-cli": "^0.0.17",
 		"turbo": "^1.10.3"
 	}
 }
