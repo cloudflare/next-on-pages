@@ -20,7 +20,7 @@
 		"changeset": "npx changeset"
 	},
 	"devDependencies": {
-		"@cfpreview/pages-e2e-test-runner-cli": "^0.0.17",
+		"@cfpreview/pages-e2e-test-runner-cli": "^0.0.18",
 		"prettier": "^2.8.8",
 		"turbo": "^1.10.3"
 	},
