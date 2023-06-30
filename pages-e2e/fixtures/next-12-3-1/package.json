@@ -14,7 +14,7 @@
 		"react-dom": "18.2.0"
 	},
 	"devDependencies": {
-		"@cloudflare/next-on-pages": "^0.10.1",
+		"@cloudflare/next-on-pages": "*",
 		"eslint": "8.35.0",
 		"eslint-config-next": "12.3.1"
 	}
