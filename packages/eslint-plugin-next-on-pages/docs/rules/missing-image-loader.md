@@ -4,7 +4,6 @@ Since applications built using `@cloudflare/next-on-pages` don't run on the Verc
 
 ## ❌ Invalid Code
 
-
 ```jsx
   import Image from 'next/image';
 

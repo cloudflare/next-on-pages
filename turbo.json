@@ -10,7 +10,6 @@
 			"outputs": ["dist/**"]
 		},
 		"lint": {},
-		"prettier:check": {},
 		"prettier:fix": {
 			"cache": false
 		},

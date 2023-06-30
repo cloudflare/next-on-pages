@@ -3,9 +3,6 @@
 	"version": "1.2.0",
 	"bin": "./bin/index.js",
 	"scripts": {
-		"prettier": "prettier --ignore-unknown src templates tests",
-		"prettier:check": "npm run prettier -- --check",
-		"prettier:fix": "npm run prettier -- --write",
 		"lint": "eslint src",
 		"types-check": "tsc --noEmit",
 		"build": "esbuild --bundle --platform=node ./src/index.ts --external:esbuild --external:chokidar --outfile=./dist/index.js",
@@ -52,6 +49,7 @@
 	},
 	"devDependencies": {
 		"@changesets/cli": "^2.26.0",
+		"@cloudflare/next-on-pages-tsconfig": "*",
 		"@cloudflare/workers-types": "^4.20230404.0",
 		"@tsconfig/strictest": "^2.0.0",
 		"@types/cookie": "^0.5.1",
@@ -64,7 +62,7 @@
 		"p-limit": "^4.0.0",
 		"prettier": "^2.8.4",
 		"typescript": "^5.0.4",
-		"vitest": "^0.31.0",
+		"vitest": "^0.32.2",
 		"vitest-environment-miniflare": "^2.13.0"
 	}
 }

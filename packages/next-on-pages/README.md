@@ -96,7 +96,6 @@ npx wrangler pages dev .vercel/output/static --compatibility-flag=nodejs_compat
 
 To see some examples on how to use Next.js features with `@cloudflare/next-on-pages`, see the [Examples document](https://github.com/cloudflare/next-on-pages/blob/main/packages/next-on-pages/docs/examples.md).
 
-
 ## More Information
 
 For more information on the project please check out the [README](https://github.com/cloudflare/next-on-pages/blob/main/README.md) in the next-on-pages github repository.

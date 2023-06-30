@@ -1,4 +1,4 @@
 module.exports = {
 	root: true,
-	extends: ["@cloudflare/eslint-config-next-on-pages"],
+	extends: ['@cloudflare/eslint-config-next-on-pages'],
 };
