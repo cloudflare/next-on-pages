@@ -101,13 +101,13 @@ jobs:
           configsTable: ${{ needs.generate-configs-table.outputs.table }}
         with:
           script: |
-            const labels = 'outdated-config-docs';
+            const label = 'outdated-config-docs';
 
             const { data: issues } = await github.rest.issues.listForRepo({
               owner: context.repo.owner,
               repo: context.repo.repo,
               state: 'open',
-              labels: labels,
+              labels: label,
               sort: 'created',
               direction: 'desc',
               per_page: 1,
@@ -153,6 +153,7 @@ jobs:
               await github.rest.issues.create({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
+                labels: [label],
                 title: "⚠️📄 The `next.config.js` supported doc is out of date 📄⚠️",
                 body: issueBody,
               });
