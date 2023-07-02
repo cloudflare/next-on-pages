@@ -1,0 +1,4 @@
+{
+	"extends": "@cloudflare/next-on-pages-tsconfig/tsconfig.json",
+	"include": ["scripts"]
+}
