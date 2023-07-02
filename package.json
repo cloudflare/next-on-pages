@@ -22,7 +22,8 @@
 	"devDependencies": {
 		"@cfpreview/pages-e2e-test-runner-cli": "^0.0.18",
 		"prettier": "^2.8.8",
-		"turbo": "^1.10.3"
+		"turbo": "^1.10.3",
+		"vitest": "^0.32.2"
 	},
 	"prettier": {
 		"printWidth": 80,

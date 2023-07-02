@@ -85,11 +85,20 @@ type VercelHandler = {
 };
 
 type VercelImageFormat = 'image/avif' | 'image/webp';
+type VercelImageFormatWithoutPrefix = StripPrefix<VercelImageFormat, 'image/'>;
+type StripPrefix<T, K> = T extends `${K}${infer V}` ? V : T;
+
+type VercelImageRemotePattern = {
+	protocol?: 'http' | 'https';
+	hostname: string;
+	port?: string;
+	pathname?: string;
+};
 
 type VercelImagesConfig = {
 	sizes: number[];
 	domains: string[];
-	remotePatterns?: string[];
+	remotePatterns?: VercelImageRemotePattern[];
 	minimumCacheTTL?: number; // seconds
 	formats?: VercelImageFormat[];
 	dangerouslyAllowSVG?: boolean;

@@ -1,5 +1,5 @@
 import { handleRequest } from './handleRequest';
-import { adjustRequestForVercel } from './utils';
+import { adjustRequestForVercel, imageResizing } from './utils';
 import type { AsyncLocalStorage } from 'node:async_hooks';
 
 declare const __NODE_ENV__: string;
@@ -19,18 +19,26 @@ export default {
 				{ status: 503 }
 			);
 		}
-		return envAsyncLocalStorage.run({ ...env, NODE_ENV: __NODE_ENV__ }, () => {
-			const adjustedRequest = adjustRequestForVercel(request);
+		return envAsyncLocalStorage.run(
+			{ ...env, NODE_ENV: __NODE_ENV__ },
+			async () => {
+				const url = new URL(request.url);
+				if (url.pathname.startsWith('/_next/image')) {
+					return imageResizing(request, url, __CONFIG__.images);
+				}
 
-			return handleRequest(
-				{
-					request: adjustedRequest,
-					ctx,
-					assetsFetcher: env.ASSETS,
-				},
-				__CONFIG__,
-				__BUILD_OUTPUT__
-			);
-		});
+				const adjustedRequest = adjustRequestForVercel(request);
+
+				return handleRequest(
+					{
+						request: adjustedRequest,
+						ctx,
+						assetsFetcher: env.ASSETS,
+					},
+					__CONFIG__,
+					__BUILD_OUTPUT__
+				);
+			}
+		);
 	},
 } as ExportedHandler<{ ASSETS: Fetcher }>;
