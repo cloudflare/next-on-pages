@@ -1,5 +1,5 @@
 name: Pull request checks
-on: [push]
+on: [push, pull_request]
 
 # This allows a subsequently queued workflow run to interrupt previous runs
 concurrency:
