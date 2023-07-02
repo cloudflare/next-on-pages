@@ -1,4 +1,4 @@
-name: Docs Scraping
+name: Configs docs scraping
 on:
   push:
     branches:
