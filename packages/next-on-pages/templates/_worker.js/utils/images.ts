@@ -174,7 +174,7 @@ export async function imageResizing(
 	// const imageResp = await fetch(imageReq, { cf: { image: options } });
 	// if (imageResp.status === 200) return formatResp(imageResp, imageUrl, config);
 
-	// NOTE: Pages also doens't seem to support calling the `/cdn-cgi/image` endpoint either.
+	// NOTE: Pages also doesn't seem to support calling the `/cdn-cgi/image` endpoint either.
 	// const cdnCgiImageUrl = buildCdnCgiImageUrl(requestUrl, imageUrl, options);
 	// const cdnCgiResp = await fetch(cdnCgiImageUrl, { headers: request.headers });
 	// if (cdnCgiResp.status === 200) return formatResp(cdnCgiResp, imageUrl, config);
