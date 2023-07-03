@@ -7,11 +7,5 @@
 	"dependencies": {
 		"@cfpreview/pages-e2e-test-runner-cli": "^0.0.20",
 		"wrangler": "beta"
-	},
-	"volta": {
-		"node": "18.16.1"
-	},
-	"engines": {
-		"node": "18.16.1"
 	}
 }
