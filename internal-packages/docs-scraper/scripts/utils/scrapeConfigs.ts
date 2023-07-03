@@ -41,10 +41,7 @@ async function getNextOnPagesDocumentedNextConfigs(
 				return el.textContent.replace(/\d*$/, '');
 			})
 	);
-	return nextOnPagesDocumentedNextConfigs.filter(config => {
-		// for testing purposed let's pretend that haven't documented appDir and pageExtensions
-		return !['appDir', 'pageExtensions'].includes(config);
-	});
+	return nextOnPagesDocumentedNextConfigs;
 }
 
 async function getNextConfigsFromNextDocs(page: Page): Promise<NextConfig[]> {
@@ -87,10 +84,7 @@ async function getNextConfigsFromNextDocs(page: Page): Promise<NextConfig[]> {
 		...appSpecificNextConfigs,
 		...pagesSpecificNextConfigs,
 	].sort((a, b) => a.configName.localeCompare(b.configName));
-	return configs.filter(({ configName }) => {
-		// for testing purposed let's pretend that trailingSlash and urlImports have been removed from the next documentation
-		return !['trailingSlash', 'urlImports'].includes(configName);
-	});
+	return configs;
 }
 
 async function extractNextConfigsInfoFromNextDocsPage(

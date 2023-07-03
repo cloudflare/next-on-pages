@@ -1,8 +1,5 @@
 name: Configs docs scraping
 on:
-  push:
-    branches:
-      - docs-scraper
   schedule:
     - cron: '0 0,12 * * *'
 
