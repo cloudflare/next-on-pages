@@ -49,6 +49,7 @@ export function getResizingProperties(
 
 	const rawUrl = searchParams.get('url');
 	const width = Number.parseInt(searchParams.get('w') ?? '', 10);
+	// 75 is the default quality - https://nextjs.org/docs/app/api-reference/components/image#quality
 	const quality = Number.parseInt(searchParams.get('q') ?? '75', 10);
 
 	if (!rawUrl || Number.isNaN(width) || Number.isNaN(quality)) return undefined;
