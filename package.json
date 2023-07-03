@@ -23,7 +23,7 @@
 		"node": ">=18"
 	},
 	"devDependencies": {
-		"@cfpreview/pages-e2e-test-runner-cli": "^0.0.18",
+		"@cfpreview/pages-e2e-test-runner-cli": "^0.0.20",
 		"prettier": "^2.8.8",
 		"turbo": "^1.10.7"
 	},
