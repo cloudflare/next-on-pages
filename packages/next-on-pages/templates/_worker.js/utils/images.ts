@@ -139,10 +139,7 @@ export async function handleImageResizingRequest(
 
 	const { imageUrl } = opts;
 
-	// NOTE: Pages does not support the RequestInit image resizing yet.
-	// const imageReq = new Request(imageUrl, { headers: request.headers });
-	// const imageResp = await fetch(imageReq, { cf: { image: options } });
-	// if (imageResp.status === 200) return formatResp(imageResp, imageUrl, config);
+	// TODO: implement proper image resizing
 
 	const imageResp = await fetch(imageUrl, { headers: request.headers });
 	return formatResp(imageResp, imageUrl, config);
