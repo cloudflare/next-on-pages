@@ -23,7 +23,7 @@
 		"node": "^18"
 	},
 	"volta": {
-	  "node": "18.16.1"
+		"node": "18.16.1"
 	},
 	"devDependencies": {
 		"@cfpreview/pages-e2e-test-runner-cli": "^0.0.20",
