@@ -18,7 +18,6 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version-file: package.json
-          cache: 'npm' # cache ~/.npm in case 'npm ci' needs to run
 
       - name: Install NPM Dependencies
         run: npm ci
