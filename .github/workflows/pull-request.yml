@@ -16,7 +16,7 @@ jobs:
       - name: Setup node
         uses: actions/setup-node@v3
         with:
-          node-version: 16.13.x
+          node-version-file: package.json
 
       - name: Install
         run: npm ci
@@ -32,7 +32,7 @@ jobs:
       - name: Setup node
         uses: actions/setup-node@v3
         with:
-          node-version: 16.13.x
+          node-version-file: package.json
 
       - name: Install
         run: npm ci
@@ -48,7 +48,7 @@ jobs:
       - name: Setup node
         uses: actions/setup-node@v3
         with:
-          node-version: 16.13.x
+          node-version-file: package.json
 
       - name: Install
         run: npm ci
@@ -64,7 +64,7 @@ jobs:
       - name: Setup node
         uses: actions/setup-node@v3
         with:
-          node-version: 16.13.x
+          node-version-file: package.json
 
       - name: Install
         run: npm ci
@@ -80,7 +80,7 @@ jobs:
       - name: Setup node
         uses: actions/setup-node@v3
         with:
-          node-version: 16.13.x
+          node-version-file: package.json
 
       - name: Install
         run: npm ci
@@ -96,7 +96,7 @@ jobs:
       - name: Setup node
         uses: actions/setup-node@v3
         with:
-          node-version: 18.x
+          node-version-file: pages-e2e/package.json
 
       - name: Install
         run: npm ci
