@@ -86,7 +86,7 @@ export function getResizingProperties(
 }
 
 /**
- * Builds an URL to the Cloudflare CDN image resizing endpoint.
+ * Builds a URL to the Cloudflare CDN image resizing endpoint.
  *
  * @param requestUrl Incoming request's URL.
  * @param imageUrl Image URL to resize.
