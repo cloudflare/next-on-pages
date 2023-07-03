@@ -24,6 +24,10 @@ If you're looking for something to help us with, what we believe would be most v
 
 > For first time contributors, check out issues labeled as `good first issue` or `help wanted`.
 
+### Node version
+
+Although both `@cloudflare/next-on-pages` and `eslint-plugin-next-on-pages` work with Node.js version 16 and up, for working on the packages themselves you need at least to be on version 18.
+
 ### Changeset
 
 The repository uses [Changesets](https://github.com/changesets/changesets) to automate the versioning of the package and its changelog.

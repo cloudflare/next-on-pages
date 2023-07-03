@@ -19,6 +19,9 @@
 		"publish": "turbo build & changeset publish",
 		"changeset": "npx changeset"
 	},
+	"engines": {
+		"node": ">=18"
+	},
 	"devDependencies": {
 		"@cfpreview/pages-e2e-test-runner-cli": "^0.0.18",
 		"prettier": "^2.8.8",
