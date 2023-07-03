@@ -4,7 +4,7 @@
 	"workspaces": [
 		"internal-packages/*",
 		"packages/*",
-		"pages-e2e/features/*"
+		"pages-e2e/*"
 	],
 	"scripts": {
 		"prettier": "npx prettier --ignore-path .gitignore --ignore-unknown .",
@@ -15,7 +15,7 @@
 		"build": "FORCE_COLOR=1 turbo build",
 		"build:watch": "FORCE_COLOR=1 turbo build:watch",
 		"test:unit": "FORCE_COLOR=1 turbo test:unit",
-		"test:e2e": "npx @cfpreview/pages-e2e-test-runner-cli --environment=local",
+		"test:e2e": "turbo run test --filter=@cloudflare/pages-e2e",
 		"publish": "turbo build & changeset publish",
 		"changeset": "npx changeset"
 	},
