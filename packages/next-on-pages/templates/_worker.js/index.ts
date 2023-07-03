@@ -1,5 +1,5 @@
 import { handleRequest } from './handleRequest';
-import { adjustRequestForVercel, imageResizing } from './utils';
+import { adjustRequestForVercel, handleImageResizingRequest } from './utils';
 import type { AsyncLocalStorage } from 'node:async_hooks';
 
 declare const __NODE_ENV__: string;
@@ -24,7 +24,7 @@ export default {
 			async () => {
 				const url = new URL(request.url);
 				if (url.pathname.startsWith('/_next/image')) {
-					return imageResizing(request, url, __CONFIG__.images);
+					return handleImageResizingRequest(request, __CONFIG__.images);
 				}
 
 				const adjustedRequest = adjustRequestForVercel(request);

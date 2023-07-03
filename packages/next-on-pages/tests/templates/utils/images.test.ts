@@ -71,9 +71,9 @@ const baseConfig: VercelImagesConfig = {
 describe('getResizingProperties', () => {
 	test('invalid method fails', () => {
 		const url = new URL(baseValidUrl);
-		const request = new Request(url, { method: 'POST' });
+		const req = new Request(url, { method: 'POST' });
 
-		expect(getResizingProperties(request, url)).toEqual(undefined);
+		expect(getResizingProperties(req)).toEqual(undefined);
 	});
 
 	describe('request search params', () => {
@@ -81,42 +81,42 @@ describe('getResizingProperties', () => {
 			const url = new URL(baseUrl);
 			const req = new Request(url);
 
-			expect(getResizingProperties(req, url)).toEqual(undefined);
+			expect(getResizingProperties(req)).toEqual(undefined);
 		});
 
 		test('invalid width fails', () => {
 			const url = new URL(`${baseValidUrl}&w=abc`);
 			const req = new Request(url);
 
-			expect(getResizingProperties(req, url)).toEqual(undefined);
+			expect(getResizingProperties(req)).toEqual(undefined);
 		});
 
 		test('invalid quality fails', () => {
 			const url = new URL(`${baseValidUrl}&w=100&q=abc`);
 			const req = new Request(url);
 
-			expect(getResizingProperties(req, url)).toEqual(undefined);
+			expect(getResizingProperties(req)).toEqual(undefined);
 		});
 
 		test('invalid width in images config fails', () => {
 			const url = new URL(`${baseValidUrl}&w=100`);
 			const req = new Request(url);
 
-			expect(getResizingProperties(req, url, baseConfig)).toEqual(undefined);
+			expect(getResizingProperties(req, baseConfig)).toEqual(undefined);
 		});
 
 		test('invalid quality (>100) fails', () => {
 			const url = new URL(`${baseValidUrl}&w=640&q=150`);
 			const req = new Request(url);
 
-			expect(getResizingProperties(req, url, baseConfig)).toEqual(undefined);
+			expect(getResizingProperties(req, baseConfig)).toEqual(undefined);
 		});
 
 		test('invalid quality (<0) fails', () => {
 			const url = new URL(`${baseValidUrl}&w=640&q=-1`);
 			const req = new Request(url);
 
-			expect(getResizingProperties(req, url, baseConfig)).toEqual(undefined);
+			expect(getResizingProperties(req, baseConfig)).toEqual(undefined);
 		});
 	});
 
@@ -125,7 +125,7 @@ describe('getResizingProperties', () => {
 			const url = new URL(`${baseValidUrl}&w=640`);
 			const req = new Request(url);
 
-			const result = getResizingProperties(req, url, baseConfig);
+			const result = getResizingProperties(req, baseConfig);
 			expect(result).toEqual({
 				imageUrl: new URL('https://localhost/images/1.jpg'),
 				options: { format: undefined, width: 640, quality: 75 },
@@ -137,7 +137,7 @@ describe('getResizingProperties', () => {
 			const req = new Request(url);
 			const config = { ...baseConfig, dangerouslyAllowSVG: false };
 
-			expect(getResizingProperties(req, url, config)).toEqual(undefined);
+			expect(getResizingProperties(req, config)).toEqual(undefined);
 		});
 
 		test('svg image succeeds when config allows svgs', () => {
@@ -145,7 +145,7 @@ describe('getResizingProperties', () => {
 			const req = new Request(url);
 			const config = { ...baseConfig, dangerouslyAllowSVG: true };
 
-			const result = getResizingProperties(req, url, config);
+			const result = getResizingProperties(req, config);
 			expect(result).toEqual({
 				imageUrl: new URL('https://localhost/images/1.svg'),
 				options: { format: undefined, width: 640, quality: 75 },
@@ -157,7 +157,7 @@ describe('getResizingProperties', () => {
 			const req = new Request(url);
 			const config = { ...baseConfig, dangerouslyAllowSVG: true };
 
-			const result = getResizingProperties(req, url, config);
+			const result = getResizingProperties(req, config);
 			expect(result).toEqual({
 				imageUrl: new URL('https://localhost/images/1.svg'),
 				options: { format: undefined, width: 640, quality: 75 },
@@ -172,7 +172,7 @@ describe('getResizingProperties', () => {
 			);
 			const req = new Request(url);
 
-			expect(getResizingProperties(req, url, baseConfig)).toEqual(undefined);
+			expect(getResizingProperties(req, baseConfig)).toEqual(undefined);
 		});
 
 		test('external image succeeds with allowed domain', () => {
@@ -181,7 +181,7 @@ describe('getResizingProperties', () => {
 			);
 			const req = new Request(url);
 
-			const result = getResizingProperties(req, url, baseConfig);
+			const result = getResizingProperties(req, baseConfig);
 			expect(result).toEqual({
 				imageUrl: new URL('https://example.com/image.jpg'),
 				options: { format: undefined, width: 640, quality: 75 },
@@ -194,7 +194,7 @@ describe('getResizingProperties', () => {
 			);
 			const req = new Request(url);
 
-			const result = getResizingProperties(req, url, baseConfig);
+			const result = getResizingProperties(req, baseConfig);
 			expect(result).toEqual({
 				imageUrl: new URL('https://via.placeholder.com/image.jpg'),
 				options: { format: undefined, width: 640, quality: 75 },
@@ -207,7 +207,7 @@ describe('getResizingProperties', () => {
 			const url = new URL(`${baseValidUrl}&w=640`);
 			const req = new Request(url, { headers: { Accept: 'image/webp' } });
 
-			const result = getResizingProperties(req, url, baseConfig);
+			const result = getResizingProperties(req, baseConfig);
 			expect(result).toEqual({
 				imageUrl: new URL('https://localhost/images/1.jpg'),
 				options: { format: 'webp', width: 640, quality: 75 },
@@ -220,7 +220,7 @@ describe('getResizingProperties', () => {
 				headers: { Accept: 'image/avif,image/webp' },
 			});
 
-			const result = getResizingProperties(req, url, baseConfig);
+			const result = getResizingProperties(req, baseConfig);
 			expect(result).toEqual({
 				imageUrl: new URL('https://localhost/images/1.jpg'),
 				options: { format: 'avif', width: 640, quality: 75 },
@@ -235,7 +235,6 @@ describe('buildCdnCgiImageUrl', () => {
 		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 		const { imageUrl, options } = getResizingProperties(
 			new Request(requestUrl),
-			requestUrl,
 			baseConfig
 		)!;
 
@@ -252,7 +251,6 @@ describe('buildCdnCgiImageUrl', () => {
 		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 		const { imageUrl, options } = getResizingProperties(
 			new Request(requestUrl),
-			requestUrl,
 			baseConfig
 		)!;
 

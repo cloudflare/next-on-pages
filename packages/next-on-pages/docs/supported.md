@@ -59,7 +59,7 @@ If you're application is using a package which relies on unsupported Node.js API
     - 🔄: Not currently supported, but it's probably possible and we may add support in the future
     - ❌: Not supported and unlikely to be supported in the future
 
-- _1_ - **images**: If you want to use `next/image`, there are two options; allow the library to take care of incoming requests, or using a custom loader. Requests are intercepted in the router and image resizing is attempted to be used - if image resizing is not available, it falls back to fetching the normal image URL. Alternatively, you can provide your own [custom loader](https://nextjs.org/docs/api-reference/next/image#loader) and use Cloudflare Image Resizing, as per [Cloudflare's Image Resizing documentation](https://developers.cloudflare.com/images/image-resizing/integration-with-frameworks/#nextjs).
+- _1_ - **images**: If you want to use `next/image`, there are two options; allow the library to take care of incoming requests, or using a custom loader. Requests are intercepted in the router and image resizing is attempted to be used (due to limitations with Pages, it is not currently possible to use image resizing) - if image resizing is not available, it falls back to fetching the normal image URL. Alternatively, you can provide your own [custom loader](https://nextjs.org/docs/api-reference/next/image#loader) and use Cloudflare Image Resizing, as per [Cloudflare's Image Resizing documentation](https://developers.cloudflare.com/images/image-resizing/integration-with-frameworks/#nextjs).
 
 ### next.config.js Properties
 

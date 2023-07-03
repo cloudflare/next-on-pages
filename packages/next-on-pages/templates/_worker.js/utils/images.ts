@@ -36,18 +36,16 @@ type ResizingProperties = {
  * https://vercel.com/docs/build-output-api/v3/configuration#images
  *
  * @param request Incoming request.
- * @param requestUrl Incoming request's URL.
  * @param config Images configuration from the Vercel build output.
  * @returns Resizing properties if the request is valid, otherwise undefined.
  */
 export function getResizingProperties(
 	request: Request,
-	requestUrl: URL,
 	config?: VercelImagesConfig
 ): ResizingProperties | undefined {
 	if (request.method !== 'GET') return undefined;
 
-	const { searchParams } = requestUrl;
+	const { origin, searchParams } = new URL(request.url);
 
 	const rawUrl = searchParams.get('url');
 	const width = Number.parseInt(searchParams.get('w') ?? '', 10);
@@ -57,7 +55,7 @@ export function getResizingProperties(
 	if (!config?.sizes?.includes(width)) return undefined;
 	if (quality < 0 || quality > 100) return undefined;
 
-	const url = new URL(rawUrl, requestUrl.origin);
+	const url = new URL(rawUrl, origin);
 
 	// SVGs must be allowed by the config.
 	if (url.pathname.endsWith('.svg') && !config?.dangerouslyAllowSVG) {
@@ -152,16 +150,14 @@ export function formatResp(
  * Handles image resizing requests.
  *
  * @param request Incoming request.
- * @param requestUrl Incoming request's URL.
  * @param config Images configuration from the Vercel build output.
  * @returns Resized image response if the request is valid, otherwise a 400 response.
  */
-export async function imageResizing(
+export async function handleImageResizingRequest(
 	request: Request,
-	requestUrl: URL,
 	config?: VercelImagesConfig
 ): Promise<Response> {
-	const opts = getResizingProperties(request, requestUrl, config);
+	const opts = getResizingProperties(request, config);
 
 	if (!opts) {
 		return new Response('Invalid image resizing request', { status: 400 });
