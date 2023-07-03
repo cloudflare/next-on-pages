@@ -1,2 +1,4 @@
 #!/bin/sh
-cd pages-e2e && npm run test;
+cd pages-e2e;
+which nvm && nvm use;
+npm run test;
