@@ -29,11 +29,5 @@
 		"singleQuote": true,
 		"arrowParens": "avoid",
 		"semi": true
-	},
-	"volta": {
-		"node": "16.20.1"
-	},
-	"engines": {
-		"node": "16.20.1"
 	}
 }
