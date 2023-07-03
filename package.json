@@ -16,7 +16,7 @@
 		"build": "FORCE_COLOR=1 turbo build",
 		"build:watch": "FORCE_COLOR=1 turbo build:watch",
 		"test:unit": "FORCE_COLOR=1 turbo test:unit",
-		"test:e2e": "echo \"Run `./pages-e2e.sh` in your terminal directly\"",
+		"test:e2e": "echo \"Run './pages-e2e.sh' in your terminal directly\"",
 		"publish": "turbo build & changeset publish",
 		"changeset": "npx changeset"
 	},
