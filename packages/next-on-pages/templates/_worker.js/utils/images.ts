@@ -85,33 +85,6 @@ export function getResizingProperties(
 }
 
 /**
- * Builds a URL to the Cloudflare CDN image resizing endpoint.
- *
- * @param requestUrl Incoming request's URL.
- * @param imageUrl Image URL to resize.
- * @param properties Image resizing properties.
- * @returns URL to the Cloudflare CDN image resizing endpoint.
- */
-export function buildCdnCgiImageUrl(
-	requestUrl: URL,
-	imageUrl: URL,
-	{ width, quality, format }: RequestInitCfPropertiesImage
-): string {
-	const opts = [];
-
-	if (width) opts.push(`width=${width}`);
-	if (quality) opts.push(`quality=${quality}`);
-	if (format) opts.push(`format=${format}`);
-
-	const imageHref =
-		requestUrl.origin === imageUrl.origin
-			? imageUrl.pathname.slice(1)
-			: imageUrl.href;
-
-	return `${requestUrl.origin}/cdn-cgi/image/${opts.join(',')}/${imageHref}`;
-}
-
-/**
  * Formats the given response to match the images configuration spec from the Vercel build output
  * config.
  *
@@ -170,11 +143,6 @@ export async function handleImageResizingRequest(
 	// const imageReq = new Request(imageUrl, { headers: request.headers });
 	// const imageResp = await fetch(imageReq, { cf: { image: options } });
 	// if (imageResp.status === 200) return formatResp(imageResp, imageUrl, config);
-
-	// NOTE: Pages also doesn't seem to support calling the `/cdn-cgi/image` endpoint either.
-	// const cdnCgiImageUrl = buildCdnCgiImageUrl(requestUrl, imageUrl, options);
-	// const cdnCgiResp = await fetch(cdnCgiImageUrl, { headers: request.headers });
-	// if (cdnCgiResp.status === 200) return formatResp(cdnCgiResp, imageUrl, config);
 
 	const imageResp = await fetch(imageUrl, { headers: request.headers });
 	return formatResp(imageResp, imageUrl, config);

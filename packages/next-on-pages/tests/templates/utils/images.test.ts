@@ -1,6 +1,5 @@
 import { describe, expect, test } from 'vitest';
 import {
-	buildCdnCgiImageUrl,
 	formatResp,
 	getResizingProperties,
 	isRemotePatternMatch,
@@ -226,38 +225,6 @@ describe('getResizingProperties', () => {
 				options: { format: 'avif', width: 640, quality: 75 },
 			});
 		});
-	});
-});
-
-describe('buildCdnCgiImageUrl', () => {
-	test('builds a valid URL for relative images', () => {
-		const requestUrl = new URL(`${baseValidUrl}&w=640`);
-		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-		const { imageUrl, options } = getResizingProperties(
-			new Request(requestUrl),
-			baseConfig
-		)!;
-
-		const result = buildCdnCgiImageUrl(requestUrl, imageUrl, options);
-		expect(result).toEqual(
-			'https://localhost/cdn-cgi/image/width=640,quality=75/images/1.jpg'
-		);
-	});
-
-	test('builds a valid URL for external images', () => {
-		const requestUrl = new URL(
-			`${baseUrl}https%3A%2F%2Fexample.com%2Fimage.jpg&w=640`
-		);
-		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-		const { imageUrl, options } = getResizingProperties(
-			new Request(requestUrl),
-			baseConfig
-		)!;
-
-		const result = buildCdnCgiImageUrl(requestUrl, imageUrl, options);
-		expect(result).toEqual(
-			'https://localhost/cdn-cgi/image/width=640,quality=75/https://example.com/image.jpg'
-		);
 	});
 });
 
