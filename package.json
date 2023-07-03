@@ -4,7 +4,8 @@
 	"workspaces": [
 		"internal-packages/*",
 		"packages/*",
-		"pages-e2e/*"
+		"pages-e2e",
+		"pages-e2e/fixtures/*"
 	],
 	"scripts": {
 		"prettier": "npx prettier --ignore-path .gitignore --ignore-unknown .",
