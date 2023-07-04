@@ -436,13 +436,15 @@ function extractManifestStatementInfo(
 	statement: AST.StatementKind
 ): ManifestStatementInfo | null {
 	try {
-		assert(statement.type === 'ExpressionStatement');
-		assert(statement.expression.type === 'AssignmentExpression');
-
-		assert(statement.expression.left.type === 'MemberExpression');
-		assert(statement.expression.left.object.type === 'Identifier');
-		assert(statement.expression.left.object.name === 'self');
-		assert(statement.expression.left.property.type === 'Identifier');
+		if (
+			statement.type !== 'ExpressionStatement' ||
+			statement.expression.type !== 'AssignmentExpression' ||
+			statement.expression.left.type !== 'MemberExpression' ||
+			statement.expression.left.object.type !== 'Identifier' ||
+			statement.expression.left.object.name !== 'self' ||
+			statement.expression.left.property.type !== 'Identifier'
+		)
+			return null;
 
 		const nextJsManifests = [
 			'__RSC_SERVER_MANIFEST',
@@ -452,7 +454,8 @@ function extractManifestStatementInfo(
 			'__REACT_LOADABLE_MANIFEST',
 			'__NEXT_FONT_MANIFEST',
 		];
-		assert(nextJsManifests.includes(statement.expression.left.property.name));
+		if (!nextJsManifests.includes(statement.expression.left.property.name))
+			return null;
 
 		const { start, end } = statement as unknown as Node;
 		return {
