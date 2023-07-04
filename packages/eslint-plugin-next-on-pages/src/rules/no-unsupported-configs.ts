@@ -1,6 +1,5 @@
 import type { Rule, SourceCode } from 'eslint';
 import type { Node, Property } from 'estree';
-import assert, { AssertionError } from 'node:assert';
 import { extractPaths } from '../utils/extract-paths';
 import { parse as parseComment } from 'comment-parser';
 
@@ -113,36 +112,25 @@ const rule: Rule.RuleModule = {
 					// We could not find an exported config with an identifier so there no variable to check
 					return;
 				}
-				try {
-					const declaration = node.declarations[0];
-					assert(declaration?.id.type === 'Identifier');
-					assert(declaration.id.name === exportedConfigName);
-					assert(declaration.init?.type === 'ObjectExpression');
 
-					const nextConfigProps = declaration.init.properties.filter(
+				if (
+					node.declarations[0]?.id.type === 'Identifier' &&
+					node.declarations[0].id.name === exportedConfigName &&
+					node.declarations[0].init?.type === 'ObjectExpression'
+				) {
+					const nextConfigProps = node.declarations[0].init.properties.filter(
 						p => p.type === 'Property'
 					) as Property[];
 					checkConfigPropsRecursively(nextConfigProps, context, options);
-				} catch (e) {
-					if (!(e instanceof AssertionError)) {
-						throw e;
-					}
 				}
 			},
 			ExpressionStatement: node => {
-				try {
-					const exportedValue = extractModuleExportValue(node);
-					assert(exportedValue);
-					assert(exportedValue.type === 'ObjectExpression');
-
+				const exportedValue = extractModuleExportValue(node);
+				if (exportedValue?.type === 'ObjectExpression') {
 					const nextConfigProps = exportedValue.properties.filter(
 						p => p.type === 'Property'
 					) as Property[];
 					checkConfigPropsRecursively(nextConfigProps, context, options);
-				} catch (e) {
-					if (!(e instanceof AssertionError)) {
-						throw e;
-					}
 				}
 			},
 		};
@@ -225,27 +213,20 @@ function checkConfigPropsRecursively(
 function getConfigVariableName(code: SourceCode): string | null {
 	const { ast } = code;
 	for (const node of ast.body) {
-		try {
-			const exportedValue = extractModuleExportValue(node);
-			assert(exportedValue);
-			assert(exportedValue.type === 'Identifier');
+		const exportedValue = extractModuleExportValue(node);
+		if (exportedValue?.type === 'Identifier') {
 			return exportedValue.name;
-		} catch {
-			/*  empty */
 		}
 	}
 
 	const nodeAfterNextConfigComment = getNodeAfterNextConfigTypeComment(code);
-	try {
-		assert(nodeAfterNextConfigComment);
-		assert(nodeAfterNextConfigComment.type === 'VariableDeclaration');
-		assert(nodeAfterNextConfigComment.declarations.length === 1);
-		assert(
-			nodeAfterNextConfigComment.declarations[0]?.id.type === 'Identifier'
-		);
+
+	if (
+		nodeAfterNextConfigComment?.type === 'VariableDeclaration' &&
+		nodeAfterNextConfigComment.declarations.length === 1 &&
+		nodeAfterNextConfigComment.declarations[0]?.id.type === 'Identifier'
+	) {
 		return nodeAfterNextConfigComment.declarations[0]?.id.name;
-	} catch {
-		/*  empty */
 	}
 
 	return null;
@@ -278,17 +259,17 @@ function getNodeAfterNextConfigTypeComment(code: SourceCode): Node | null {
  * Returns the node of the value, or null if the input node doesn't represent the code
  */
 function extractModuleExportValue(node: Node): Node | null {
-	try {
-		assert(node.type === 'ExpressionStatement');
-		assert(node.expression.type === 'AssignmentExpression');
-		assert(node.expression.left.type === 'MemberExpression');
-		assert(node.expression.left.object.type === 'Identifier');
-		assert(node.expression.left.object.name === 'module');
-		assert(node.expression.left.property.type === 'Identifier');
-		assert(node.expression.left.property.name === 'exports');
+	if (
+		node.type === 'ExpressionStatement' &&
+		node.expression.type === 'AssignmentExpression' &&
+		node.expression.left.type === 'MemberExpression' &&
+		node.expression.left.object.type === 'Identifier' &&
+		node.expression.left.object.name === 'module' &&
+		node.expression.left.property.type === 'Identifier' &&
+		node.expression.left.property.name === 'exports'
+	) {
 		return node.expression.right;
-	} catch {
-		/*  empty */
 	}
+
 	return null;
 }

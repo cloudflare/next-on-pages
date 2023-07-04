@@ -1,33 +1,27 @@
 import type { Rule } from 'eslint';
-import assert, { AssertionError } from 'node:assert';
 
 const rule: Rule.RuleModule = {
 	create: context => {
 		return {
 			ExportNamedDeclaration: node => {
-				try {
-					const declaration = node.declaration;
-					assert(declaration?.type === 'VariableDeclaration');
-					assert(declaration.declarations.length === 1);
-					const actualDeclaration = declaration.declarations[0];
-					assert(actualDeclaration?.id.type === 'Identifier');
-					assert(actualDeclaration.id.name === 'runtime');
-					assert(actualDeclaration.init?.type === 'Literal');
-					assert(actualDeclaration.init?.value === 'nodejs');
-
+				const declaration = node.declaration;
+				if (
+					declaration?.type === 'VariableDeclaration' &&
+					declaration.declarations.length === 1 &&
+					declaration.declarations[0]?.id.type === 'Identifier' &&
+					declaration.declarations[0].id.name === 'runtime' &&
+					declaration.declarations[0].init?.type === 'Literal' &&
+					declaration.declarations[0].init?.value === 'nodejs'
+				) {
 					context.report({
 						message:
 							"The 'nodejs' runtime is not supported. Use 'edge' instead.",
-						node: actualDeclaration.init,
+						node: declaration.declarations[0].init,
 						fix: fixer =>
-							actualDeclaration.init
-								? fixer.replaceText(actualDeclaration.init, "'edge'")
+							declaration.declarations[0]?.init
+								? fixer.replaceText(declaration.declarations[0].init, "'edge'")
 								: null,
 					});
-				} catch (e) {
-					if (!(e instanceof AssertionError)) {
-						throw e;
-					}
 				}
 			},
 		};
