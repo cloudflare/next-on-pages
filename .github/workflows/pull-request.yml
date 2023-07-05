@@ -44,7 +44,7 @@ jobs:
         name: Install NPM Dependencies
         run: npm ci
 
-      # TODO: use turbo for prettier:check
+      # TODO: use turbo for the prettier check
       # - name: Cache turbo
       #   id: turbo-cache
       #   uses: actions/cache@v3
