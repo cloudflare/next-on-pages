@@ -435,37 +435,33 @@ type ManifestStatementInfo = {
 function extractManifestStatementInfo(
 	statement: AST.StatementKind
 ): ManifestStatementInfo | null {
-	try {
-		if (
-			statement.type !== 'ExpressionStatement' ||
-			statement.expression.type !== 'AssignmentExpression' ||
-			statement.expression.left.type !== 'MemberExpression' ||
-			statement.expression.left.object.type !== 'Identifier' ||
-			statement.expression.left.object.name !== 'self' ||
-			statement.expression.left.property.type !== 'Identifier'
-		)
-			return null;
-
-		const nextJsManifests = [
-			'__RSC_SERVER_MANIFEST',
-			'__RSC_MANIFEST',
-			'__RSC_CSS_MANIFEST',
-			'__BUILD_MANIFEST',
-			'__REACT_LOADABLE_MANIFEST',
-			'__NEXT_FONT_MANIFEST',
-		];
-		if (!nextJsManifests.includes(statement.expression.left.property.name))
-			return null;
-
-		const { start, end } = statement as unknown as Node;
-		return {
-			manifestIdentifier: statement.expression.left.property.name,
-			start,
-			end,
-		};
-	} catch {
+	if (
+		statement.type !== 'ExpressionStatement' ||
+		statement.expression.type !== 'AssignmentExpression' ||
+		statement.expression.left.type !== 'MemberExpression' ||
+		statement.expression.left.object.type !== 'Identifier' ||
+		statement.expression.left.object.name !== 'self' ||
+		statement.expression.left.property.type !== 'Identifier'
+	)
 		return null;
-	}
+
+	const nextJsManifests = [
+		'__RSC_SERVER_MANIFEST',
+		'__RSC_MANIFEST',
+		'__RSC_CSS_MANIFEST',
+		'__BUILD_MANIFEST',
+		'__REACT_LOADABLE_MANIFEST',
+		'__NEXT_FONT_MANIFEST',
+	];
+	if (!nextJsManifests.includes(statement.expression.left.property.name))
+		return null;
+
+	const { start, end } = statement as unknown as Node;
+	return {
+		manifestIdentifier: statement.expression.left.property.name,
+		start,
+		end,
+	};
 }
 
 /**
