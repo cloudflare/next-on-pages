@@ -49,12 +49,12 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ./turbo-cache
-          key: cache-turbo-${{ github.base_ref }}-${{ github.ref_name }}-${{ github.sha }}-${{ github.job }}
+          key: cache-turbo-${{ github.workflow }}-${{ github.job }}-${{ github.base_ref }}-${{ github.ref_name }}-${{ github.sha }}
           restore-keys: |
-            cache-turbo-${{ github.base_ref }}-${{ github.ref_name }}-${{ github.sha }}
-            cache-turbo-${{ github.base_ref }}-${{ github.ref_name }}-
-            cache-turbo-${{ github.base_ref }}-
-            cache-turbo
+            cache-turbo-${{ github.workflow }}-${{ github.job }}-${{ github.base_ref }}-${{ github.ref_name }}-${{ github.sha }}
+            cache-turbo-${{ github.workflow }}-${{ github.job }}-${{ github.base_ref }}-${{ github.ref_name }}-
+            cache-turbo-${{ github.workflow }}-${{ github.job }}-${{ github.base_ref }}-
+            cache-turbo-${{ github.workflow }}-${{ github.job }}
 
       - name: Check formatting
         run: npm run prettier:check -- --cache-dir ./turbo-cache
@@ -95,12 +95,12 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ./turbo-cache
-          key: cache-turbo-${{ github.base_ref }}-${{ github.ref_name }}-${{ github.sha }}-${{ github.job }}
+          key: cache-turbo-${{ github.workflow }}-${{ github.job }}-${{ github.base_ref }}-${{ github.ref_name }}-${{ github.sha }}
           restore-keys: |
-            cache-turbo-${{ github.base_ref }}-${{ github.ref_name }}-${{ github.sha }}
-            cache-turbo-${{ github.base_ref }}-${{ github.ref_name }}-
-            cache-turbo-${{ github.base_ref }}-
-            cache-turbo
+            cache-turbo-${{ github.workflow }}-${{ github.job }}-${{ github.base_ref }}-${{ github.ref_name }}-${{ github.sha }}
+            cache-turbo-${{ github.workflow }}-${{ github.job }}-${{ github.base_ref }}-${{ github.ref_name }}-
+            cache-turbo-${{ github.workflow }}-${{ github.job }}-${{ github.base_ref }}-
+            cache-turbo-${{ github.workflow }}-${{ github.job }}
 
       - name: Check linting
         run: npm run lint -- --cache-dir ./turbo-cache
@@ -141,12 +141,12 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ./turbo-cache
-          key: cache-turbo-${{ github.base_ref }}-${{ github.ref_name }}-${{ github.sha }}-${{ github.job }}
+          key: cache-turbo-${{ github.workflow }}-${{ github.job }}-${{ github.base_ref }}-${{ github.ref_name }}-${{ github.sha }}
           restore-keys: |
-            cache-turbo-${{ github.base_ref }}-${{ github.ref_name }}-${{ github.sha }}
-            cache-turbo-${{ github.base_ref }}-${{ github.ref_name }}-
-            cache-turbo-${{ github.base_ref }}-
-            cache-turbo
+            cache-turbo-${{ github.workflow }}-${{ github.job }}-${{ github.base_ref }}-${{ github.ref_name }}-${{ github.sha }}
+            cache-turbo-${{ github.workflow }}-${{ github.job }}-${{ github.base_ref }}-${{ github.ref_name }}-
+            cache-turbo-${{ github.workflow }}-${{ github.job }}-${{ github.base_ref }}-
+            cache-turbo-${{ github.workflow }}-${{ github.job }}
 
       - name: Check types
         run: npm run types-check -- --cache-dir ./turbo-cache
@@ -187,12 +187,12 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ./turbo-cache
-          key: cache-turbo-${{ github.base_ref }}-${{ github.ref_name }}-${{ github.sha }}-${{ github.job }}
+          key: cache-turbo-${{ github.workflow }}-${{ github.job }}-${{ github.base_ref }}-${{ github.ref_name }}-${{ github.sha }}
           restore-keys: |
-            cache-turbo-${{ github.base_ref }}-${{ github.ref_name }}-${{ github.sha }}
-            cache-turbo-${{ github.base_ref }}-${{ github.ref_name }}-
-            cache-turbo-${{ github.base_ref }}-
-            cache-turbo
+            cache-turbo-${{ github.workflow }}-${{ github.job }}-${{ github.base_ref }}-${{ github.ref_name }}-${{ github.sha }}
+            cache-turbo-${{ github.workflow }}-${{ github.job }}-${{ github.base_ref }}-${{ github.ref_name }}-
+            cache-turbo-${{ github.workflow }}-${{ github.job }}-${{ github.base_ref }}-
+            cache-turbo-${{ github.workflow }}-${{ github.job }}
 
       - name: Build
         run: npm run build -- --cache-dir ./turbo-cache
@@ -233,12 +233,12 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ./turbo-cache
-          key: cache-turbo-${{ github.base_ref }}-${{ github.ref_name }}-${{ github.sha }}-${{ github.job }}
+          key: cache-turbo-${{ github.workflow }}-${{ github.job }}-${{ github.base_ref }}-${{ github.ref_name }}-${{ github.sha }}
           restore-keys: |
-            cache-turbo-${{ github.base_ref }}-${{ github.ref_name }}-${{ github.sha }}
-            cache-turbo-${{ github.base_ref }}-${{ github.ref_name }}-
-            cache-turbo-${{ github.base_ref }}-
-            cache-turbo
+            cache-turbo-${{ github.workflow }}-${{ github.job }}-${{ github.base_ref }}-${{ github.ref_name }}-${{ github.sha }}
+            cache-turbo-${{ github.workflow }}-${{ github.job }}-${{ github.base_ref }}-${{ github.ref_name }}-
+            cache-turbo-${{ github.workflow }}-${{ github.job }}-${{ github.base_ref }}-
+            cache-turbo-${{ github.workflow }}-${{ github.job }}
 
       - name: Run unit tests
         run: npm run test:unit -- --cache-dir ./turbo-cache
