@@ -178,6 +178,7 @@ dist
 
 # Turobrepo
 .turbo/
+turbo-cache
 
 # pages-e2e
 /pages-e2e/workspaces
