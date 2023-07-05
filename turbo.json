@@ -15,8 +15,7 @@
 		},
 		"types-check": {},
 		"test:unit": {
-			"persistent": true,
-			"cache": false
+			"persistent": true
 		},
 		"publish": {}
 	}
