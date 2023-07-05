@@ -44,6 +44,18 @@ jobs:
         name: Install NPM Dependencies
         run: npm ci
 
+      # TODO: use turbo for prettier:check
+      # - name: Cache turbo
+      #   id: turbo-cache
+      #   uses: actions/cache@v3
+      #   with:
+      #     path: ./turbo-cache
+      #     key: cache-turbo-${{ github.base_ref }}-${{ github.ref_name }}-${{ github.sha }}
+      #     restore-key: |
+      #       cache-turbo-${{ github.base_ref }}-${{ github.ref_name }}-
+      #       cache-turbo-${{ github.base_ref }}-
+      #       cache-turbo
+
       - name: Check formatting
         run: npm run prettier:check
   linting:
@@ -78,8 +90,19 @@ jobs:
         name: Install NPM Dependencies
         run: npm ci
 
+      - name: Cache turbo
+        id: turbo-cache
+        uses: actions/cache@v3
+        with:
+          path: ./turbo-cache
+          key: cache-turbo-${{ github.base_ref }}-${{ github.ref_name }}-${{ github.sha }}
+          restore-keys: |
+            cache-turbo-${{ github.base_ref }}-${{ github.ref_name }}-
+            cache-turbo-${{ github.base_ref }}-
+            cache-turbo
+
       - name: Check linting
-        run: npm run lint
+        run: npm run lint -- --cache-dir ./turbo-cache
   types:
     name: Types
     runs-on: ubuntu-latest
@@ -112,8 +135,19 @@ jobs:
         name: Install NPM Dependencies
         run: npm ci
 
+      - name: Cache turbo
+        id: turbo-cache
+        uses: actions/cache@v3
+        with:
+          path: ./turbo-cache
+          key: cache-turbo-${{ github.base_ref }}-${{ github.ref_name }}-${{ github.sha }}
+          restore-keys: |
+            cache-turbo-${{ github.base_ref }}-${{ github.ref_name }}-
+            cache-turbo-${{ github.base_ref }}-
+            cache-turbo
+
       - name: Check types
-        run: npm run types-check
+        run: npm run types-check -- --cache-dir ./turbo-cache
   build:
     name: Build
     runs-on: ubuntu-latest
@@ -146,8 +180,19 @@ jobs:
         name: Install NPM Dependencies
         run: npm ci
 
+      - name: Cache turbo
+        id: turbo-cache
+        uses: actions/cache@v3
+        with:
+          path: ./turbo-cache
+          key: cache-turbo-${{ github.base_ref }}-${{ github.ref_name }}-${{ github.sha }}
+          restore-keys: |
+            cache-turbo-${{ github.base_ref }}-${{ github.ref_name }}-
+            cache-turbo-${{ github.base_ref }}-
+            cache-turbo
+
       - name: Build
-        run: npm run build
+        run: npm run build -- --cache-dir ./turbo-cache
   unit-tests:
     name: Unit tests
     runs-on: ubuntu-latest
@@ -180,8 +225,19 @@ jobs:
         name: Install NPM Dependencies
         run: npm ci
 
+      - name: Cache turbo
+        id: turbo-cache
+        uses: actions/cache@v3
+        with:
+          path: ./turbo-cache
+          key: cache-turbo-${{ github.base_ref }}-${{ github.ref_name }}-${{ github.sha }}
+          restore-keys: |
+            cache-turbo-${{ github.base_ref }}-${{ github.ref_name }}-
+            cache-turbo-${{ github.base_ref }}-
+            cache-turbo
+
       - name: Run unit tests
-        run: npm run test:unit
+        run: npm run test:unit -- --cache-dir ./turbo-cache
   e2e-tests:
     name: e2e tests
     runs-on: ubuntu-latest
