@@ -29,7 +29,7 @@ jobs:
           node_version=$(node -v)
           echo "node_version=$node_version" >> $GITHUB_OUTPUT
 
-        # Attempt to cache all the node_modules directories based on the node version and package lock.
+        # Attempt to cache all the node_modules directories based on the node version and package lock
       - name: Cache node_modules
         id: npm-cache
         uses: actions/cache@v3
