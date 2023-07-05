@@ -44,20 +44,19 @@ jobs:
         name: Install NPM Dependencies
         run: npm ci
 
-      # TODO: use turbo for prettier:check
-      # - name: Cache turbo
-      #   id: turbo-cache
-      #   uses: actions/cache@v3
-      #   with:
-      #     path: ./turbo-cache
-      #     key: cache-turbo-${{ github.base_ref }}-${{ github.ref_name }}-${{ github.sha }}
-      #     restore-key: |
-      #       cache-turbo-${{ github.base_ref }}-${{ github.ref_name }}-
-      #       cache-turbo-${{ github.base_ref }}-
-      #       cache-turbo
+      - name: Cache turbo
+        id: turbo-cache
+        uses: actions/cache@v3
+        with:
+          path: ./turbo-cache
+          key: cache-turbo-${{ github.base_ref }}-${{ github.ref_name }}-${{ github.sha }}
+          restore-key: |
+            cache-turbo-${{ github.base_ref }}-${{ github.ref_name }}-
+            cache-turbo-${{ github.base_ref }}-
+            cache-turbo
 
       - name: Check formatting
-        run: npm run prettier:check
+        run: npm run prettier:check -- --cache-dir ./turbo-cache
   linting:
     name: Linting
     runs-on: ubuntu-latest

@@ -7,9 +7,11 @@
 		"pages-e2e/features/*"
 	],
 	"scripts": {
-		"prettier": "npx prettier --ignore-path .prettierignore --ignore-path .gitignore .",
-		"prettier:check": "npm run prettier -- --check",
-		"prettier:fix": "npm run prettier -- --write",
+		"prettier": "prettier --ignore-path .prettierignore --ignore-path .gitignore .",
+		"prettier__check": "npm run prettier -- --check",
+		"prettier:check": "FORCE_COLOR=1 turbo run prettier__check",
+		"prettier__fix": "npm run prettier -- --write",
+		"prettier:fix": "FORCE_COLOR=1 turbo prettier__fix",
 		"lint": "FORCE_COLOR=1 turbo lint",
 		"types-check": "FORCE_COLOR=1 turbo types-check",
 		"build": "FORCE_COLOR=1 turbo build",
