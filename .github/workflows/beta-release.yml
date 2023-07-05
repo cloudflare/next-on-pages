@@ -21,7 +21,25 @@ jobs:
         with:
           node-version: 16.x
 
-      - name: Install Dependencies
+      - name: Get current node version
+        id: node-version
+        run: |
+         node_version=$(node -v)
+         echo "node_version=$node_version" >> $GITHUB_OUTPUT
+
+        # Attempt to cache all the node_modules directories based on the node version and package lock.
+      - name: Cache node_modules
+        id: npm-cache
+        uses: actions/cache@v3
+        env:
+          cache-name: cache-node-modules-${{ steps.node-version.outputs.node_version }}
+        with:
+          key: ${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
+          path: "**/node_modules"
+
+      # If the cache missed then install using `npm ci` to follow package lock exactly
+      - if: ${{ steps.npm-cache.outputs.cache-hit != 'true'}}
+        name: Install NPM Dependencies
         run: npm ci
 
       - name: Modify package.json version
