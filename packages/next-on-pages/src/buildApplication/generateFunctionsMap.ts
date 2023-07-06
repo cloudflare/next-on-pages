@@ -51,10 +51,7 @@ export async function generateFunctionsMap(
 		outputDir,
 	};
 
-	// TODO: Remove need for no chunks directory check after https://github.com/cloudflare/next-on-pages/issues/371 is done
-	const chunksDirExists = await validateDir(processingSetup.distWebpackDir);
-
-	if (!disableChunksDedup && !chunksDirExists) {
+	if (!disableChunksDedup) {
 		const chunksConsumersInfos = await collectChunksConsumersInfoRecursively(
 			processingSetup,
 			functionsDir
@@ -73,7 +70,7 @@ export async function generateFunctionsMap(
 
 	await tryToFixInvalidFunctions(processingResults);
 
-	if (!disableChunksDedup && !chunksDirExists) {
+	if (!disableChunksDedup) {
 		await buildWebpackChunkFiles(
 			processingResults.webpackChunks,
 			processingSetup.distWebpackDir,
@@ -463,10 +460,7 @@ function extractManifestStatementInfo(
 		statement.expression.left.type !== 'MemberExpression' ||
 		statement.expression.left.object.type !== 'Identifier' ||
 		statement.expression.left.object.name !== 'self' ||
-		statement.expression.left.property.type !== 'Identifier' ||
-		// only extract statements where the manifest is an object
-		// TODO: Remove this check after https://github.com/cloudflare/next-on-pages/issues/371 is done
-		statement.expression.right.type !== 'ObjectExpression'
+		statement.expression.left.property.type !== 'Identifier'
 	)
 		return null;
 
