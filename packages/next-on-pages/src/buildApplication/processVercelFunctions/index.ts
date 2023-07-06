@@ -21,7 +21,7 @@
  *
  */
 
-import { collectFunctionConfigs } from './configs';
+import { collectFunctionConfigsRecursively } from './configs';
 import { timer } from './temp';
 
 type ProcessVercelFunctionsOpts = {
@@ -34,8 +34,12 @@ export async function processVercelFunctions(
 	{ outputDir, disableChunksDedup }: ProcessVercelFunctionsOpts
 ) {
 	const collectConfigsTimer = timer('collect function configs');
-	const functions = await collectFunctionConfigs(functionsDir);
+	const functions = await collectFunctionConfigsRecursively(functionsDir);
 	collectConfigsTimer.stop();
+
+	console.log(functions.edgeFunctions.size);
+	console.log(functions.prerenderedFunctions.size);
+	console.log(functions.invalidFunctions.size);
 
 	// const nopDistDir = join(outputDir, '_worker.js', '__next-on-pages-dist__');
 }

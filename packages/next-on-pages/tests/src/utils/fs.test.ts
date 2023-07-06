@@ -2,6 +2,7 @@ import { describe, test, expect, beforeAll, afterAll } from 'vitest';
 import {
 	copyFileWithDir,
 	normalizePath,
+	readDirectories,
 	readJsonFile,
 	readPathsRecursively,
 	validateDir,
@@ -178,5 +179,53 @@ describe('copyFileWithDir', () => {
 		await expect(validateFile('new-folder/index.js')).resolves.toEqual(true);
 
 		mockFs.restore();
+	});
+});
+
+describe('readDirectories', () => {
+	beforeAll(() => {
+		mockFs({
+			root: {
+				functions: {
+					'(route-group)': {
+						'page.func': { 'index.js': 'page-js-code' },
+					},
+					'index.func': { 'index.js': 'index-js-code' },
+					'home.func': { 'index.js': 'home-js-code' },
+				},
+			},
+		});
+	});
+
+	afterAll(() => mockFs.restore());
+
+	test('should read all directories inside the provided folder', async () => {
+		const dirs = await readDirectories('root/functions');
+
+		expect(dirs.length).toEqual(3);
+		expect(dirs[0]).toEqual({
+			name: '(route-group)',
+			path: 'root/functions/(route-group)',
+			isDirectory: true,
+			isSymbolicLink: false,
+		});
+		expect(dirs[1]).toEqual({
+			name: 'home.func',
+			path: 'root/functions/home.func',
+			isDirectory: true,
+			isSymbolicLink: false,
+		});
+		expect(dirs[2]).toEqual({
+			name: 'index.func',
+			path: 'root/functions/index.func',
+			isDirectory: true,
+			isSymbolicLink: false,
+		});
+	});
+
+	test('invalid directory returns empty array', async () => {
+		const dirs = await readDirectories('invalid-root/functions');
+
+		expect(dirs).toEqual([]);
 	});
 });
