@@ -1,0 +1,21 @@
+{
+	"name": "app13.4.0",
+	"version": "0.1.0",
+	"private": true,
+	"scripts": {
+		"dev": "next dev",
+		"build": "next build",
+		"start": "next start",
+		"lint": "next lint"
+	},
+	"dependencies": {
+		"@types/node": "20.4.0",
+		"@types/react": "18.2.14",
+		"@types/react-dom": "18.2.6",
+		"next": "13.4.8",
+		"react": "18.2.0",
+		"react-dom": "18.2.0",
+		"typescript": "5.1.6",
+		"@cloudflare/next-on-pages": "*"
+	}
+}
