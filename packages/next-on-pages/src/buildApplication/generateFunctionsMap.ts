@@ -51,7 +51,10 @@ export async function generateFunctionsMap(
 		outputDir,
 	};
 
-	if (!disableChunksDedup) {
+	// TODO: Remove need for no chunks directory check in refactor
+	const chunksDirExists = await validateDir(processingSetup.distWebpackDir);
+
+	if (!disableChunksDedup && !chunksDirExists) {
 		const chunksConsumersInfos = await collectChunksConsumersInfoRecursively(
 			processingSetup,
 			functionsDir
@@ -70,7 +73,7 @@ export async function generateFunctionsMap(
 
 	await tryToFixInvalidFunctions(processingResults);
 
-	if (!disableChunksDedup) {
+	if (!disableChunksDedup && !chunksDirExists) {
 		await buildWebpackChunkFiles(
 			processingResults.webpackChunks,
 			processingSetup.distWebpackDir,
@@ -460,7 +463,10 @@ function extractManifestStatementInfo(
 		statement.expression.left.type !== 'MemberExpression' ||
 		statement.expression.left.object.type !== 'Identifier' ||
 		statement.expression.left.object.name !== 'self' ||
-		statement.expression.left.property.type !== 'Identifier'
+		statement.expression.left.property.type !== 'Identifier' ||
+		// only extract statements where the manifest is an object
+		// TODO: Remove need for this check in refactor
+		statement.expression.right.type !== 'ObjectExpression'
 	)
 		return null;
 
