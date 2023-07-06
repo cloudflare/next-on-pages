@@ -336,8 +336,6 @@ type RawWasmModuleInfo = {
  * Given the path of a function file and its content update the content so that it doesn't include dynamic
  * requires to wasm modules. Such requires are instead converted into standard esm imports.
  *
- * As a side effect this function also updates the file with the new content.
- *
  * @param functionFilePath file path of the function file
  * @param originalFileContents the (original) contents of the file
  * @returns the updated content and a map of wasmIdentifiers that can be used to copy the wasm files in the correct location
@@ -389,8 +387,6 @@ async function extractAndFixWasmRequires(
  * from the __next-on-pages-dist__/nextjs-manifests directory.
  *
  * Note: Such manifests are always the same for all functions so we need to share them across the various function files instead of costly duplicating them in each file.
- *
- * As a side effect this function also updates the file with the new content.
  *
  * @param functionFilePath file path of the function file
  * @param originalFileContents the (original) contents of the file
