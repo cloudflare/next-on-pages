@@ -42,13 +42,26 @@ export async function generateFunctionsMap(
 		'__next-on-pages-dist__'
 	);
 
-	const processingSetup = {
+	const processingSetup: ProcessingSetup = {
 		functionsDir,
 		distFunctionsDir: join(nextOnPagesDistDir, 'functions'),
 		distWebpackDir: join(nextOnPagesDistDir, 'chunks'),
 		disableChunksDedup,
+		chunksToDedup: new Set(),
 		outputDir,
 	};
+
+	if (!disableChunksDedup) {
+		const chunksConsumersInfos = await collectChunksConsumersInfoRecursively(
+			processingSetup,
+			functionsDir
+		);
+		processingSetup.chunksToDedup = new Set(
+			Array.from(chunksConsumersInfos.entries())
+				.filter(([, chunkConsumers]) => chunkConsumers.size > 1)
+				.map(([chunkNumber]) => chunkNumber)
+		);
+	}
 
 	const processingResults = await processDirectoryRecursively(
 		processingSetup,
@@ -251,26 +264,32 @@ async function processFuncDirectory(
 	let wasmIdentifiers = new Map<string, WasmModuleInfo>();
 
 	if (!setup.disableChunksDedup) {
-		const {
-			updatedFunctionContents,
-			extractedWebpackChunks,
-			wasmIdentifiers: funcWasmIdentifiers,
-		} = await extractWebpackChunks(contents, functionFilePath, webpackChunks);
+		const { updatedFunctionContents, extractedWebpackChunks } =
+			await extractWebpackChunks(
+				contents,
+				functionFilePath,
+				webpackChunks,
+				setup.chunksToDedup
+			);
 		extractedWebpackChunks.forEach((value, key) =>
 			webpackChunks.set(key, value)
 		);
 		contents = updatedFunctionContents;
-		wasmIdentifiers = funcWasmIdentifiers;
-	} else {
-		const { wasmIdentifiers: funcWasmIdentifiers, updatedContents } =
-			await extractAndFixWasmRequires(functionFilePath, contents);
-		contents = updatedContents;
-		wasmIdentifiers = funcWasmIdentifiers;
 	}
 
-	const { manifests: nextJsManifests, updatedContents } =
-		await extractNextJsManifests(functionFilePath, contents);
-	contents = updatedContents;
+	const manifestExtractionResult = await extractNextJsManifests(
+		functionFilePath,
+		contents
+	);
+	contents = manifestExtractionResult.updatedContents;
+	const nextJsManifests = manifestExtractionResult.manifests;
+
+	const wasmExtractionResult = await extractAndFixWasmRequires(
+		functionFilePath,
+		contents
+	);
+	contents = wasmExtractionResult.updatedContents;
+	wasmIdentifiers = wasmExtractionResult.wasmIdentifiers;
 
 	const newFilePath = join(setup.distFunctionsDir, `${relativePath}.js`);
 	await mkdir(dirname(newFilePath), { recursive: true });
@@ -494,9 +513,10 @@ function fixFunctionContents(contents: string) {
 /**
  * Given the contents of a function's file it extracts webpack chunks from it so that they can be de-duplicated.
  *
- * @param tmpWebpackDir path of tmp dir to use for the webpack chunks
- * @param originalFunctionContents the original contents of the function's file
- * @param existingWebpackChunks the existing collected webpack chunks (so that we can validate new ones against them)
+ * @param originalFunctionContents the original content of the function file
+ * @param filePath the filepath of the function file
+ * @param existingWebpackChunks the already existing/extracted webpack chunks
+ * @param chunksToExtract Set of chunk numbers that indicate which chunks should get extracted, if undefined all chunks get extracted
  *
  * @returns an object containing the extractedWebpackChunks and the function's file content updated so that it imports/requires
  * those chunks
@@ -504,11 +524,11 @@ function fixFunctionContents(contents: string) {
 async function extractWebpackChunks(
 	originalFunctionContents: string,
 	filePath: string,
-	existingWebpackChunks: Map<number, string>
+	existingWebpackChunks: Map<number, string> = new Map(),
+	chunksToExtract?: Set<number>
 ): Promise<{
 	updatedFunctionContents: string;
 	extractedWebpackChunks: Map<number, string>;
-	wasmIdentifiers: Map<string, WasmModuleInfo>;
 }> {
 	const getChunkImport = getChunkImportFn(filePath);
 
@@ -517,12 +537,7 @@ async function extractWebpackChunks(
 
 	const webpackChunksImports: string[] = [];
 
-	const { wasmIdentifiers, updatedContents } = await extractAndFixWasmRequires(
-		filePath,
-		originalFunctionContents
-	);
-
-	let functionContents = updatedContents;
+	let functionContents = originalFunctionContents;
 
 	const parsedContents = parse(functionContents, {
 		ecmaVersion: 'latest',
@@ -531,37 +546,42 @@ async function extractWebpackChunks(
 
 	const chunks = parsedContents.body.flatMap(getWebpackChunksFromStatement);
 
-	chunks.forEach(chunk => {
-		const key = (chunk.key as AST.NumericLiteralKind).value;
+	chunks
+		.filter(chunk => {
+			const chunkNumber = (chunk.key as AST.NumericLiteralKind).value;
+			return !chunksToExtract || chunksToExtract.has(chunkNumber);
+		})
+		.forEach(chunk => {
+			const key = (chunk.key as AST.NumericLiteralKind).value;
 
-		const chunkExpressionCode = functionContents.slice(
-			(chunk.value as Node).start,
-			(chunk.value as Node).end
-		);
+			const chunkExpressionCode = functionContents.slice(
+				(chunk.value as Node).start,
+				(chunk.value as Node).end
+			);
 
-		if (
-			existingWebpackChunks.has(key) &&
-			existingWebpackChunks.get(key) !== chunkExpressionCode
-		) {
-			cliError(
-				`
+			if (
+				existingWebpackChunks.has(key) &&
+				existingWebpackChunks.get(key) !== chunkExpressionCode
+			) {
+				cliError(
+					`
 							ERROR: Detected a collision with the webpack chunks deduplication.
 							       Try adding the '--disable-chunks-dedup' argument to temporarily solve the issue.
 						`,
-				{ spaced: true, showReport: true }
+					{ spaced: true, showReport: true }
+				);
+				exit(1);
+			}
+
+			webpackChunks.set(key, chunkExpressionCode);
+
+			webpackChunksImports.push(getChunkImport(key));
+
+			webpackChunksCodeReplaceMap.set(
+				chunkExpressionCode,
+				getChunkIdentifier(key)
 			);
-			exit(1);
-		}
-
-		webpackChunks.set(key, chunkExpressionCode);
-
-		webpackChunksImports.push(getChunkImport(key));
-
-		webpackChunksCodeReplaceMap.set(
-			chunkExpressionCode,
-			getChunkIdentifier(key)
-		);
-	});
+		});
 
 	webpackChunksCodeReplaceMap.forEach((newChunkCode, chunkCode) => {
 		functionContents = functionContents.replace(chunkCode, newChunkCode);
@@ -572,7 +592,6 @@ async function extractWebpackChunks(
 			';\n'
 		),
 		extractedWebpackChunks: webpackChunks,
-		wasmIdentifiers,
 	};
 }
 
@@ -614,6 +633,7 @@ type ProcessingSetup = {
 	distFunctionsDir: string;
 	distWebpackDir: string;
 	disableChunksDedup: boolean;
+	chunksToDedup: Set<number>;
 };
 
 export type DirectoryProcessingResults = {
@@ -835,4 +855,78 @@ async function createNextJsManifestFiles(
 		const path = join(manifestsDistDir, `${identifier}.js`);
 		await writeFile(path, `export default ${manifest}`);
 	}
+}
+
+/**
+ * Map that maps a chunk number to a set of chunk consumers (by consumers we mean function files, and those
+ * are saved/referenced via their filepaths)
+ */
+type ChunksConsumersInfo = Map<number, ChunkConsumers>;
+type ChunkConsumers = Set<string>;
+
+async function collectChunksConsumersInfoRecursively(
+	setup: ProcessingSetup,
+	dir: string
+): Promise<ChunksConsumersInfo> {
+	const chunksConsumersInfos: ChunksConsumersInfo = new Map();
+
+	const files = await readdir(dir);
+
+	for (const file of files) {
+		const filepath = join(dir, file);
+		if (await validateDir(filepath)) {
+			if (!file.endsWith('.rsc.func')) {
+				const dirResultsPromise = file.endsWith('.func')
+					? collectChunksConsumersInfosFromFuncDirectory(filepath)
+					: collectChunksConsumersInfoRecursively(setup, filepath);
+
+				const dirResults = await dirResultsPromise;
+				dirResults.forEach((chunkConsumers, chunkNumber) => {
+					if (!chunksConsumersInfos.has(chunkNumber)) {
+						chunksConsumersInfos.set(chunkNumber, chunkConsumers);
+					} else {
+						const existingChunkConsumers =
+							chunksConsumersInfos.get(chunkNumber);
+						if (existingChunkConsumers) {
+							for (const consumer of chunkConsumers.values()) {
+								existingChunkConsumers.add(consumer);
+							}
+						}
+					}
+				});
+			}
+		}
+	}
+
+	return chunksConsumersInfos;
+}
+
+async function collectChunksConsumersInfosFromFuncDirectory(
+	filepath: string
+): Promise<ChunksConsumersInfo> {
+	const chunksConsumersInfos: ChunksConsumersInfo = new Map();
+
+	const functionConfig = await readJsonFile<FunctionConfig>(
+		join(filepath, '.vc-config.json')
+	);
+
+	if (functionConfig?.runtime !== 'edge') {
+		return chunksConsumersInfos;
+	}
+
+	const functionFilePath = join(filepath, functionConfig.entrypoint);
+
+	let contents = await readFile(functionFilePath, 'utf8');
+	contents = fixFunctionContents(contents);
+
+	const { extractedWebpackChunks } = await extractWebpackChunks(
+		contents,
+		functionFilePath
+	);
+
+	extractedWebpackChunks.forEach((_, number) => {
+		chunksConsumersInfos.set(number, new Set([functionFilePath]));
+	});
+
+	return chunksConsumersInfos;
 }
