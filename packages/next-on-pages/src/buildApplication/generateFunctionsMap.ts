@@ -381,8 +381,6 @@ async function extractAndFixWasmRequires(
 		);
 	});
 
-	await writeFile(functionFilePath, updatedContents);
-
 	return { wasmIdentifiers, updatedContents };
 }
 
@@ -431,8 +429,6 @@ async function extractNextJsManifests(
 			.replace(/;$/, '');
 		manifests.set(manifestIdentifier, manifestContent);
 	});
-
-	await writeFile(functionFilePath, updatedContents);
 
 	return { manifests, updatedContents };
 }
