@@ -2,12 +2,20 @@
 	"name": "docs-scraper",
 	"private": true,
 	"scripts": {
+		"lint": "eslint scripts",
+		"types-check": "tsc --noEmit",
+		"create-or-update-issue": "ts-node scripts/createOrUpdateIssue.ts",
 		"check-docs": "ts-node scripts/checkDocs.ts",
 		"generate-configs-table": "ts-node scripts/generateConfigsTable.ts"
 	},
 	"dependencies": {
+		"@actions/core": "^1.10.0",
+		"@actions/github": "^5.1.1",
 		"puppeteer": "^20.7.4",
 		"ts-node": "^10.9.1",
 		"typescript": "^5.1.6"
+	},
+	"devDependencies": {
+		"eslint": "^8.35.0"
 	}
 }

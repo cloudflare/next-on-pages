@@ -1,5 +1,6 @@
-import puppeteer, { Page } from 'puppeteer';
-import { NextConfig } from './NextConfig';
+import type { Page } from 'puppeteer';
+import puppeteer from 'puppeteer';
+import type { NextConfig } from './NextConfig';
 
 export async function scrapeConfigs(includeNextOnPages?: true): Promise<{
 	allNextConfigs: NextConfig[];
@@ -33,7 +34,7 @@ async function getNextOnPagesDocumentedNextConfigs(
 	await page.goto(
 		'https://github.com/cloudflare/next-on-pages/blob/main/packages/next-on-pages/docs/supported.md'
 	);
-	const nextOnPagesDocumentedNextConfigs = await page.$$eval(
+	const nextOnPagesDocumentedNextConfigs: string[] = await page.$$eval(
 		'h3:has( > a[href="#nextconfigjs-properties"]) ~ table > tbody > tr > td:first-child',
 		els =>
 			els.map(el => {
@@ -64,6 +65,7 @@ async function getNextConfigsFromNextDocs(page: Page): Promise<NextConfig[]> {
 		.filter(configs => !!configs.pages)
 		.map(config => ({
 			configName: config.app.configName,
+			// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 			urls: [...config.app.urls, ...config.pages!.urls],
 		}));
 

@@ -1,12 +1,12 @@
 import { scrapeConfigs } from './utils';
 
-(async function (): Promise<void> {
+void (async function (): Promise<void> {
 	const { allNextConfigs } = await scrapeConfigs(false);
 
 	const tableHeadings = '| Option | Next Docs  | Support |';
 	const divisor = '| ------ | ---------- | ------- |';
 
-	let tableLines = [tableHeadings, divisor];
+	const tableLines = [tableHeadings, divisor];
 
 	allNextConfigs.forEach(config => {
 		const option = `${config.configName}`;

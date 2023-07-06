@@ -1,7 +1,7 @@
 import type { NextConfig } from './utils';
 import { fromGithubAction, scrapeConfigs } from './utils';
 
-(async function (): Promise<void> {
+void (async function (): Promise<void> {
 	const fromGithub = fromGithubAction();
 
 	const { allNextConfigs, nextOnPagesDocumentedNextConfigs } =

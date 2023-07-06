@@ -18,7 +18,7 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 16.x
-      - name: Install Dependencies
+      - name: Install NPM Dependencies
         run: npm ci
       - name: Run Checker
         id: run-checker
@@ -68,7 +68,7 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 16.x
-      - name: Install Dependencies
+      - name: Install NPM Dependencies
         run: npm ci
       - name: Run Checker
         id: run-checker
@@ -89,78 +89,20 @@ jobs:
     permissions:
       issues: write
     steps:
-      - name: Update Issue
-        uses: actions/github-script@v6
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          undocumentedNextConfigs: ${{ needs.check_docs.outputs.undocumented_next_configs }}
-          documentedNonNextConfigs: ${{ needs.check_docs.outputs.documented_non_next_configs }}
-          configsTable: ${{ needs.generate-configs-table.outputs.table }}
+      - name: Checkout Repo
+        uses: actions/checkout@v3
+      - name: Setup Node.js 16.x
+        uses: actions/setup-node@v3
         with:
-          script: |
-            const label = 'outdated-config-docs';
-
-            const { data: issues } = await github.rest.issues.listForRepo({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              state: 'open',
-              labels: label,
-              sort: 'created',
-              direction: 'desc',
-              per_page: 1,
-            });
-
-            if (issues.length > 1) {
-              console.log('Only one issue should be present, abort');
-              throw new Error('Only one test-issue should be present');
-            }
-
-            const undocumentedNextConfigs = process.env.undocumentedNextConfigs.split(',');
-            const documentedNonNextConfigs = process.env.documentedNonNextConfigs.split(',');
-
-            let issueBody =
-              '### The next-on-pages documentation of the next.config.js options is out of date\n';
-
-            if(undocumentedNextConfigs.length > 0) {
-              issueBody += '\n\nThe following next.config.js configs are not documented in our supported doc:\n';
-              issueBody += undocumentedNextConfigs.map((config) => `- ${config}`).join('\n');
-            }
-
-            if(documentedNonNextConfigs.length > 0) {
-              issueBody += '\n\nThe following configs present in our supported doc are not present in the next.config.js documentation pages:\n';
-              issueBody += documentedNonNextConfigs.map((config) => `- ${config}`).join('\n');
-            }
-
-            issueBody += '\n\n___\n\n'
-
-            issueBody += '\n> **Warning**\n'
-            issueBody += '> Remember to update:\n'
-            issueBody += '> - [The supported doc](https://github.com/cloudflare/next-on-pages/blob/main/packages/next-on-pages/docs/supported.md#nextconfigjs-properties)\n'
-            issueBody += '> - [The eslint-plugin-next-on-pages no-unsupported rule](https://github.com/cloudflare/next-on-pages/blob/main/packages/eslint-plugin-next-on-pages/src/rules/no-unsupported-configs.ts)\n'
-
-            issueBody += '\n\n___\n\n'
-
-            issueBody += '\n<details>\n'
-            issueBody += '<summary>Configs table template</summary>\n\n'
-            issueBody += 'Template config table that you can use to update the supported doc:\n\n'
-            issueBody += process.env.configsTable;
-            issueBody += '\n\n</details>\n\n'
-
-            if (issues.length === 0) {
-              await github.rest.issues.create({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                labels: [label],
-                title: "⚠️📄 The `next.config.js` supported doc is out of date 📄⚠️",
-                body: issueBody,
-              });
-            } else {
-              const issueNumber = issues[0].number;
-
-              await github.rest.issues.update({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: issueNumber,
-                body: issueBody,
-              });
-            }
+          node-version: 16.x
+      - name: Install NPM Dependencies
+        run: npm ci
+      - name: Create or update issue
+        working-directory: internal-packages/docs-scraper
+        run: |
+          export GH_ACTION=true
+          export GH_TOKEN="${{ secrets.GITHUB_TOKEN }}"
+          export undocumentedNextConfigs="${{ needs.check_docs.outputs.undocumented_next_configs }}"
+          export documentedNonNextConfigs="${{ needs.check_docs.outputs.documented_non_next_configs }}"
+          export configsTable="${{ needs.generate-configs-table.outputs.table }}"
+          npm run create-or-update-issue

@@ -1,4 +1,7 @@
 {
 	"extends": "@cloudflare/next-on-pages-tsconfig/tsconfig.json",
-	"include": ["scripts"]
+	"include": [
+		"scripts",
+		".eslintrc.js"
+	]
 }
