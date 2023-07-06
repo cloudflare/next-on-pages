@@ -91,6 +91,9 @@ export async function processOutputDir(
 		await rm(outputDir, { recursive: true, force: true });
 		await mkdir(outputDir, { recursive: true });
 		await copyVercelStaticAssets(vercelDir, outputDir, staticAssets);
+	} else {
+		// If the output directory is the default Vercel one, delete the `_worker.js` directory contents.
+		await rm(join(outputDir, '_worker.js'), { recursive: true, force: true });
 	}
 }
 
