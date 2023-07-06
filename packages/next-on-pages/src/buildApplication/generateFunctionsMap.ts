@@ -465,7 +465,7 @@ function extractManifestStatementInfo(
 		statement.expression.left.object.name !== 'self' ||
 		statement.expression.left.property.type !== 'Identifier' ||
 		// only extract statements where the manifest is an object
-		// TODO: Remove need for this check in refactor
+		// TODO: Remove this check after https://github.com/cloudflare/next-on-pages/issues/371 is done
 		statement.expression.right.type !== 'ObjectExpression'
 	)
 		return null;
