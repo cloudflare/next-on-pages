@@ -51,7 +51,7 @@ export async function generateFunctionsMap(
 		outputDir,
 	};
 
-	// TODO: Remove need for no chunks directory check in refactor
+	// TODO: Remove need for no chunks directory check after https://github.com/cloudflare/next-on-pages/issues/371 is done
 	const chunksDirExists = await validateDir(processingSetup.distWebpackDir);
 
 	if (!disableChunksDedup && !chunksDirExists) {
