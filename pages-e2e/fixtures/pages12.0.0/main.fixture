@@ -1,5 +1,5 @@
 {
-	"features": ["next-pages-experimental-edge-api-route"],
+	"features": ["simplePagesApiRoutes"],
 	"localSetup": "npm install",
 	"buildConfig": {
 		"buildCommand": "npx @cloudflare/next-on-pages --experimental-minify",
