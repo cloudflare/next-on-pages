@@ -12,21 +12,46 @@ jobs:
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v3
+
       - name: Setup Node.js 16.x
         uses: actions/setup-node@v3
         with:
           node-version: 16.x
-      - name: Install NPM Dependencies
+
+      - name: Get current node version
+        id: node-version
+        run: |
+          node_version=$(node -v)
+          echo "node_version=$node_version" >> $GITHUB_OUTPUT
+
+        # Attempt to cache all the node_modules directories based on the node version and package lock.
+      - name: Cache node_modules
+        id: npm-cache
+        uses: actions/cache@v3
+        env:
+          cache-name: cache-node-modules-${{ steps.node-version.outputs.node_version }}
+        with:
+          key: ${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
+          path: |
+            **/node_modules
+            !/pages-e2e/workspaces/**/node_modules
+
+      # If the cache missed then install using `npm ci` to follow package lock exactly
+      - if: ${{ steps.npm-cache.outputs.cache-hit != 'true'}}
+        name: Install NPM Dependencies
         run: npm ci
+
       - name: Run Checker
         id: run-checker
         working-directory: internal-packages/docs-scraper
         run: GH_ACTION=true npm run check-docs
+
       - name: Generate table
         id: generate-table
         if: steps.run-checker.outputs.result == 'out-of-date'
         working-directory: internal-packages/docs-scraper
         run: GH_ACTION=true npm run generate-configs-table
+
       - name: Create or update issue
         if: steps.run-checker.outputs.result == 'out-of-date'
         working-directory: internal-packages/docs-scraper
