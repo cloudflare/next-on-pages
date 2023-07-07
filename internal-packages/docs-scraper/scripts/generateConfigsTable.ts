@@ -27,9 +27,9 @@ void (async function (): Promise<void> {
 
 	const table = tableLines.join('\n');
 
+	console.log(table);
+
 	if (fromGithubAction()) {
 		setOutput('table', table);
-	} else {
-		console.log(table);
 	}
 })();
