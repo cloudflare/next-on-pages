@@ -22,24 +22,33 @@
  */
 
 import { collectFunctionConfigsRecursively } from './configs';
+import { processPrerenderFunctions } from './prerenderFunctions';
 import { timer } from './temp';
 
-type ProcessVercelFunctionsOpts = {
+export type ProcessVercelFunctionsOpts = {
+	functionsDir: string;
 	outputDir: string;
 	disableChunksDedup?: boolean;
 };
 
-export async function processVercelFunctions(
-	functionsDir: string,
-	{ outputDir, disableChunksDedup }: ProcessVercelFunctionsOpts
-) {
+export async function processVercelFunctions(opts: ProcessVercelFunctionsOpts) {
 	const collectConfigsTimer = timer('collect function configs');
-	const functions = await collectFunctionConfigsRecursively(functionsDir);
+	const functionData = await collectFunctionConfigsRecursively(
+		opts.functionsDir
+	);
 	collectConfigsTimer.stop();
 
-	console.log(functions.edgeFunctions.size);
-	console.log(functions.prerenderedFunctions.size);
-	console.log(functions.invalidFunctions.size);
+	console.log(functionData.edgeFunctions.size);
+	console.log(functionData.prerenderedFunctions.size);
+	console.log(functionData.invalidFunctions.size);
+
+	const processPrerenderFunctionsTimer = timer('process prerender functions');
+	await processPrerenderFunctions(functionData, opts);
+	processPrerenderFunctionsTimer.stop();
+
+	console.log(functionData.edgeFunctions.size);
+	console.log(functionData.prerenderedFunctions.size);
+	console.log(functionData.invalidFunctions.size);
 
 	// const nopDistDir = join(outputDir, '_worker.js', '__next-on-pages-dist__');
 }

@@ -1,11 +1,10 @@
-import { join } from 'node:path';
-import { readDirectories, readJsonFile } from '../../utils';
-
-export type FunctionConfigs = {
-	edgeFunctions: Map<string, VercelFunctionConfig>;
-	prerenderedFunctions: Map<string, VercelFunctionConfig>;
-	invalidFunctions: Map<string, VercelFunctionConfig>;
-};
+import { join, relative } from 'node:path';
+import {
+	addLeadingSlash,
+	normalizePath,
+	readDirectories,
+	readJsonFile,
+} from '../../utils';
 
 /**
  * Collects all the Vercel build output function configs recursively from the given directory.
@@ -16,12 +15,13 @@ export type FunctionConfigs = {
  */
 export async function collectFunctionConfigsRecursively(
 	baseDir: string,
-	configs: FunctionConfigs = {
-		edgeFunctions: new Map<string, VercelFunctionConfig>(),
-		prerenderedFunctions: new Map<string, VercelFunctionConfig>(),
-		invalidFunctions: new Map<string, VercelFunctionConfig>(),
+	configs: CollectedFunctions = {
+		functionsDir: baseDir,
+		edgeFunctions: new Map(),
+		prerenderedFunctions: new Map(),
+		invalidFunctions: new Map(),
 	}
-): Promise<FunctionConfigs> {
+): Promise<CollectedFunctions> {
 	const dirs = await readDirectories(baseDir);
 
 	for (const { path } of dirs) {
@@ -29,12 +29,16 @@ export async function collectFunctionConfigsRecursively(
 			const configPath = join(path, '.vc-config.json');
 			const config = await readJsonFile<VercelFunctionConfig>(configPath);
 
-			if (config?.operationType === 'ISR') {
-				configs.prerenderedFunctions.set(path, config);
-			} else if (config?.runtime === 'edge') {
-				configs.edgeFunctions.set(path, config);
+			const relativePath = addLeadingSlash(
+				normalizePath(relative(configs.functionsDir, path))
+			);
+
+			if (config?.operationType?.toLowerCase() === 'isr') {
+				configs.prerenderedFunctions.set(path, { relativePath, config });
+			} else if (config?.runtime?.toLowerCase() === 'edge') {
+				configs.edgeFunctions.set(path, { relativePath, config });
 			} else if (config) {
-				configs.invalidFunctions.set(path, config);
+				configs.invalidFunctions.set(path, { relativePath, config });
 			}
 		} else {
 			await collectFunctionConfigsRecursively(path, configs);
@@ -43,3 +47,20 @@ export async function collectFunctionConfigsRecursively(
 
 	return configs;
 }
+
+export type CollectedFunctions = {
+	functionsDir: string;
+	edgeFunctions: Map<string, FunctionInfo>;
+	prerenderedFunctions: Map<string, FunctionInfo>;
+	invalidFunctions: Map<string, FunctionInfo>;
+};
+
+type FunctionInfo = {
+	relativePath: string;
+	config: VercelFunctionConfig;
+	route?: {
+		path: string;
+		headers?: Record<string, string>;
+		overrides?: string[];
+	};
+};

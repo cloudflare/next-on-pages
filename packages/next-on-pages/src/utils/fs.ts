@@ -140,7 +140,7 @@ export async function readDirectories(
 
 		const dirs = await Promise.all(
 			files.map(async file => {
-				const path = join(basePath, file.name);
+				const path = normalizePath(join(basePath, file.name));
 				const isSymbolicLink = file.isSymbolicLink();
 				const isDirectory =
 					file.isDirectory() || (isSymbolicLink && (await validateDir(path)));

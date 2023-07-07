@@ -14,6 +14,13 @@ type VercelFunctionConfig = {
 	framework?: { slug: string; version?: string };
 };
 
+type VercelPrerenderConfig = {
+	type: string;
+	sourcePath?: string;
+	fallback: { type: string; mode: number; fsPath: string };
+	initialHeaders?: Record<string, string>;
+};
+
 /**
  * Types for the Vercel build output configuration file.
  */

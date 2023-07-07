@@ -14,8 +14,8 @@ import {
 import type { CliOptions } from '../cli';
 import { cliError, cliWarn } from '../cli';
 import type * as AST from 'ast-types/gen/kinds';
-import type { PrerenderedFileData } from './fixPrerenderedRoutes';
-import { fixPrerenderedRoutes } from './fixPrerenderedRoutes';
+// import type { PrerenderedFileData } from './fixPrerenderedRoutes';
+// import { fixPrerenderedRoutes } from './fixPrerenderedRoutes';
 import type { Plugin } from 'esbuild';
 import { build } from 'esbuild';
 
@@ -164,18 +164,19 @@ async function processDirectoryRecursively(
 	const invalidFunctions = new Set<string>();
 	const functionsMap = new Map<string, string>();
 	const webpackChunks = new Map<number, string>();
-	const prerenderedRoutes = new Map<string, PrerenderedFileData>();
+	const prerenderedRoutes = new Map<string, {}>();
 	const wasmIdentifiers = new Map<string, WasmModuleInfo>();
 	const nextJsManifests = new Map<string, string>();
 	const bundledAssetsInfo = new Map<string, BundledAssetInfo>();
 
 	const files = await readdir(dir);
-	const functionFiles = await fixPrerenderedRoutes(
-		prerenderedRoutes,
-		files,
-		dir,
-		setup.outputDir
-	);
+	// const functionFiles = await fixPrerenderedRoutes(
+	// 	prerenderedRoutes,
+	// 	files,
+	// 	dir,
+	// 	setup.outputDir
+	// );
+	const functionFiles = files;
 
 	// Note: the following could be implemented via `await Promise.all` since different directories are independent to each other
 	//       unfortunately this can cause large application to require unreasonably large memory to build, so we need to do a

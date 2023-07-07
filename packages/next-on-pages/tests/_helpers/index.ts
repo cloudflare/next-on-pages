@@ -7,7 +7,6 @@ import {
 	getVercelStaticAssets,
 	processVercelOutput,
 } from '../../src/buildApplication/processVercelOutput';
-import type { VercelPrerenderConfig } from '../../src/buildApplication/fixPrerenderedRoutes';
 import { expect, vi } from 'vitest';
 
 export type TestSet = {
