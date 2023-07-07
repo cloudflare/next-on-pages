@@ -4,13 +4,11 @@ on:
     - cron: '0 0,12 * * *'
 
 jobs:
-  check_docs:
-    name: Check if our docs are up to date
+  scrape_docs:
+    name: Scrape docs and create/update issue if needed
     runs-on: ubuntu-latest
-    outputs:
-      result: ${{ steps.run-checker.outputs.result }}
-      undocumented_next_configs: ${{ steps.run-checker.outputs.undocumented_next_configs }}
-      documented_non_next_configs: ${{ steps.run-checker.outputs.documented_non_next_configs }}
+    permissions:
+      issues: write
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v3
@@ -24,49 +22,18 @@ jobs:
         id: run-checker
         working-directory: internal-packages/docs-scraper
         run: GH_ACTION=true npm run check-docs
-
-  generate-configs-table:
-    name: Generate configs table
-    needs: check_docs
-    if: needs.check_docs.outputs.result == 'out-of-date'
-    runs-on: ubuntu-latest
-    outputs:
-      table: ${{ steps.generate-table.outputs.table }}
-    steps:
-      - name: Checkout Repo
-        uses: actions/checkout@v3
-      - name: Setup Node.js 16.x
-        uses: actions/setup-node@v3
-        with:
-          node-version: 16.x
-      - name: Install NPM Dependencies
-        run: npm ci
       - name: Generate table
         id: generate-table
+        if: steps.run-checker.outputs.result == 'out-of-date'
         working-directory: internal-packages/docs-scraper
         run: GH_ACTION=true npm run generate-configs-table
-
-  create_or_update_issue:
-    name: Create or Update Issue
-    needs: [check_docs, generate-configs-table]
-    runs-on: ubuntu-latest
-    permissions:
-      issues: write
-    steps:
-      - name: Checkout Repo
-        uses: actions/checkout@v3
-      - name: Setup Node.js 16.x
-        uses: actions/setup-node@v3
-        with:
-          node-version: 16.x
-      - name: Install NPM Dependencies
-        run: npm ci
       - name: Create or update issue
+        if: steps.run-checker.outputs.result == 'out-of-date'
         working-directory: internal-packages/docs-scraper
         run: |
           export GH_ACTION=true
           export GH_TOKEN="${{ secrets.GITHUB_TOKEN }}"
-          export undocumentedNextConfigs="${{ needs.check_docs.outputs.undocumented_next_configs }}"
-          export documentedNonNextConfigs="${{ needs.check_docs.outputs.documented_non_next_configs }}"
-          export configsTable="${{ needs.generate-configs-table.outputs.table }}"
+          export undocumentedNextConfigs="${{ steps.run-checker.outputs.undocumented_next_configs }}"
+          export documentedNonNextConfigs="${{ steps.run-checker.outputs.documented_non_next_configs }}"
+          export configsTable="${{ steps.generate-table.outputs.table }}"
           npm run create-or-update-issue
