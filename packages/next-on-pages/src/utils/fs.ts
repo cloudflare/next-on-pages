@@ -1,3 +1,5 @@
+import { createHash } from 'node:crypto';
+import { readFileSync } from 'node:fs';
 import { readdir, readFile, stat, mkdir, copyFile } from 'node:fs/promises';
 import { resolve, dirname, join } from 'node:path';
 
@@ -161,3 +163,18 @@ type DirectoryInfo = {
 	isDirectory: boolean;
 	isSymbolicLink: boolean;
 };
+
+/**
+ * Retrieves the hash for a file.
+ *
+ * @param path File path.
+ * @returns The file's hash, or undefined if the file does not exist.
+ */
+export function getFileHash(path: string): Buffer | undefined {
+	try {
+		const file = readFileSync(path);
+		return createHash('sha256').update(file).digest();
+	} catch (e) {
+		return undefined;
+	}
+}

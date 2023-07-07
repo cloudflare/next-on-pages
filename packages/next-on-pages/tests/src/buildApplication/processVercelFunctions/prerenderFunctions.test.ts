@@ -15,10 +15,10 @@ import { processPrerenderFunctions } from '../../../../src/buildApplication/proc
 const functionsDir = resolve('.vercel/output/functions');
 const outputDir = resolve('.vercel/output/static');
 
-describe.only('prerenderFunctions', () => {
+describe('prerenderFunctions', () => {
 	afterEach(() => mockFs.restore());
 
-	test.only('succeeds for root-level prerendered index route', async () => {
+	test('succeeds for root-level prerendered index route', async () => {
 		const collectedFunctions = await collectFunctionsFrom({
 			functions: {
 				'page.func': edgeFuncDir,
@@ -269,7 +269,7 @@ describe.only('prerenderFunctions', () => {
 		expect(invalidFunctions.size).toEqual(0);
 	});
 
-	test('overwrites existing static file', async () => {
+	test('does not overwrite existing static file with same hash', async () => {
 		const mockedConsole = mockConsole('warn');
 
 		const collectedFunctions = await collectFunctionsFrom({
@@ -311,13 +311,11 @@ describe.only('prerenderFunctions', () => {
 
 		expect(invalidFunctions.size).toEqual(0);
 
-		mockedConsole.expectCalls([
-			/Prerendered file already exists for \/index\.rsc, overwriting\.\.\./,
-		]);
+		mockedConsole.expectCalls([]);
 		mockedConsole.restore();
 	});
 
-	test('overwrites existing nested static file', async () => {
+	test('overwrites existing static file with different hash', async () => {
 		const mockedConsole = mockConsole('warn');
 
 		const collectedFunctions = await collectFunctionsFrom({
@@ -331,7 +329,7 @@ describe.only('prerenderFunctions', () => {
 					'page.rsc.prerender-fallback.rsc': '',
 				},
 			},
-			static: { nested: { 'page.rsc': '' } },
+			static: { nested: { 'page.rsc': 'different' } },
 		});
 
 		await processPrerenderFunctions(collectedFunctions, {
@@ -362,7 +360,7 @@ describe.only('prerenderFunctions', () => {
 		expect(invalidFunctions.size).toEqual(0);
 
 		mockedConsole.expectCalls([
-			/Prerendered file already exists for \/nested\/page\.rsc, overwriting\.\.\./,
+			/Static asset with different hash exists for \/nested\/page\.rsc, overwriting\.\.\./,
 		]);
 		mockedConsole.restore();
 	});
@@ -447,7 +445,7 @@ describe.only('prerenderFunctions', () => {
 		mockedConsole.restore();
 	});
 
-	test('overwrites with custom output dir and existing conflicting index.rsc static file', async () => {
+	test('overwrites with custom output dir and existing conflicting index.rsc static file with different hash', async () => {
 		const mockedConsoleLog = mockConsole('log');
 		const mockedConsoleWarn = mockConsole('warn');
 
@@ -462,7 +460,7 @@ describe.only('prerenderFunctions', () => {
 						mockPrerenderConfigFile('index.rsc'),
 					'index.rsc.prerender-fallback.rsc': '',
 				},
-				static: { 'index.rsc': '' },
+				static: { 'index.rsc': 'different' },
 			},
 			{ outputDir: resolve('custom') }
 		);
@@ -501,7 +499,7 @@ describe.only('prerenderFunctions', () => {
 			/Copying 1 static asset/,
 		]);
 		mockedConsoleWarn.expectCalls([
-			/Prerendered file already exists for \/index\.rsc, overwriting\.\.\./,
+			/Static asset with different hash exists for \/index\.rsc, overwriting\.\.\./,
 		]);
 
 		mockedConsoleLog.restore();

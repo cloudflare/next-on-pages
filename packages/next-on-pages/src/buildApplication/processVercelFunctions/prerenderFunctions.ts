@@ -4,13 +4,14 @@ import type { CollectedFunctions } from './configs';
 import {
 	addLeadingSlash,
 	copyFileWithDir,
+	getFileHash,
 	getRouteOverrides,
 	normalizePath,
 	readJsonFile,
 	stripFuncExtension,
 	validateFile,
 } from '../../utils';
-import { cliWarn } from '../../cli';
+import { cliError, cliWarn } from '../../cli';
 
 /**
  * Processes the prerendered routes found in the Vercel build output.
@@ -31,8 +32,9 @@ export async function processPrerenderFunctions(
 		const routeInfo = await validateRoute(path, fnConfig.relativePath, opts);
 
 		if (routeInfo) {
-			const { config, originalFile, destFile, destRoute } = routeInfo;
-			await copyFileWithDir(originalFile, destFile);
+			const { config, destRoute } = routeInfo;
+
+			await copyNewFiles(routeInfo);
 
 			functions.prerenderedFunctions.set(path, {
 				...fnConfig,
@@ -160,10 +162,38 @@ async function getRouteDest(
 	const destRoute = normalizePath(join(dirname(relativePath), fixedFileName));
 	const destFile = join(outputDir, destRoute);
 
-	// Check if a static file already exists at the new location.
-	if (await validateFile(destFile)) {
-		cliWarn(`Prerendered file already exists for ${destRoute}, overwriting...`);
+	return { destFile, destRoute: addLeadingSlash(destRoute) };
+}
+
+/**
+ * Copies the prerendered assets to the output directory.
+ *
+ * If a static asset already exists and the hash is different, it will log a warning and be overwritten.
+ *
+ * @param route Information about a valid prerendered route.
+ */
+async function copyNewFiles({
+	originalFile,
+	destFile,
+	destRoute,
+}: ValidatedRouteInfo): Promise<void> {
+	const destFileHash = getFileHash(destFile);
+	if (!destFileHash) {
+		await copyFileWithDir(originalFile, destFile);
+		return;
 	}
 
-	return { destFile, destRoute: addLeadingSlash(destRoute) };
+	const originalFileHash = getFileHash(originalFile);
+	if (!originalFileHash) {
+		// This should never occur since we already know the file exists.
+		cliError(`Could not find prerendered file to copy at ${originalFile}`);
+		process.exit(1);
+	}
+
+	if (!originalFileHash.equals(destFileHash)) {
+		cliWarn(
+			`Static asset with different hash exists for ${destRoute}, overwriting...`
+		);
+		await copyFileWithDir(originalFile, destFile);
+	}
 }

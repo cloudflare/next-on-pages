@@ -1,6 +1,7 @@
 import { describe, test, expect, beforeAll, afterAll } from 'vitest';
 import {
 	copyFileWithDir,
+	getFileHash,
 	normalizePath,
 	readDirectories,
 	readJsonFile,
@@ -9,6 +10,7 @@ import {
 	validateFile,
 } from '../../../src/utils';
 import mockFs from 'mock-fs';
+import { createHash } from 'crypto';
 
 describe('normalizePath', () => {
 	test('windows short path name format normalizes', () => {
@@ -227,5 +229,28 @@ describe('readDirectories', () => {
 		const dirs = await readDirectories('invalid-root/functions');
 
 		expect(dirs).toEqual([]);
+	});
+});
+
+describe('getFileHash', () => {
+	test('should return hash of file', async () => {
+		const fileContents = 'valid-file';
+		const textHash = createHash('sha256').update(fileContents).digest('hex');
+
+		mockFs({ 'index.js': fileContents });
+
+		const fileHash = getFileHash('index.js')?.toString('hex');
+		expect(fileHash).toEqual(textHash);
+
+		mockFs.restore();
+	});
+
+	test('should return undefined for invalid file', async () => {
+		mockFs();
+
+		const fileHash = getFileHash('index.js');
+		expect(fileHash).toEqual(undefined);
+
+		mockFs.restore();
 	});
 });
