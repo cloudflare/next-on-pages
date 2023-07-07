@@ -5,9 +5,13 @@ import { join, resolve } from 'path';
 import { generateFunctionsMap } from '../../src/buildApplication/generateFunctionsMap';
 import {
 	getVercelStaticAssets,
+	processOutputDir,
 	processVercelOutput,
 } from '../../src/buildApplication/processVercelOutput';
 import { expect, vi } from 'vitest';
+import type { ProcessVercelFunctionsOpts } from '../../src/buildApplication/processVercelFunctions';
+import type { FunctionInfo } from '../../src/buildApplication/processVercelFunctions/configs';
+import { collectFunctionConfigsRecursively } from '../../src/buildApplication/processVercelFunctions/configs';
 
 export type TestSet = {
 	name: string;
@@ -350,3 +354,60 @@ export function mockConsole(method: ConsoleMethods) {
 
 	return { restore, expectCalls };
 }
+
+/**
+ * Collects the functions from the file system and generates functions maps.
+ *
+ * @param functions Functions directory items.
+ * @param staticAssets Static assets directory items.
+ * @param opts Options for processing the functions.
+ * @param otherDirs Other root-level directories to create in the mock file system
+ * @returns Results from collecting the functions.
+ */
+export async function collectFunctionsFrom(
+	{
+		functions = {},
+		static: staticAssets = {},
+		otherDirs = {},
+	}: {
+		functions?: DirectoryItems;
+		static?: DirectoryItems;
+		otherDirs?: DirectoryItems;
+	},
+	{
+		functionsDir = resolve('.vercel', 'output', 'functions'),
+		outputDir = resolve('.vercel', 'output', 'static'),
+	}: Partial<ProcessVercelFunctionsOpts> = {}
+) {
+	mockFs({
+		'.vercel': { output: { functions, static: staticAssets } },
+		...otherDirs,
+	});
+
+	await processOutputDir(outputDir, await getVercelStaticAssets());
+	return collectFunctionConfigsRecursively(functionsDir);
+}
+
+export function getRouteInfo(
+	functions: Map<string, FunctionInfo>,
+	path: string
+) {
+	return functions.get(resolve('.vercel', 'output', 'functions', path))?.route;
+}
+
+export const edgeFuncDir = {
+	'.vc-config.json': JSON.stringify({
+		runtime: 'edge',
+		entrypoint: 'index.js',
+	}),
+	'index.js': '',
+};
+
+export const prerenderFuncDir = {
+	'.vc-config.json': JSON.stringify({
+		operationType: 'ISR',
+		runtime: 'nodejs',
+		entrypoint: 'index.js',
+	}),
+	'index.js': '',
+};

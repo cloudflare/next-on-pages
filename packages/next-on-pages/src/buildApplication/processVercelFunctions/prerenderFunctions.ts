@@ -4,10 +4,10 @@ import type { CollectedFunctions } from './configs';
 import {
 	addLeadingSlash,
 	copyFileWithDir,
-	formatRoutePath,
+	getRouteOverrides,
 	normalizePath,
 	readJsonFile,
-	stripIndexRoute,
+	stripFuncExtension,
 	validateFile,
 } from '../../utils';
 import { cliWarn } from '../../cli';
@@ -98,7 +98,7 @@ async function getRouteConfig(
 		config?.fallback?.type?.toLowerCase() !== 'filefsref' ||
 		!config?.fallback?.fsPath
 	) {
-		const relativeName = relativePath.replace(/\.func$/, '');
+		const relativeName = stripFuncExtension(relativePath);
 		cliWarn(`Invalid prerender config for ${relativeName}`);
 		return null;
 	}
@@ -166,20 +166,4 @@ async function getRouteDest(
 	}
 
 	return { destFile, destRoute: addLeadingSlash(destRoute) };
-}
-
-/**
- * Creates a list of overrides for a new route that might normally be created by the build output config.
- *
- * @param newRoute New route to create overrides for.
- * @returns List of overrides for the new route.
- */
-function getRouteOverrides(newRoute: string): string[] {
-	const formattedPathName = formatRoutePath(newRoute);
-	const withoutHtmlExt = formattedPathName.replace(/\.html$/, '');
-	const strippedIndexRoute = stripIndexRoute(withoutHtmlExt);
-
-	return [
-		...new Set([formattedPathName, withoutHtmlExt, strippedIndexRoute]),
-	].filter(route => route !== newRoute);
 }

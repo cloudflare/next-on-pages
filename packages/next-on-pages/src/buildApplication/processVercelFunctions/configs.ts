@@ -1,6 +1,8 @@
 import { join, relative } from 'node:path';
 import {
 	addLeadingSlash,
+	formatRoutePath,
+	getRouteOverrides,
 	normalizePath,
 	readDirectories,
 	readJsonFile,
@@ -36,7 +38,14 @@ export async function collectFunctionConfigsRecursively(
 			if (config?.operationType?.toLowerCase() === 'isr') {
 				configs.prerenderedFunctions.set(path, { relativePath, config });
 			} else if (config?.runtime?.toLowerCase() === 'edge') {
-				configs.edgeFunctions.set(path, { relativePath, config });
+				const formattedPathName = formatRoutePath(relativePath);
+				const overrides = getRouteOverrides(formattedPathName);
+
+				configs.edgeFunctions.set(path, {
+					relativePath,
+					config,
+					route: { path: formattedPathName, overrides },
+				});
 			} else if (config) {
 				configs.invalidFunctions.set(path, { relativePath, config });
 			}
@@ -55,7 +64,7 @@ export type CollectedFunctions = {
 	invalidFunctions: Map<string, FunctionInfo>;
 };
 
-type FunctionInfo = {
+export type FunctionInfo = {
 	relativePath: string;
 	config: VercelFunctionConfig;
 	route?: {

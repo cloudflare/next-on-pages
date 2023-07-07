@@ -2,6 +2,7 @@ import { describe, test, expect } from 'vitest';
 import {
 	addLeadingSlash,
 	formatRoutePath,
+	getRouteOverrides,
 	stripFuncExtension,
 	stripIndexRoute,
 	stripRouteGroups,
@@ -43,5 +44,14 @@ describe('routing', () => {
 		expect(formatRoutePath('path')).toEqual('/path');
 		expect(formatRoutePath('/(group)/path')).toEqual('/path');
 		expect(formatRoutePath('/path.func')).toEqual('/path');
+	});
+
+	test('getRouteOverrides', () => {
+		expect(getRouteOverrides('/index')).toEqual(['/']);
+		expect(getRouteOverrides('/index.html')).toEqual(['/index', '/']);
+		expect(getRouteOverrides('/path')).toEqual([]);
+		expect(getRouteOverrides('path')).toEqual(['/path']);
+		expect(getRouteOverrides('/path.html')).toEqual(['/path']);
+		expect(getRouteOverrides('/(group)/path')).toEqual(['/path']);
 	});
 });
