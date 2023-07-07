@@ -15,7 +15,7 @@ import { processPrerenderFunctions } from '../../../../src/buildApplication/proc
 const functionsDir = resolve('.vercel/output/functions');
 const outputDir = resolve('.vercel/output/static');
 
-describe('prerenderFunctions', () => {
+describe('processPrerenderFunctions', () => {
 	afterEach(() => mockFs.restore());
 
 	test('succeeds for root-level prerendered index route', async () => {
@@ -231,6 +231,7 @@ describe('prerenderFunctions', () => {
 				'index.rsc.func': edgeFuncDir,
 				nested: {
 					'(route-group)': {
+						'page.func': edgeFuncDir,
 						'foo.func': prerenderFuncDir,
 						'foo.prerender-config.json': mockPrerenderConfigFile('foo'),
 						'foo.prerender-fallback.html': '',
@@ -247,13 +248,19 @@ describe('prerenderFunctions', () => {
 		const { edgeFunctions, prerenderedFunctions, invalidFunctions } =
 			collectedFunctions;
 
-		expect(edgeFunctions.size).toEqual(2);
+		expect(edgeFunctions.size).toEqual(3);
 		expect(getRouteInfo(edgeFunctions, 'index.func')).toEqual({
 			path: '/index',
 			overrides: ['/'],
 		});
 		expect(getRouteInfo(edgeFunctions, 'index.rsc.func')).toEqual({
 			path: '/index.rsc',
+			overrides: [],
+		});
+		expect(
+			getRouteInfo(edgeFunctions, 'nested/(route-group)/page.func')
+		).toEqual({
+			path: '/nested/page',
 			overrides: [],
 		});
 

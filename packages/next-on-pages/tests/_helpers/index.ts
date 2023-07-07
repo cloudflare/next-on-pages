@@ -388,6 +388,13 @@ export async function collectFunctionsFrom(
 	return collectFunctionConfigsRecursively(functionsDir);
 }
 
+/**
+ * Gets the route info for a function.
+ *
+ * @param functions Map of functions to get the route info from.
+ * @param path Path to the function.
+ * @returns The route info for the function.
+ */
 export function getRouteInfo(
 	functions: Map<string, FunctionInfo>,
 	path: string
@@ -395,9 +402,32 @@ export function getRouteInfo(
 	return functions.get(resolve('.vercel', 'output', 'functions', path))?.route;
 }
 
+/**
+ * Gets the entrypoint for a function.
+ *
+ * @param functions Map of functions to get the entrypoint from.
+ * @param path Path to the function.
+ * @returns The entrypoint for the function.
+ */
+export function getRouteEntrypoint(
+	functions: Map<string, FunctionInfo>,
+	path: string
+) {
+	return functions.get(resolve('.vercel', 'output', 'functions', path))?.config
+		?.entrypoint;
+}
+
 export const edgeFuncDir = {
 	'.vc-config.json': JSON.stringify({
 		runtime: 'edge',
+		entrypoint: 'index.js',
+	}),
+	'index.js': '',
+};
+
+export const nodejsFuncDir = {
+	'.vc-config.json': JSON.stringify({
+		runtime: 'nodejs',
 		entrypoint: 'index.js',
 	}),
 	'index.js': '',

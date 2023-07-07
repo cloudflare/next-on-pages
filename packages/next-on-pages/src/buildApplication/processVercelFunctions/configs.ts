@@ -22,6 +22,7 @@ export async function collectFunctionConfigsRecursively(
 		edgeFunctions: new Map(),
 		prerenderedFunctions: new Map(),
 		invalidFunctions: new Map(),
+		ignoredFunctions: new Map(),
 	}
 ): Promise<CollectedFunctions> {
 	const dirs = await readDirectories(baseDir);
@@ -62,6 +63,7 @@ export type CollectedFunctions = {
 	edgeFunctions: Map<string, FunctionInfo>;
 	prerenderedFunctions: Map<string, FunctionInfo>;
 	invalidFunctions: Map<string, FunctionInfo>;
+	ignoredFunctions: Map<string, FunctionInfo>;
 };
 
 export type FunctionInfo = {

@@ -21,32 +21,29 @@ import { cliError, cliWarn } from '../../cli';
  * - Collects the correct headers for the prerendered assets.
  * - Updates the collected functions with the processed route's information.
  *
- * @param functions Collected functions from the Vercel build output.
+ * @param collectedFunctions Collected functions from the Vercel build output.
  * @param opts Options for processing Vercel functions.
  */
 export async function processPrerenderFunctions(
-	functions: CollectedFunctions,
+	{ invalidFunctions, prerenderedFunctions }: CollectedFunctions,
 	opts: ProcessVercelFunctionsOpts
 ): Promise<void> {
-	for (const [path, fnConfig] of functions.prerenderedFunctions) {
-		const routeInfo = await validateRoute(path, fnConfig.relativePath, opts);
+	for (const [path, fnInfo] of prerenderedFunctions) {
+		const routeInfo = await validateRoute(path, fnInfo.relativePath, opts);
 
 		if (routeInfo) {
 			const { config, destRoute } = routeInfo;
 
 			await copyNewFiles(routeInfo);
 
-			functions.prerenderedFunctions.set(path, {
-				...fnConfig,
-				route: {
-					path: destRoute,
-					headers: config.initialHeaders,
-					overrides: getRouteOverrides(destRoute),
-				},
-			});
+			fnInfo.route = {
+				path: destRoute,
+				headers: config.initialHeaders,
+				overrides: getRouteOverrides(destRoute),
+			};
 		} else {
-			functions.invalidFunctions.set(path, fnConfig);
-			functions.prerenderedFunctions.delete(path);
+			invalidFunctions.set(path, fnInfo);
+			prerenderedFunctions.delete(path);
 		}
 	}
 }
