@@ -1,0 +1,39 @@
+name: Configs docs scraping
+on:
+  schedule:
+    - cron: '0 0,12 * * *'
+
+jobs:
+  scrape_docs:
+    name: Scrape docs and create/update issue if needed
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v3
+      - name: Setup Node.js 16.x
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16.x
+      - name: Install NPM Dependencies
+        run: npm ci
+      - name: Run Checker
+        id: run-checker
+        working-directory: internal-packages/docs-scraper
+        run: GH_ACTION=true npm run check-docs
+      - name: Generate table
+        id: generate-table
+        if: steps.run-checker.outputs.result == 'out-of-date'
+        working-directory: internal-packages/docs-scraper
+        run: GH_ACTION=true npm run generate-configs-table
+      - name: Create or update issue
+        if: steps.run-checker.outputs.result == 'out-of-date'
+        working-directory: internal-packages/docs-scraper
+        run: |
+          export GH_ACTION=true
+          export GH_TOKEN="${{ secrets.GITHUB_TOKEN }}"
+          export undocumentedNextConfigs="${{ steps.run-checker.outputs.undocumented_next_configs }}"
+          export documentedNonNextConfigs="${{ steps.run-checker.outputs.documented_non_next_configs }}"
+          export configsTable="${{ steps.generate-table.outputs.table }}"
+          npm run create-or-update-issue
