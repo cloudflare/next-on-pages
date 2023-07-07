@@ -63,14 +63,14 @@ void (async function (): Promise<void> {
 			console.log(documentedNonNextConfigs);
 		} else {
 			setOutput('result', 'out-of-date');
-			setOutput('undocumented_next_configs', `${undocumentedNextConfigs
-					.map(config => config.configName)
-					.join(',')}`
+			setOutput(
+				'undocumented_next_configs',
+				`${undocumentedNextConfigs.map(config => config.configName).join(',')}`
 			);
-			setOutput('documented_non_next_configs', `${documentedNonNextConfigs.join(
-				','
-			)}`
-		);
+			setOutput(
+				'documented_non_next_configs',
+				`${documentedNonNextConfigs.join(',')}`
+			);
 		}
 	} else {
 		if (!fromGithub) {
