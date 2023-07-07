@@ -33,10 +33,14 @@ void (async function (): Promise<void> {
 		process.exit(1);
 	}
 
-	const undocumentedNextConfigs =
-		(process.env['undocumentedNextConfigs'] ?? '').split(',').filter(Boolean);
-	const documentedNonNextConfigs =
-		(process.env['documentedNonNextConfigs'] ?? '').split(',').filter(Boolean);
+	const undocumentedNextConfigs = (process.env['undocumentedNextConfigs'] ?? '')
+		.split(',')
+		.filter(Boolean);
+	const documentedNonNextConfigs = (
+		process.env['documentedNonNextConfigs'] ?? ''
+	)
+		.split(',')
+		.filter(Boolean);
 
 	const issueBody = generateIssueBody(
 		undocumentedNextConfigs,
@@ -54,7 +58,7 @@ void (async function (): Promise<void> {
 	} else {
 		const issueNumber = issues[0]?.number;
 
-		if(issueNumber) {
+		if (issueNumber) {
 			await octokit.rest.issues.update({
 				owner: context.repo.owner,
 				repo: context.repo.repo,
@@ -95,7 +99,7 @@ function generateIssueBody(
 	issueBody += hr;
 
 	const configsTable = process.env['configsTable'];
-	if(configsTable) {
+	if (configsTable) {
 		issueBody += generateConfigsTableSection(configsTable);
 	}
 
@@ -123,7 +127,7 @@ function generateRememberToUpdateSection(): string {
 	rememberToUpdateSection +=
 		'> - [The eslint-plugin-next-on-pages no-unsupported rule](https://github.com/cloudflare/next-on-pages/blob/main/packages/eslint-plugin-next-on-pages/src/rules/no-unsupported-configs.ts)\n';
 
-		return rememberToUpdateSection;
+	return rememberToUpdateSection;
 }
 
 function generateConfigsTableSection(configsTable: string): string {
