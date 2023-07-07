@@ -31,7 +31,7 @@ jobs:
     if: needs.check_docs.outputs.result == 'out-of-date'
     runs-on: ubuntu-latest
     outputs:
-      table: ${{ steps.run-checker.outputs.table }}
+      table: ${{ steps.generate-table.outputs.table }}
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v3
@@ -41,8 +41,8 @@ jobs:
           node-version: 16.x
       - name: Install NPM Dependencies
         run: npm ci
-      - name: Run Checker
-        id: run-checker
+      - name: Generate table
+        id: generate-table
         working-directory: internal-packages/docs-scraper
         run: GH_ACTION=true npm run generate-configs-table
 
