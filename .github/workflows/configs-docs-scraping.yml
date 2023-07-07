@@ -23,36 +23,7 @@ jobs:
       - name: Run Checker
         id: run-checker
         working-directory: internal-packages/docs-scraper
-        run: |
-          output=$(GH_ACTION=true npm run check-docs)
-
-          result=$(echo "$output" | grep -E "__gh_output__result=")
-          result_value="${result#*=}"
-          echo "result=$result_value" >> $GITHUB_OUTPUT
-
-          undocumented_next_configs=$(echo "$output" | grep -E "__gh_output__undocumented_next_configs=")
-          undocumented_next_configs_value="${undocumented_next_configs#*=}"
-          echo "undocumented_next_configs=$undocumented_next_configs_value" >> $GITHUB_OUTPUT
-
-          documented_non_next_configs=$(echo "$output" | grep -E "__gh_output__documented_non_next_configs=")
-          documented_non_next_configs_value="${documented_non_next_configs#*=}"
-          echo "documented_non_next_configs=$documented_non_next_configs_value" >> $GITHUB_OUTPUT
-      - name: Check result
-        run: |
-          if [[ "${{ steps.run-checker.outputs.result }}" = "no-next-configs-detected" ]]
-          then
-            echo "ERROR! No next configs were detected, the next docs might have changed!"
-            exit 1
-          elif [[ "${{ steps.run-checker.outputs.result }}" = "no-next-configs-detected" ]]
-          then
-            echo "ERROR! No next-on-pages configs were detected, the docs might have changed!"
-            exit 1
-          elif [[ "${{ steps.run-checker.outputs.result }}" = "no-next-configs-detected" ]]
-          then
-            echo "The next-on-pages documentation is up to date"
-          else
-            echo "The next-on-pages documentation is out of date"
-          fi
+        run: GH_ACTION=true npm run check-docs
 
   generate-configs-table:
     name: Generate configs table
@@ -73,14 +44,7 @@ jobs:
       - name: Run Checker
         id: run-checker
         working-directory: internal-packages/docs-scraper
-        run: |
-          output=$(GH_ACTION=true npm run generate-configs-table)
-
-          table=$(echo "$output" | grep -E '^\|.*' )
-          EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
-          echo "table<<$EOF" >> $GITHUB_OUTPUT
-          echo "$table" >> $GITHUB_OUTPUT
-          echo "$EOF" >> $GITHUB_OUTPUT
+        run: GH_ACTION=true npm run generate-configs-table
 
   create_or_update_issue:
     name: Create or Update Issue

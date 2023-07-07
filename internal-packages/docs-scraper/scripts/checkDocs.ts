@@ -1,5 +1,6 @@
 import type { NextConfig } from './utils';
 import { fromGithubAction, scrapeConfigs } from './utils';
+import { setOutput } from '@actions/core';
 
 void (async function (): Promise<void> {
 	const fromGithub = fromGithubAction();
@@ -61,23 +62,21 @@ void (async function (): Promise<void> {
 			);
 			console.log(documentedNonNextConfigs);
 		} else {
-			console.log('__gh_output__result=out-of-date');
-			console.log(
-				`__gh_output__undocumented_next_configs=${undocumentedNextConfigs
+			setOutput('result', 'out-of-date');
+			setOutput('undocumented_next_configs', `${undocumentedNextConfigs
 					.map(config => config.configName)
 					.join(',')}`
 			);
-			console.log(
-				`__gh_output__documented_non_next_configs=${documentedNonNextConfigs.join(
-					','
-				)}`
-			);
+			setOutput('documented_non_next_configs', `${documentedNonNextConfigs.join(
+				','
+			)}`
+		);
 		}
 	} else {
 		if (!fromGithub) {
 			console.log('\nThe next-on-pages documentation is up to date');
 		} else {
-			console.log('__gh_output__result=up-to-date');
+			setOutput('result', 'up-of-date');
 		}
 	}
 
@@ -88,7 +87,7 @@ void (async function (): Promise<void> {
 				'\nERROR! No next configs were detected, the next docs might have changed!'
 			);
 		} else {
-			console.log('__gh_output__result=no-next-configs-detected');
+			setOutput('result', 'no-next-configs-detected');
 		}
 	}
 
@@ -100,7 +99,7 @@ void (async function (): Promise<void> {
 				'\nERROR! No next-on-pages configs were detected, the docs might have changed!'
 			);
 		} else {
-			console.log('__gh_output__result=no-next-on-pages-configs-detected');
+			setOutput('result', 'no-next-on-pages-configs-detected');
 		}
 	}
 })();

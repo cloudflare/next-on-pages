@@ -1,4 +1,5 @@
-import { scrapeConfigs } from './utils';
+import { fromGithubAction, scrapeConfigs } from './utils';
+import { setOutput } from '@actions/core';
 
 void (async function (): Promise<void> {
 	const { allNextConfigs } = await scrapeConfigs(false);
@@ -24,5 +25,11 @@ void (async function (): Promise<void> {
 		tableLines.push(`| ${option} | ${nextDocs} | ${support} |`);
 	});
 
-	console.log(tableLines.join('\n'));
+	const table = tableLines.join('\n');
+
+	if(fromGithubAction()){
+		setOutput('table', table);
+	} else {
+		console.log(table);
+	}
 })();
