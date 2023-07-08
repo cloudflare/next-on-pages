@@ -12,12 +12,14 @@ import { cliWarn } from '../../cli';
  *
  * @param collectedFunctions Collected functions from the Vercel build output.
  */
-export async function processEdgeFunctions({
-	edgeFunctions,
-	invalidFunctions,
-	ignoredFunctions,
-}: CollectedFunctions) {
+export async function processEdgeFunctions(
+	collectedFunctions: CollectedFunctions
+) {
+	const { edgeFunctions, invalidFunctions, ignoredFunctions } =
+		collectedFunctions;
+
 	const tempFunctionsMap = new Map<string, string>();
+	const rscFunctions = new Map<string, string>();
 
 	for (const [path, fnInfo] of edgeFunctions) {
 		const { result, finalEntrypoint } = await checkEntrypoint(
@@ -40,6 +42,10 @@ export async function processEdgeFunctions({
 					// strip `/index` from the path name as the build output config doesn't rewrite `/index` to `/`
 					tempFunctionsMap.set(stripIndexRoute(formattedPathName), path);
 				}
+
+				if (formattedPathName.endsWith('.rsc')) {
+					rscFunctions.set(formattedPathName, path);
+				}
 				break;
 			}
 			case 'invalid': {
@@ -55,10 +61,17 @@ export async function processEdgeFunctions({
 		}
 	}
 
-	await tryToFixInvalidFunctions(
-		{ edgeFunctions, invalidFunctions },
-		tempFunctionsMap
-	);
+	// Remove any RSC functions that have a valid non-RSC function that can be used instead.
+	// NOTE: RSC functions are identical to non-RSC functions, so this is okay.
+	// https://github.com/vercel/vercel/blob/main/packages/next/src/server-build.ts#L1193
+	for (const [formattedPath, path] of rscFunctions) {
+		replaceRscWithNonRsc(collectedFunctions, tempFunctionsMap, {
+			formattedPath,
+			path,
+		});
+	}
+
+	await tryToFixInvalidFunctions(collectedFunctions, tempFunctionsMap);
 }
 
 /**
@@ -128,38 +141,63 @@ async function checkEntrypoint(
  * @param tempFunctionsMap Temporary map of functions to check against.
  */
 async function tryToFixInvalidFunctions(
-	{
-		edgeFunctions,
-		invalidFunctions,
-	}: Pick<CollectedFunctions, 'invalidFunctions' | 'edgeFunctions'>,
+	collectedFunctions: CollectedFunctions,
 	tempFunctionsMap: Map<string, string>
 ): Promise<void> {
+	const { invalidFunctions } = collectedFunctions;
+
 	if (invalidFunctions.size === 0) {
 		return;
 	}
 
-	for (const [rawPath, { relativePath }] of invalidFunctions) {
+	for (const [path, { relativePath }] of invalidFunctions) {
 		const formattedPath = formatRoutePath(relativePath);
 
 		if (
 			tempFunctionsMap.has(formattedPath) ||
 			tempFunctionsMap.has(stripIndexRoute(formattedPath))
 		) {
-			invalidFunctions.delete(rawPath);
+			invalidFunctions.delete(path);
 		} else if (formattedPath.endsWith('.rsc')) {
-			const pathWithoutRsc = formattedPath.replace(/\.rsc$/, '');
-			const fullPath = tempFunctionsMap.get(pathWithoutRsc);
+			replaceRscWithNonRsc(collectedFunctions, tempFunctionsMap, {
+				formattedPath,
+				path,
+			});
+		}
+	}
+}
 
-			if (fullPath) {
-				const edgeFnInfo = edgeFunctions.get(fullPath);
-				if (edgeFnInfo) {
-					if (!edgeFnInfo.route) edgeFnInfo.route = { path: formattedPath };
-					if (!edgeFnInfo.route.overrides) edgeFnInfo.route.overrides = [];
-					edgeFnInfo.route.overrides.push(formattedPath);
+/**
+ * Tries to replace RSC functions with valid non-RSC functions.
+ *
+ * NOTE: RSC functions are identical to non-RSC functions, so this is okay.
+ * https://github.com/vercel/vercel/blob/main/packages/next/src/server-build.ts#L1193
+ *
+ * @param collectedFunctions Collected functions from the Vercel build output.
+ * @param tempFunctionsMap Temporary map of formatted paths to raw paths.
+ * @param paths Path names for the RSC function.
+ */
+function replaceRscWithNonRsc(
+	{ edgeFunctions, invalidFunctions, ignoredFunctions }: CollectedFunctions,
+	tempFunctionsMap: Map<string, string>,
+	{ formattedPath, path }: { formattedPath: string; path: string }
+) {
+	const pathWithoutRsc = formattedPath.replace(/\.rsc$/, '');
+	const nonRscFuncPath = tempFunctionsMap.get(pathWithoutRsc);
 
-					invalidFunctions.delete(rawPath);
-				}
-			}
+	if (nonRscFuncPath) {
+		const rscFnInfo = edgeFunctions.get(path) || invalidFunctions.get(path);
+		const nonRscFnInfo = edgeFunctions.get(nonRscFuncPath);
+
+		if (rscFnInfo && nonRscFnInfo) {
+			if (!nonRscFnInfo.route) nonRscFnInfo.route = { path: pathWithoutRsc };
+			if (!nonRscFnInfo.route.overrides) nonRscFnInfo.route.overrides = [];
+			nonRscFnInfo.route.overrides.push(formattedPath);
+
+			tempFunctionsMap.delete(formattedPath);
+			edgeFunctions.delete(path);
+			invalidFunctions.delete(path);
+			ignoredFunctions.set(path, rscFnInfo);
 		}
 	}
 }

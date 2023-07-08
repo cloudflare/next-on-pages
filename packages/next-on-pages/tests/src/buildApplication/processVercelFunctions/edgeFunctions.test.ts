@@ -20,7 +20,6 @@ describe('processEdgeFunctions', () => {
 		const collectedFunctions = await collectFunctionsFrom({
 			functions: {
 				'index.func': edgeFuncDir,
-				'index.rsc.func': edgeFuncDir,
 			},
 		});
 
@@ -28,17 +27,62 @@ describe('processEdgeFunctions', () => {
 
 		const { edgeFunctions, invalidFunctions } = collectedFunctions;
 
-		expect(edgeFunctions.size).toEqual(2);
+		expect(edgeFunctions.size).toEqual(1);
 		expect(getRouteInfo(edgeFunctions, 'index.func')).toEqual({
 			path: '/index',
 			overrides: ['/'],
 		});
+
+		expect(invalidFunctions.size).toEqual(0);
+	});
+
+	test('adds rsc routes as overrides if there is a valid non-rsc route', async () => {
+		const collectedFunctions = await collectFunctionsFrom({
+			functions: {
+				'index.func': edgeFuncDir,
+				'index.rsc.func': edgeFuncDir,
+			},
+		});
+
+		await processEdgeFunctions(collectedFunctions);
+
+		const { edgeFunctions, invalidFunctions, ignoredFunctions } =
+			collectedFunctions;
+
+		expect(edgeFunctions.size).toEqual(1);
+		expect(getRouteInfo(edgeFunctions, 'index.func')).toEqual({
+			path: '/index',
+			overrides: ['/', '/index.rsc'],
+		});
+
+		expect(invalidFunctions.size).toEqual(0);
+
+		expect(ignoredFunctions.size).toEqual(1);
+		expect(ignoredFunctions.has(join(functionsDir, 'index.rsc.func'))).toEqual(
+			true
+		);
+	});
+
+	test('uses rsc route if there is no valid non-rsc route', async () => {
+		const collectedFunctions = await collectFunctionsFrom({
+			functions: {
+				'index.rsc.func': edgeFuncDir,
+			},
+		});
+
+		await processEdgeFunctions(collectedFunctions);
+
+		const { edgeFunctions, invalidFunctions, ignoredFunctions } =
+			collectedFunctions;
+
+		expect(edgeFunctions.size).toEqual(1);
 		expect(getRouteInfo(edgeFunctions, 'index.rsc.func')).toEqual({
 			path: '/index.rsc',
 			overrides: [],
 		});
 
 		expect(invalidFunctions.size).toEqual(0);
+		expect(ignoredFunctions.size).toEqual(0);
 	});
 
 	test('valid nested routes', async () => {
@@ -173,7 +217,8 @@ describe('processEdgeFunctions', () => {
 
 		await processEdgeFunctions(collectedFunctions);
 
-		const { edgeFunctions, invalidFunctions } = collectedFunctions;
+		const { edgeFunctions, invalidFunctions, ignoredFunctions } =
+			collectedFunctions;
 
 		expect(edgeFunctions.size).toEqual(1);
 		expect(
@@ -184,6 +229,11 @@ describe('processEdgeFunctions', () => {
 		});
 
 		expect(invalidFunctions.size).toEqual(0);
+
+		expect(ignoredFunctions.size).toEqual(1);
+		expect(
+			ignoredFunctions.has(join(functionsDir, 'should-be-valid.rsc.func'))
+		).toEqual(true);
 	});
 
 	test('should return invalid functions', async () => {
@@ -196,7 +246,8 @@ describe('processEdgeFunctions', () => {
 
 		await processEdgeFunctions(collectedFunctions);
 
-		const { edgeFunctions, invalidFunctions } = collectedFunctions;
+		const { edgeFunctions, invalidFunctions, ignoredFunctions } =
+			collectedFunctions;
 
 		expect(edgeFunctions.size).toEqual(0);
 
@@ -207,6 +258,8 @@ describe('processEdgeFunctions', () => {
 		expect(invalidFunctions.has(join(functionsDir, 'index.rsc.func'))).toEqual(
 			true
 		);
+
+		expect(ignoredFunctions.size).toEqual(0);
 	});
 
 	test('should ignore a generated middleware.js file while also providing a warning', async () => {
