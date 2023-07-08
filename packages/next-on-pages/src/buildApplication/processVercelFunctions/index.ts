@@ -13,13 +13,13 @@
  * 3. Process Edge functions. ✅
  * 4. Check for invalid functions. ✅
  * 5. Modify Edge functions (goal: only parse to an AST once per Edge function).
- * 5.1. Extract and dedupe Wasm + bundled assets.
- * 5.1.1. Write Wasm to disk.
- * 5.1.2. Write bundled assets to disk.
- * 5.2. Extract and dedupe Webpack chunks + manifests.
- * 5.2.1. Write manifests to disk.
- * 5.2.2. Write Webpack chunks to disk, grouped by the functions they're used in.
- * 5.3. Apply regex-based fixes to contents.
+ * 5.1. Apply regex-based fixes to contents. ✅
+ * 5.2. Extract Wasm, Webpack chunks, and manifest identifiers from AST. ✅
+ * 5.3. Dedupe the extracted identifiers.
+ * 5.2.1. Write Wasm to disk. ❌
+ * 5.2.2. Write bundled assets to disk. ❌
+ * 5.3.1. Write manifests to disk. ❌
+ * 5.3.2. Write Webpack chunks to disk, grouped by the functions they're used in. ❌
  *
  */
 
@@ -32,6 +32,7 @@ import { processPrerenderFunctions } from './prerenderFunctions';
 import { timer } from './temp';
 import { getPackageVersion } from '../packageManagerUtils';
 import { stripFuncExtension } from '../../utils';
+import { dedupeEdgeFunctions } from './dedupeEdgeFunctions';
 
 export type ProcessVercelFunctionsOpts = {
 	functionsDir: string;
@@ -66,6 +67,10 @@ export async function processVercelFunctions(opts: ProcessVercelFunctionsOpts) {
 		);
 		process.exit(1);
 	}
+
+	const dedupeEdgeFunctionsTimer = timer('dedupe edge functions');
+	await dedupeEdgeFunctions(collectedFunctions, opts);
+	dedupeEdgeFunctionsTimer.stop();
 
 	// const nopDistDir = join(outputDir, '_worker.js', '__next-on-pages-dist__');
 }

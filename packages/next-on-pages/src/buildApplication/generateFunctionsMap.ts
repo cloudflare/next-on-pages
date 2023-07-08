@@ -654,7 +654,7 @@ export type DirectoryProcessingResults = {
 	invalidFunctions: Set<string>;
 	functionsMap: Map<string, string>;
 	webpackChunks: Map<number, string>;
-	prerenderedRoutes: Map<string, PrerenderedFileData>;
+	prerenderedRoutes: Map<string, {}>;
 	wasmIdentifiers: Map<string, WasmModuleInfo>;
 	nextJsManifests: Map<string, string>;
 	bundledAssetsInfo: Map<string, BundledAssetInfo>;
