@@ -69,6 +69,7 @@ export type CollectedFunctions = {
 export type FunctionInfo = {
 	relativePath: string;
 	config: VercelFunctionConfig;
+	outputPath?: string;
 	route?: {
 		path: string;
 		headers?: Record<string, string>;

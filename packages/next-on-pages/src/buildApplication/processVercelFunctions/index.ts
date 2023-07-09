@@ -25,22 +25,32 @@
 
 import { gtr as versionGreaterThan, coerce } from 'semver';
 import { cliError } from '../../cli';
-import type { FunctionInfo } from './configs';
+import type { CollectedFunctions, FunctionInfo } from './configs';
 import { collectFunctionConfigsRecursively } from './configs';
 import { processEdgeFunctions } from './edgeFunctions';
 import { processPrerenderFunctions } from './prerenderFunctions';
 import { timer } from './temp';
 import { getPackageVersion } from '../packageManagerUtils';
 import { stripFuncExtension } from '../../utils';
+import type { CollectedFunctionIdentifiers } from './dedupeEdgeFunctions';
 import { dedupeEdgeFunctions } from './dedupeEdgeFunctions';
 
 export type ProcessVercelFunctionsOpts = {
 	functionsDir: string;
 	outputDir: string;
+	workerJsDir: string;
+	nopDistDir: string;
 	disableChunksDedup?: boolean;
 };
 
-export async function processVercelFunctions(opts: ProcessVercelFunctionsOpts) {
+export type ProcessedVercelFunctions = {
+	collectedFunctions: CollectedFunctions;
+	identifiers: CollectedFunctionIdentifiers;
+};
+
+export async function processVercelFunctions(
+	opts: ProcessVercelFunctionsOpts
+): Promise<ProcessedVercelFunctions> {
 	const collectConfigsTimer = timer('collect function configs');
 	const collectedFunctions = await collectFunctionConfigsRecursively(
 		opts.functionsDir
@@ -59,6 +69,7 @@ export async function processVercelFunctions(opts: ProcessVercelFunctionsOpts) {
 	console.log('Edge:     ', collectedFunctions.edgeFunctions.size);
 	console.log('Prerender:', collectedFunctions.prerenderedFunctions.size);
 	console.log('Invalid:  ', collectedFunctions.invalidFunctions.size);
+	console.log('Ignored:  ', collectedFunctions.ignoredFunctions.size);
 	console.log();
 
 	if (collectedFunctions.invalidFunctions.size > 0) {
@@ -68,11 +79,9 @@ export async function processVercelFunctions(opts: ProcessVercelFunctionsOpts) {
 		process.exit(1);
 	}
 
-	const dedupeEdgeFunctionsTimer = timer('dedupe edge functions');
-	await dedupeEdgeFunctions(collectedFunctions, opts);
-	dedupeEdgeFunctionsTimer.stop();
+	const identifiers = await dedupeEdgeFunctions(collectedFunctions, opts);
 
-	// const nopDistDir = join(outputDir, '_worker.js', '__next-on-pages-dist__');
+	return { collectedFunctions, identifiers };
 }
 
 /**

@@ -100,10 +100,12 @@ async function prepareAndBuildWorker(
 		);
 	} else {
 		const processFunctionsTimer = timer('processVercelFunctions total time');
+		const workerJsDir = join(outputDir, '_worker.js');
 		await processVercelFunctions({
 			functionsDir,
 			outputDir,
-			nopDistDir: join(outputDir, '_worker.js', '__next-on-pages-dist__'),
+			workerJsDir,
+			nopDistDir: join(workerJsDir, '__next-on-pages-dist__'),
 			disableChunksDedup,
 		});
 		console.log();

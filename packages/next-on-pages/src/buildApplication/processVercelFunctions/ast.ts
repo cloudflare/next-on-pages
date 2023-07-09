@@ -94,11 +94,14 @@ export type RawIdentifier<T extends IdentifierType> = {
 	end: number;
 	importPath?: string;
 };
-
-export type IdentifiersMap = Map<
-	string,
-	{ consumers: number; newDest?: string }
+export type RawIdentifierWithImport<T extends IdentifierType> = Override<
+	RawIdentifier<T>,
+	'importPath',
+	string
 >;
+
+export type IdentifierInfo = { consumers: number; newDest?: string };
+export type IdentifiersMap = Map<string, IdentifierInfo>;
 export type ProgramIdentifiers = RawIdentifier<IdentifierType>[];
 
 /**
