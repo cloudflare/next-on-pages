@@ -13,20 +13,20 @@ import { cliError } from '../../cli';
 export function collectIdentifiers(
 	{ identifierMaps, programIdentifiers }: CollectIdentifiersOpts,
 	program: AST.ProgramKind,
-	{ disableChunksDedup }: Partial<ProcessVercelFunctionsOpts>
+	{ disableChunksDedup }: Partial<ProcessVercelFunctionsOpts>,
 ): void {
 	// Wasm
 	collectIdentifierType(
 		{ programIdentifiers, foundIdentifiers: identifierMaps.wasm },
 		program,
-		extractWasm
+		extractWasm,
 	);
 
 	// Manifests
 	collectIdentifierType(
 		{ programIdentifiers, foundIdentifiers: identifierMaps.manifest },
 		program,
-		extractManifest
+		extractManifest,
 	);
 
 	// Webpack chunks
@@ -34,7 +34,7 @@ export function collectIdentifiers(
 		collectIdentifierType(
 			{ programIdentifiers, foundIdentifiers: identifierMaps.webpack },
 			program,
-			extractWebpack
+			extractWebpack,
 		);
 	}
 }
@@ -56,8 +56,8 @@ function collectIdentifierType<T extends IdentifierType>(
 	{ foundIdentifiers, programIdentifiers }: CollectIdentifierTypeOpts,
 	program: AST.ProgramKind,
 	callback: (
-		statement: AST.StatementKind
-	) => RawIdentifier<T> | null | RawIdentifier<T>[]
+		statement: AST.StatementKind,
+	) => RawIdentifier<T> | null | RawIdentifier<T>[],
 ): void {
 	const rawIdentifiers = program.body
 		.map(callback)
@@ -79,7 +79,7 @@ function collectIdentifierType<T extends IdentifierType>(
 						ERROR: Detected a collision with the webpack chunks deduplication.
 									 Try adding the '--disable-chunks-dedup' argument to temporarily solve the issue.
 					`,
-				{ spaced: true, showReport: true }
+				{ spaced: true, showReport: true },
 			);
 			process.exit(1);
 		}
@@ -127,7 +127,7 @@ export type ProgramIdentifiers = RawIdentifier<IdentifierType>[];
  * @returns The Wasm identifier information.
  */
 function extractWasm(
-	statement: AST.StatementKind
+	statement: AST.StatementKind,
 ): RawIdentifier<'wasm'> | null {
 	if (
 		statement.type !== 'VariableDeclaration' ||
@@ -160,7 +160,7 @@ function extractWasm(
  * @returns The manifest identifier information.
  */
 function extractManifest(
-	statement: AST.StatementKind
+	statement: AST.StatementKind,
 ): RawIdentifier<'manifest'> | null {
 	if (
 		statement.type !== 'ExpressionStatement' ||
@@ -208,7 +208,7 @@ function extractManifest(
  * @returns An array of Webpack chunk identifier information.
  */
 function extractWebpack(
-	statement: AST.StatementKind
+	statement: AST.StatementKind,
 ): RawIdentifier<'webpack'>[] {
 	if (
 		statement.type !== 'ExpressionStatement' ||
@@ -234,7 +234,7 @@ function extractWebpack(
 				p.type === 'Property' &&
 				p.key.type === 'Literal' &&
 				typeof p.key.value === 'number' &&
-				p.value.type === 'ArrowFunctionExpression'
+				p.value.type === 'ArrowFunctionExpression',
 		) as AST.PropertyKind[];
 
 	return properties.map(chunk => ({

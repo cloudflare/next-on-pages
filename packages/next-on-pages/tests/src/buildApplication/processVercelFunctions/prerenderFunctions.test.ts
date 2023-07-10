@@ -76,7 +76,7 @@ describe('processPrerenderFunctions', () => {
 				'favicon.ico.func': prerenderFuncDir,
 				'favicon.ico.prerender-config.json': mockPrerenderConfigFile(
 					'favicon.ico',
-					'body'
+					'body',
 				),
 				'favicon.ico.prerender-fallback.body': 'favicon.ico',
 			},
@@ -121,7 +121,7 @@ describe('processPrerenderFunctions', () => {
 						'data.json.func': prerenderFuncDir,
 						'data.json.prerender-config.json': mockPrerenderConfigFile(
 							'data.json',
-							'json'
+							'json',
 						),
 						'data.json.prerender-fallback.json': 'data.json',
 					},
@@ -151,7 +151,7 @@ describe('processPrerenderFunctions', () => {
 
 		expect(prerenderedFunctions.size).toEqual(1);
 		expect(
-			getRouteInfo(prerenderedFunctions, '_next/data/data.json.func')
+			getRouteInfo(prerenderedFunctions, '_next/data/data.json.func'),
 		).toEqual({
 			path: '/_next/data/data.json',
 			headers: {
@@ -258,7 +258,7 @@ describe('processPrerenderFunctions', () => {
 			overrides: [],
 		});
 		expect(
-			getRouteInfo(edgeFunctions, 'nested/(route-group)/page.func')
+			getRouteInfo(edgeFunctions, 'nested/(route-group)/page.func'),
 		).toEqual({
 			path: '/nested/page',
 			overrides: [],
@@ -266,7 +266,7 @@ describe('processPrerenderFunctions', () => {
 
 		expect(prerenderedFunctions.size).toEqual(1);
 		expect(
-			getRouteInfo(prerenderedFunctions, 'nested/(route-group)/foo.func')
+			getRouteInfo(prerenderedFunctions, 'nested/(route-group)/foo.func'),
 		).toEqual({
 			path: '/nested/(route-group)/foo.html',
 			headers: { vary: 'RSC, Next-Router-State-Tree, Next-Router-Prefetch' },
@@ -407,7 +407,7 @@ describe('processPrerenderFunctions', () => {
 
 		expect(invalidFunctions.size).toEqual(1);
 		expect(
-			invalidFunctions.has(resolve(functionsDir, 'nested', 'index.rsc.func'))
+			invalidFunctions.has(resolve(functionsDir, 'nested', 'index.rsc.func')),
 		).toEqual(true);
 
 		mockedConsole.expectCalls([
@@ -445,7 +445,7 @@ describe('processPrerenderFunctions', () => {
 
 		expect(invalidFunctions.size).toEqual(1);
 		expect(
-			invalidFunctions.has(resolve(functionsDir, 'nested', 'index.func'))
+			invalidFunctions.has(resolve(functionsDir, 'nested', 'index.func')),
 		).toEqual(true);
 
 		mockedConsole.expectCalls([/Invalid prerender config for \/nested\/index/]);
@@ -469,7 +469,7 @@ describe('processPrerenderFunctions', () => {
 				},
 				static: { 'index.rsc': 'different' },
 			},
-			{ outputDir: resolve('custom') }
+			{ outputDir: resolve('custom') },
 		);
 
 		await processPrerenderFunctions(collectedFunctions, {
@@ -530,7 +530,7 @@ describe('processPrerenderFunctions', () => {
 					'index.rsc.prerender-fallback.rsc': '',
 				},
 			},
-			{ outputDir: resolve('custom') }
+			{ outputDir: resolve('custom') },
 		);
 
 		await processPrerenderFunctions(collectedFunctions, {

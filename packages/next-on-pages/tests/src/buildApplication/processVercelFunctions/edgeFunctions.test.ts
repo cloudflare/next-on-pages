@@ -59,7 +59,7 @@ describe('processEdgeFunctions', () => {
 
 		expect(ignoredFunctions.size).toEqual(1);
 		expect(ignoredFunctions.has(join(functionsDir, 'index.rsc.func'))).toEqual(
-			true
+			true,
 		);
 	});
 
@@ -136,7 +136,7 @@ describe('processEdgeFunctions', () => {
 			overrides: [],
 		});
 		expect(getRouteEntrypoint(edgeFunctions, 'middlewarejs.func')).toEqual(
-			'index.js'
+			'index.js',
 		);
 
 		expect(getRouteInfo(edgeFunctions, 'base/middleware.func')).toEqual({
@@ -144,7 +144,7 @@ describe('processEdgeFunctions', () => {
 			overrides: [],
 		});
 		expect(getRouteEntrypoint(edgeFunctions, 'base/middleware.func')).toEqual(
-			'index.js'
+			'index.js',
 		);
 
 		expect(invalidFunctions.size).toEqual(0);
@@ -171,7 +171,7 @@ describe('processEdgeFunctions', () => {
 
 		expect(edgeFunctions.size).toEqual(1);
 		expect(
-			getRouteInfo(edgeFunctions, 'path/(group-1)/to/(group-2)/page.func')
+			getRouteInfo(edgeFunctions, 'path/(group-1)/to/(group-2)/page.func'),
 		).toEqual({
 			path: '/path/to/page',
 			overrides: [],
@@ -196,7 +196,7 @@ describe('processEdgeFunctions', () => {
 
 		expect(edgeFunctions.size).toEqual(1);
 		expect(
-			getRouteInfo(edgeFunctions, '(is-actually-valid)/should-be-valid.func')
+			getRouteInfo(edgeFunctions, '(is-actually-valid)/should-be-valid.func'),
 		).toEqual({
 			path: '/should-be-valid',
 			overrides: [],
@@ -222,7 +222,7 @@ describe('processEdgeFunctions', () => {
 
 		expect(edgeFunctions.size).toEqual(1);
 		expect(
-			getRouteInfo(edgeFunctions, '(is-actually-valid)/should-be-valid.func')
+			getRouteInfo(edgeFunctions, '(is-actually-valid)/should-be-valid.func'),
 		).toEqual({
 			path: '/should-be-valid',
 			overrides: ['/should-be-valid.rsc'],
@@ -232,7 +232,7 @@ describe('processEdgeFunctions', () => {
 
 		expect(ignoredFunctions.size).toEqual(1);
 		expect(
-			ignoredFunctions.has(join(functionsDir, 'should-be-valid.rsc.func'))
+			ignoredFunctions.has(join(functionsDir, 'should-be-valid.rsc.func')),
 		).toEqual(true);
 	});
 
@@ -253,10 +253,10 @@ describe('processEdgeFunctions', () => {
 
 		expect(invalidFunctions.size).toEqual(2);
 		expect(invalidFunctions.has(join(functionsDir, 'index.func'))).toEqual(
-			true
+			true,
 		);
 		expect(invalidFunctions.has(join(functionsDir, 'index.rsc.func'))).toEqual(
-			true
+			true,
 		);
 
 		expect(ignoredFunctions.size).toEqual(0);

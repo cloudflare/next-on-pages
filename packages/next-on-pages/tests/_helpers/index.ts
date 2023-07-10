@@ -377,7 +377,7 @@ export async function collectFunctionsFrom(
 	{
 		functionsDir = resolve('.vercel', 'output', 'functions'),
 		outputDir = resolve('.vercel', 'output', 'static'),
-	}: Partial<ProcessVercelFunctionsOpts> = {}
+	}: Partial<ProcessVercelFunctionsOpts> = {},
 ) {
 	mockFs({
 		'.vercel': { output: { functions, static: staticAssets } },
@@ -397,7 +397,7 @@ export async function collectFunctionsFrom(
  */
 export function getRouteInfo(
 	functions: Map<string, FunctionInfo>,
-	path: string
+	path: string,
 ) {
 	return functions.get(resolve('.vercel', 'output', 'functions', path))?.route;
 }
@@ -411,7 +411,7 @@ export function getRouteInfo(
  */
 export function getRouteEntrypoint(
 	functions: Map<string, FunctionInfo>,
-	path: string
+	path: string,
 ) {
 	return functions.get(resolve('.vercel', 'output', 'functions', path))?.config
 		?.entrypoint;

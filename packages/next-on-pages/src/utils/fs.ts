@@ -135,7 +135,7 @@ export async function copyFileWithDir(sourceFile: string, destFile: string) {
  * @returns Array of all directories in a directory.
  */
 export async function readDirectories(
-	basePath: string
+	basePath: string,
 ): Promise<DirectoryInfo[]> {
 	try {
 		const files = await readdir(basePath, { withFileTypes: true });
@@ -148,7 +148,7 @@ export async function readDirectories(
 					file.isDirectory() || (isSymbolicLink && (await validateDir(path)));
 
 				return { name: file.name, path, isDirectory, isSymbolicLink };
-			})
+			}),
 		);
 
 		return dirs.filter(file => file.isDirectory);

@@ -23,7 +23,7 @@ export async function collectFunctionConfigsRecursively(
 		prerenderedFunctions: new Map(),
 		invalidFunctions: new Map(),
 		ignoredFunctions: new Map(),
-	}
+	},
 ): Promise<CollectedFunctions> {
 	const dirs = await readDirectories(baseDir);
 
@@ -33,7 +33,7 @@ export async function collectFunctionConfigsRecursively(
 			const config = await readJsonFile<VercelFunctionConfig>(configPath);
 
 			const relativePath = addLeadingSlash(
-				normalizePath(relative(configs.functionsDir, path))
+				normalizePath(relative(configs.functionsDir, path)),
 			);
 
 			if (config?.operationType?.toLowerCase() === 'isr') {

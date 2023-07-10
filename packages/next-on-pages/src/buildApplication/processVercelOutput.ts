@@ -47,12 +47,12 @@ export async function getVercelStaticAssets(): Promise<string[]> {
 export async function copyVercelStaticAssets(
 	vercelDir: string,
 	outputDir: string,
-	staticAssets: string[]
+	staticAssets: string[],
 ): Promise<void> {
 	if (staticAssets.length === 0) return;
 	const plural = staticAssets.length > 1 ? 's' : '';
 	cliLog(
-		`Copying ${staticAssets.length} static asset${plural} to output directory...`
+		`Copying ${staticAssets.length} static asset${plural} to output directory...`,
 	);
 
 	await Promise.all(
@@ -65,7 +65,7 @@ export async function copyVercelStaticAssets(
 			} catch (e) {
 				cliError(`Failed to copy static asset '${file}' to output directory.`);
 			}
-		})
+		}),
 	);
 }
 
@@ -79,7 +79,7 @@ export async function copyVercelStaticAssets(
  */
 export async function processOutputDir(
 	outputDir: string,
-	staticAssets: string[]
+	staticAssets: string[],
 ) {
 	const vercelDir = normalizePath(resolve('.vercel', 'output', 'static'));
 
@@ -116,12 +116,12 @@ export function processVercelOutput(
 	config: VercelConfig,
 	staticAssets: string[],
 	prerenderedRoutes = new Map<string, FunctionInfo>(),
-	edgeFunctions = new Map<string, FunctionInfo>()
+	edgeFunctions = new Map<string, FunctionInfo>(),
 ): ProcessedVercelOutput {
 	const processedConfig = processVercelConfig(config);
 
 	const processedOutput = new Map<string, BuildOutputItem>(
-		staticAssets.map(path => [path, { type: 'static' }])
+		staticAssets.map(path => [path, { type: 'static' }]),
 	);
 
 	edgeFunctions.forEach(({ relativePath, outputPath, route }) => {
@@ -145,7 +145,7 @@ export function processVercelOutput(
 
 	rewriteMiddlewarePaths(
 		processedOutput,
-		collectMiddlewarePaths(processedConfig.routes.none)
+		collectMiddlewarePaths(processedConfig.routes.none),
 	);
 
 	return {
@@ -162,7 +162,7 @@ export function processVercelOutput(
  */
 function collectMiddlewarePaths(routes: VercelSource[]): Set<string> {
 	return new Set(
-		routes.map(route => route.middlewarePath ?? '').filter(Boolean)
+		routes.map(route => route.middlewarePath ?? '').filter(Boolean),
 	);
 }
 
@@ -185,7 +185,7 @@ function collectMiddlewarePaths(routes: VercelSource[]): Set<string> {
  */
 function rewriteMiddlewarePaths(
 	processedOutput: Map<string, BuildOutputItem>,
-	middlewarePaths: Set<string>
+	middlewarePaths: Set<string>,
 ): void {
 	for (const middlewarePath of middlewarePaths) {
 		const withLeadingSlash = addLeadingSlash(middlewarePath);
@@ -219,7 +219,7 @@ function rewriteMiddlewarePaths(
  */
 function applyVercelOverrides(
 	{ overrides }: ProcessedVercelConfig,
-	vercelOutput: Map<string, BuildOutputItem>
+	vercelOutput: Map<string, BuildOutputItem>,
 ): void {
 	Object.entries(overrides ?? []).forEach(
 		([rawAssetPath, { path: rawServedPath, contentType }]) => {
@@ -248,7 +248,7 @@ function applyVercelOverrides(
 			if (strippedServedPath !== servedPath) {
 				vercelOutput.set(strippedServedPath, newValue);
 			}
-		}
+		},
 	);
 }
 
@@ -260,7 +260,7 @@ function applyVercelOverrides(
  */
 function applyPrerenderedRoutes(
 	prerenderedRoutes: Map<string, FunctionInfo>,
-	vercelOutput: Map<string, BuildOutputItem>
+	vercelOutput: Map<string, BuildOutputItem>,
 ): void {
 	prerenderedRoutes.forEach(({ relativePath, route }) => {
 		const path = route?.path ?? stripFuncExtension(relativePath);
