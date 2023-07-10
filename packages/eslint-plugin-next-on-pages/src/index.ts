@@ -12,7 +12,6 @@ const config: ESLint.Plugin = {
 		recommended: {
 			plugins: ['eslint-plugin-next-on-pages'],
 			rules: {
-				'next-on-pages/missing-image-loader': 'warn',
 				'next-on-pages/no-nodejs-runtime': 'error',
 				'next-on-pages/no-unsupported-configs': 'error',
 			},
