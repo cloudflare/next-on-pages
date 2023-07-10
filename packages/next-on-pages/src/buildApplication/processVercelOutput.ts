@@ -4,6 +4,7 @@ import {
 	addLeadingSlash,
 	normalizePath,
 	readPathsRecursively,
+	stripFuncExtension,
 	stripIndexRoute,
 	validateDir,
 } from '../utils';
@@ -124,7 +125,7 @@ export function processVercelOutput(
 	);
 
 	edgeFunctions.forEach(({ relativePath, outputPath, route }) => {
-		processedOutput.set(route?.path ?? relativePath.replace(/\.func$/, ''), {
+		processedOutput.set(route?.path ?? stripFuncExtension(relativePath), {
 			type: 'function',
 			entrypoint: outputPath as string,
 		});
@@ -262,7 +263,7 @@ function applyPrerenderedRoutes(
 	vercelOutput: Map<string, BuildOutputItem>
 ): void {
 	prerenderedRoutes.forEach(({ relativePath, route }) => {
-		const path = route?.path ?? relativePath.replace(/\.func$/, '');
+		const path = route?.path ?? stripFuncExtension(relativePath);
 
 		vercelOutput.set(path, {
 			type: 'override',

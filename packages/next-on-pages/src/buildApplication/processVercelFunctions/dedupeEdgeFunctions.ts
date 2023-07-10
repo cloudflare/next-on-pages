@@ -47,7 +47,7 @@ async function processFunctionIdentifiers(
 
 	for (const [path, fnInfo] of edgeFunctions) {
 		const { entrypoint, ...file } = await getFunctionFile(path, fnInfo);
-		const fileContents = file.contents;
+		let fileContents = file.contents;
 
 		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 		const identifiers = entrypointsMap
@@ -70,12 +70,14 @@ async function processFunctionIdentifiers(
 				);
 			} else if (identifierInfo.consumers > 1) {
 				// Only dedupe code blocks if there are multiple consumers.
-				const { newImport, buildPromise } = processCodeBlockIdentifier(
-					fileContents,
-					{ type, identifier, start, end, info: identifierInfo },
-					opts
-				);
+				const { updatedContents, newImport, buildPromise } =
+					processCodeBlockIdentifier(
+						{ type, identifier, start, end, info: identifierInfo },
+						{ fileContents },
+						opts
+					);
 
+				fileContents = updatedContents;
 				if (buildPromise) buildIdentifiersPromises.push(buildPromise);
 				if (newImport) importsToPrepend.push(newImport);
 			}
@@ -168,13 +170,18 @@ function processImportIdentifier(
  * to the function's file.
  */
 function processCodeBlockIdentifier(
-	fileContents: string,
 	ident: RawIdentifier<IdentifierType> & { info: IdentifierInfo },
+	{ fileContents }: { fileContents: string },
 	{ nopDistDir, workerJsDir }: ProcessVercelFunctionsOpts
-): { buildPromise?: Promise<void>; newImport?: NewImportInfo } {
+): {
+	updatedContents: string;
+	buildPromise?: Promise<void>;
+	newImport?: NewImportInfo;
+} {
 	const { type, identifier, start, end, info } = ident;
+	let updatedContents = fileContents;
 
-	const codeBlock = fileContents.slice(start, end);
+	const codeBlock = updatedContents.slice(start, end);
 
 	let buildPromise: Promise<void> | undefined;
 	let newImport: NewImportInfo | undefined;
@@ -190,15 +197,15 @@ function processCodeBlockIdentifier(
 
 	if (type === 'webpack') {
 		const newVal = `__chunk_${identifier}`;
-		fileContents = replaceLastInstance(fileContents, codeBlock, newVal);
+		updatedContents = replaceLastInstance(updatedContents, codeBlock, newVal);
 		newImport = { key: newVal, path: info.newDest };
 	} else if (type === 'manifest') {
 		const newVal = `self.${identifier}=${identifier};`;
-		fileContents = replaceLastInstance(fileContents, codeBlock, newVal);
+		updatedContents = replaceLastInstance(updatedContents, codeBlock, newVal);
 		newImport = { key: identifier, path: info.newDest };
 	}
 
-	return { newImport, buildPromise };
+	return { updatedContents, newImport, buildPromise };
 }
 
 type NewImportInfo = { key: string; path: string };
