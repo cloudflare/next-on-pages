@@ -24,7 +24,11 @@ export default {
 			async () => {
 				const url = new URL(request.url);
 				if (url.pathname.startsWith('/_next/image')) {
-					return handleImageResizingRequest(request, __CONFIG__.images);
+					return handleImageResizingRequest(request, {
+						buildOutput: __BUILD_OUTPUT__,
+						assetsFetcher: env.ASSETS,
+						imagesConfig: __CONFIG__.images,
+					});
 				}
 
 				const adjustedRequest = adjustRequestForVercel(request);
