@@ -21,7 +21,7 @@ export async function getVercelConfig(): Promise<VercelConfig> {
 
 	if (config.version !== supportedConfigVersion) {
 		throw new Error(
-			`Unknown '${configPath}' version. Expected ${supportedConfigVersion} but found ${config.version}.`
+			`Unknown '${configPath}' version. Expected ${supportedConfigVersion} but found ${config.version}.`,
 		);
 	}
 
@@ -37,7 +37,7 @@ export async function getVercelConfig(): Promise<VercelConfig> {
  */
 export function getPhaseRoutes(
 	routes: VercelRoute[],
-	phase: VercelPhase
+	phase: VercelPhase,
 ): VercelRoute[] {
 	if (!routes.length) {
 		return [];
@@ -54,20 +54,20 @@ function getPhaseStart(routes: VercelRoute[], phase: VercelPhase): number {
 	}
 
 	const index = routes.findIndex(
-		route => isVercelHandler(route) && route.handle === phase
+		route => isVercelHandler(route) && route.handle === phase,
 	);
 	return index === -1 ? routes.length : index + 1;
 }
 
 function getPhaseEnd(routes: VercelRoute[], phaseStart: number): number {
 	const index = routes.findIndex(
-		(route, i) => i >= phaseStart && isVercelHandler(route)
+		(route, i) => i >= phaseStart && isVercelHandler(route),
 	);
 	return index === -1 ? routes.length : index;
 }
 
 export function processVercelConfig(
-	config: VercelConfig
+	config: VercelConfig,
 ): ProcessedVercelConfig {
 	const processedConfig: ProcessedVercelConfig = {
 		...config,

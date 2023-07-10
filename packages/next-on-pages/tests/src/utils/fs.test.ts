@@ -40,7 +40,7 @@ describe('readJsonFile', () => {
 			'.vc-config.json': JSON.stringify(vcConfigContent),
 		});
 		await expect(readJsonFile('.vc-config.json')).resolves.toEqual(
-			vcConfigContent
+			vcConfigContent,
 		);
 		mockFs.restore();
 	});
@@ -65,7 +65,7 @@ describe('validateFile', () => {
 	});
 	test('valid file returns true', async () => {
 		await expect(
-			validateFile('functions/index.func/index.js')
+			validateFile('functions/index.func/index.js'),
 		).resolves.toEqual(true);
 	});
 
@@ -75,7 +75,7 @@ describe('validateFile', () => {
 
 	test('invalid path returns false', async () => {
 		await expect(
-			validateFile('functions/invalid-index.func/index.js')
+			validateFile('functions/invalid-index.func/index.js'),
 		).resolves.toEqual(false);
 	});
 });
@@ -99,7 +99,7 @@ describe('validateDir', () => {
 
 	test('valid file returns false', async () => {
 		await expect(validateDir('functions/index.func/index.js')).resolves.toEqual(
-			false
+			false,
 		);
 	});
 
@@ -133,11 +133,11 @@ describe('readPathsRecursively', () => {
 	});
 	test('should read all paths recursively', async () => {
 		const paths = (await readPathsRecursively('root/functions')).map(path =>
-			normalizePath(path)
+			normalizePath(path),
 		);
 		expect(paths.length).toEqual(3);
 		expect(paths[0]).toMatch(
-			/root\/functions\/\(route-group\)\/page\.func\/index\.js$/
+			/root\/functions\/\(route-group\)\/page\.func\/index\.js$/,
 		);
 		expect(paths[1]).toMatch(/root\/functions\/home\.func\/index\.js$/);
 		expect(paths[2]).toMatch(/root\/functions\/index\.func\/index\.js$/);
@@ -145,7 +145,7 @@ describe('readPathsRecursively', () => {
 
 	test('invalid directory, returns empty array', async () => {
 		await expect(
-			readPathsRecursively('invalid-root/functions')
+			readPathsRecursively('invalid-root/functions'),
 		).resolves.toEqual([]);
 	});
 });

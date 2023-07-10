@@ -14,7 +14,7 @@ import { applyPCREMatches } from './pcre';
 export function applyHeaders(
 	target: Headers,
 	source: Record<string, string> | Headers,
-	pcreMatch?: MatchPCREResult
+	pcreMatch?: MatchPCREResult,
 ): void {
 	const entries =
 		source instanceof Headers ? source.entries() : Object.entries(source);
@@ -57,7 +57,7 @@ export function isUrl(url: string): boolean {
  */
 export function applySearchParams(
 	target: URLSearchParams,
-	source: URLSearchParams
+	source: URLSearchParams,
 ) {
 	for (const [key, value] of source.entries()) {
 		if (!target.has(key) || !!value) {

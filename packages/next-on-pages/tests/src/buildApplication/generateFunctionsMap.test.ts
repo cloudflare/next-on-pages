@@ -67,10 +67,10 @@ describe('generateFunctionsMap', async () => {
 
 			expect(functionsMap.size).toEqual(2);
 			expect(functionsMap.get('/middlewarejs')).toMatch(
-				/\/middlewarejs\.func\.js$/
+				/\/middlewarejs\.func\.js$/,
 			);
 			expect(functionsMap.get('/base/middleware')).toMatch(
-				/\/base\/middleware\.func\.js$/
+				/\/base\/middleware\.func\.js$/,
 			);
 		});
 	});
@@ -90,7 +90,7 @@ describe('generateFunctionsMap', async () => {
 
 		expect(functionsMap.size).toEqual(1);
 		expect(functionsMap.get('/path/to/page')).toMatch(
-			/\/path\/\(group-1\)\/to\/\(group-2\)\/page\.func\.js$/
+			/\/path\/\(group-1\)\/to\/\(group-2\)\/page\.func\.js$/,
 		);
 	});
 
@@ -105,7 +105,7 @@ describe('generateFunctionsMap', async () => {
 		expect(Array.from(invalidFunctions.values())).toEqual([]);
 		expect(functionsMap.size).toEqual(1);
 		expect(functionsMap.get('/should-be-valid')).toMatch(
-			/\(is-actually-valid\)\/should-be-valid\.func\.js$/
+			/\(is-actually-valid\)\/should-be-valid\.func\.js$/,
 		);
 	});
 
@@ -184,7 +184,7 @@ describe('generateFunctionsMap', async () => {
 					'favicon.ico.func': invalidFuncDir,
 					'favicon.ico.prerender-config.json': mockPrerenderConfigFile(
 						'favicon.ico',
-						'body'
+						'body',
 					),
 					'favicon.ico.prerender-fallback.body': 'favicon.ico',
 				});
@@ -211,7 +211,7 @@ describe('generateFunctionsMap', async () => {
 							'data.json.func': invalidFuncDir,
 							'data.json.prerender-config.json': mockPrerenderConfigFile(
 								'data.json',
-								'json'
+								'json',
 							),
 							'data.json.prerender-fallback.json': 'data.json',
 						},
@@ -315,7 +315,7 @@ describe('generateFunctionsMap', async () => {
 							mockPrerenderConfigFile('index.rsc'),
 						'index.rsc.prerender-fallback.rsc': '',
 					},
-					{ 'index.rsc': '' }
+					{ 'index.rsc': '' },
 				);
 
 			expect(functionsMap.size).toEqual(0);
@@ -355,7 +355,7 @@ describe('generateFunctionsMap', async () => {
 							'page.rsc.prerender-fallback.rsc': '',
 						},
 					},
-					{ nested: { 'page.rsc': '' } }
+					{ nested: { 'page.rsc': '' } },
 				);
 
 			expect(functionsMap.size).toEqual(0);
@@ -455,7 +455,7 @@ describe('generateFunctionsMap', async () => {
 					},
 					{ 'index.rsc': '' },
 					true,
-					resolve('custom')
+					resolve('custom'),
 				);
 
 			expect(functionsMap.size).toEqual(0);
@@ -501,7 +501,7 @@ describe('generateFunctionsMap', async () => {
 					},
 					{},
 					true,
-					resolve('custom')
+					resolve('custom'),
 				);
 
 			expect(functionsMap.size).toEqual(2);
@@ -561,7 +561,7 @@ async function generateFunctionsMapFrom(
 	staticAssets: DirectoryItems = {},
 	disableChunksDedup = true,
 	outputDir = resolve('.vercel', 'output', 'static'),
-	otherDirs: DirectoryItems = {}
+	otherDirs: DirectoryItems = {},
 ) {
 	mockFs({
 		'.vercel': {
@@ -577,7 +577,7 @@ async function generateFunctionsMapFrom(
 	const result = await generateFunctionsMap(
 		resolve('.vercel', 'output', 'functions'),
 		outputDir,
-		disableChunksDedup
+		disableChunksDedup,
 	);
 	return result;
 }

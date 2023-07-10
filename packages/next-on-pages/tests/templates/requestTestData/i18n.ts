@@ -162,7 +162,7 @@ export const testSet: TestSet = {
 							...acc,
 							[locale]: { 'gsp.json': JSON.stringify({ locale }) },
 						}),
-						{}
+						{},
 					),
 				},
 			},
@@ -178,7 +178,7 @@ export const testSet: TestSet = {
 						'gsp.html': `<html>${locale}: gsp</html>`,
 					},
 				}),
-				{}
+				{},
 			),
 		},
 	},

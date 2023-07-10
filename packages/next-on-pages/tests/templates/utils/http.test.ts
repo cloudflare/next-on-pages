@@ -78,7 +78,7 @@ describe('applySearchParams', () => {
 		expect([...target.searchParams.entries()].length).toEqual(2);
 
 		expect(target.toString()).toEqual(
-			'http://localhost/page?other=value&foo=bar'
+			'http://localhost/page?other=value&foo=bar',
 		);
 	});
 });

@@ -19,7 +19,7 @@ export function printBuildSummary(
 		functionsMap = new Map(),
 		prerenderedRoutes = new Map(),
 		wasmIdentifiers = new Map(),
-	}: Partial<DirectoryProcessingResults> = {}
+	}: Partial<DirectoryProcessingResults> = {},
 ): void {
 	const middlewareFunctions = [...vercelOutput.entries()]
 		.filter(([, { type }]) => type === 'middleware')
@@ -27,8 +27,8 @@ export function printBuildSummary(
 		.sort((a, b) => a.localeCompare(b));
 	const routeFunctions = new Set(
 		processItemsMap(functionsMap).filter(
-			path => !middlewareFunctions.includes(path.replace(/^\//, ''))
-		)
+			path => !middlewareFunctions.includes(path.replace(/^\//, '')),
+		),
 	);
 	const prerendered = processItemsMap(prerenderedRoutes);
 	const otherStatic = staticAssets
@@ -73,7 +73,7 @@ export async function writeBuildInfo(
 		functionsMap = new Map(),
 		prerenderedRoutes = new Map(),
 		wasmIdentifiers = new Map(),
-	}: Partial<DirectoryProcessingResults> = {}
+	}: Partial<DirectoryProcessingResults> = {},
 ): Promise<void> {
 	const currentDir = resolve();
 	const buildLogFilePath = join(outputDir, 'nop-build-log.json');
@@ -83,7 +83,7 @@ export async function writeBuildInfo(
 		({ originalFileLocation, ...rest }) => ({
 			...rest,
 			originalFileLocation: relative(currentDir, originalFileLocation),
-		})
+		}),
 	);
 
 	const buildLogObject: BuildLog = {
@@ -174,7 +174,7 @@ function constructSummarySections(
 		name: string;
 		rawItems: string[];
 		limit?: number;
-	}[]
+	}[],
 ): string {
 	return sections
 		.map(({ name, rawItems, limit }) => {

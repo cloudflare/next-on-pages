@@ -7,5 +7,5 @@ const { WORKSPACE_DIR } = process.env;
 
 await cp(
 	join(process.cwd(), 'assets/pages-api-hello.js'),
-	join(WORKSPACE_DIR, 'pages/api/hello.js')
+	join(WORKSPACE_DIR, 'pages/api/hello.js'),
 );

@@ -7,7 +7,7 @@
 		"pages-e2e/features/*"
 	],
 	"scripts": {
-		"prettier": "npx prettier --ignore-path .gitignore --ignore-path .prettierignore --ignore-unknown .",
+		"prettier": "npx prettier --ignore-path .prettierignore --ignore-path .gitignore .",
 		"prettier:check": "npm run prettier -- --check",
 		"prettier:fix": "npm run prettier -- --write",
 		"lint": "FORCE_COLOR=1 turbo lint",
@@ -21,13 +21,7 @@
 	},
 	"devDependencies": {
 		"@cfpreview/pages-e2e-test-runner-cli": "^0.0.18",
-		"prettier": "^2.8.8",
+		"prettier": "^3.0.0",
 		"turbo": "^1.10.3"
-	},
-	"prettier": {
-		"printWidth": 80,
-		"singleQuote": true,
-		"arrowParens": "avoid",
-		"semi": true
 	}
 }

@@ -9,7 +9,7 @@ spawn(
 		join(__dirname, '..', 'dist', 'index.js'),
 		...process.argv.slice(2),
 	],
-	{ stdio: 'inherit' }
+	{ stdio: 'inherit' },
 ).on('exit', code =>
-	process.exit(code === undefined || code === null ? 0 : code)
+	process.exit(code === undefined || code === null ? 0 : code),
 );

@@ -48,7 +48,7 @@ const cliOptions = z
 				{
 					message:
 						'The output directory should be inside the current working directory',
-				}
+				},
 			),
 	})
 	.strict();
@@ -188,7 +188,7 @@ export function cliLog(message: string, opts: LogOptions = {}): void {
 export function cliSuccess(message: string, opts: LogOptions = {}): void {
 	// eslint-disable-next-line no-console
 	console.log(
-		prepareCliMessage(message, { ...opts, styleFormatter: chalk.green })
+		prepareCliMessage(message, { ...opts, styleFormatter: chalk.green }),
 	);
 }
 
@@ -198,7 +198,7 @@ export function cliError(
 		showReport,
 		fromVercelCli,
 		...opts
-	}: LogOptions & { showReport?: boolean } = {}
+	}: LogOptions & { showReport?: boolean } = {},
 ): void {
 	// eslint-disable-next-line no-console
 	console.error(
@@ -206,12 +206,12 @@ export function cliError(
 			...opts,
 			fromVercelCli,
 			styleFormatter: chalk.red,
-		})
+		}),
 	);
 	if (showReport) {
 		cliError(
 			'Please report this at https://github.com/cloudflare/next-on-pages/issues.',
-			{ fromVercelCli }
+			{ fromVercelCli },
 		);
 	}
 }
@@ -219,7 +219,7 @@ export function cliError(
 export function cliWarn(message: string, opts: LogOptions = {}): void {
 	// eslint-disable-next-line no-console
 	console.warn(
-		prepareCliMessage(message, { ...opts, styleFormatter: chalk.yellow })
+		prepareCliMessage(message, { ...opts, styleFormatter: chalk.yellow }),
 	);
 }
 
@@ -238,7 +238,7 @@ function prepareCliMessage(
 		skipDedent,
 	}: LogOptions & {
 		styleFormatter?: ChalkInstance;
-	}
+	},
 ): string {
 	const prefix = fromVercelCli ? '▲ ' : '⚡️';
 	const preparedMessage = (skipDedent ? message : dedent(message))

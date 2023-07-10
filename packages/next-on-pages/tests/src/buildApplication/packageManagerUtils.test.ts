@@ -65,7 +65,7 @@ describe('getCurrentPackageExecuter', () => {
 			async () => {
 				const pkgMng = await getCurrentPackageExecuter();
 				expect(pkgMng).toEqual('yarn.cmd dlx');
-			}
+			},
 		);
 	});
 	it('should detect yarn (classic) on windows', async () => {
@@ -74,7 +74,7 @@ describe('getCurrentPackageExecuter', () => {
 			async () => {
 				const pkgMng = await getCurrentPackageExecuter();
 				expect(pkgMng).toEqual('yarn.cmd');
-			}
+			},
 		);
 	});
 	it('should detected pnpm on windows', async () => {
@@ -99,13 +99,13 @@ async function testWith(
 		packageManager: Exclude<PackageManager, 'yarn'>;
 		os?: 'windows' | 'linux/macos';
 	},
-	test: () => Promise<void>
+	test: () => Promise<void>,
 ): Promise<void> {
 	currentMocks.packageManager = packageManager;
 	currentMocks.os = os;
 	vi.stubEnv('npm_config_user_agent', packageManager);
 	vi.spyOn(process, 'platform', 'get').mockReturnValue(
-		currentMocks.os === 'windows' ? 'win32' : 'linux'
+		currentMocks.os === 'windows' ? 'win32' : 'linux',
 	);
 	await test();
 	vi.unstubAllEnvs();
@@ -138,7 +138,7 @@ vi.mock('child_process', async () => {
 			setTimeout(() => {
 				event.stdout.emit(
 					'data',
-					currentMocks.packageManager === 'yarn (berry)' ? '3.0.0' : '1.0.0'
+					currentMocks.packageManager === 'yarn (berry)' ? '3.0.0' : '1.0.0',
 				);
 				event.emit('close', 0);
 			}, 100);

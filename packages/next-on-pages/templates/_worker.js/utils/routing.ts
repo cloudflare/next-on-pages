@@ -77,7 +77,7 @@ export function getNextPhase(phase: VercelPhase): VercelHandleValue {
 export async function runOrFetchBuildOutputItem(
 	item: VercelBuildOutputItem | undefined,
 	{ request, assetsFetcher, ctx }: RequestContext,
-	{ path, searchParams }: Omit<MatchedSet, 'body'>
+	{ path, searchParams }: Omit<MatchedSet, 'body'>,
 ) {
 	let resp: Response | undefined = undefined;
 
@@ -96,7 +96,7 @@ export async function runOrFetchBuildOutputItem(
 			}
 			case 'override': {
 				resp = createMutableResponse(
-					await assetsFetcher.fetch(createRouteRequest(req, item.path ?? path))
+					await assetsFetcher.fetch(createRouteRequest(req, item.path ?? path)),
 				);
 
 				if (item.headers) {
@@ -133,7 +133,7 @@ export async function runOrFetchBuildOutputItem(
  */
 export function isLocaleTrailingSlashRegex(
 	src: string,
-	locales: Record<string, string>
+	locales: Record<string, string>,
 ) {
 	const prefix = '^//?(?:';
 	const suffix = ')/(.*)';

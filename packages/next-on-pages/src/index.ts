@@ -39,7 +39,7 @@ async function runNextOnPages(): Promise<void> {
 			Note: if you're using the --experimental-minify|-e flag in your build command please remove it
 			      as it will be removed in a future version of the package (causing your command to fail).
 		`,
-			{ spaced: true }
+			{ spaced: true },
 		);
 	}
 

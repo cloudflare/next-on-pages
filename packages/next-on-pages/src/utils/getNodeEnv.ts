@@ -24,7 +24,7 @@ export function getNodeEnv(): string {
 						.join(', ')}.
 			    See: https://nextjs.org/docs/basic-features/environment-variables.
 		`,
-			{ spaced: true }
+			{ spaced: true },
 		);
 	}
 
