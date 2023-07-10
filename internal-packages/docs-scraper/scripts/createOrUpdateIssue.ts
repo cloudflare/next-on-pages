@@ -44,7 +44,7 @@ void (async function (): Promise<void> {
 
 	const issueBody = generateIssueBody(
 		undocumentedNextConfigs,
-		documentedNonNextConfigs
+		documentedNonNextConfigs,
 	);
 
 	if (issues.length === 0) {
@@ -71,7 +71,7 @@ void (async function (): Promise<void> {
 
 function generateIssueBody(
 	undocumentedNextConfigs: string[],
-	documentedNonNextConfigs: string[]
+	documentedNonNextConfigs: string[],
 ): string {
 	let issueBody =
 		'### The next-on-pages documentation of the next.config.js options is out of date\n';
@@ -79,14 +79,14 @@ function generateIssueBody(
 	if (undocumentedNextConfigs.length > 0) {
 		issueBody += `\n\n${generateMdList(
 			'The following next.config.js configs are not documented in our supported doc',
-			undocumentedNextConfigs
+			undocumentedNextConfigs,
 		)}`;
 	}
 
 	if (documentedNonNextConfigs.length > 0) {
 		issueBody += `\n\n${generateMdList(
 			'The following configs present in our supported doc are not present in the next.config.js documentation pages',
-			documentedNonNextConfigs
+			documentedNonNextConfigs,
 		)}`;
 	}
 

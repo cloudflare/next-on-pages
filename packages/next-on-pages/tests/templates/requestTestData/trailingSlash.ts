@@ -63,7 +63,7 @@ export const testSet: TestSet = {
 			'[lang].func': createValidFuncDir('/[lang]'),
 			'robots.txt.prerender-config.json': mockPrerenderConfigFile(
 				'robots.txt',
-				'body'
+				'body',
 			),
 			'robots.txt.prerender-fallback.body': 'robots.txt fallback',
 		},

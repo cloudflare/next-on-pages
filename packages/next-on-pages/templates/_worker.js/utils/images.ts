@@ -12,7 +12,7 @@ import { applyHeaders, createMutableResponse } from './http';
  */
 export function isRemotePatternMatch(
 	url: URL,
-	{ protocol, hostname, port, pathname }: VercelImageRemotePattern
+	{ protocol, hostname, port, pathname }: VercelImageRemotePattern,
 ): boolean {
 	// Protocol must match if defined.
 	if (protocol && url.protocol.replace(/:$/, '') !== protocol) return false;
@@ -44,7 +44,7 @@ type ResizingProperties = {
  */
 export function getResizingProperties(
 	request: Request,
-	config?: VercelImagesConfig
+	config?: VercelImagesConfig,
 ): ResizingProperties | undefined {
 	if (request.method !== 'GET') return undefined;
 
@@ -105,7 +105,7 @@ export function getResizingProperties(
 export function formatResp(
 	resp: Response,
 	imageUrl: URL,
-	config?: VercelImagesConfig
+	config?: VercelImagesConfig,
 ): Response {
 	const newHeaders = new Headers();
 
@@ -127,7 +127,7 @@ export function formatResp(
 		// https://vercel.com/docs/concepts/image-optimization#caching
 		newHeaders.set(
 			'Cache-Control',
-			`public, max-age=${config?.minimumCacheTTL ?? 60}`
+			`public, max-age=${config?.minimumCacheTTL ?? 60}`,
 		);
 	}
 
@@ -146,7 +146,7 @@ export function formatResp(
  */
 export async function handleImageResizingRequest(
 	request: Request,
-	{ buildOutput, assetsFetcher, imagesConfig }: ImageResizingOpts
+	{ buildOutput, assetsFetcher, imagesConfig }: ImageResizingOpts,
 ): Promise<Response> {
 	const opts = getResizingProperties(request, imagesConfig);
 

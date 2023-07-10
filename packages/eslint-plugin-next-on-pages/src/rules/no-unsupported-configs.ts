@@ -50,7 +50,7 @@ const configs: Config[] = [
 ];
 
 function filterAndExtractConfigs(
-	support: Config['support'] | Config['support'][]
+	support: Config['support'] | Config['support'][],
 ): string[] {
 	const comparisonFn = (config: Config) =>
 		Array.isArray(support)
@@ -61,7 +61,7 @@ function filterAndExtractConfigs(
 
 const supportedConfigs = new Set(filterAndExtractConfigs('✅'));
 const indefinitelyUnsupportedConfigs = new Set(
-	filterAndExtractConfigs(['❌', 'N/A'])
+	filterAndExtractConfigs(['❌', 'N/A']),
 );
 const currentlyUnsupportedConfigs = new Set(filterAndExtractConfigs('🔄'));
 
@@ -73,7 +73,7 @@ const nestedConfigPaths: Readonly<Set<string>> = new Set(
 		...supportedConfigs,
 		...indefinitelyUnsupportedConfigs,
 		...currentlyUnsupportedConfigs,
-	].flatMap(extractPaths)
+	].flatMap(extractPaths),
 );
 
 const ruleSchema = {
@@ -119,7 +119,7 @@ const rule: Rule.RuleModule = {
 					node.declarations[0].init?.type === 'ObjectExpression'
 				) {
 					const nextConfigProps = node.declarations[0].init.properties.filter(
-						p => p.type === 'Property'
+						p => p.type === 'Property',
 					) as Property[];
 					checkConfigPropsRecursively(nextConfigProps, context, options);
 				}
@@ -128,7 +128,7 @@ const rule: Rule.RuleModule = {
 				const exportedValue = extractModuleExportValue(node);
 				if (exportedValue?.type === 'ObjectExpression') {
 					const nextConfigProps = exportedValue.properties.filter(
-						p => p.type === 'Property'
+						p => p.type === 'Property',
 					) as Property[];
 					checkConfigPropsRecursively(nextConfigProps, context, options);
 				}
@@ -153,7 +153,7 @@ function checkConfigPropsRecursively(
 		includeCurrentlyUnsupported: boolean;
 		includeUnrecognized: boolean;
 	},
-	propPath = ''
+	propPath = '',
 ) {
 	nextConfigProps.forEach(prop => {
 		if (prop.type !== 'Property' || prop.key.type !== 'Identifier') return;
@@ -165,7 +165,7 @@ function checkConfigPropsRecursively(
 			nestedConfigPaths.has(fullPropName)
 		) {
 			const props = prop.value.properties.filter(
-				p => p.type === 'Property'
+				p => p.type === 'Property',
 			) as Property[];
 			checkConfigPropsRecursively(props, context, options, `${fullPropName}/`);
 			return;
@@ -247,7 +247,7 @@ function getNodeAfterNextConfigTypeComment(code: SourceCode): Node | null {
 				return parsedComment?.tags.find(
 					({ tag, type }) =>
 						tag === 'type' &&
-						/^import\s*\(\s*(['"])next\1\s*\)\s*\.\s*NextConfig$/.test(type)
+						/^import\s*\(\s*(['"])next\1\s*\)\s*\.\s*NextConfig$/.test(type),
 				);
 			});
 		}) ?? null

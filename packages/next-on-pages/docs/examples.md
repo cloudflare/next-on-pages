@@ -89,7 +89,7 @@ export default async function handler(req: NextRequest) {
 			headers: {
 				'content-type': 'application/json',
 			},
-		}
+		},
 	);
 }
 ```
@@ -110,7 +110,7 @@ export const getServerSideProps = async () => {
 		props: {
 			runtime: process.env.NEXT_RUNTIME,
 			uuid: await fetch('https://uuid.rocks/plain').then(response =>
-				response.text()
+				response.text(),
 			),
 		},
 	};

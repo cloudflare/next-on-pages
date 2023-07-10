@@ -7,7 +7,7 @@ export async function scrapeConfigs(includeNextOnPages?: true): Promise<{
 	nextOnPagesDocumentedNextConfigs: string[];
 }>;
 export async function scrapeConfigs(
-	includeNextOnPages: false
+	includeNextOnPages: false,
 ): Promise<{ allNextConfigs: NextConfig[] }>;
 export async function scrapeConfigs(includeNextOnPages = true): Promise<{
 	allNextConfigs: NextConfig[];
@@ -29,10 +29,10 @@ export async function scrapeConfigs(includeNextOnPages = true): Promise<{
 }
 
 async function getNextOnPagesDocumentedNextConfigs(
-	page: Page
+	page: Page,
 ): Promise<string[]> {
 	await page.goto(
-		'https://github.com/cloudflare/next-on-pages/blob/main/packages/next-on-pages/docs/supported.md'
+		'https://github.com/cloudflare/next-on-pages/blob/main/packages/next-on-pages/docs/supported.md',
 	);
 	const nextOnPagesDocumentedNextConfigs: string[] = await page.$$eval(
 		'h3:has( > a[href="#nextconfigjs-properties"]) ~ table > tbody > tr > td:first-child',
@@ -40,7 +40,7 @@ async function getNextOnPagesDocumentedNextConfigs(
 			els.map(el => {
 				// Note: footnotes leave a number at the end of the text, so we remove it here
 				return el.textContent.replace(/\d*$/, '');
-			})
+			}),
 	);
 	return nextOnPagesDocumentedNextConfigs;
 }
@@ -48,18 +48,18 @@ async function getNextOnPagesDocumentedNextConfigs(
 async function getNextConfigsFromNextDocs(page: Page): Promise<NextConfig[]> {
 	const pagesNextConfigsArray = await extractNextConfigsInfoFromNextDocsPage(
 		page,
-		'pages'
+		'pages',
 	);
 	const appNextConfigsArray = await extractNextConfigsInfoFromNextDocsPage(
 		page,
-		'app'
+		'app',
 	);
 
 	const commonNextConfigs = appNextConfigsArray
 		.map(config => ({
 			app: config,
 			pages: pagesNextConfigsArray.find(
-				pagesConfig => pagesConfig.configName === config.configName
+				pagesConfig => pagesConfig.configName === config.configName,
 			),
 		}))
 		.filter(configs => !!configs.pages)
@@ -71,14 +71,14 @@ async function getNextConfigsFromNextDocs(page: Page): Promise<NextConfig[]> {
 
 	const isCommonConfigName = (configName: string) =>
 		!!commonNextConfigs.find(
-			commonConfig => commonConfig.configName === configName
+			commonConfig => commonConfig.configName === configName,
 		);
 
 	const appSpecificNextConfigs = appNextConfigsArray.filter(
-		config => !isCommonConfigName(config.configName)
+		config => !isCommonConfigName(config.configName),
 	);
 	const pagesSpecificNextConfigs = pagesNextConfigsArray.filter(
-		config => !isCommonConfigName(config.configName)
+		config => !isCommonConfigName(config.configName),
 	);
 
 	const configs = [
@@ -91,7 +91,7 @@ async function getNextConfigsFromNextDocs(page: Page): Promise<NextConfig[]> {
 
 async function extractNextConfigsInfoFromNextDocsPage(
 	page: Page,
-	type: 'app' | 'pages'
+	type: 'app' | 'pages',
 ): Promise<NextConfig[]> {
 	const url = `https://nextjs.org/docs/${type}/api-reference/next-config-js`;
 
@@ -108,7 +108,7 @@ async function extractNextConfigsInfoFromNextDocsPage(
 				};
 				return { configName, urls: [url] };
 			}),
-		type
+		type,
 	);
 	return configs;
 }

@@ -13,7 +13,7 @@ type HasFieldRequestProperties = {
  */
 export function hasField(
 	has: VercelHasField,
-	{ url, cookies, headers }: HasFieldRequestProperties
+	{ url, cookies, headers }: HasFieldRequestProperties,
 ): boolean {
 	switch (has.type) {
 		case 'host': {

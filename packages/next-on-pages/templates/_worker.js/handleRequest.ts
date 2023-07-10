@@ -14,13 +14,13 @@ import type { RequestContext } from '../../src/utils/requestContext';
 export async function handleRequest(
 	reqCtx: RequestContext,
 	config: ProcessedVercelConfig,
-	output: VercelBuildOutput
+	output: VercelBuildOutput,
 ): Promise<Response> {
 	const matcher = new RoutesMatcher(
 		config.routes,
 		output,
 		reqCtx,
-		config.wildcard
+		config.wildcard,
 	);
 	const match = await findMatch(matcher);
 
@@ -38,7 +38,7 @@ export async function handleRequest(
 async function findMatch(
 	matcher: RoutesMatcher,
 	phase: 'none' | 'error' = 'none',
-	skipErrorMatch = false
+	skipErrorMatch = false,
 ): Promise<MatchedSet> {
 	const result = await matcher.run(phase);
 
@@ -68,7 +68,7 @@ async function findMatch(
 async function generateResponse(
 	reqCtx: RequestContext,
 	{ path = '/404', status, headers, searchParams, body }: MatchedSet,
-	output: VercelBuildOutput
+	output: VercelBuildOutput,
 ): Promise<Response> {
 	// Redirect user to external URL for redirects.
 	const locationHeader = headers.normal.get('location');

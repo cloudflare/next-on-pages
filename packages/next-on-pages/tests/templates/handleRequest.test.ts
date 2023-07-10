@@ -39,7 +39,7 @@ function runTestCase(
 	reqCtx: Pick<RequestContext, 'assetsFetcher' | 'ctx'>,
 	config: ProcessedVercelConfig,
 	output: VercelBuildOutput,
-	testCase: TestCase
+	testCase: TestCase,
 ) {
 	test(testCase.name, async () => {
 		const {
@@ -59,17 +59,17 @@ function runTestCase(
 			const res = await handleRequest(
 				{ ...reqCtx, request: req },
 				config,
-				output
+				output,
 			);
 
 			expect(res.status).toEqual(expected.status);
 			await expect(res.text()).resolves.toEqual(expected.data);
 			expect(Object.fromEntries(res.headers.entries())).toEqual(
-				expected.headers || {}
+				expected.headers || {},
 			);
 			if (expected.reqHeaders) {
 				expect(Object.fromEntries(req.headers.entries())).toEqual(
-					expected.reqHeaders
+					expected.reqHeaders,
 				);
 			}
 
@@ -96,7 +96,7 @@ async function runTestSet({ config, files, testCases }: TestSet) {
 	};
 
 	testCases.forEach(testCase =>
-		runTestCase(reqCtx, vercelConfig, buildOutput, testCase)
+		runTestCase(reqCtx, vercelConfig, buildOutput, testCase),
 	);
 
 	afterAll(() => restoreMocks());

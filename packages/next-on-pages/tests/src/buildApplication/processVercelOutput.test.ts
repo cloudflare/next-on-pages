@@ -33,7 +33,7 @@ describe('processVercelOutput', () => {
 			inputtedConfig,
 			inputtedAssets,
 			inputtedPrerendered,
-			inputtedFunctions
+			inputtedFunctions,
 		);
 
 		const expected: ProcessedVercelOutput = {
@@ -102,7 +102,7 @@ describe('processVercelOutput', () => {
 			inputtedConfig,
 			inputtedAssets,
 			inputtedPrerendered,
-			inputtedFunctions
+			inputtedFunctions,
 		);
 
 		const expected: ProcessedVercelOutput = {
@@ -266,7 +266,7 @@ describe('processVercelOutput', () => {
 			inputtedConfig,
 			inputtedAssets,
 			inputtedPrerendered,
-			inputtedFunctions
+			inputtedFunctions,
 		);
 
 		const expected: ProcessedVercelOutput = {

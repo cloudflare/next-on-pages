@@ -20,7 +20,7 @@ export type MatchPCREResult = {
 export function matchPCRE(
 	expr: string,
 	val: string,
-	caseSensitive?: boolean
+	caseSensitive?: boolean,
 ): MatchPCREResult {
 	const flag = caseSensitive ? '' : 'i';
 	const captureGroupKeys: string[] = [];
@@ -42,7 +42,7 @@ export function matchPCRE(
 export function applyPCREMatches(
 	rawStr: string,
 	match: RegExpMatchArray,
-	captureGroupKeys: string[]
+	captureGroupKeys: string[],
 ): string {
 	return rawStr.replace(/\$([a-zA-Z0-9]+)/g, (_, key) => {
 		const index = captureGroupKeys.indexOf(key);

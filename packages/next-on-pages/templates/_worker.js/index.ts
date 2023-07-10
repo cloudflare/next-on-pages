@@ -16,7 +16,7 @@ export default {
 		if (!envAsyncLocalStorage) {
 			return new Response(
 				`Error: Could not access built-in Node.js modules. Please make sure that your Cloudflare Pages project has the 'nodejs_compat' compatibility flag set.`,
-				{ status: 503 }
+				{ status: 503 },
 			);
 		}
 		return envAsyncLocalStorage.run(
@@ -40,9 +40,9 @@ export default {
 						assetsFetcher: env.ASSETS,
 					},
 					__CONFIG__,
-					__BUILD_OUTPUT__
+					__BUILD_OUTPUT__,
 				);
-			}
+			},
 		);
 	},
 } as ExportedHandler<{ ASSETS: Fetcher }>;

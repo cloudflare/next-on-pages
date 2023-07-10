@@ -65,6 +65,6 @@ export function stripFuncExtension(path: string) {
  */
 export function formatRoutePath(path: string) {
 	return addLeadingSlash(
-		stripRouteGroups(addLeadingSlash(normalizePath(stripFuncExtension(path))))
+		stripRouteGroups(addLeadingSlash(normalizePath(stripFuncExtension(path)))),
 	);
 }

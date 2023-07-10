@@ -16,7 +16,7 @@ const req = new Request(
 			headerWithoutValue: undefined as unknown as string,
 			cookie: 'cookieWithValue=value; cookieWithoutValue=',
 		},
-	}
+	},
 );
 const url = new URL(req.url);
 const cookies = parse(req.headers.get('cookie') ?? '');

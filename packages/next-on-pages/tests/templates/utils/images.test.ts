@@ -170,7 +170,7 @@ describe('getResizingProperties', () => {
 	describe('external image', () => {
 		test('external image fails with disallowed domain', () => {
 			const url = new URL(
-				`${baseUrl}https%3A%2F%2Finvalid.com%2Fimage.jpg&w=640`
+				`${baseUrl}https%3A%2F%2Finvalid.com%2Fimage.jpg&w=640`,
 			);
 			const req = new Request(url);
 
@@ -179,7 +179,7 @@ describe('getResizingProperties', () => {
 
 		test('external image succeeds with allowed domain', () => {
 			const url = new URL(
-				`${baseUrl}https%3A%2F%2Fexample.com%2Fimage.jpg&w=640`
+				`${baseUrl}https%3A%2F%2Fexample.com%2Fimage.jpg&w=640`,
 			);
 			const req = new Request(url);
 
@@ -193,7 +193,7 @@ describe('getResizingProperties', () => {
 
 		test('external image suceeds with allowed remote pattern', () => {
 			const url = new URL(
-				`${baseUrl}https%3A%2F%2Fvia.placeholder.com%2Fimage.jpg&w=640`
+				`${baseUrl}https%3A%2F%2Fvia.placeholder.com%2Fimage.jpg&w=640`,
 			);
 			const req = new Request(url);
 
@@ -242,7 +242,7 @@ describe('formatResp', () => {
 
 		const newResp = formatResp(new Response(), imageUrl, config);
 		expect(newResp.headers.get('Content-Security-Policy')).toEqual(
-			'default-src'
+			'default-src',
 		);
 	});
 
@@ -252,7 +252,7 @@ describe('formatResp', () => {
 
 		const newResp = formatResp(new Response(), imageUrl, config);
 		expect(newResp.headers.get('Content-Disposition')).toEqual(
-			'inline; filename="1.jpg"'
+			'inline; filename="1.jpg"',
 		);
 	});
 
@@ -271,7 +271,7 @@ describe('formatResp', () => {
 		const newResp = formatResp(
 			new Response(null, { headers: { 'cache-control': 'test-value' } }),
 			imageUrl,
-			config
+			config,
 		);
 		expect(newResp.headers.get('Cache-Control')).toEqual('test-value');
 	});

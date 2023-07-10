@@ -18,8 +18,8 @@ async function buildNextStaticHeaders(outputDir: string) {
 
 	const hitRoutes = getPhaseRoutes(vercelConfig.routes ?? [], 'hit');
 
-	const nextStaticRoute = hitRoutes.find(route =>
-		route.src?.startsWith('/_next/static/')
+	const nextStaticRoute = hitRoutes.find(
+		route => route.src?.startsWith('/_next/static/'),
 	);
 	const nextStaticHeaders = (nextStaticRoute as VercelSource)?.headers;
 
@@ -36,7 +36,7 @@ ${Object.entries(nextStaticHeaders)
 			{
 				// in case someone configured redirects already, append to the end
 				flag: 'a',
-			}
+			},
 		);
 	}
 }
@@ -51,7 +51,7 @@ async function buildRoutes(outputDir: string) {
 				include: ['/*'],
 				exclude: ['/_next/static/*'],
 			}),
-			{ flag: 'ax' } // don't generate file if it's already manually maintained
+			{ flag: 'ax' }, // don't generate file if it's already manually maintained
 		);
 	} catch (e) {
 		if ((e as { code?: string }).code !== 'EEXIST') {

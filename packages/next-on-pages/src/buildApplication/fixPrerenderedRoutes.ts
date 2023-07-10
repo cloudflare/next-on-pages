@@ -32,7 +32,7 @@ export type PrerenderedFileData = {
 async function getRouteConfig(
 	baseDir: string,
 	file: string,
-	dirName: string
+	dirName: string,
 ): Promise<VercelPrerenderConfig | null> {
 	const configPath = join(baseDir, file);
 	const config = await readJsonFile<VercelPrerenderConfig>(configPath);
@@ -61,7 +61,7 @@ async function getRouteConfig(
 async function getRoutePath(
 	{ fallback }: VercelPrerenderConfig,
 	dirName: string,
-	outputDir: string
+	outputDir: string,
 ): Promise<string | null> {
 	const prerenderRoute = normalizePath(join(dirName, fallback.fsPath));
 	const prerenderFile = join(outputDir, 'functions', prerenderRoute);
@@ -94,16 +94,16 @@ async function getRoutePath(
 async function getRouteDest(
 	{ fallback }: VercelPrerenderConfig,
 	dirName: string,
-	outputDir: string
+	outputDir: string,
 ): Promise<{ destFile: string; destRoute: string }> {
 	const destRoute = normalizePath(
 		join(
 			dirName,
 			fallback.fsPath.replace(
 				/\.prerender-fallback(?:\.(?:rsc|body|json))?/gi,
-				''
-			)
-		)
+				'',
+			),
+		),
 	);
 	const destFile = join(outputDir, destRoute);
 
@@ -128,7 +128,7 @@ async function validateRoute(
 	baseDir: string,
 	file: string,
 	vercelDir: string,
-	outputDir: string
+	outputDir: string,
 ) {
 	const dirName = relative(join(vercelDir, 'functions'), baseDir);
 	const config = await getRouteConfig(baseDir, file, dirName);
@@ -160,8 +160,8 @@ function getRouteOverrides(newRoute: string): string[] {
 	const strippedIndexRoute = stripIndexRoute(withoutHtmlExt);
 	const overrides = new Set(
 		[formattedPathName, withoutHtmlExt, strippedIndexRoute].filter(
-			route => route !== `/${newRoute}`
-		)
+			route => route !== `/${newRoute}`,
+		),
 	);
 
 	return [...overrides];
@@ -184,11 +184,11 @@ export async function fixPrerenderedRoutes(
 	prerenderedRoutes: Map<string, PrerenderedFileData>,
 	files: string[],
 	baseDir: string,
-	outputDir: string
+	outputDir: string,
 ): Promise<string[]> {
 	const vercelDir = resolve('.vercel', 'output');
 	const configs = files.filter(file =>
-		/.+\.prerender-config\.json$/gi.test(file)
+		/.+\.prerender-config\.json$/gi.test(file),
 	);
 
 	const validRoutePaths = new Set<string>();

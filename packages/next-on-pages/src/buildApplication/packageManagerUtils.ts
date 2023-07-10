@@ -81,7 +81,7 @@ type PackageManagerCommand = `${(typeof packageManagers)[PackageManager]}${
 	| ''}`;
 
 export function getPackageManagerSpawnCommand(
-	pkgMng: keyof typeof packageManagers
+	pkgMng: keyof typeof packageManagers,
 ): PackageManagerCommand {
 	const winCMD = isWindows() ? '.cmd' : '';
 	return `${packageManagers[pkgMng]}${winCMD}`;
@@ -93,7 +93,7 @@ function isWindows(): boolean {
 
 export async function getPackageVersion(
 	packageName: string,
-	packageManager?: PackageManager
+	packageManager?: PackageManager,
 ): Promise<string | null> {
 	try {
 		packageManager ??= await getCurrentPackageManager();
@@ -106,7 +106,7 @@ export async function getPackageVersion(
 				'--json',
 				...(command === 'yarn' ? [] : ['--depth=0']),
 			],
-			{ stdio: 'pipe' }
+			{ stdio: 'pipe' },
 		)
 			.toString()
 			.trim();

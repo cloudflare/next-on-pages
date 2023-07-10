@@ -16,7 +16,7 @@ describe('getNodeEnv', () => {
 				const nodeEnv = getNodeEnv();
 				expect(nodeEnv).toBe(testNodeEnv);
 			});
-		})
+		}),
 	);
 
 	test('should set the NODE_ENV to a non-Next.js value correctly but generate a warning', async () => {
@@ -32,7 +32,7 @@ describe('getNodeEnv', () => {
 
 function runWithNodeEnv<F extends (...args: unknown[]) => void>(
 	value: string,
-	testFn: F
+	testFn: F,
 ): void {
 	const oldNodeEnv = process.env.NODE_ENV;
 	process.env.NODE_ENV = value;

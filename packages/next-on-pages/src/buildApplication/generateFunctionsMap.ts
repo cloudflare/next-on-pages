@@ -34,12 +34,12 @@ import { build } from 'esbuild';
 export async function generateFunctionsMap(
 	functionsDir: string,
 	outputDir: string,
-	disableChunksDedup: CliOptions['disableChunksDedup']
+	disableChunksDedup: CliOptions['disableChunksDedup'],
 ): Promise<DirectoryProcessingResults> {
 	const nextOnPagesDistDir = join(
 		outputDir,
 		'_worker.js',
-		'__next-on-pages-dist__'
+		'__next-on-pages-dist__',
 	);
 
 	const processingSetup: ProcessingSetup = {
@@ -54,18 +54,18 @@ export async function generateFunctionsMap(
 	if (!disableChunksDedup) {
 		const chunksConsumersInfos = await collectChunksConsumersInfoRecursively(
 			processingSetup,
-			functionsDir
+			functionsDir,
 		);
 		processingSetup.chunksToDedup = new Set(
 			Array.from(chunksConsumersInfos.entries())
 				.filter(([, chunkConsumers]) => chunkConsumers.size > 1)
-				.map(([chunkNumber]) => chunkNumber)
+				.map(([chunkNumber]) => chunkNumber),
 		);
 	}
 
 	const processingResults = await processDirectoryRecursively(
 		processingSetup,
-		functionsDir
+		functionsDir,
 	);
 
 	await tryToFixInvalidFunctions(processingResults);
@@ -74,7 +74,7 @@ export async function generateFunctionsMap(
 		await buildWebpackChunkFiles(
 			processingResults.webpackChunks,
 			processingSetup.distWebpackDir,
-			processingResults.wasmIdentifiers
+			processingResults.wasmIdentifiers,
 		);
 	}
 
@@ -85,7 +85,7 @@ export async function generateFunctionsMap(
 	if (processingResults.nextJsManifests.size) {
 		await createNextJsManifestFiles(
 			nextOnPagesDistDir,
-			processingResults.nextJsManifests
+			processingResults.nextJsManifests,
 		);
 	}
 
@@ -147,7 +147,7 @@ type WasmModuleInfo = {
 
 async function processDirectoryRecursively(
 	setup: ProcessingSetup,
-	dir: string
+	dir: string,
 ): Promise<DirectoryProcessingResults> {
 	const invalidFunctions = new Set<string>();
 	const functionsMap = new Map<string, string>();
@@ -161,7 +161,7 @@ async function processDirectoryRecursively(
 		prerenderedRoutes,
 		files,
 		dir,
-		setup.outputDir
+		setup.outputDir,
 	);
 
 	// Note: the following could be implemented via `await Promise.all` since different directories are independent to each other
@@ -176,19 +176,19 @@ async function processDirectoryRecursively(
 			const dirResults = await dirResultsPromise;
 			dirResults.invalidFunctions?.forEach(fn => invalidFunctions.add(fn));
 			dirResults.functionsMap?.forEach((value, key) =>
-				functionsMap.set(key, value)
+				functionsMap.set(key, value),
 			);
 			dirResults.webpackChunks?.forEach((value, key) =>
-				webpackChunks.set(key, value)
+				webpackChunks.set(key, value),
 			);
 			dirResults.prerenderedRoutes?.forEach((value, key) =>
-				prerenderedRoutes.set(key, value)
+				prerenderedRoutes.set(key, value),
 			);
 			dirResults.wasmIdentifiers?.forEach((value, key) =>
-				wasmIdentifiers.set(key, value)
+				wasmIdentifiers.set(key, value),
 			);
 			dirResults.nextJsManifests?.forEach((value, key) =>
-				nextJsManifests.set(key, value)
+				nextJsManifests.set(key, value),
 			);
 		}
 	}
@@ -216,12 +216,12 @@ type FunctionConfig = {
 
 async function processFuncDirectory(
 	setup: ProcessingSetup,
-	filepath: string
+	filepath: string,
 ): Promise<Partial<DirectoryProcessingResults>> {
 	const relativePath = relative(setup.functionsDir, filepath);
 
 	const functionConfig = await readJsonFile<FunctionConfig>(
-		join(filepath, '.vc-config.json')
+		join(filepath, '.vc-config.json'),
 	);
 
 	if (functionConfig?.runtime !== 'edge') {
@@ -245,7 +245,7 @@ async function processFuncDirectory(
 			// We sometimes encounter an uncompiled `middleware.js` with no compiled `index.js` outside of a base path.
 			// Outside the base path, it should not be utilised, so it should be safe to ignore the function.
 			cliWarn(
-				`Detected an invalid middleware function for ${relativePath}. Skipping...`
+				`Detected an invalid middleware function for ${relativePath}. Skipping...`,
 			);
 			return {};
 		}
@@ -269,24 +269,24 @@ async function processFuncDirectory(
 				contents,
 				functionFilePath,
 				webpackChunks,
-				setup.chunksToDedup
+				setup.chunksToDedup,
 			);
 		extractedWebpackChunks.forEach((value, key) =>
-			webpackChunks.set(key, value)
+			webpackChunks.set(key, value),
 		);
 		contents = updatedFunctionContents;
 	}
 
 	const manifestExtractionResult = await extractNextJsManifests(
 		functionFilePath,
-		contents
+		contents,
 	);
 	contents = manifestExtractionResult.updatedContents;
 	const nextJsManifests = manifestExtractionResult.manifests;
 
 	const wasmExtractionResult = await extractAndFixWasmRequires(
 		functionFilePath,
-		contents
+		contents,
 	);
 	contents = wasmExtractionResult.updatedContents;
 	wasmIdentifiers = wasmExtractionResult.wasmIdentifiers;
@@ -343,7 +343,7 @@ type RawWasmModuleInfo = {
  */
 async function extractAndFixWasmRequires(
 	functionFilePath: string,
-	originalFileContents: string
+	originalFileContents: string,
 ): Promise<{
 	wasmIdentifiers: Map<string, WasmModuleInfo>;
 	updatedContents: string;
@@ -367,15 +367,15 @@ async function extractAndFixWasmRequires(
 			originalFileLocation: join(
 				dirname(functionFilePath),
 				'wasm',
-				`${identifier}.wasm`
+				`${identifier}.wasm`,
 			),
 		});
 		const originalWasmModuleRequire = originalFileContents.slice(start, end);
 		updatedContents = updatedContents.replace(
 			originalWasmModuleRequire,
 			`import ${identifier} from "${'../'.repeat(
-				getFunctionNestingLevel(functionFilePath) - 1
-			)}wasm/${identifier}.wasm";`
+				getFunctionNestingLevel(functionFilePath) - 1,
+			)}wasm/${identifier}.wasm";`,
 		);
 	});
 
@@ -394,7 +394,7 @@ async function extractAndFixWasmRequires(
  */
 async function extractNextJsManifests(
 	functionFilePath: string,
-	originalFileContents: string
+	originalFileContents: string,
 ): Promise<{
 	manifests: Map<string, string>;
 	updatedContents: string;
@@ -414,11 +414,11 @@ async function extractNextJsManifests(
 	manifestStatementInfos.forEach(({ manifestIdentifier, start, end }) => {
 		const originalManifestCode = originalFileContents.slice(start, end);
 		updatedContents = `${`import ${manifestIdentifier} from "${'../'.repeat(
-			getFunctionNestingLevel(functionFilePath) - 1
+			getFunctionNestingLevel(functionFilePath) - 1,
 		)}../__next-on-pages-dist__/nextjs-manifests/${manifestIdentifier}.js";`}${updatedContents}`;
 		updatedContents = updatedContents.replace(
 			originalManifestCode,
-			`self.${manifestIdentifier}=${manifestIdentifier};`
+			`self.${manifestIdentifier}=${manifestIdentifier};`,
 		);
 		const manifestContent = originalManifestCode
 			.slice(`self.${manifestIdentifier}=`.length)
@@ -444,7 +444,7 @@ type ManifestStatementInfo = {
  * @returns information about the manifest statement if it follows the required format, null otherwise
  */
 function extractManifestStatementInfo(
-	statement: AST.StatementKind
+	statement: AST.StatementKind,
 ): ManifestStatementInfo | null {
 	if (
 		statement.type !== 'ExpressionStatement' ||
@@ -488,7 +488,7 @@ function fixFunctionContents(contents: string) {
 		// TODO: This hack is not good. We should replace this with something less brittle ASAP
 		// https://github.com/vercel/next.js/blob/2e7dfca362931be99e34eccec36074ab4a46ffba/packages/next/src/server/web/adapter.ts#L276-L282
 		/(Object.defineProperty\(globalThis,\s*"__import_unsupported",\s*{[\s\S]*?configurable:\s*)([^,}]*)(.*}\s*\))/gm,
-		'$1true$3'
+		'$1true$3',
 	);
 
 	// TODO: Investigate alternatives or a real fix. This hack is rather brittle.
@@ -497,7 +497,7 @@ function fixFunctionContents(contents: string) {
 	// https://github.com/vercel/next.js/blob/canary/packages/next/src/compiled/react/cjs/react.shared-subset.development.js#L198
 	contents = contents.replace(
 		/(?:(JSON\.stringify\(\[\w+\.method\S+,)\w+\.mode(,\S+,)\w+\.credentials(,\S+,)\w+\.integrity(\]\)))/gm,
-		'$1null$2null$3null$4'
+		'$1null$2null$3null$4',
 	);
 	return contents;
 }
@@ -517,7 +517,7 @@ async function extractWebpackChunks(
 	originalFunctionContents: string,
 	filePath: string,
 	existingWebpackChunks: Map<number, string> = new Map(),
-	chunksToExtract?: Set<number>
+	chunksToExtract?: Set<number>,
 ): Promise<{
 	updatedFunctionContents: string;
 	extractedWebpackChunks: Map<number, string>;
@@ -548,7 +548,7 @@ async function extractWebpackChunks(
 
 			const chunkExpressionCode = functionContents.slice(
 				(chunk.value as Node).start,
-				(chunk.value as Node).end
+				(chunk.value as Node).end,
 			);
 
 			if (
@@ -560,7 +560,7 @@ async function extractWebpackChunks(
 							ERROR: Detected a collision with the webpack chunks deduplication.
 							       Try adding the '--disable-chunks-dedup' argument to temporarily solve the issue.
 						`,
-					{ spaced: true, showReport: true }
+					{ spaced: true, showReport: true },
 				);
 				exit(1);
 			}
@@ -571,7 +571,7 @@ async function extractWebpackChunks(
 
 			webpackChunksCodeReplaceMap.set(
 				chunkExpressionCode,
-				getChunkIdentifier(key)
+				getChunkIdentifier(key),
 			);
 		});
 
@@ -581,7 +581,7 @@ async function extractWebpackChunks(
 
 	return {
 		updatedFunctionContents: [...webpackChunksImports, functionContents].join(
-			';\n'
+			';\n',
 		),
 		extractedWebpackChunks: webpackChunks,
 	};
@@ -590,7 +590,7 @@ async function extractWebpackChunks(
 async function buildWebpackChunkFiles(
 	webpackChunks: Map<number, string>,
 	tmpWebpackDir: string,
-	wasmIdentifiers: Map<string, WasmModuleInfo>
+	wasmIdentifiers: Map<string, WasmModuleInfo>,
 ) {
 	for (const [chunkIdentifier, code] of webpackChunks) {
 		const chunkFilePath = join(tmpWebpackDir, `${chunkIdentifier}.js`);
@@ -612,7 +612,7 @@ async function buildWebpackChunkFiles(
 			.filter(([identifier]) => fileContents.includes(identifier))
 			.map(
 				([identifier, { importPath }]) =>
-					`import ${identifier} from '..${importPath}';`
+					`import ${identifier} from '..${importPath}';`,
 			)
 			.join('\n');
 		await writeFile(chunkFilePath, `${wasmChunkImports}\n${fileContents}`);
@@ -657,7 +657,7 @@ export type DirectoryProcessingResults = {
  * @returns the chunks as an array of AST Properties if the statement represent the target javascript code, an empty array otherwise
  */
 function getWebpackChunksFromStatement(
-	statement: AST.StatementKind
+	statement: AST.StatementKind,
 ): AST.PropertyKind[] {
 	if (
 		statement.type !== 'ExpressionStatement' ||
@@ -682,7 +682,7 @@ function getWebpackChunksFromStatement(
 			p.type === 'Property' &&
 			p.key.type === 'Literal' &&
 			typeof p.key.value === 'number' &&
-			p.value.type === 'ArrowFunctionExpression'
+			p.value.type === 'ArrowFunctionExpression',
 	) as AST.PropertyKind[];
 }
 
@@ -699,7 +699,7 @@ function getWebpackChunksFromStatement(
  *   import wasm_fbeb8adedbc833032bda6f13925ba235b8d09114 from "../wasm/wasm_fbeb8adedbc833032bda6f13925ba235b8d09114.wasm";
  */
 function getWasmIdentifier(
-	statement: AST.StatementKind
+	statement: AST.StatementKind,
 ): RawWasmModuleInfo | null {
 	if (
 		statement.type !== 'VariableDeclaration' ||
@@ -751,7 +751,7 @@ function getRelativeNextOnPagesDistPath(functionPath: string): string {
 
 function getChunkImportFn(functionPath: string): (chunkKey: number) => string {
 	const relativeChunksPath = `${getRelativeNextOnPagesDistPath(
-		functionPath
+		functionPath,
 	)}/chunks`;
 	return chunkKey => {
 		const chunkIdentifier = getChunkIdentifier(chunkKey);
@@ -773,7 +773,7 @@ function getFunctionNestingLevel(functionPath: string): number {
 
 	if (nestingLevel < 0) {
 		throw new Error(
-			`Error: could not determine nesting level of the following function: ${functionPath}`
+			`Error: could not determine nesting level of the following function: ${functionPath}`,
 		);
 	}
 
@@ -806,7 +806,7 @@ export const nodeBuiltInModulesPlugin: Plugin = {
 					contents: `export * from '${path}'`,
 					loader: 'js',
 				};
-			}
+			},
 		);
 	},
 };
@@ -820,7 +820,7 @@ export const nodeBuiltInModulesPlugin: Plugin = {
  */
 async function copyWasmFiles(
 	distDir: string,
-	wasmIdentifiers: Map<string, WasmModuleInfo>
+	wasmIdentifiers: Map<string, WasmModuleInfo>,
 ): Promise<void> {
 	const wasmDistDir = join(distDir, 'wasm');
 	await mkdir(wasmDistDir);
@@ -839,7 +839,7 @@ async function copyWasmFiles(
  */
 async function createNextJsManifestFiles(
 	distDir: string,
-	manifests: Map<string, string>
+	manifests: Map<string, string>,
 ): Promise<void> {
 	const manifestsDistDir = join(distDir, 'nextjs-manifests');
 	await mkdir(manifestsDistDir);
@@ -858,7 +858,7 @@ type ChunkConsumers = Set<string>;
 
 async function collectChunksConsumersInfoRecursively(
 	setup: ProcessingSetup,
-	dir: string
+	dir: string,
 ): Promise<ChunksConsumersInfo> {
 	const chunksConsumersInfos: ChunksConsumersInfo = new Map();
 
@@ -894,12 +894,12 @@ async function collectChunksConsumersInfoRecursively(
 }
 
 async function collectChunksConsumersInfosFromFuncDirectory(
-	filepath: string
+	filepath: string,
 ): Promise<ChunksConsumersInfo> {
 	const chunksConsumersInfos: ChunksConsumersInfo = new Map();
 
 	const functionConfig = await readJsonFile<FunctionConfig>(
-		join(filepath, '.vc-config.json')
+		join(filepath, '.vc-config.json'),
 	);
 
 	if (functionConfig?.runtime !== 'edge') {
@@ -913,7 +913,7 @@ async function collectChunksConsumersInfosFromFuncDirectory(
 
 	const { extractedWebpackChunks } = await extractWebpackChunks(
 		contents,
-		functionFilePath
+		functionFilePath,
 	);
 
 	extractedWebpackChunks.forEach((_, number) => {

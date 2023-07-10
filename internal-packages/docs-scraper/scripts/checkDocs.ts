@@ -11,7 +11,7 @@ void (async function (): Promise<void> {
 	const undocumentedNextConfigs: NextConfig[] = [];
 	allNextConfigs.forEach(config => {
 		const configIsDocumented = nextOnPagesDocumentedNextConfigs.includes(
-			config.configName
+			config.configName,
 		);
 		if (!configIsDocumented) {
 			undocumentedNextConfigs.push(config);
@@ -21,7 +21,7 @@ void (async function (): Promise<void> {
 	const documentedNonNextConfigs: string[] = [];
 	nextOnPagesDocumentedNextConfigs.forEach(config => {
 		const configExists = allNextConfigs.find(
-			nextConfig => nextConfig.configName === config
+			nextConfig => nextConfig.configName === config,
 		);
 		if (!configExists) {
 			documentedNonNextConfigs.push(config);
@@ -33,13 +33,13 @@ void (async function (): Promise<void> {
 		nextOnPagesDocumentedNextConfigs.length;
 
 	console.log(
-		`The number of next configs is ${numOfNextConfigs} the next-on-pages documented next configs are ${numOfNextOnPagesDocumentedNextConfigs}`
+		`The number of next configs is ${numOfNextConfigs} the next-on-pages documented next configs are ${numOfNextOnPagesDocumentedNextConfigs}`,
 	);
 	console.log(
-		`The number of undocumented next configs is ${undocumentedNextConfigs.length}`
+		`The number of undocumented next configs is ${undocumentedNextConfigs.length}`,
 	);
 	console.log(
-		`The number of documented non-next configs is ${documentedNonNextConfigs.length}`
+		`The number of documented non-next configs is ${documentedNonNextConfigs.length}`,
 	);
 
 	if (
@@ -49,13 +49,13 @@ void (async function (): Promise<void> {
 	) {
 		console.log('\nThe next-on-pages documentation is out of date');
 		console.log(
-			`The number of next configs is ${numOfNextConfigs} the next-on-pages documented next configs are ${numOfNextOnPagesDocumentedNextConfigs}`
+			`The number of next configs is ${numOfNextConfigs} the next-on-pages documented next configs are ${numOfNextOnPagesDocumentedNextConfigs}`,
 		);
 		console.log('============================================');
 		console.log('The following configs are undocumented:');
 		console.log(undocumentedNextConfigs.map(config => config.configName));
 		console.log(
-			'The following configs are documented but do not exist in the nextjs documentation:'
+			'The following configs are documented but do not exist in the nextjs documentation:',
 		);
 		console.log(documentedNonNextConfigs);
 
@@ -63,11 +63,11 @@ void (async function (): Promise<void> {
 			setOutput('result', 'out-of-date');
 			setOutput(
 				'undocumented_next_configs',
-				`${undocumentedNextConfigs.map(config => config.configName).join(',')}`
+				`${undocumentedNextConfigs.map(config => config.configName).join(',')}`,
 			);
 			setOutput(
 				'documented_non_next_configs',
-				`${documentedNonNextConfigs.join(',')}`
+				`${documentedNonNextConfigs.join(',')}`,
 			);
 		}
 	} else {
@@ -81,7 +81,7 @@ void (async function (): Promise<void> {
 	const noNextConfigsDetected = allNextConfigs.length === 0;
 	if (noNextConfigsDetected) {
 		console.log(
-			'\nERROR! No next configs were detected, the next docs might have changed!'
+			'\nERROR! No next configs were detected, the next docs might have changed!',
 		);
 
 		if (fromGithub) {
@@ -93,7 +93,7 @@ void (async function (): Promise<void> {
 		nextOnPagesDocumentedNextConfigs.length === 0;
 	if (noNextOnPagesConfigsDetected) {
 		console.log(
-			'\nERROR! No next-on-pages configs were detected, the docs might have changed!'
+			'\nERROR! No next-on-pages configs were detected, the docs might have changed!',
 		);
 
 		if (fromGithub) {

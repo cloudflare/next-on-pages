@@ -169,7 +169,7 @@ type ProcessedVercelBuildOutput = Map<string, BuildOutputItem>;
 type EdgeFunction = {
 	default: (
 		request: Request,
-		context: ExecutionContext
+		context: ExecutionContext,
 	) => Response | Promise<Response>;
 };
 

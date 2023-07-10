@@ -63,7 +63,7 @@ export class RoutesMatcher {
 		private output: VercelBuildOutput,
 		/** Request Context object for the request to match */
 		private reqCtx: RequestContext,
-		wildcardConfig?: VercelWildcardConfig
+		wildcardConfig?: VercelWildcardConfig,
 	) {
 		this.url = new URL(reqCtx.request.url);
 		this.cookies = parse(reqCtx.request.headers.get('cookie') || '');
@@ -77,7 +77,7 @@ export class RoutesMatcher {
 		this.middlewareInvoked = [];
 
 		this.wildcardMatch = wildcardConfig?.find(
-			w => w.domain === this.url.hostname
+			w => w.domain === this.url.hostname,
 		);
 	}
 
@@ -90,7 +90,7 @@ export class RoutesMatcher {
 	 */
 	private checkRouteMatch(
 		route: VercelSource,
-		checkStatus?: boolean
+		checkStatus?: boolean,
 	): MatchPCREResult | undefined {
 		const srcMatch = matchPCRE(route.src, this.path, route.caseSensitive);
 		if (!srcMatch.match) return;
@@ -141,7 +141,7 @@ export class RoutesMatcher {
 		const overrideHeader = resp.headers.get(overrideKey);
 		if (overrideHeader) {
 			const overridenHeaderKeys = new Set(
-				overrideHeader.split(',').map(h => h.trim())
+				overrideHeader.split(',').map(h => h.trim()),
 			);
 
 			for (const key of overridenHeaderKeys.keys()) {
@@ -245,7 +245,7 @@ export class RoutesMatcher {
 	private applyRouteHeaders(
 		route: VercelSource,
 		srcMatch: RegExpMatchArray,
-		captureGroupKeys: string[]
+		captureGroupKeys: string[],
 	): void {
 		if (!route.headers) return;
 
@@ -286,7 +286,7 @@ export class RoutesMatcher {
 	private applyRouteDest(
 		route: VercelSource,
 		srcMatch: RegExpMatchArray,
-		captureGroupKeys: string[]
+		captureGroupKeys: string[],
 	): string {
 		if (!route.dest) return this.path;
 
@@ -297,7 +297,7 @@ export class RoutesMatcher {
 		if (this.wildcardMatch && /\$wildcard/.test(processedDest)) {
 			processedDest = processedDest.replace(
 				/\$wildcard/g,
-				this.wildcardMatch.value
+				this.wildcardMatch.value,
 			);
 		}
 
@@ -358,7 +358,7 @@ export class RoutesMatcher {
 		const cookieLocales = parseAcceptLanguage(cookieValue ?? '');
 
 		const headerLocales = parseAcceptLanguage(
-			this.reqCtx.request.headers.get('accept-language') ?? ''
+			this.reqCtx.request.headers.get('accept-language') ?? '',
 		);
 
 		// Locales from the cookie take precedence over the header.
@@ -398,7 +398,7 @@ export class RoutesMatcher {
 	 */
 	private getLocaleFriendlyRoute(
 		route: VercelSource,
-		phase: VercelPhase
+		phase: VercelPhase,
 	): VercelSource {
 		if (!this.locales || phase !== 'miss') {
 			return route;
@@ -426,7 +426,7 @@ export class RoutesMatcher {
 	 */
 	private async checkRoute(
 		phase: VercelPhase,
-		rawRoute: VercelSource
+		rawRoute: VercelSource,
 	): Promise<CheckRouteStatus> {
 		const route = this.getLocaleFriendlyRoute(rawRoute, phase);
 		const routeMatch = this.checkRouteMatch(route, phase === 'error');
@@ -514,7 +514,7 @@ export class RoutesMatcher {
 		if (this.checkPhaseCounter++ >= 50) {
 			// eslint-disable-next-line no-console
 			console.error(
-				`Routing encountered an infinite loop while checking ${this.url.pathname}`
+				`Routing encountered an infinite loop while checking ${this.url.pathname}`,
 			);
 			this.status = 500;
 			return 'error';
@@ -585,7 +585,7 @@ export class RoutesMatcher {
 	 * @returns The status from checking for matches.
 	 */
 	public async run(
-		phase: Extract<VercelPhase, 'none' | 'error'> = 'none'
+		phase: Extract<VercelPhase, 'none' | 'error'> = 'none',
 	): Promise<CheckPhaseStatus> {
 		// Reset the counter for each run.
 		this.checkPhaseCounter = 0;

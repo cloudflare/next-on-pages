@@ -50,7 +50,7 @@ describe('matchPCRE', () => {
 			const result = matchPCRE(
 				testCase.route.src,
 				new URL(testCase.url).pathname,
-				testCase.route.caseSensitive
+				testCase.route.caseSensitive,
 			);
 			expect({ ...result, match: !!result.match }).toEqual(testCase.expected);
 		});
@@ -134,13 +134,13 @@ describe('applyPCREMatches', () => {
 			const { match, captureGroupKeys } = matchPCRE(
 				testCase.route.src,
 				new URL(testCase.url).pathname,
-				testCase.route.caseSensitive
+				testCase.route.caseSensitive,
 			);
 			const result = applyPCREMatches(
 				testCase.route.dest ?? '',
 				// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 				match!,
-				captureGroupKeys
+				captureGroupKeys,
 			);
 
 			const { newDest: expectedNewDest, ...expected } = testCase.expected;
