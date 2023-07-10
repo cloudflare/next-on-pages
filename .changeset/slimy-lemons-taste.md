@@ -12,7 +12,8 @@ a real need to warn developers not to use the `Image` component without a custom
 
 > **Warning**
 > This is technically a breaking change to the `eslint-plugin-next-on-pages` package
-> since linting would break for users specifically including the `missing-image-loader` rule,
+> since linting would break for users specifically including the `missing-image-loader`
+> rule (causing `Definition for rule 'next-on-pages/missing-loader' was not found` errors)
 > however currently we don't assume that many people are using the plugin with the rule
 > specifically included, moreover the resolution for the breaking change is to simply
 > remove the rule from the application's eslint configuration so it is also extremely
