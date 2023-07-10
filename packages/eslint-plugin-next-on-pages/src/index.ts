@@ -1,4 +1,3 @@
-import missingImageLoader from './rules/missing-image-loader';
 import noNodeJsRuntime from './rules/no-nodejs-runtime';
 import noUnsupportedConfigs from './rules/no-unsupported-configs';
 
@@ -6,7 +5,6 @@ import type { ESLint } from 'eslint';
 
 const config: ESLint.Plugin = {
 	rules: {
-		'missing-image-loader': missingImageLoader,
 		'no-nodejs-runtime': noNodeJsRuntime,
 		'no-unsupported-configs': noUnsupportedConfigs,
 	},
@@ -14,7 +12,6 @@ const config: ESLint.Plugin = {
 		recommended: {
 			plugins: ['eslint-plugin-next-on-pages'],
 			rules: {
-				'next-on-pages/missing-image-loader': 'warn',
 				'next-on-pages/no-nodejs-runtime': 'error',
 				'next-on-pages/no-unsupported-configs': 'error',
 			},

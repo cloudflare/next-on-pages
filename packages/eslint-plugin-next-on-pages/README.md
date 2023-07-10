@@ -29,7 +29,7 @@ Then simply register the plugin in your eslintrc file. As part of this we sugges
   ],
   "rules": {
 +    // specify or tweak the rules
-+    "next-on-pages/missing-image-loader": "error"
++    "next-on-pages/no-unsupported-configs": "warn"
   }
 }
 ```
