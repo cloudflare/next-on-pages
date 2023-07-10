@@ -1,6 +1,7 @@
 import type { Node } from 'acorn';
 import type * as AST from 'ast-types/gen/kinds';
 import type { ProcessVercelFunctionsOpts } from '.';
+import { cliError } from '../../cli';
 
 /**
  * Collects the identifiers from the AST and adds them to the provided map and list.
@@ -73,7 +74,13 @@ function collectIdentifierType<T extends IdentifierType>(
 		} else if (!uniqueIdentifiers.has(ident.identifier)) {
 			existing.consumers += 1;
 		} else {
-			// TODO: Proper collision error message.
+			cliError(
+				`
+						ERROR: Detected a collision with the webpack chunks deduplication.
+									 Try adding the '--disable-chunks-dedup' argument to temporarily solve the issue.
+					`,
+				{ spaced: true, showReport: true }
+			);
 			process.exit(1);
 		}
 

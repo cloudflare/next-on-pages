@@ -1,7 +1,7 @@
 import { parse } from 'acorn';
 import type * as AST from 'ast-types/gen/kinds';
 import { readFile } from 'node:fs/promises';
-import { join, relative } from 'node:path';
+import { dirname, join, relative } from 'node:path';
 import type { ProcessVercelFunctionsOpts } from '.';
 import type { CollectedFunctions, FunctionInfo } from './configs';
 import type {
@@ -15,7 +15,7 @@ import type {
 import { collectIdentifiers } from './ast';
 import { timer } from './temp';
 import { buildFile, getRelativePath } from './build';
-import { addLeadingSlash } from '../../utils';
+import { addLeadingSlash, copyFileWithDir } from '../../utils';
 
 export async function dedupeEdgeFunctions(
 	{ edgeFunctions }: CollectedFunctions,
@@ -58,16 +58,21 @@ async function processFunctionIdentifiers(
 		const buildIdentifiersPromises: Promise<void>[] = [];
 		const importsToPrepend: NewImportInfo[] = [];
 
+		const newFnLocation = join('functions', `${fnInfo.relativePath}.js`);
+		const newFnPath = join(opts.nopDistDir, newFnLocation);
+
 		for (const { type, identifier, start, end, importPath } of identifiers) {
 			// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 			const identifierInfo = identifierMaps[type].get(identifier)!;
 
 			if (importPath) {
-				processImportIdentifier(
-					fileContents,
+				const { updatedContents } = await processImportIdentifier(
 					{ type, identifier, start, end, importPath, info: identifierInfo },
+					{ fileContents, entrypoint, newFnLocation },
 					opts
 				);
+
+				fileContents = updatedContents;
 			} else if (identifierInfo.consumers > 1) {
 				// Only dedupe code blocks if there are multiple consumers.
 				const { updatedContents, newImport, buildPromise } =
@@ -89,8 +94,7 @@ async function processFunctionIdentifiers(
 		// TODO: If wasm identifier is used in code block, prepend the import to the identifier's file.
 
 		const { buildPromise } = await buildFunctionFile(
-			fnInfo,
-			fileContents,
+			{ fnInfo, fileContents, newFnLocation, newFnPath },
 			{ importsToPrepend },
 			opts
 		);
@@ -113,14 +117,12 @@ async function processFunctionIdentifiers(
  * @returns A promise that resolves when the function has been built.
  */
 async function buildFunctionFile(
-	fnInfo: FunctionInfo,
-	fileContents: string,
+	{ fnInfo, fileContents, newFnLocation, newFnPath }: BuildFunctionFileOpts,
 	{ importsToPrepend }: { importsToPrepend: NewImportInfo[] },
 	{ workerJsDir, nopDistDir }: ProcessVercelFunctionsOpts
 ): Promise<{ buildPromise: Promise<void> }> {
-	const newFnLocation = join('functions', `${fnInfo.relativePath}.js`);
-
 	let functionImports = '';
+
 	importsToPrepend.forEach(({ key, path }) => {
 		const relativeImportPath = getRelativePath(newFnLocation, nopDistDir);
 		const importPath = join(relativeImportPath, addLeadingSlash(path));
@@ -128,7 +130,6 @@ async function buildFunctionFile(
 		functionImports += `import ${key} from '${importPath}';\n`;
 	});
 
-	const newFnPath = join(nopDistDir, newFnLocation);
 	fnInfo.outputPath = relative(workerJsDir, newFnPath);
 
 	const finalFileContents = `${functionImports}${fileContents}`;
@@ -137,25 +138,62 @@ async function buildFunctionFile(
 	return { buildPromise };
 }
 
+type BuildFunctionFileOpts = {
+	fnInfo: FunctionInfo;
+	fileContents: string;
+	newFnLocation: string;
+	newFnPath: string;
+};
+
 /**
  * Processes an import path identifier.
  *
  * - Moves the imported file to the new location if it doesn't exist.
  * - Updates the file contents to import from the new location.
  *
- * @param fileContents Contents of the function's file.
  * @param ident The import path identifier to process.
+ * @param processOpts Contents of the function's file, the function's entrypoint, and the new path.
  * @param opts Options for processing the function.
- * @returns // TODO
+ * @returns The updated file contents.
  */
-function processImportIdentifier(
-	fileContents: string,
+async function processImportIdentifier(
 	ident: RawIdentifierWithImport<IdentifierType> & { info: IdentifierInfo },
+	{ fileContents, entrypoint, newFnLocation }: ProcessImportIdentifierOpts,
 	{ nopDistDir, workerJsDir }: ProcessVercelFunctionsOpts
-) {
-	// TODO: Move imported asset.
-	// TODO: Update file contents to import from new location.
+): Promise<{ updatedContents: string }> {
+	const { type, identifier, start, end, importPath, info } = ident;
+	let updatedContents = fileContents;
+
+	const codeBlock = updatedContents.slice(start, end);
+
+	if (!info.newDest) {
+		const importPathWithoutType = importPath
+			// remove leading `../` from import path.
+			.replace(/^(\.\.\/)+/, '')
+			// remove type directory from import path if it starts with it.
+			.replace(new RegExp(`^/${type}/`), '/');
+
+		const oldPath = join(dirname(entrypoint), importPath);
+		const newPath = join(nopDistDir, type, importPathWithoutType);
+		info.newDest = relative(workerJsDir, newPath);
+
+		await copyFileWithDir(oldPath, newPath);
+	}
+
+	const relativeImportPath = getRelativePath(newFnLocation, nopDistDir);
+	const newImportPath = join(relativeImportPath, info.newDest);
+
+	const newVal = `import ${identifier} from "${newImportPath}";`;
+	updatedContents = replaceLastInstance(updatedContents, codeBlock, newVal);
+
+	return { updatedContents };
 }
+
+type ProcessImportIdentifierOpts = {
+	fileContents: string;
+	entrypoint: string;
+	newFnLocation: string;
+};
 
 /**
  * Processes a code block identifier.
@@ -163,21 +201,17 @@ function processImportIdentifier(
  * - Creates a new file for the code block if it doesn't exist.
  * - Updates the file contents to be able to import the code block.
  *
- * @param fileContents Contents of the function's file.
  * @param ident The code block identifier to process.
+ * @param processOpts Contents of the function's file.
  * @param opts Options for processing the function.
  * @returns A promise that resolves when the code block is built, and the new import info to prepend
- * to the function's file.
+ * to the function's file, along with the updated file contents.
  */
 function processCodeBlockIdentifier(
 	ident: RawIdentifier<IdentifierType> & { info: IdentifierInfo },
 	{ fileContents }: { fileContents: string },
 	{ nopDistDir, workerJsDir }: ProcessVercelFunctionsOpts
-): {
-	updatedContents: string;
-	buildPromise?: Promise<void>;
-	newImport?: NewImportInfo;
-} {
+): ProcessCodeBlockIdentifierResult {
 	const { type, identifier, start, end, info } = ident;
 	let updatedContents = fileContents;
 
@@ -207,6 +241,12 @@ function processCodeBlockIdentifier(
 
 	return { updatedContents, newImport, buildPromise };
 }
+
+type ProcessCodeBlockIdentifierResult = {
+	updatedContents: string;
+	buildPromise?: Promise<void>;
+	newImport?: NewImportInfo;
+};
 
 type NewImportInfo = { key: string; path: string };
 
