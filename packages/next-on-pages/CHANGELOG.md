@@ -1,5 +1,34 @@
 # @cloudflare/next-on-pages
 
+## 1.3.0
+
+### Minor Changes
+
+- cb7ab43: Support for images via `/_next/image`, falling back to the raw image URL when image resizing is not available.
+
+  Due to limitations with Cloudflare Pages, it is not currently possible to send requests through image resizing.
+
+### Patch Changes
+
+- cf5234a: Prevent the build process from modifying the `.vercel/output/functions` directory.
+- 92c865b: deduplicate Next.js manifests
+
+  Currently in our functions files we have end up having a number of Next.js internally used manifest objects duplicated.
+  These manifests increase as the number of routes increases making the size effects of the duplication quite problematic for medium/large applications
+  (for small applications the manifest duplication is not as problematic).
+
+  This change removes such duplication by making sure that we only include each type of manifest once and share such javascript object across the various functions instead (significantly decreasing the output size of medium/large next-on-pages applications).
+
+- 505be1e: avoid extracting chunks when unnecessary
+
+  As part of our lazy loading implementation (see https://github.com/cloudflare/next-on-pages/blob/main/docs/technical/lazy-loading.md)
+  we extract chunks that are used by different routes into separate functions and import those functions in the route files, this allows
+  us not to duplicate chunks code.
+
+  This change here makes sure that only the chunks that are actually used by multiple routes get extracted as there isn't a real benefit
+  in extracting into separate files chunks that are used by single routes, on the contrary it actually adds overhead and increases
+  the number of files produced, which for large next-on-pages applications might be problematic.
+
 ## 1.2.0
 
 ### Minor Changes
@@ -98,7 +127,7 @@
     // file: .vercel/output/static/_worker.js/__next-on-pages-dist__/chunks/649.js
     import wasm_fbeb8adedbc833032bda6f13925ba235b8d09114 from '../wasm/wasm_fbeb8adedbc833032bda6f13925ba235b8d09114.wasm';
     var a = b => {
-    	b.exports = wasm_fbeb8adedbc833032bda6f13925ba235b8d09114;
+      b.exports = wasm_fbeb8adedbc833032bda6f13925ba235b8d09114;
     };
     export { a as default };
     ```
