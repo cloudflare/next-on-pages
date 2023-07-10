@@ -1,6 +1,6 @@
 import { parse } from 'acorn';
 import type * as AST from 'ast-types/gen/kinds';
-import { readFile } from 'node:fs/promises';
+import { readFile, writeFile } from 'node:fs/promises';
 import { dirname, join, relative } from 'node:path';
 import type { ProcessVercelFunctionsOpts } from '.';
 import type { CollectedFunctions, FunctionInfo } from './configs';
@@ -17,6 +17,13 @@ import { timer } from './temp';
 import { buildFile, getRelativePath } from './build';
 import { addLeadingSlash, copyFileWithDir } from '../../utils';
 
+/**
+ * Dedupes edge functions.
+ *
+ * @param collectedFunctions Functions collected from the Vercel build output.
+ * @param opts Options for processing Vercel functions.
+ * @returns
+ */
 export async function dedupeEdgeFunctions(
 	{ edgeFunctions }: CollectedFunctions,
 	opts: ProcessVercelFunctionsOpts
@@ -36,6 +43,13 @@ export async function dedupeEdgeFunctions(
 	return identifiers;
 }
 
+/**
+ * Processes the function identifiers collected from the function files.
+ *
+ * @param collectedFunctions The collected functions from the Vercel build output.
+ * @param collectedFunctionIdentifiers Identifiers collected from the functions' files.
+ * @param opts Options for processing the functions.
+ */
 async function processFunctionIdentifiers(
 	{ edgeFunctions }: Pick<CollectedFunctions, 'edgeFunctions'>,
 	{ entrypointsMap, identifierMaps }: CollectedFunctionIdentifiers,
@@ -57,6 +71,7 @@ async function processFunctionIdentifiers(
 
 		const buildIdentifiersPromises: Promise<void>[] = [];
 		const importsToPrepend: NewImportInfo[] = [];
+		const wasmImportsToPrepend: Map<string, string[]> = new Map();
 
 		const newFnLocation = join('functions', `${fnInfo.relativePath}.js`);
 		const newFnPath = join(opts.nopDistDir, newFnLocation);
@@ -75,24 +90,36 @@ async function processFunctionIdentifiers(
 				fileContents = updatedContents;
 			} else if (identifierInfo.consumers > 1) {
 				// Only dedupe code blocks if there are multiple consumers.
-				const { updatedContents, newImport, buildPromise } =
+				const { updatedContents, newImport, buildPromise, wasmImports } =
 					processCodeBlockIdentifier(
 						{ type, identifier, start, end, info: identifierInfo },
-						{ fileContents },
+						{ fileContents, wasmIdentifierKeys },
 						opts
 					);
 
 				fileContents = updatedContents;
 				if (buildPromise) buildIdentifiersPromises.push(buildPromise);
 				if (newImport) importsToPrepend.push(newImport);
+				if (wasmImports.length) {
+					wasmImportsToPrepend.set(
+						identifierInfo.newDest as string,
+						wasmImports
+					);
+				}
 			}
 		}
 
 		// Wait for any identifiers to be built before building the function's file.
 		await Promise.all(buildIdentifiersPromises);
 
-		// TODO: If wasm identifier is used in code block, prepend the import to the identifier's file.
+		// If wasm identifier is used in code block, prepend the import to the code block's file.
+		await prependWasmImportsToCodeBlocks(
+			wasmImportsToPrepend,
+			identifierMaps,
+			opts
+		);
 
+		// Build the function's file.
 		const { buildPromise } = await buildFunctionFile(
 			{ fnInfo, fileContents, newFnLocation, newFnPath },
 			{ importsToPrepend },
@@ -144,6 +171,40 @@ type BuildFunctionFileOpts = {
 	newFnLocation: string;
 	newFnPath: string;
 };
+
+/**
+ * Prepends Wasm imports to a code block's built file.
+ *
+ * @param wasmImportsToPrepend The collected Wasm imports in code block files.
+ * @param identifierMaps The collected identifiers.
+ * @param opts Options for processing the function.
+ */
+async function prependWasmImportsToCodeBlocks(
+	wasmImportsToPrepend: Map<string, string[]>,
+	identifierMaps: Record<IdentifierType, IdentifiersMap>,
+	{ workerJsDir, nopDistDir }: ProcessVercelFunctionsOpts
+) {
+	await Promise.all(
+		[...wasmImportsToPrepend.entries()].map(
+			async ([codeBlockRelativePath, wasmImports]) => {
+				const filePath = join(workerJsDir, codeBlockRelativePath);
+				const relativeImportPath = getRelativePath(filePath, nopDistDir);
+
+				let functionImports = '';
+
+				for (const identifier of wasmImports) {
+					// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+					const { newDest } = identifierMaps.wasm.get(identifier)!;
+					const wasmImportPath = join(relativeImportPath, newDest as string);
+					functionImports += `import ${identifier} from "${wasmImportPath}";\n`;
+				}
+
+				const oldContents = await readFile(filePath);
+				await writeFile(filePath, `${functionImports}${oldContents}`);
+			}
+		)
+	);
+}
 
 /**
  * Processes an import path identifier.
@@ -209,7 +270,10 @@ type ProcessImportIdentifierOpts = {
  */
 function processCodeBlockIdentifier(
 	ident: RawIdentifier<IdentifierType> & { info: IdentifierInfo },
-	{ fileContents }: { fileContents: string },
+	{
+		fileContents,
+		wasmIdentifierKeys,
+	}: { fileContents: string; wasmIdentifierKeys: string[] },
 	{ nopDistDir, workerJsDir }: ProcessVercelFunctionsOpts
 ): ProcessCodeBlockIdentifierResult {
 	const { type, identifier, start, end, info } = ident;
@@ -219,12 +283,16 @@ function processCodeBlockIdentifier(
 
 	let buildPromise: Promise<void> | undefined;
 	let newImport: NewImportInfo | undefined;
+	const wasmImports: string[] = [];
 
 	if (!info.newDest) {
 		const newPath = join(nopDistDir, type, `${identifier}.js`);
 		info.newDest = relative(workerJsDir, newPath);
 
-		// TODO: Wasm identifier used in code block.
+		// Record the wasm identifiers used in the code block.
+		wasmIdentifierKeys
+			.filter(key => codeBlock.includes(key))
+			.forEach(key => wasmImports.push(key));
 
 		buildPromise = buildFile(`export default ${codeBlock}`, newPath);
 	}
@@ -239,13 +307,14 @@ function processCodeBlockIdentifier(
 		newImport = { key: identifier, path: info.newDest };
 	}
 
-	return { updatedContents, newImport, buildPromise };
+	return { updatedContents, newImport, buildPromise, wasmImports };
 }
 
 type ProcessCodeBlockIdentifierResult = {
 	updatedContents: string;
 	buildPromise?: Promise<void>;
 	newImport?: NewImportInfo;
+	wasmImports: string[];
 };
 
 type NewImportInfo = { key: string; path: string };
