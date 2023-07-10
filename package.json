@@ -7,7 +7,7 @@
 		"pages-e2e/features/*"
 	],
 	"scripts": {
-		"prettier": "npx prettier --ignore-path .gitignore --ignore-unknown .",
+		"prettier": "npx prettier --ignore-path .gitignore --ignore-path .prettierignore --ignore-unknown .",
 		"prettier:check": "npm run prettier -- --check",
 		"prettier:fix": "npm run prettier -- --write",
 		"lint": "FORCE_COLOR=1 turbo lint",
