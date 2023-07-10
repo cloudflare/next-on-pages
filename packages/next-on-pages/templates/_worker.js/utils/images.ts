@@ -1,3 +1,5 @@
+import { applyHeaders, createMutableResponse } from './http';
+
 /**
  * Checks whether the given URL matches the given remote pattern from the Vercel build output
  * images configuration.
@@ -25,6 +27,7 @@ export function isRemotePatternMatch(
 }
 
 type ResizingProperties = {
+	isRelative: boolean;
 	imageUrl: URL;
 	options: RequestInitCfPropertiesImage;
 };
@@ -63,9 +66,10 @@ export function getResizingProperties(
 		return undefined;
 	}
 
+	const isRelative = rawUrl.startsWith('/') || rawUrl.startsWith('%2F');
 	if (
 		// Relative URL means same origin as deployment and is allowed.
-		!(rawUrl.startsWith('/') || rawUrl.startsWith('%2F')) &&
+		!isRelative &&
 		// External image URL must be allowed by domains or remote patterns.
 		!config?.domains?.includes(url.hostname) &&
 		!config?.remotePatterns?.find(pattern => isRemotePatternMatch(url, pattern))
@@ -76,9 +80,10 @@ export function getResizingProperties(
 	const acceptHeader = request.headers.get('Accept') ?? '';
 	const format = config?.formats
 		?.find(format => acceptHeader.includes(format))
-		?.replace('image/', '') as VercelImageFormatWithoutPrefix;
+		?.replace('image/', '') as VercelImageFormatWithoutPrefix | undefined;
 
 	return {
+		isRelative,
 		imageUrl: url,
 		options: { width, quality, format },
 	};
@@ -102,7 +107,7 @@ export function formatResp(
 	imageUrl: URL,
 	config?: VercelImagesConfig
 ): Response {
-	const newHeaders = new Headers(resp.headers);
+	const newHeaders = new Headers();
 
 	if (config?.contentSecurityPolicy) {
 		newHeaders.set('Content-Security-Policy', config.contentSecurityPolicy);
@@ -117,7 +122,19 @@ export function formatResp(
 		newHeaders.set('Content-Disposition', contentDisposition);
 	}
 
-	return new Response(resp.body, { headers: newHeaders });
+	if (!resp.headers.has('Cache-Control')) {
+		// Fall back to the minimumCacheTTL value if there is no Cache-Control header.
+		// https://vercel.com/docs/concepts/image-optimization#caching
+		newHeaders.set(
+			'Cache-Control',
+			`public, max-age=${config?.minimumCacheTTL ?? 60}`
+		);
+	}
+
+	const mutableResponse = createMutableResponse(resp);
+	applyHeaders(mutableResponse.headers, newHeaders);
+
+	return mutableResponse;
 }
 
 /**
@@ -129,18 +146,29 @@ export function formatResp(
  */
 export async function handleImageResizingRequest(
 	request: Request,
-	config?: VercelImagesConfig
+	{ buildOutput, assetsFetcher, imagesConfig }: ImageResizingOpts
 ): Promise<Response> {
-	const opts = getResizingProperties(request, config);
+	const opts = getResizingProperties(request, imagesConfig);
 
 	if (!opts) {
 		return new Response('Invalid image resizing request', { status: 400 });
 	}
 
-	const { imageUrl } = opts;
+	const { isRelative, imageUrl } = opts;
 
 	// TODO: implement proper image resizing
 
-	const imageResp = await fetch(imageUrl, { headers: request.headers });
-	return formatResp(imageResp, imageUrl, config);
+	const imageReq = new Request(imageUrl, { headers: request.headers });
+	const imageResp =
+		isRelative && imageUrl.pathname in buildOutput
+			? await assetsFetcher.fetch(imageReq)
+			: await fetch(imageReq);
+
+	return formatResp(imageResp, imageUrl, imagesConfig);
 }
+
+type ImageResizingOpts = {
+	buildOutput: VercelBuildOutput;
+	assetsFetcher: Fetcher;
+	imagesConfig?: VercelImagesConfig;
+};

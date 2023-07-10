@@ -126,6 +126,7 @@ describe('getResizingProperties', () => {
 
 			const result = getResizingProperties(req, baseConfig);
 			expect(result).toEqual({
+				isRelative: true,
 				imageUrl: new URL('https://localhost/images/1.jpg'),
 				options: { format: undefined, width: 640, quality: 75 },
 			});
@@ -146,6 +147,7 @@ describe('getResizingProperties', () => {
 
 			const result = getResizingProperties(req, config);
 			expect(result).toEqual({
+				isRelative: true,
 				imageUrl: new URL('https://localhost/images/1.svg'),
 				options: { format: undefined, width: 640, quality: 75 },
 			});
@@ -158,6 +160,7 @@ describe('getResizingProperties', () => {
 
 			const result = getResizingProperties(req, config);
 			expect(result).toEqual({
+				isRelative: true,
 				imageUrl: new URL('https://localhost/images/1.svg'),
 				options: { format: undefined, width: 640, quality: 75 },
 			});
@@ -182,6 +185,7 @@ describe('getResizingProperties', () => {
 
 			const result = getResizingProperties(req, baseConfig);
 			expect(result).toEqual({
+				isRelative: false,
 				imageUrl: new URL('https://example.com/image.jpg'),
 				options: { format: undefined, width: 640, quality: 75 },
 			});
@@ -195,6 +199,7 @@ describe('getResizingProperties', () => {
 
 			const result = getResizingProperties(req, baseConfig);
 			expect(result).toEqual({
+				isRelative: false,
 				imageUrl: new URL('https://via.placeholder.com/image.jpg'),
 				options: { format: undefined, width: 640, quality: 75 },
 			});
@@ -208,6 +213,7 @@ describe('getResizingProperties', () => {
 
 			const result = getResizingProperties(req, baseConfig);
 			expect(result).toEqual({
+				isRelative: true,
 				imageUrl: new URL('https://localhost/images/1.jpg'),
 				options: { format: 'webp', width: 640, quality: 75 },
 			});
@@ -221,6 +227,7 @@ describe('getResizingProperties', () => {
 
 			const result = getResizingProperties(req, baseConfig);
 			expect(result).toEqual({
+				isRelative: true,
 				imageUrl: new URL('https://localhost/images/1.jpg'),
 				options: { format: 'avif', width: 640, quality: 75 },
 			});
@@ -247,5 +254,25 @@ describe('formatResp', () => {
 		expect(newResp.headers.get('Content-Disposition')).toEqual(
 			'inline; filename="1.jpg"'
 		);
+	});
+
+	test('uses cache ttl from config when no cache header is present', () => {
+		const config = baseConfig;
+		const imageUrl = new URL('https://localhost/images/1.jpg');
+
+		const newResp = formatResp(new Response(), imageUrl, config);
+		expect(newResp.headers.get('Cache-Control')).toEqual('public, max-age=60');
+	});
+
+	test('does not override the cache header when one is present', () => {
+		const config = baseConfig;
+		const imageUrl = new URL('https://localhost/images/1.jpg');
+
+		const newResp = formatResp(
+			new Response(null, { headers: { 'cache-control': 'test-value' } }),
+			imageUrl,
+			config
+		);
+		expect(newResp.headers.get('Cache-Control')).toEqual('test-value');
 	});
 });
