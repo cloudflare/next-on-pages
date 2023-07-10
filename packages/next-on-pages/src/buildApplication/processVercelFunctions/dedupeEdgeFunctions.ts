@@ -39,15 +39,15 @@ export async function dedupeEdgeFunctions(
 async function processFunctionIdentifiers(
 	{ edgeFunctions }: Pick<CollectedFunctions, 'edgeFunctions'>,
 	{ entrypointsMap, identifierMaps }: CollectedFunctionIdentifiers,
-	{ workerJsDir, nopDistDir }: ProcessVercelFunctionsOpts
+	opts: ProcessVercelFunctionsOpts
 ) {
-	const buildFunctionPromises: Promise<void>[] = [];
+	const functionBuildPromises: Promise<void>[] = [];
 
 	const wasmIdentifierKeys = [...identifierMaps.wasm.keys()];
 
 	for (const [path, fnInfo] of edgeFunctions) {
 		const { entrypoint, ...file } = await getFunctionFile(path, fnInfo);
-		let fileContents = file.contents;
+		const fileContents = file.contents;
 
 		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 		const identifiers = entrypointsMap
@@ -56,121 +56,152 @@ async function processFunctionIdentifiers(
 			.sort((a, b) => b.start - a.start);
 
 		const buildIdentifiersPromises: Promise<void>[] = [];
-		const importsToPrepend: { key: string; path: string }[] = [];
+		const importsToPrepend: NewImportInfo[] = [];
 
-		for (const ident of identifiers) {
-			const { type, identifier, importPath } = ident;
-
+		for (const { type, identifier, start, end, importPath } of identifiers) {
 			// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-			const identInfo = identifierMaps[type].get(identifier)!;
+			const identifierInfo = identifierMaps[type].get(identifier)!;
 
-			// TODO: Refactor this ugly chonky function.
+			if (importPath) {
+				processImportIdentifier(
+					fileContents,
+					{ type, identifier, start, end, importPath, info: identifierInfo },
+					opts
+				);
+			} else if (identifierInfo.consumers > 1) {
+				// Only dedupe code blocks if there are multiple consumers.
+				const { newImport, buildPromise } = processCodeBlockIdentifier(
+					fileContents,
+					{ type, identifier, start, end, info: identifierInfo },
+					opts
+				);
 
-			// Only dedupe if there are multiple consumers.
-			if (identInfo.consumers > 1) {
-				if (importPath) {
-					// TODO: Import replacements + file moving.
-				} else {
-					const codeBlock = fileContents.slice(ident.start, ident.end);
-					if (!identInfo.newDest) {
-						const newPath = join(nopDistDir, type, `${identifier}.js`);
-						identInfo.newDest = relative(workerJsDir, newPath);
-
-						// TODO: Wasm in chunk.
-
-						buildIdentifiersPromises.push(
-							buildFile(`export default ${codeBlock}`, newPath)
-						);
-					}
-
-					if (type === 'webpack') {
-						const newVal = `__chunk_${identifier}`;
-						fileContents = replaceLastInstance(fileContents, codeBlock, newVal);
-						importsToPrepend.push({ key: newVal, path: identInfo.newDest });
-					} else if (type === 'manifest') {
-						const newVal = `self.${identifier}=${identifier};`;
-						fileContents = replaceLastInstance(fileContents, codeBlock, newVal);
-						importsToPrepend.push({ key: identifier, path: identInfo.newDest });
-					}
-				}
+				if (buildPromise) buildIdentifiersPromises.push(buildPromise);
+				if (newImport) importsToPrepend.push(newImport);
 			}
-
-			// Return contents and path if a new file should be built.
-
-			// Promise.all to build the new codeBlock files.
-
-			// If wasm identifier is used, prepend the import to the codeblock file.
 		}
 
-		// Wait for any identifiers to be built before building the function.
+		// Wait for any identifiers to be built before building the function's file.
 		await Promise.all(buildIdentifiersPromises);
 
-		const newFuncLoc = join('functions', `${fnInfo.relativePath}.js`);
-		const newPath = join(nopDistDir, newFuncLoc);
+		// TODO: If wasm identifier is used in code block, prepend the import to the identifier's file.
 
-		await Promise.all(
-			importsToPrepend.map(async ({ key, path }) => {
-				const relativeImportPath = getRelativePath(newFuncLoc, nopDistDir);
-
-				const importPath = join(relativeImportPath, addLeadingSlash(path));
-				fileContents = `import ${key} from '${importPath}';\n${fileContents}`;
-			})
+		const { buildPromise } = await buildFunctionFile(
+			fnInfo,
+			fileContents,
+			{ importsToPrepend },
+			opts
 		);
-
-		// Build the new function contents to the output directory.
-		buildFunctionPromises.push(buildFile(fileContents, newPath, nopDistDir));
-		fnInfo.outputPath = relative(workerJsDir, newPath);
+		functionBuildPromises.push(buildPromise);
 	}
 
-	await Promise.all(buildFunctionPromises);
+	await Promise.all(functionBuildPromises);
 }
 
-async function processImportIdentifier(
-	{
-		ident,
-		info,
-		nopDistDir,
-	}: ProcessIdentifierOpts<RawIdentifierWithImport<IdentifierType>>,
-	fileContents: string
-): Promise<void> {
-	const { type, identifier, importPath } = ident;
-	if (!info.newDest) {
-		info.newDest = join(nopDistDir, type, `${identifier}.js`);
-	}
+/**
+ * Builds a new file for an Edge function.
+ *
+ * - Prepends any imports to the function's contents.
+ * - Builds the new file to the output directory.
+ *
+ * @param fnInfo The collected function info.
+ * @param fileContents The contents of the function's file.
+ * @param importsToPrepend Imports to prepend to the function's file before building.
+ * @param opts Options for processing the function.
+ * @returns A promise that resolves when the function has been built.
+ */
+async function buildFunctionFile(
+	fnInfo: FunctionInfo,
+	fileContents: string,
+	{ importsToPrepend }: { importsToPrepend: NewImportInfo[] },
+	{ workerJsDir, nopDistDir }: ProcessVercelFunctionsOpts
+): Promise<{ buildPromise: Promise<void> }> {
+	const newFnLocation = join('functions', `${fnInfo.relativePath}.js`);
 
-	// Update the import path in the code to the correct destination.
+	let functionImports = '';
+	importsToPrepend.forEach(({ key, path }) => {
+		const relativeImportPath = getRelativePath(newFnLocation, nopDistDir);
+		const importPath = join(relativeImportPath, addLeadingSlash(path));
+
+		functionImports += `import ${key} from '${importPath}';\n`;
+	});
+
+	const newFnPath = join(nopDistDir, newFnLocation);
+	fnInfo.outputPath = relative(workerJsDir, newFnPath);
+
+	const finalFileContents = `${functionImports}${fileContents}`;
+	const buildPromise = buildFile(finalFileContents, newFnPath, nopDistDir);
+
+	return { buildPromise };
 }
 
-async function processCodeBlockIdentifier(
-	{
-		ident,
-		info,
-		nopDistDir,
-	}: ProcessIdentifierOpts<RawIdentifier<IdentifierType>>,
-	fileContents: string
-): Promise<void> {
-	const { type, identifier, start, end } = ident;
+/**
+ * Processes an import path identifier.
+ *
+ * - Moves the imported file to the new location if it doesn't exist.
+ * - Updates the file contents to import from the new location.
+ *
+ * @param fileContents Contents of the function's file.
+ * @param ident The import path identifier to process.
+ * @param opts Options for processing the function.
+ * @returns // TODO
+ */
+function processImportIdentifier(
+	fileContents: string,
+	ident: RawIdentifierWithImport<IdentifierType> & { info: IdentifierInfo },
+	{ nopDistDir, workerJsDir }: ProcessVercelFunctionsOpts
+) {
+	// TODO: Move imported asset.
+	// TODO: Update file contents to import from new location.
+}
+
+/**
+ * Processes a code block identifier.
+ *
+ * - Creates a new file for the code block if it doesn't exist.
+ * - Updates the file contents to be able to import the code block.
+ *
+ * @param fileContents Contents of the function's file.
+ * @param ident The code block identifier to process.
+ * @param opts Options for processing the function.
+ * @returns A promise that resolves when the code block is built, and the new import info to prepend
+ * to the function's file.
+ */
+function processCodeBlockIdentifier(
+	fileContents: string,
+	ident: RawIdentifier<IdentifierType> & { info: IdentifierInfo },
+	{ nopDistDir, workerJsDir }: ProcessVercelFunctionsOpts
+): { buildPromise?: Promise<void>; newImport?: NewImportInfo } {
+	const { type, identifier, start, end, info } = ident;
 
 	const codeBlock = fileContents.slice(start, end);
 
-	if (!info.newDest) {
-		info.newDest = join(nopDistDir, type, `${identifier}.js`);
+	let buildPromise: Promise<void> | undefined;
+	let newImport: NewImportInfo | undefined;
 
-		await buildFile(`export default ${codeBlock}`, info.newDest);
+	if (!info.newDest) {
+		const newPath = join(nopDistDir, type, `${identifier}.js`);
+		info.newDest = relative(workerJsDir, newPath);
+
+		// TODO: Wasm identifier used in code block.
+
+		buildPromise = buildFile(`export default ${codeBlock}`, newPath);
 	}
 
-	// Update the code to the import the new file for the code block.
+	if (type === 'webpack') {
+		const newVal = `__chunk_${identifier}`;
+		fileContents = replaceLastInstance(fileContents, codeBlock, newVal);
+		newImport = { key: newVal, path: info.newDest };
+	} else if (type === 'manifest') {
+		const newVal = `self.${identifier}=${identifier};`;
+		fileContents = replaceLastInstance(fileContents, codeBlock, newVal);
+		newImport = { key: identifier, path: info.newDest };
+	}
+
+	return { newImport, buildPromise };
 }
 
-type ProcessIdentifierOpts<
-	T extends
-		| RawIdentifier<IdentifierType>
-		| RawIdentifierWithImport<IdentifierType>
-> = {
-	ident: T;
-	info: IdentifierInfo;
-	nopDistDir: string;
-};
+type NewImportInfo = { key: string; path: string };
 
 /**
  * Gets the identifiers from the collected functions for deduping.
@@ -244,6 +275,13 @@ function fixFunctionContents(contents: string): string {
 	return contents;
 }
 
+/**
+ * Gets the function file contents and entrypoint.
+ *
+ * @param path Path to the function directory.
+ * @param fnInfo The collected function info.
+ * @returns The function file contents and entrypoint.
+ */
 async function getFunctionFile(
 	path: string,
 	fnInfo: FunctionInfo
@@ -256,6 +294,14 @@ async function getFunctionFile(
 	return { contents: fixedContents, entrypoint };
 }
 
+/**
+ * Replaces the last instance of a string, in a string.
+ *
+ * @param contents Contents of the file to replace the last instance in.
+ * @param target The target string to replace.
+ * @param value The value to replace the target with.
+ * @returns The updated contents.
+ */
 function replaceLastInstance(contents: string, target: string, value: string) {
 	const lastIndex = contents.lastIndexOf(target);
 
