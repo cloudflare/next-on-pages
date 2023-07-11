@@ -60,13 +60,12 @@ export function applySearchParams(
 	source: URLSearchParams,
 ) {
 	for (const [key, value] of source.entries()) {
-		if (!target.has(key) || (target.get(key) !== value && !!value)) {
-			target.append(key, value);
-		}
-
 		const paramMatch = /^nxtP(.+)$/.exec(key);
 		if (paramMatch?.[1]) {
+			target.set(key, value);
 			target.set(paramMatch[1], value);
+		} else if (!target.has(key) || (target.get(key) !== value && !!value)) {
+			target.append(key, value);
 		}
 	}
 }
