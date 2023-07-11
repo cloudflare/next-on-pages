@@ -2,7 +2,7 @@ import Link from 'next/link';
 
 export default async function Layout({ children }) {
 	const title = await new Promise(resolve =>
-		resolve('Server Side Rendered Navigation')
+		resolve('Server Side Rendered Navigation'),
 	);
 
 	return (

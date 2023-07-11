@@ -13,31 +13,31 @@ describe('Simple App Static SPA navigation', () => {
 		await page.goto(`${DEPLOYMENT_URL}/navigation`);
 
 		expect(
-			await page.locator('h1', { hasText: 'Navigation' }).isVisible()
+			await page.locator('h1', { hasText: 'Navigation' }).isVisible(),
 		).toBe(true);
 		expect(await page.locator('h2', { hasText: 'Index' }).isVisible()).toBe(
-			true
+			true,
 		);
 
 		await page.locator('a', { hasText: 'to page A' }).click();
 
 		await page.locator('h2', { hasText: 'Page A' }).waitFor();
 		expect(await page.locator('h2', { hasText: 'Page A' }).isVisible()).toBe(
-			true
+			true,
 		);
 
 		await page.locator('a', { hasText: 'to page B' }).click();
 
 		await page.locator('h2', { hasText: 'Page B' }).waitFor();
 		expect(await page.locator('h2', { hasText: 'Page B' }).isVisible()).toBe(
-			true
+			true,
 		);
 
 		await page.goBack();
 
 		await page.locator('h2', { hasText: 'Page A' }).waitFor();
 		expect(await page.locator('h2', { hasText: 'Page A' }).isVisible()).toBe(
-			true
+			true,
 		);
 
 		const hardNavigationRequests = requestUrls.filter(url => {

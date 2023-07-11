@@ -24,7 +24,7 @@ describe('Simple Pages Static Routes', () => {
 		const pageContent = await page.content();
 
 		const isOldStyleNextIndexPage = pageContent.includes(
-			'Welcome to <a href="https://nextjs.org">Next.js!</a>'
+			'Welcome to <a href="https://nextjs.org">Next.js!</a>',
 		);
 
 		if (isOldStyleNextIndexPage) {

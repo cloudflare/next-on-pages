@@ -19,6 +19,6 @@ export async function GET() {
 		JSON.stringify({
 			cookies: allCookies,
 			headers: allHeaders,
-		})
+		}),
 	);
 }

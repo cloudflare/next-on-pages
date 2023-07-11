@@ -15,6 +15,6 @@ export default function handler(req) {
 		JSON.stringify({
 			cookies: allCookies,
 			headers: allHeaders,
-		})
+		}),
 	);
 }

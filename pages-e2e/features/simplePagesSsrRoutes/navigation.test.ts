@@ -13,12 +13,12 @@ describe('Simple Pages SSR routes SPA navigation', () => {
 		await page.goto(`${DEPLOYMENT_URL}/ssr-navigation`);
 
 		expect(
-			await page.locator('h1', { hasText: 'Navigation' }).isVisible()
+			await page.locator('h1', { hasText: 'Navigation' }).isVisible(),
 		).toBe(true);
 		expect(
 			await page
 				.locator('h2', { hasText: 'Server Side Rendered Index' })
-				.isVisible()
+				.isVisible(),
 		).toBe(true);
 
 		await page.locator('a', { hasText: 'to page A' }).click();
@@ -29,7 +29,7 @@ describe('Simple Pages SSR routes SPA navigation', () => {
 		expect(
 			await page
 				.locator('h2', { hasText: 'Server Side Rendered Page A' })
-				.isVisible()
+				.isVisible(),
 		).toBe(true);
 
 		await page.locator('a', { hasText: 'to page B' }).click();
@@ -40,7 +40,7 @@ describe('Simple Pages SSR routes SPA navigation', () => {
 		expect(
 			await page
 				.locator('h2', { hasText: 'Server Side Rendered Page B' })
-				.isVisible()
+				.isVisible(),
 		).toBe(true);
 
 		await page.goBack();
@@ -51,11 +51,11 @@ describe('Simple Pages SSR routes SPA navigation', () => {
 		expect(
 			await page
 				.locator('h2', { hasText: 'Server Side Rendered Page A' })
-				.isVisible()
+				.isVisible(),
 		).toBe(true);
 
 		const hardNavigationRequests = requestUrls.filter(
-			url => !url.startsWith(`${DEPLOYMENT_URL}/_next`)
+			url => !url.startsWith(`${DEPLOYMENT_URL}/_next`),
 		);
 
 		expect(hardNavigationRequests.length).toBe(1);
