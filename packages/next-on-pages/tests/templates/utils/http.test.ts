@@ -101,6 +101,23 @@ describe('applySearchParams', () => {
 		);
 	});
 
+	test('multiple query params with the same key must be unique values', () => {
+		const source = new URL('http://localhost/page?foo=bar&foo=baz&foo=baz');
+		const target = new URL('http://localhost/page?other=value&foo=baz');
+
+		expect([...source.searchParams.entries()].length).toEqual(3);
+		expect([...target.searchParams.entries()].length).toEqual(2);
+
+		applySearchParams(target.searchParams, source.searchParams);
+
+		expect([...source.searchParams.entries()].length).toEqual(3);
+		expect([...target.searchParams.entries()].length).toEqual(3);
+
+		expect(target.toString()).toEqual(
+			'http://localhost/page?other=value&foo=baz&foo=bar',
+		);
+	});
+
 	test('Next.js page params (nxtP) always override', () => {
 		const source = new URL('http://localhost/page?nxtPfoo=bar');
 		const target = new URL(

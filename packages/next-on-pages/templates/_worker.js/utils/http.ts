@@ -64,7 +64,10 @@ export function applySearchParams(
 		if (paramMatch?.[1]) {
 			target.set(key, value);
 			target.set(paramMatch[1], value);
-		} else if (!target.has(key) || (target.get(key) !== value && !!value)) {
+		} else if (
+			!target.has(key) ||
+			(!!value && !target.getAll(key).includes(value))
+		) {
 			target.append(key, value);
 		}
 	}
