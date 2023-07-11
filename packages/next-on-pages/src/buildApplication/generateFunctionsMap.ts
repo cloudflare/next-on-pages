@@ -92,7 +92,7 @@ export async function generateFunctionsMap(
 	if (processingResults.bundledAssetsInfo.size) {
 		await copyBundledAssetFiles(
 			nextOnPagesDistDir,
-			processingResults.bundledAssetsInfo
+			processingResults.bundledAssetsInfo,
 		);
 	}
 
@@ -204,7 +204,7 @@ async function processDirectoryRecursively(
 				nextJsManifests.set(key, value),
 			);
 			dirResults.bundledAssetsInfo?.forEach((value, key) =>
-				bundledAssetsInfo.set(key, value)
+				bundledAssetsInfo.set(key, value),
 			);
 		}
 	}
@@ -233,12 +233,12 @@ type FunctionConfig = {
 
 async function processFuncDirectory(
 	setup: ProcessingSetup,
-	directoryFilepath: string
+	directoryFilepath: string,
 ): Promise<Partial<DirectoryProcessingResults>> {
 	const relativePath = relative(setup.functionsDir, directoryFilepath);
 
 	const functionConfig = await readJsonFile<FunctionConfig>(
-		join(directoryFilepath, '.vc-config.json')
+		join(directoryFilepath, '.vc-config.json'),
 	);
 
 	if (functionConfig?.runtime !== 'edge') {
@@ -966,7 +966,7 @@ async function collectChunksConsumersInfosFromFuncDirectory(
  */
 async function copyBundledAssetFiles(
 	distDir: string,
-	bundledAssetsInfo: Map<string, BundledAssetInfo>
+	bundledAssetsInfo: Map<string, BundledAssetInfo>,
 ): Promise<void> {
 	const assetsDir = join(distDir, 'assets');
 	await mkdir(assetsDir);
