@@ -15,11 +15,11 @@ import { dirname, join, relative, resolve } from 'node:path';
 export async function buildFile(
 	contents: string,
 	filePath: string,
-	{ relativeTo }: Omit<RelativePathOpts, 'from'> = {}
+	{ relativeTo }: Omit<RelativePathOpts, 'from'> = {},
 ) {
 	const relativeNopDistPath = join(
 		getRelativePath({ from: filePath, relativeTo }),
-		'__next-on-pages-dist__'
+		'__next-on-pages-dist__',
 	);
 
 	await mkdir(dirname(filePath), { recursive: true });
@@ -68,7 +68,7 @@ function getFunctionNestingLevel({
 
 	if (nestingLevel < 0) {
 		throw new Error(
-			`Error: could not determine nesting level of the following function: ${from}`
+			`Error: could not determine nesting level of the following function: ${from}`,
 		);
 	}
 
@@ -103,7 +103,7 @@ export const nodeBuiltInModulesPlugin: Plugin = {
 					contents: `export * from '${path}'`,
 					loader: 'js',
 				};
-			}
+			},
 		);
 	},
 };

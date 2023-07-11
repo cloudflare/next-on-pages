@@ -8,7 +8,10 @@ import {
 	processVercelOutput,
 } from '../../src/buildApplication/processVercelOutput';
 import { expect, vi } from 'vitest';
-import type { ProcessVercelFunctionsOpts } from '../../src/buildApplication/processVercelFunctions';
+import {
+	processVercelFunctions,
+	type ProcessVercelFunctionsOpts,
+} from '../../src/buildApplication/processVercelFunctions';
 import type { FunctionInfo } from '../../src/buildApplication/processVercelFunctions/configs';
 import { collectFunctionConfigsRecursively } from '../../src/buildApplication/processVercelFunctions/configs';
 
@@ -39,7 +42,7 @@ export class MockAssetFetcher {
 
 	constructor(assets: Record<string, Asset> = {}) {
 		this.assets = Object.fromEntries(
-			[...Object.entries(assets)].map(([key, value]) => [key, value])
+			[...Object.entries(assets)].map(([key, value]) => [key, value]),
 		);
 	}
 
@@ -57,7 +60,7 @@ export class MockAssetFetcher {
 			new Response(asset.data, {
 				status: 200,
 				headers: { 'content-type': asset.type },
-			})
+			}),
 		);
 	};
 
@@ -72,7 +75,7 @@ function createMockEntrypoint(file = 'unknown'): EdgeFunction {
 			const params = [...new URL(request.url).searchParams.entries()];
 
 			return Promise.resolve(
-				new Response(JSON.stringify({ file, params }), { status: 200 })
+				new Response(JSON.stringify({ file, params }), { status: 200 }),
 			);
 		},
 	};
@@ -165,7 +168,8 @@ function createMockMiddlewareEntrypoint(file = '/'): EdgeFunction {
 }
 
 function constructBuildOutputRecord(
-	item: BuildOutputItem
+	item: BuildOutputItem,
+	workerJsDir: string,
 ): VercelBuildOutputItem {
 	if (item.type === 'static') {
 		return { type: item.type };
@@ -179,11 +183,14 @@ function constructBuildOutputRecord(
 		};
 	}
 
-	const fileContents = readFileSync(item.entrypoint, 'utf-8');
+	const fileContents = readFileSync(
+		join(workerJsDir, item.entrypoint),
+		'utf-8',
+	);
 
 	if (item.type === 'middleware') {
 		vi.doMock(item.entrypoint, () =>
-			createMockMiddlewareEntrypoint(fileContents)
+			createMockMiddlewareEntrypoint(fileContents),
 		);
 	} else if (item.type === 'function') {
 		vi.doMock(item.entrypoint, () => createMockEntrypoint(fileContents));
@@ -202,51 +209,57 @@ type RouterTestData = {
 export async function createRouterTestData(
 	rawVercelConfig: VercelConfig,
 	files: DirectoryItems,
-	outputDir = join('.vercel', 'output', 'static')
+	outputDir = join('.vercel', 'output', 'static'),
 ): Promise<RouterTestData> {
 	mockFs({ '.vercel': { output: files } });
 
-	// TODO: Fix this shit
-	const { functionsMap, prerenderedRoutes } = await generateFunctionsMap(
-		join('.vercel', 'output', 'functions'),
+	const workerJsDir = join(outputDir, '_worker.js');
+
+	const { collectedFunctions } = await processVercelFunctions({
+		functionsDir: join('.vercel', 'output', 'functions'),
 		outputDir,
-		true
-	);
+		workerJsDir: workerJsDir,
+		nopDistDir: join(workerJsDir, '__next-on-pages-dist__'),
+		disableChunksDedup: true,
+	});
 
 	const staticAssets = await getVercelStaticAssets();
 
 	const { vercelConfig, vercelOutput } = processVercelOutput(
 		rawVercelConfig,
 		staticAssets,
-		prerenderedRoutes,
-		functionsMap
+		collectedFunctions.prerenderedFunctions,
+		collectedFunctions.edgeFunctions,
 	);
 
 	const buildOutput = [...vercelOutput.entries()].reduce(
 		(prev, [name, item]) => {
-			prev[name] = constructBuildOutputRecord(item);
+			prev[name] = constructBuildOutputRecord(item, workerJsDir);
 			return prev;
 		},
-		{} as VercelBuildOutput
+		{} as VercelBuildOutput,
 	);
 
-	const staticAssetsForFetcher = staticAssets.reduce((acc, path) => {
-		const newAcc = { ...acc };
+	const staticAssetsForFetcher = staticAssets.reduce(
+		(acc, path) => {
+			const newAcc = { ...acc };
 
-		const item = buildOutput[path];
-		const contentType =
-			(item?.type === 'override' && item.headers?.['content-type']) ||
-			'text/plain;charset=UTF-8';
+			const item = buildOutput[path];
+			const contentType =
+				(item?.type === 'override' && item.headers?.['content-type']) ||
+				'text/plain;charset=UTF-8';
 
-		const fsPath = join(resolve('.vercel', 'output', 'static'), path);
-		const data = readFileSync(fsPath, 'utf-8');
+			const fsPath = join(resolve('.vercel', 'output', 'static'), path);
+			const data = readFileSync(fsPath, 'utf-8');
 
-		newAcc[path] = { data, type: contentType };
-		return newAcc;
-	}, {} as Record<string, Asset>);
+			newAcc[path] = { data, type: contentType };
+			return newAcc;
+		},
+		{} as Record<string, Asset>,
+	);
 
 	const assetsFetcher = new MockAssetFetcher(
-		staticAssetsForFetcher
+		staticAssetsForFetcher,
 	) as unknown as Fetcher;
 
 	mockFs.restore();
@@ -271,10 +284,14 @@ export function createValidFuncDir(data: string) {
 	};
 }
 
-export function createInvalidFuncDir(data: string) {
+export function createInvalidFuncDir(
+	data: string,
+	{ prerender }: { prerender?: boolean } = {},
+) {
 	return {
 		'.vc-config.json': JSON.stringify({
 			runtime: 'nodejs',
+			...(prerender && { operationType: 'ISR' }),
 			entrypoint: 'index.js',
 		}),
 		'index.js': data,
@@ -314,16 +331,18 @@ export function mockPrerenderConfigFile(path: string, ext?: string): string {
 
 export function createPrerenderedRoute(
 	file: string,
-	base = ''
+	base = '',
 ): DirectoryItems {
 	const fileWithBase = `${base}/${file}`;
 	return {
-		[`${file}.func`]: createInvalidFuncDir(fileWithBase),
-		[`${file}.rsc.func`]: createInvalidFuncDir(`${fileWithBase}.rsc`),
+		[`${file}.func`]: createInvalidFuncDir(fileWithBase, { prerender: true }),
+		[`${file}.rsc.func`]: createInvalidFuncDir(`${fileWithBase}.rsc`, {
+			prerender: true,
+		}),
 		[`${file}.prerender-config.json`]: mockPrerenderConfigFile(`${file}`),
 		[`${file}.prerender-fallback.html`]: `${fileWithBase}.prerender-fallback.html`,
 		[`${file}.rsc.prerender-config.json`]: mockPrerenderConfigFile(
-			`${file}.rsc`
+			`${file}.rsc`,
 		),
 		[`${file}.rsc.prerender-fallback.rsc`]: `${fileWithBase}.rsc.prerender-fallback.rsc`,
 	};
@@ -344,8 +363,8 @@ export function mockConsole(method: ConsoleMethods) {
 		expect(mockedMethod).toHaveBeenCalledTimes(calls.length);
 		calls.forEach(msg =>
 			expect(mockedMethod).toHaveBeenCalledWith(
-				msg instanceof RegExp ? expect.stringMatching(msg) : msg
-			)
+				msg instanceof RegExp ? expect.stringMatching(msg) : msg,
+			),
 		);
 	};
 
@@ -374,7 +393,7 @@ export async function collectFunctionsFrom(
 	{
 		functionsDir = resolve('.vercel', 'output', 'functions'),
 		outputDir = resolve('.vercel', 'output', 'static'),
-	}: Partial<ProcessVercelFunctionsOpts> = {}
+	}: Partial<ProcessVercelFunctionsOpts> = {},
 ) {
 	mockFs({
 		'.vercel': { output: { functions, static: staticAssets } },
@@ -394,7 +413,7 @@ export async function collectFunctionsFrom(
  */
 export function getRouteInfo(
 	functions: Map<string, FunctionInfo>,
-	path: string
+	path: string,
 ) {
 	return functions.get(resolve('.vercel', 'output', 'functions', path))?.route;
 }
@@ -408,7 +427,7 @@ export function getRouteInfo(
  */
 export function getRouteEntrypoint(
 	functions: Map<string, FunctionInfo>,
-	path: string
+	path: string,
 ) {
 	return functions.get(resolve('.vercel', 'output', 'functions', path))?.config
 		?.entrypoint;

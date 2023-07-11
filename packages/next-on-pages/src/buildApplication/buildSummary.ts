@@ -25,7 +25,7 @@ export function printBuildSummary(
 	{
 		collectedFunctions,
 		identifiers,
-	}: ProcessedVercelFunctions = emptyProcessedVercelFunctions
+	}: ProcessedVercelFunctions = emptyProcessedVercelFunctions,
 ): void {
 	const { edgeFunctions, prerenderedFunctions } = collectedFunctions;
 	const middlewareFunctions = [...vercelOutput.entries()]
@@ -34,12 +34,12 @@ export function printBuildSummary(
 		.sort((a, b) => a.localeCompare(b));
 	const routeFunctions = new Set(
 		processItemsMap(edgeFunctions).filter(
-			path => !middlewareFunctions.includes(path.replace(/^\//, ''))
-		)
+			path => !middlewareFunctions.includes(path.replace(/^\//, '')),
+		),
 	);
 	const prerendered = processItemsMap(prerenderedFunctions);
 	const prerenderedPaths = new Set(
-		[...prerenderedFunctions.values()].map(v => v.route?.path)
+		[...prerenderedFunctions.values()].map(v => v.route?.path),
 	);
 	const otherStatic = staticAssets
 		.filter(path => !prerenderedPaths.has(path))
@@ -84,7 +84,7 @@ export async function writeBuildInfo(
 	{
 		collectedFunctions,
 		identifiers,
-	}: ProcessedVercelFunctions = emptyProcessedVercelFunctions
+	}: ProcessedVercelFunctions = emptyProcessedVercelFunctions,
 ): Promise<void> {
 	const currentDir = resolve();
 	const buildLogFilePath = join(outputDir, 'nop-build-log.json');
@@ -97,7 +97,7 @@ export async function writeBuildInfo(
 	} = collectedFunctions;
 
 	const prerenderedPaths = new Set(
-		[...prerenderedFunctions.values()].map(v => v.route?.path)
+		[...prerenderedFunctions.values()].map(v => v.route?.path),
 	);
 
 	const buildLogObject: BuildLog = {
@@ -189,10 +189,10 @@ function processItemsMap(items: Map<string, FunctionInfo>): string[] {
 				stripIndexRoute(
 					(route?.path ?? stripFuncExtension(relativePath)).replace(
 						/\.html$/,
-						''
-					)
-				)
-			)
+						'',
+					),
+				),
+			),
 		)
 		.sort((a, b) => a.localeCompare(b));
 }

@@ -2,7 +2,6 @@ import { writeFile } from 'fs/promises';
 import { join, relative } from 'path';
 import { build } from 'esbuild';
 import { tmpdir } from 'os';
-import { cliSuccess } from '../cli';
 import { generateGlobalJs } from './generateGlobalJs';
 import type { ProcessedVercelOutput } from './processVercelOutput';
 import { getNodeEnv } from '../utils/getNodeEnv';
@@ -16,7 +15,7 @@ import { getNodeEnv } from '../utils/getNodeEnv';
  */
 export function constructBuildOutputRecord(
 	item: BuildOutputItem,
-	outputDir: string
+	outputDir: string,
 ) {
 	if (item.type === 'static') {
 		return `{ type: ${JSON.stringify(item.type)} }`;
@@ -36,7 +35,7 @@ export function constructBuildOutputRecord(
 					.replace(outputDir, '')
 					.replace(
 						/^\/_worker\.js\/__next-on-pages-dist__\//,
-						'./__next-on-pages-dist__/'
+						'./__next-on-pages-dist__/',
 					)}'
 			}`;
 }
@@ -44,11 +43,11 @@ export function constructBuildOutputRecord(
 export async function buildWorkerFile(
 	{ vercelConfig, vercelOutput }: ProcessedVercelOutput,
 	outputDir: string,
-	minify: boolean
+	minify: boolean,
 ): Promise<string> {
 	const functionsFile = join(
 		tmpdir(),
-		`functions-${Math.random().toString(36).slice(2)}.js`
+		`functions-${Math.random().toString(36).slice(2)}.js`,
 	);
 
 	await writeFile(
@@ -56,9 +55,9 @@ export async function buildWorkerFile(
 		`export const __BUILD_OUTPUT__ = {${[...vercelOutput.entries()]
 			.map(
 				([name, item]) =>
-					`"${name}": ${constructBuildOutputRecord(item, outputDir)}`
+					`"${name}": ${constructBuildOutputRecord(item, outputDir)}`,
 			)
-			.join(',')}};`
+			.join(',')}};`,
 	);
 
 	const outputFile = join(outputDir, '_worker.js', 'index.js');

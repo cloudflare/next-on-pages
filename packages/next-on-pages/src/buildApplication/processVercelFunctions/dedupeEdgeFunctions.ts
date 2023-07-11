@@ -30,7 +30,7 @@ import { addLeadingSlash, copyFileWithDir } from '../../utils';
  */
 export async function dedupeEdgeFunctions(
 	{ edgeFunctions }: CollectedFunctions,
-	opts: ProcessVercelFunctionsOpts
+	opts: ProcessVercelFunctionsOpts,
 ): Promise<CollectedFunctionIdentifiers> {
 	const identifiers = await getFunctionIdentifiers({ edgeFunctions }, opts);
 
@@ -49,7 +49,7 @@ export async function dedupeEdgeFunctions(
 async function processFunctionIdentifiers(
 	{ edgeFunctions }: Pick<CollectedFunctions, 'edgeFunctions'>,
 	{ entrypointsMap, identifierMaps }: CollectedFunctionIdentifiers,
-	opts: ProcessVercelFunctionsOpts
+	opts: ProcessVercelFunctionsOpts,
 ): Promise<void> {
 	// Tracks the promises for building the function files so that we can wait for them all to finish.
 	const functionBuildPromises: Promise<void>[] = [];
@@ -87,7 +87,7 @@ async function processFunctionIdentifiers(
 				const { updatedContents } = await processImportIdentifier(
 					{ type, identifier, start, end, importPath, info: identifierInfo },
 					{ fileContents, entrypoint, newFnLocation },
-					opts
+					opts,
 				);
 
 				fileContents = updatedContents;
@@ -97,7 +97,7 @@ async function processFunctionIdentifiers(
 					processCodeBlockIdentifier(
 						{ type, identifier, start, end, info: identifierInfo },
 						{ fileContents, wasmIdentifierKeys },
-						opts
+						opts,
 					);
 
 				fileContents = updatedContents;
@@ -106,7 +106,7 @@ async function processFunctionIdentifiers(
 				if (wasmImports.length) {
 					wasmImportsToPrepend.set(
 						identifierInfo.newDest as string,
-						wasmImports
+						wasmImports,
 					);
 				}
 			}
@@ -119,14 +119,14 @@ async function processFunctionIdentifiers(
 		await prependWasmImportsToCodeBlocks(
 			wasmImportsToPrepend,
 			identifierMaps,
-			opts
+			opts,
 		);
 
 		// Build the function's file.
 		const { buildPromise } = await buildFunctionFile(
 			{ fnInfo, fileContents, newFnLocation, newFnPath },
 			{ importsToPrepend },
-			opts
+			opts,
 		);
 		functionBuildPromises.push(buildPromise);
 	}
@@ -149,7 +149,7 @@ async function processFunctionIdentifiers(
 async function buildFunctionFile(
 	{ fnInfo, fileContents, newFnLocation, newFnPath }: BuildFunctionFileOpts,
 	{ importsToPrepend }: { importsToPrepend: NewImportInfo[] },
-	{ workerJsDir, nopDistDir }: ProcessVercelFunctionsOpts
+	{ workerJsDir, nopDistDir }: ProcessVercelFunctionsOpts,
 ): Promise<{ buildPromise: Promise<void> }> {
 	let functionImports = '';
 
@@ -190,7 +190,7 @@ type BuildFunctionFileOpts = {
 async function prependWasmImportsToCodeBlocks(
 	wasmImportsToPrepend: Map<string, string[]>,
 	identifierMaps: Record<IdentifierType, IdentifiersMap>,
-	{ workerJsDir, nopDistDir }: ProcessVercelFunctionsOpts
+	{ workerJsDir, nopDistDir }: ProcessVercelFunctionsOpts,
 ) {
 	await Promise.all(
 		[...wasmImportsToPrepend.entries()].map(
@@ -212,8 +212,8 @@ async function prependWasmImportsToCodeBlocks(
 
 				const oldContents = await readFile(filePath);
 				await writeFile(filePath, `${functionImports}${oldContents}`);
-			}
-		)
+			},
+		),
 	);
 }
 
@@ -231,7 +231,7 @@ async function prependWasmImportsToCodeBlocks(
 async function processImportIdentifier(
 	ident: RawIdentifierWithImport<IdentifierType> & { info: IdentifierInfo },
 	{ fileContents, entrypoint, newFnLocation }: ProcessImportIdentifierOpts,
-	{ nopDistDir, workerJsDir }: ProcessVercelFunctionsOpts
+	{ nopDistDir, workerJsDir }: ProcessVercelFunctionsOpts,
 ): Promise<{ updatedContents: string }> {
 	const { type, identifier, start, end, importPath, info } = ident;
 	let updatedContents = fileContents;
@@ -285,7 +285,7 @@ type ProcessImportIdentifierOpts = {
 function processCodeBlockIdentifier(
 	ident: RawIdentifier<IdentifierType> & { info: IdentifierInfo },
 	{ fileContents, wasmIdentifierKeys }: ProcessCodeBlockIdentifierOpts,
-	{ nopDistDir, workerJsDir }: ProcessVercelFunctionsOpts
+	{ nopDistDir, workerJsDir }: ProcessVercelFunctionsOpts,
 ): ProcessCodeBlockIdentifierResult {
 	const { type, identifier, start, end, info } = ident;
 	let updatedContents = fileContents;
@@ -344,7 +344,7 @@ type NewImportInfo = { key: string; path: string };
  */
 async function getFunctionIdentifiers(
 	{ edgeFunctions }: Pick<CollectedFunctions, 'edgeFunctions'>,
-	{ disableChunksDedup }: ProcessVercelFunctionsOpts
+	{ disableChunksDedup }: ProcessVercelFunctionsOpts,
 ): Promise<CollectedFunctionIdentifiers> {
 	const entrypointsMap: Map<string, ProgramIdentifiers> = new Map();
 	const identifierMaps: Record<IdentifierType, IdentifiersMap> = {
@@ -367,7 +367,7 @@ async function getFunctionIdentifiers(
 			// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 			{ identifierMaps, programIdentifiers: entrypointsMap.get(entrypoint)! },
 			program,
-			{ disableChunksDedup }
+			{ disableChunksDedup },
 		);
 	}
 
@@ -392,7 +392,7 @@ function fixFunctionContents(contents: string): string {
 		// TODO: This hack is not good. We should replace this with something less brittle ASAP
 		// https://github.com/vercel/next.js/blob/2e7dfca362931be99e34eccec36074ab4a46ffba/packages/next/src/server/web/adapter.ts#L276-L282
 		/(Object.defineProperty\(globalThis,\s*"__import_unsupported",\s*{[\s\S]*?configurable:\s*)([^,}]*)(.*}\s*\))/gm,
-		'$1true$3'
+		'$1true$3',
 	);
 
 	// TODO: Investigate alternatives or a real fix. This hack is rather brittle.
@@ -401,7 +401,7 @@ function fixFunctionContents(contents: string): string {
 	// https://github.com/vercel/next.js/blob/canary/packages/next/src/compiled/react/cjs/react.shared-subset.development.js#L198
 	contents = contents.replace(
 		/(?:(JSON\.stringify\(\[\w+\.method\S+,)\w+\.mode(,\S+,)\w+\.credentials(,\S+,)\w+\.integrity(\]\)))/gm,
-		'$1null$2null$3null$4'
+		'$1null$2null$3null$4',
 	);
 
 	return contents;
@@ -416,7 +416,7 @@ function fixFunctionContents(contents: string): string {
  */
 async function getFunctionFile(
 	path: string,
-	fnInfo: FunctionInfo
+	fnInfo: FunctionInfo,
 ): Promise<{ contents: string; entrypoint: string }> {
 	const entrypoint = join(path, fnInfo.config.entrypoint);
 

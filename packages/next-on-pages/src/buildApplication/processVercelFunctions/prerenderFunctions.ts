@@ -26,7 +26,7 @@ import { cliWarn } from '../../cli';
  */
 export async function processPrerenderFunctions(
 	{ invalidFunctions, prerenderedFunctions }: CollectedFunctions,
-	opts: ProcessVercelFunctionsOpts
+	opts: ProcessVercelFunctionsOpts,
 ): Promise<void> {
 	for (const [path, fnInfo] of prerenderedFunctions) {
 		const routeInfo = await validateRoute(path, fnInfo.relativePath, opts);
@@ -59,7 +59,7 @@ export async function processPrerenderFunctions(
 async function validateRoute(
 	fullPath: string,
 	relativePath: string,
-	opts: ProcessVercelFunctionsOpts
+	opts: ProcessVercelFunctionsOpts,
 ): Promise<ValidatedRouteInfo | null> {
 	const config = await getRouteConfig(fullPath, relativePath);
 	if (!config) return null;
@@ -88,7 +88,7 @@ type ValidatedRouteInfo = {
  */
 async function getRouteConfig(
 	fullPath: string,
-	relativePath: string
+	relativePath: string,
 ): Promise<VercelPrerenderConfig | null> {
 	const configPath = fullPath.replace(/\.func$/, '.prerender-config.json');
 	const config = await readJsonFile<VercelPrerenderConfig>(configPath);
@@ -117,7 +117,7 @@ async function getRouteConfig(
 async function getRoutePath(
 	{ fallback }: VercelPrerenderConfig,
 	relativePath: string,
-	{ functionsDir }: ProcessVercelFunctionsOpts
+	{ functionsDir }: ProcessVercelFunctionsOpts,
 ): Promise<string | null> {
 	const prerenderRoute = join(dirname(relativePath), fallback.fsPath);
 	const prerenderFile = join(functionsDir, prerenderRoute);
@@ -151,11 +151,11 @@ async function getRoutePath(
 async function getRouteDest(
 	{ fallback }: VercelPrerenderConfig,
 	relativePath: string,
-	{ outputDir }: ProcessVercelFunctionsOpts
+	{ outputDir }: ProcessVercelFunctionsOpts,
 ): Promise<{ destFile: string; destRoute: string }> {
 	const fixedFileName = fallback.fsPath.replace(
 		/\.prerender-fallback(?:\.(?:rsc|body|json))?/gi,
-		''
+		'',
 	);
 	const destRoute = normalizePath(join(dirname(relativePath), fixedFileName));
 	const destFile = join(outputDir, destRoute);
@@ -186,7 +186,7 @@ async function copyNewFiles({
 
 	if (!originalFileHash.equals(destFileHash)) {
 		cliWarn(
-			`Static asset with different hash exists for ${destRoute}, overwriting...`
+			`Static asset with different hash exists for ${destRoute}, overwriting...`,
 		);
 		await copyFileWithDir(originalFile, destFile);
 	}

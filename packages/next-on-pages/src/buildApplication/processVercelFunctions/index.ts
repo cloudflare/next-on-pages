@@ -41,10 +41,10 @@ import { dedupeEdgeFunctions } from './dedupeEdgeFunctions';
  * @returns The collected functions and their identifiers.
  */
 export async function processVercelFunctions(
-	opts: ProcessVercelFunctionsOpts
+	opts: ProcessVercelFunctionsOpts,
 ): Promise<ProcessedVercelFunctions> {
 	const collectedFunctions = await collectFunctionConfigsRecursively(
-		opts.functionsDir
+		opts.functionsDir,
 	);
 
 	await processPrerenderFunctions(collectedFunctions, opts);
@@ -53,7 +53,7 @@ export async function processVercelFunctions(
 
 	if (collectedFunctions.invalidFunctions.size > 0) {
 		await printInvalidFunctionsErrorMessage(
-			collectedFunctions.invalidFunctions
+			collectedFunctions.invalidFunctions,
 		);
 		process.exit(1);
 	}
@@ -82,7 +82,7 @@ export type ProcessedVercelFunctions = {
  * @param invalidFunctions Invalid functions found in the Vercel build output.
  */
 async function printInvalidFunctionsErrorMessage(
-	invalidFunctions: Map<string, FunctionInfo>
+	invalidFunctions: Map<string, FunctionInfo>,
 ): Promise<void> {
 	const nextVersion = coerce(await getPackageVersion('next'));
 
@@ -100,8 +100,8 @@ async function printInvalidFunctionsErrorMessage(
 	const invalidRoutes = [
 		...new Set(
 			[...invalidFunctions.values()].map(fn =>
-				stripFuncExtension(fn.relativePath).replace(/\.rsc$/, '')
-			)
+				stripFuncExtension(fn.relativePath).replace(/\.rsc$/, ''),
+			),
 		),
 	];
 
@@ -119,6 +119,6 @@ async function printInvalidFunctionsErrorMessage(
 			You can read more about the Edge Runtime on the Next.js documentation:
 			  https://nextjs.org/docs/app/building-your-application/rendering/edge-and-nodejs-runtimes
 	`,
-		{ spaced: true }
+		{ spaced: true },
 	);
 }

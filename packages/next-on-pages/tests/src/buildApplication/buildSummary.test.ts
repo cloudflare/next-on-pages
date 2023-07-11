@@ -30,56 +30,45 @@ describe('buildSummary', () => {
 				['middleware', { type: 'middleware', entrypoint: 'middleware.js' }],
 			]),
 		};
-		const directoryProcessingResults: Partial<ProcessedVercelFunctions> = {
+		const procesedVercelFunctions: ProcessedVercelFunctions = {
 			collectedFunctions: {
+				functionsDir: '',
 				edgeFunctions: new Map([
+					['/middleware', { route: { path: '/middleware' } } as FunctionInfo],
+					['/home', { route: { path: '/home' } } as FunctionInfo],
+					['/nested/home', { route: { path: '/nested/home' } } as FunctionInfo],
+				]),
+				prerenderedFunctions: new Map([
 					[
-						'/middleware',
-						{
-							relativePath: '/middleware.func',
-							config: {},
-							route: { path: '/middleware' },
-						},
+						'/prerendered-a',
+						{ route: { path: '/prerendered-a' } } as FunctionInfo,
 					],
 					[
-						'/middleware',
-						{
-							relativePath: '/home.func',
-							config: {},
-							route: { path: '/home' },
-						},
+						'/prerendered-b',
+						{ route: { path: '/prerendered-b' } } as FunctionInfo,
 					],
 					[
-						'/middleware',
-						{
-							relativePath: '/nested/home.func',
-							config: {},
-							route: { path: '/nested/home' },
-						},
+						'/prerendered-c',
+						{ route: { path: '/prerendered-c' } } as FunctionInfo,
 					],
 				]),
+				invalidFunctions: new Map(),
+				ignoredFunctions: new Map(),
 			},
-			// prerenderedRoutes: new Map([
-			// 	['/prerendered-a', {}],
-			// 	['/prerendered-b', {}],
-			// 	['/prerendered-c', {}],
-			// ]),
-			// wasmIdentifiers: new Map([
-			// 	[
-			// 		'wasm-one',
-			// 		{
-			// 			identifier: 'wasm-one',
-			// 			importPath: '/wasm/wasm-one.wasm',
-			// 			originalFileLocation: '/assets/wasm/wasm-one.wasm',
-			// 		},
-			// 	],
-			// ]),
+			identifiers: {
+				entrypointsMap: new Map(),
+				identifierMaps: {
+					wasm: new Map([['wasm-one', { consumers: 1 }]]),
+					manifest: new Map(),
+					webpack: new Map(),
+				},
+			},
 		};
 
 		printBuildSummary(
 			staticAssets,
 			processedVercelOutput,
-			directoryProcessingResults
+			procesedVercelFunctions,
 		);
 
 		expect(mockedConsole).toHaveBeenCalledTimes(1);
@@ -108,7 +97,7 @@ describe('buildSummary', () => {
 			⚡️   ├ /_next/static-a
 			⚡️   ├ /_next/static-b
 			⚡️   └ ... 2 more
-			`.replace(/\n\t{3}/g, '\n')
+			`.replace(/\n\t{3}/g, '\n'),
 		);
 
 		mockedConsole.mockRestore();
@@ -127,38 +116,47 @@ describe('buildSummary', () => {
 				['middleware', { type: 'middleware', entrypoint: 'middleware.js' }],
 			]),
 		};
-		const directoryProcessingResults: Partial<DirectoryProcessingResults> = {
-			functionsMap: new Map([
-				['/middleware', '/middleware'],
-				['/home', '/home'],
-				['/nested/home', '/nested/home'],
-			]),
-			prerenderedRoutes: new Map([
-				['/prerendered-one', {}],
-				['/prerendered-two', {}],
-			]),
-			wasmIdentifiers: new Map([
-				[
-					'wasm-one',
-					{
-						identifier: 'wasm-one',
-						importPath: '/wasm/wasm-one.wasm',
-						originalFileLocation: '/assets/wasm/wasm-one.wasm',
-					},
-				],
-			]),
+		const procesedVercelFunctions: ProcessedVercelFunctions = {
+			collectedFunctions: {
+				functionsDir: '',
+				edgeFunctions: new Map([
+					['/middleware', { route: { path: '/middleware' } } as FunctionInfo],
+					['/home', { route: { path: '/home' } } as FunctionInfo],
+					['/nested/home', { route: { path: '/nested/home' } } as FunctionInfo],
+				]),
+				prerenderedFunctions: new Map([
+					[
+						'/prerendered-one',
+						{ route: { path: '/prerendered-one' } } as FunctionInfo,
+					],
+					[
+						'/prerendered-two',
+						{ route: { path: '/prerendered-two' } } as FunctionInfo,
+					],
+				]),
+				invalidFunctions: new Map(),
+				ignoredFunctions: new Map(),
+			},
+			identifiers: {
+				entrypointsMap: new Map(),
+				identifierMaps: {
+					wasm: new Map([['wasm-one', { consumers: 1 }]]),
+					manifest: new Map(),
+					webpack: new Map(),
+				},
+			},
 		};
 
 		await writeBuildInfo(
 			'dist',
 			staticAssets,
 			processedVercelOutput,
-			directoryProcessingResults
+			procesedVercelFunctions,
 		);
 
 		expect(mockedConsole).toHaveBeenCalledTimes(1);
 		expect(mockedConsole).lastCalledWith(
-			expect.stringMatching(/Build log saved to 'dist\/nop-build-log\.json'/)
+			expect.stringMatching(/Build log saved to 'dist\/nop-build-log\.json'/),
 		);
 
 		const logFile = await readJsonFile<BuildLog>('dist/nop-build-log.json');
@@ -168,20 +166,26 @@ describe('buildSummary', () => {
 			'@cloudflare/next-on-pages': nextOnPagesVersion,
 		});
 		expect(logFile?.buildFiles).toEqual({
-			edgeFunctions: ['/middleware', '/home', '/nested/home'],
-			invalidFunctions: [],
-			middlewareFunctions: ['middleware'],
-			prerenderFunctionFallbackFiles: ['/prerendered-one', '/prerendered-two'],
+			functions: {
+				edge: [
+					{ route: { path: '/middleware' } },
+					{ route: { path: '/home' } },
+					{ route: { path: '/nested/home' } },
+				],
+				ignored: [],
+				invalid: [],
+				middleware: ['middleware'],
+				prerendered: [
+					{ route: { path: '/prerendered-one' } },
+					{ route: { path: '/prerendered-two' } },
+				],
+			},
 			staticAssets: ['/static-one', '/static-two'],
-			wasmFiles: [
-				{
-					identifier: 'wasm-one',
-					importPath: '/wasm/wasm-one.wasm',
-					originalFileLocation: expect.stringMatching(
-						/\/assets\/wasm\/wasm-one\.wasm/
-					),
-				},
-			],
+			identifiers: {
+				manifest: {},
+				wasm: { 'wasm-one': { consumers: 1 } },
+				webpack: {},
+			},
 		});
 
 		mockedConsole.mockRestore();
