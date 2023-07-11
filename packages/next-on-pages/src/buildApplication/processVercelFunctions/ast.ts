@@ -4,7 +4,7 @@ import type { ProcessVercelFunctionsOpts } from '.';
 import { cliError } from '../../cli';
 
 /**
- * Collects the identifiers from the AST and adds them to the provided map and list.
+ * Collects the identifiers from the AST and adds them to the provided maps and lists.
  *
  * @param collectedIdentifiers The collected identifiers.
  * @param program The AST for the function file.
@@ -13,20 +13,20 @@ import { cliError } from '../../cli';
 export function collectIdentifiers(
 	{ identifierMaps, programIdentifiers }: CollectIdentifiersOpts,
 	program: AST.ProgramKind,
-	{ disableChunksDedup }: Partial<ProcessVercelFunctionsOpts>,
+	{ disableChunksDedup }: Partial<ProcessVercelFunctionsOpts>
 ): void {
 	// Wasm
 	collectIdentifierType(
 		{ programIdentifiers, foundIdentifiers: identifierMaps.wasm },
 		program,
-		extractWasm,
+		extractWasm
 	);
 
 	// Manifests
 	collectIdentifierType(
 		{ programIdentifiers, foundIdentifiers: identifierMaps.manifest },
 		program,
-		extractManifest,
+		extractManifest
 	);
 
 	// Webpack chunks
@@ -34,7 +34,7 @@ export function collectIdentifiers(
 		collectIdentifierType(
 			{ programIdentifiers, foundIdentifiers: identifierMaps.webpack },
 			program,
-			extractWebpack,
+			extractWebpack
 		);
 	}
 }
@@ -45,41 +45,45 @@ type CollectIdentifiersOpts = {
 };
 
 /**
- * Collects the identifiers from the AST and adds them to the provided map and list.
+ * Collects a specific type of identifier from the AST and adds them to the provided map and list.
  *
  * @param collectedIdentifiers The collected identifiers.
  * @param program The AST for the function file.
  * @param callback A function that extracts the identifiers from a statement.
- * @returns A map of the Wasm identifiers.
  */
 function collectIdentifierType<T extends IdentifierType>(
 	{ foundIdentifiers, programIdentifiers }: CollectIdentifierTypeOpts,
 	program: AST.ProgramKind,
 	callback: (
-		statement: AST.StatementKind,
-	) => RawIdentifier<T> | null | RawIdentifier<T>[],
+		statement: AST.StatementKind
+	) => RawIdentifier<T> | null | RawIdentifier<T>[]
 ): void {
 	const rawIdentifiers = program.body
 		.map(callback)
 		.flat()
 		.filter(Boolean) as RawIdentifier<T>[];
 
+	// Set to track for identifier collisions in a single file
 	const uniqueIdentifiers = new Set<string>();
+
 	for (const ident of rawIdentifiers) {
 		programIdentifiers.push(ident);
 
 		const existing = foundIdentifiers.get(ident.identifier);
 		if (!existing) {
+			// Identifier doesn't exist yet, add it.
 			foundIdentifiers.set(ident.identifier, { consumers: 1 });
 		} else if (!uniqueIdentifiers.has(ident.identifier)) {
+			// Identifier already exists, but it's not a collision in this file.
 			existing.consumers += 1;
 		} else {
+			// Identifier already exists and it was already found in this file - this is a collision.
 			cliError(
 				`
 						ERROR: Detected a collision with the webpack chunks deduplication.
 									 Try adding the '--disable-chunks-dedup' argument to temporarily solve the issue.
 					`,
-				{ spaced: true, showReport: true },
+				{ spaced: true, showReport: true }
 			);
 			process.exit(1);
 		}
@@ -93,7 +97,6 @@ type CollectIdentifierTypeOpts = {
 	programIdentifiers: ProgramIdentifiers;
 };
 
-export type IdentifierType = 'wasm' | 'manifest' | 'webpack';
 export type RawIdentifier<T extends IdentifierType> = {
 	type: T;
 	identifier: string;
@@ -111,6 +114,8 @@ export type IdentifierInfo = { consumers: number; newDest?: string };
 export type IdentifiersMap = Map<string, IdentifierInfo>;
 export type ProgramIdentifiers = RawIdentifier<IdentifierType>[];
 
+export type IdentifierType = 'wasm' | 'manifest' | 'webpack';
+
 /**
  * In the Vercel build output we get top level statement such as:
  *   const wasm_fbeb8adedbc833032bda6f13925ba235b8d09114 = require("/wasm/wasm_fbeb8adedbc833032bda6f13925ba235b8d09114.wasm");
@@ -127,7 +132,7 @@ export type ProgramIdentifiers = RawIdentifier<IdentifierType>[];
  * @returns The Wasm identifier information.
  */
 function extractWasm(
-	statement: AST.StatementKind,
+	statement: AST.StatementKind
 ): RawIdentifier<'wasm'> | null {
 	if (
 		statement.type !== 'VariableDeclaration' ||
@@ -160,7 +165,7 @@ function extractWasm(
  * @returns The manifest identifier information.
  */
 function extractManifest(
-	statement: AST.StatementKind,
+	statement: AST.StatementKind
 ): RawIdentifier<'manifest'> | null {
 	if (
 		statement.type !== 'ExpressionStatement' ||
@@ -208,7 +213,7 @@ function extractManifest(
  * @returns An array of Webpack chunk identifier information.
  */
 function extractWebpack(
-	statement: AST.StatementKind,
+	statement: AST.StatementKind
 ): RawIdentifier<'webpack'>[] {
 	if (
 		statement.type !== 'ExpressionStatement' ||
@@ -234,7 +239,7 @@ function extractWebpack(
 				p.type === 'Property' &&
 				p.key.type === 'Literal' &&
 				typeof p.key.value === 'number' &&
-				p.value.type === 'ArrowFunctionExpression',
+				p.value.type === 'ArrowFunctionExpression'
 		) as AST.PropertyKind[];
 
 	return properties.map(chunk => ({
@@ -246,7 +251,10 @@ function extractWebpack(
 }
 
 /**
- * Check whether the provided AST node represents `self.webpackChunk_N_E`.
+ * Checks whether the provided AST node represents `self.webpackChunk_N_E`.
+ *
+ * @param expression The AST node to check.
+ * @returns Whether the AST node represents `self.webpackChunk_N_E`.
  */
 function isSelfWebpackChunk_N_E(expression: AST.NodeKind): boolean {
 	return (

@@ -1,9 +1,16 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join, relative, resolve } from 'node:path';
 import { cliLog } from '../cli';
-import { addLeadingSlash, nextOnPagesVersion, stripIndexRoute } from '../utils';
-import type { DirectoryProcessingResults } from './generateFunctionsMap';
+import {
+	addLeadingSlash,
+	nextOnPagesVersion,
+	stripFuncExtension,
+	stripIndexRoute,
+} from '../utils';
 import type { ProcessedVercelOutput } from './processVercelOutput';
+import type { ProcessedVercelFunctions } from './processVercelFunctions';
+import type { FunctionInfo } from './processVercelFunctions/configs';
+import type { IdentifierInfo } from './processVercelFunctions/ast';
 
 /**
  * Prints a build summary to the console.
@@ -16,23 +23,26 @@ export function printBuildSummary(
 	staticAssets: string[],
 	{ vercelOutput }: ProcessedVercelOutput,
 	{
-		functionsMap = new Map(),
-		prerenderedRoutes = new Map(),
-		wasmIdentifiers = new Map(),
-	}: Partial<DirectoryProcessingResults> = {},
+		collectedFunctions,
+		identifiers,
+	}: ProcessedVercelFunctions = emptyProcessedVercelFunctions
 ): void {
+	const { edgeFunctions, prerenderedFunctions } = collectedFunctions;
 	const middlewareFunctions = [...vercelOutput.entries()]
 		.filter(([, { type }]) => type === 'middleware')
 		.map(([path]) => path)
 		.sort((a, b) => a.localeCompare(b));
 	const routeFunctions = new Set(
-		processItemsMap(functionsMap).filter(
-			path => !middlewareFunctions.includes(path.replace(/^\//, '')),
-		),
+		processItemsMap(edgeFunctions).filter(
+			path => !middlewareFunctions.includes(path.replace(/^\//, ''))
+		)
 	);
-	const prerendered = processItemsMap(prerenderedRoutes);
+	const prerendered = processItemsMap(prerenderedFunctions);
+	const prerenderedPaths = new Set(
+		[...prerenderedFunctions.values()].map(v => v.route?.path)
+	);
 	const otherStatic = staticAssets
-		.filter(path => !prerenderedRoutes.has(path))
+		.filter(path => !prerenderedPaths.has(path))
 		.sort((a, b) => {
 			// Note: `/_next` and `/__next` assets are sorted to the end of the static assets list
 			const aIsNextAsset = /^\/__?next/.test(a);
@@ -48,7 +58,10 @@ export function printBuildSummary(
 		{ name: 'Middleware Functions', rawItems: middlewareFunctions },
 		{ name: 'Edge Function Routes', rawItems: [...routeFunctions] },
 		{ name: 'Prerendered Routes', rawItems: prerendered, limit: 20 },
-		{ name: 'Wasm Files', rawItems: [...wasmIdentifiers.keys()] },
+		{
+			name: 'Wasm Files',
+			rawItems: [...identifiers.identifierMaps.wasm.keys()],
+		},
 		{ name: 'Other Static Assets', rawItems: otherStatic, limit: 5 },
 	]);
 	const summary = `${summaryTitle}\n\n${summarySections}`;
@@ -69,21 +82,22 @@ export async function writeBuildInfo(
 	staticAssets: string[],
 	{ vercelOutput }: ProcessedVercelOutput,
 	{
-		invalidFunctions = new Set(),
-		functionsMap = new Map(),
-		prerenderedRoutes = new Map(),
-		wasmIdentifiers = new Map(),
-	}: Partial<DirectoryProcessingResults> = {},
+		collectedFunctions,
+		identifiers,
+	}: ProcessedVercelFunctions = emptyProcessedVercelFunctions
 ): Promise<void> {
 	const currentDir = resolve();
 	const buildLogFilePath = join(outputDir, 'nop-build-log.json');
 
-	// Change wasm paths to be relative to avoid leaking file system structure or account username.
-	const desensitizedWasmIdentifiers = [...wasmIdentifiers.values()].map(
-		({ originalFileLocation, ...rest }) => ({
-			...rest,
-			originalFileLocation: relative(currentDir, originalFileLocation),
-		}),
+	const {
+		edgeFunctions,
+		prerenderedFunctions,
+		ignoredFunctions,
+		invalidFunctions,
+	} = collectedFunctions;
+
+	const prerenderedPaths = new Set(
+		[...prerenderedFunctions.values()].map(v => v.route?.path)
 	);
 
 	const buildLogObject: BuildLog = {
@@ -93,14 +107,21 @@ export async function writeBuildInfo(
 			'@cloudflare/next-on-pages': nextOnPagesVersion,
 		},
 		buildFiles: {
-			invalidFunctions: [...invalidFunctions.values()],
-			middlewareFunctions: [...vercelOutput.entries()]
-				.filter(([, { type }]) => type === 'middleware')
-				.map(([path]) => path),
-			edgeFunctions: [...functionsMap.keys()],
-			prerenderFunctionFallbackFiles: [...prerenderedRoutes.keys()],
-			wasmFiles: desensitizedWasmIdentifiers,
-			staticAssets: staticAssets.filter(path => !prerenderedRoutes.has(path)),
+			functions: {
+				invalid: [...invalidFunctions.values()],
+				middleware: [...vercelOutput]
+					.filter(([, { type }]) => type === 'middleware')
+					.map(([path]) => path),
+				edge: [...edgeFunctions.values()],
+				prerendered: [...prerenderedFunctions.values()],
+				ignored: [...ignoredFunctions.values()],
+			},
+			staticAssets: staticAssets.filter(path => !prerenderedPaths.has(path)),
+			identifiers: {
+				wasm: Object.fromEntries(identifiers.identifierMaps.wasm),
+				manifest: Object.fromEntries(identifiers.identifierMaps.manifest),
+				webpack: Object.fromEntries(identifiers.identifierMaps.webpack),
+			},
 		},
 	};
 	const buildLogText = JSON.stringify(buildLogObject, null, 2);
@@ -111,6 +132,24 @@ export async function writeBuildInfo(
 	cliLog(`Build log saved to '${relative(currentDir, buildLogFilePath)}'`);
 }
 
+const emptyProcessedVercelFunctions: ProcessedVercelFunctions = {
+	collectedFunctions: {
+		functionsDir: '',
+		edgeFunctions: new Map(),
+		prerenderedFunctions: new Map(),
+		ignoredFunctions: new Map(),
+		invalidFunctions: new Map(),
+	},
+	identifiers: {
+		entrypointsMap: new Map(),
+		identifierMaps: {
+			wasm: new Map(),
+			manifest: new Map(),
+			webpack: new Map(),
+		},
+	},
+};
+
 export type BuildLog = {
 	timestamp: number;
 	outputDir: string;
@@ -118,16 +157,19 @@ export type BuildLog = {
 		'@cloudflare/next-on-pages': string;
 	};
 	buildFiles: {
-		invalidFunctions: string[];
-		middlewareFunctions: string[];
-		edgeFunctions: string[];
-		prerenderFunctionFallbackFiles: string[];
-		wasmFiles: {
-			originalFileLocation: string;
-			identifier: string;
-			importPath: string;
-		}[];
+		functions: {
+			invalid: FunctionInfo[];
+			middleware: string[];
+			edge: FunctionInfo[];
+			prerendered: FunctionInfo[];
+			ignored: FunctionInfo[];
+		};
 		staticAssets: string[];
+		identifiers: {
+			wasm: Record<string, IdentifierInfo>;
+			manifest: Record<string, IdentifierInfo>;
+			webpack: Record<string, IdentifierInfo>;
+		};
 	};
 };
 
@@ -140,10 +182,18 @@ export type BuildLog = {
  * @param items A map of items to process.
  * @returns A list of items to be used in the build summary.
  */
-function processItemsMap(items: Map<string, unknown>): string[] {
-	return [...items.keys()]
-		.filter(path => !/\.rsc$/.test(path))
-		.map(path => addLeadingSlash(stripIndexRoute(path.replace(/\.html$/, ''))))
+function processItemsMap(items: Map<string, FunctionInfo>): string[] {
+	return [...items.values()]
+		.map(({ relativePath, route }) =>
+			addLeadingSlash(
+				stripIndexRoute(
+					(route?.path ?? stripFuncExtension(relativePath)).replace(
+						/\.html$/,
+						''
+					)
+				)
+			)
+		)
 		.sort((a, b) => a.localeCompare(b));
 }
 
@@ -169,13 +219,7 @@ function getItemPrefix(total: number, idx: number): string {
  * @param sections Build summary sections.
  * @returns The build summary.
  */
-function constructSummarySections(
-	sections: {
-		name: string;
-		rawItems: string[];
-		limit?: number;
-	}[],
-): string {
+function constructSummarySections(sections: SummarySection[]): string {
 	return sections
 		.map(({ name, rawItems, limit }) => {
 			if (rawItems.length === 0) return null;
@@ -197,3 +241,5 @@ function constructSummarySections(
 		.filter(Boolean)
 		.join('\n\n');
 }
+
+type SummarySection = { name: string; rawItems: string[]; limit?: number };

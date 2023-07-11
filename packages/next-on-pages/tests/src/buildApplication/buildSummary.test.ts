@@ -6,8 +6,9 @@ import {
 	writeBuildInfo,
 } from '../../../src/buildApplication/buildSummary';
 import type { ProcessedVercelOutput } from '../../../src/buildApplication/processVercelOutput';
-import type { DirectoryProcessingResults } from '../../../src/buildApplication/generateFunctionsMap';
 import { nextOnPagesVersion, readJsonFile } from '../../../src/utils';
+import type { ProcessedVercelFunctions } from '../../../src/buildApplication/processVercelFunctions';
+import type { FunctionInfo } from '../../../src/buildApplication/processVercelFunctions/configs';
 
 describe('buildSummary', () => {
 	test('printBuildSummary', () => {
@@ -29,33 +30,56 @@ describe('buildSummary', () => {
 				['middleware', { type: 'middleware', entrypoint: 'middleware.js' }],
 			]),
 		};
-		const directoryProcessingResults: Partial<DirectoryProcessingResults> = {
-			functionsMap: new Map([
-				['/middleware', '/middleware'],
-				['/home', '/home'],
-				['/nested/home', '/nested/home'],
-			]),
-			prerenderedRoutes: new Map([
-				['/prerendered-a', {}],
-				['/prerendered-b', {}],
-				['/prerendered-c', {}],
-			]),
-			wasmIdentifiers: new Map([
-				[
-					'wasm-one',
-					{
-						identifier: 'wasm-one',
-						importPath: '/wasm/wasm-one.wasm',
-						originalFileLocation: '/assets/wasm/wasm-one.wasm',
-					},
-				],
-			]),
+		const directoryProcessingResults: Partial<ProcessedVercelFunctions> = {
+			collectedFunctions: {
+				edgeFunctions: new Map([
+					[
+						'/middleware',
+						{
+							relativePath: '/middleware.func',
+							config: {},
+							route: { path: '/middleware' },
+						},
+					],
+					[
+						'/middleware',
+						{
+							relativePath: '/home.func',
+							config: {},
+							route: { path: '/home' },
+						},
+					],
+					[
+						'/middleware',
+						{
+							relativePath: '/nested/home.func',
+							config: {},
+							route: { path: '/nested/home' },
+						},
+					],
+				]),
+			},
+			// prerenderedRoutes: new Map([
+			// 	['/prerendered-a', {}],
+			// 	['/prerendered-b', {}],
+			// 	['/prerendered-c', {}],
+			// ]),
+			// wasmIdentifiers: new Map([
+			// 	[
+			// 		'wasm-one',
+			// 		{
+			// 			identifier: 'wasm-one',
+			// 			importPath: '/wasm/wasm-one.wasm',
+			// 			originalFileLocation: '/assets/wasm/wasm-one.wasm',
+			// 		},
+			// 	],
+			// ]),
 		};
 
 		printBuildSummary(
 			staticAssets,
 			processedVercelOutput,
-			directoryProcessingResults,
+			directoryProcessingResults
 		);
 
 		expect(mockedConsole).toHaveBeenCalledTimes(1);
@@ -84,7 +108,7 @@ describe('buildSummary', () => {
 			⚡️   ├ /_next/static-a
 			⚡️   ├ /_next/static-b
 			⚡️   └ ... 2 more
-			`.replace(/\n\t{3}/g, '\n'),
+			`.replace(/\n\t{3}/g, '\n')
 		);
 
 		mockedConsole.mockRestore();
@@ -129,12 +153,12 @@ describe('buildSummary', () => {
 			'dist',
 			staticAssets,
 			processedVercelOutput,
-			directoryProcessingResults,
+			directoryProcessingResults
 		);
 
 		expect(mockedConsole).toHaveBeenCalledTimes(1);
 		expect(mockedConsole).lastCalledWith(
-			expect.stringMatching(/Build log saved to 'dist\/nop-build-log\.json'/),
+			expect.stringMatching(/Build log saved to 'dist\/nop-build-log\.json'/)
 		);
 
 		const logFile = await readJsonFile<BuildLog>('dist/nop-build-log.json');
@@ -154,7 +178,7 @@ describe('buildSummary', () => {
 					identifier: 'wasm-one',
 					importPath: '/wasm/wasm-one.wasm',
 					originalFileLocation: expect.stringMatching(
-						/\/assets\/wasm\/wasm-one\.wasm/,
+						/\/assets\/wasm\/wasm-one\.wasm/
 					),
 				},
 			],

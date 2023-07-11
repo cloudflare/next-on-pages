@@ -13,32 +13,28 @@ import type {
 	RawIdentifierWithImport,
 } from './ast';
 import { collectIdentifiers } from './ast';
-import { timer } from './temp';
 import { buildFile, getRelativePath } from './build';
 import { addLeadingSlash, copyFileWithDir } from '../../utils';
 
 /**
- * Dedupes edge functions.
+ * Dedupes edge functions that were found in the build output.
+ *
+ * Collects and processes the following identifiers from the functions' files:
+ * - Wasm imports
+ * - Webpack chunks
+ * - Next.js JSON manifests
  *
  * @param collectedFunctions Functions collected from the Vercel build output.
  * @param opts Options for processing Vercel functions.
- * @returns
+ * @returns The collected function identifiers.
  */
 export async function dedupeEdgeFunctions(
 	{ edgeFunctions }: CollectedFunctions,
-	opts: ProcessVercelFunctionsOpts,
+	opts: ProcessVercelFunctionsOpts
 ): Promise<CollectedFunctionIdentifiers> {
-	const collectIdentifiersTimer = timer('collect function identifiers');
 	const identifiers = await getFunctionIdentifiers({ edgeFunctions }, opts);
-	collectIdentifiersTimer.stop();
 
-	console.log('Wasm:     ', identifiers.identifierMaps.wasm.size);
-	console.log('Manifest: ', identifiers.identifierMaps.manifest.size);
-	console.log('Webpack:  ', identifiers.identifierMaps.webpack.size);
-
-	const processFunctionIdentifiersTimer = timer('process function identifiers');
 	await processFunctionIdentifiers({ edgeFunctions }, identifiers, opts);
-	processFunctionIdentifiersTimer.stop();
 
 	return identifiers;
 }
@@ -53,8 +49,9 @@ export async function dedupeEdgeFunctions(
 async function processFunctionIdentifiers(
 	{ edgeFunctions }: Pick<CollectedFunctions, 'edgeFunctions'>,
 	{ entrypointsMap, identifierMaps }: CollectedFunctionIdentifiers,
-	opts: ProcessVercelFunctionsOpts,
-) {
+	opts: ProcessVercelFunctionsOpts
+): Promise<void> {
+	// Tracks the promises for building the function files so that we can wait for them all to finish.
 	const functionBuildPromises: Promise<void>[] = [];
 
 	const wasmIdentifierKeys = [...identifierMaps.wasm.keys()];
@@ -65,11 +62,15 @@ async function processFunctionIdentifiers(
 
 		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 		const identifiers = entrypointsMap
+			// We already know that the entrypoint exists in the map.
 			.get(entrypoint)!
-			// sort so that we make replacements from the end of the file to the start
+			// Sort so that we make replacements from the end of the file to the start.
 			.sort((a, b) => b.start - a.start);
 
+		// Tracks the promises for building the identifiers so that we can wait for them all to finish.
 		const buildIdentifiersPromises: Promise<void>[] = [];
+
+		// Tracks the imports to prepend to the final code for the function and identifiers.
 		const importsToPrepend: NewImportInfo[] = [];
 		const wasmImportsToPrepend: Map<string, string[]> = new Map();
 
@@ -77,14 +78,16 @@ async function processFunctionIdentifiers(
 		const newFnPath = join(opts.nopDistDir, newFnLocation);
 
 		for (const { type, identifier, start, end, importPath } of identifiers) {
+			// We already know that the identifier exists in the map.
 			// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 			const identifierInfo = identifierMaps[type].get(identifier)!;
 
 			if (importPath) {
+				// Dedupe and update collected imports.
 				const { updatedContents } = await processImportIdentifier(
 					{ type, identifier, start, end, importPath, info: identifierInfo },
 					{ fileContents, entrypoint, newFnLocation },
-					opts,
+					opts
 				);
 
 				fileContents = updatedContents;
@@ -94,7 +97,7 @@ async function processFunctionIdentifiers(
 					processCodeBlockIdentifier(
 						{ type, identifier, start, end, info: identifierInfo },
 						{ fileContents, wasmIdentifierKeys },
-						opts,
+						opts
 					);
 
 				fileContents = updatedContents;
@@ -103,7 +106,7 @@ async function processFunctionIdentifiers(
 				if (wasmImports.length) {
 					wasmImportsToPrepend.set(
 						identifierInfo.newDest as string,
-						wasmImports,
+						wasmImports
 					);
 				}
 			}
@@ -116,18 +119,19 @@ async function processFunctionIdentifiers(
 		await prependWasmImportsToCodeBlocks(
 			wasmImportsToPrepend,
 			identifierMaps,
-			opts,
+			opts
 		);
 
 		// Build the function's file.
 		const { buildPromise } = await buildFunctionFile(
 			{ fnInfo, fileContents, newFnLocation, newFnPath },
 			{ importsToPrepend },
-			opts,
+			opts
 		);
 		functionBuildPromises.push(buildPromise);
 	}
 
+	// Wait for all functions to be built.
 	await Promise.all(functionBuildPromises);
 }
 
@@ -137,8 +141,7 @@ async function processFunctionIdentifiers(
  * - Prepends any imports to the function's contents.
  * - Builds the new file to the output directory.
  *
- * @param fnInfo The collected function info.
- * @param fileContents The contents of the function's file.
+ * @param function The collected function info and file contents.
  * @param importsToPrepend Imports to prepend to the function's file before building.
  * @param opts Options for processing the function.
  * @returns A promise that resolves when the function has been built.
@@ -146,12 +149,15 @@ async function processFunctionIdentifiers(
 async function buildFunctionFile(
 	{ fnInfo, fileContents, newFnLocation, newFnPath }: BuildFunctionFileOpts,
 	{ importsToPrepend }: { importsToPrepend: NewImportInfo[] },
-	{ workerJsDir, nopDistDir }: ProcessVercelFunctionsOpts,
+	{ workerJsDir, nopDistDir }: ProcessVercelFunctionsOpts
 ): Promise<{ buildPromise: Promise<void> }> {
 	let functionImports = '';
 
 	importsToPrepend.forEach(({ key, path }) => {
-		const relativeImportPath = getRelativePath(newFnLocation, nopDistDir);
+		const relativeImportPath = getRelativePath({
+			from: newFnLocation,
+			relativeTo: nopDistDir,
+		});
 		const importPath = join(relativeImportPath, addLeadingSlash(path));
 
 		functionImports += `import ${key} from '${importPath}';\n`;
@@ -160,7 +166,9 @@ async function buildFunctionFile(
 	fnInfo.outputPath = relative(workerJsDir, newFnPath);
 
 	const finalFileContents = `${functionImports}${fileContents}`;
-	const buildPromise = buildFile(finalFileContents, newFnPath, nopDistDir);
+	const buildPromise = buildFile(finalFileContents, newFnPath, {
+		relativeTo: nopDistDir,
+	});
 
 	return { buildPromise };
 }
@@ -182,13 +190,16 @@ type BuildFunctionFileOpts = {
 async function prependWasmImportsToCodeBlocks(
 	wasmImportsToPrepend: Map<string, string[]>,
 	identifierMaps: Record<IdentifierType, IdentifiersMap>,
-	{ workerJsDir, nopDistDir }: ProcessVercelFunctionsOpts,
+	{ workerJsDir, nopDistDir }: ProcessVercelFunctionsOpts
 ) {
 	await Promise.all(
 		[...wasmImportsToPrepend.entries()].map(
 			async ([codeBlockRelativePath, wasmImports]) => {
 				const filePath = join(workerJsDir, codeBlockRelativePath);
-				const relativeImportPath = getRelativePath(filePath, nopDistDir);
+				const relativeImportPath = getRelativePath({
+					from: filePath,
+					relativeTo: nopDistDir,
+				});
 
 				let functionImports = '';
 
@@ -201,8 +212,8 @@ async function prependWasmImportsToCodeBlocks(
 
 				const oldContents = await readFile(filePath);
 				await writeFile(filePath, `${functionImports}${oldContents}`);
-			},
-		),
+			}
+		)
 	);
 }
 
@@ -220,7 +231,7 @@ async function prependWasmImportsToCodeBlocks(
 async function processImportIdentifier(
 	ident: RawIdentifierWithImport<IdentifierType> & { info: IdentifierInfo },
 	{ fileContents, entrypoint, newFnLocation }: ProcessImportIdentifierOpts,
-	{ nopDistDir, workerJsDir }: ProcessVercelFunctionsOpts,
+	{ nopDistDir, workerJsDir }: ProcessVercelFunctionsOpts
 ): Promise<{ updatedContents: string }> {
 	const { type, identifier, start, end, importPath, info } = ident;
 	let updatedContents = fileContents;
@@ -229,9 +240,9 @@ async function processImportIdentifier(
 
 	if (!info.newDest) {
 		const importPathWithoutType = importPath
-			// remove leading `../` from import path.
+			// Remove leading `../` from import path.
 			.replace(/^(\.\.\/)+/, '')
-			// remove type directory from import path if it starts with it.
+			// Remove `type` directory from import path if it starts with it.
 			.replace(new RegExp(`^/${type}/`), '/');
 
 		const oldPath = join(dirname(entrypoint), importPath);
@@ -241,7 +252,10 @@ async function processImportIdentifier(
 		await copyFileWithDir(oldPath, newPath);
 	}
 
-	const relativeImportPath = getRelativePath(newFnLocation, nopDistDir);
+	const relativeImportPath = getRelativePath({
+		from: newFnLocation,
+		relativeTo: nopDistDir,
+	});
 	const newImportPath = join(relativeImportPath, info.newDest);
 
 	const newVal = `import ${identifier} from "${newImportPath}";`;
@@ -270,11 +284,8 @@ type ProcessImportIdentifierOpts = {
  */
 function processCodeBlockIdentifier(
 	ident: RawIdentifier<IdentifierType> & { info: IdentifierInfo },
-	{
-		fileContents,
-		wasmIdentifierKeys,
-	}: { fileContents: string; wasmIdentifierKeys: string[] },
-	{ nopDistDir, workerJsDir }: ProcessVercelFunctionsOpts,
+	{ fileContents, wasmIdentifierKeys }: ProcessCodeBlockIdentifierOpts,
+	{ nopDistDir, workerJsDir }: ProcessVercelFunctionsOpts
 ): ProcessCodeBlockIdentifierResult {
 	const { type, identifier, start, end, info } = ident;
 	let updatedContents = fileContents;
@@ -310,6 +321,11 @@ function processCodeBlockIdentifier(
 	return { updatedContents, newImport, buildPromise, wasmImports };
 }
 
+type ProcessCodeBlockIdentifierOpts = {
+	fileContents: string;
+	wasmIdentifierKeys: string[];
+};
+
 type ProcessCodeBlockIdentifierResult = {
 	updatedContents: string;
 	buildPromise?: Promise<void>;
@@ -328,7 +344,7 @@ type NewImportInfo = { key: string; path: string };
  */
 async function getFunctionIdentifiers(
 	{ edgeFunctions }: Pick<CollectedFunctions, 'edgeFunctions'>,
-	{ disableChunksDedup }: ProcessVercelFunctionsOpts,
+	{ disableChunksDedup }: ProcessVercelFunctionsOpts
 ): Promise<CollectedFunctionIdentifiers> {
 	const entrypointsMap: Map<string, ProgramIdentifiers> = new Map();
 	const identifierMaps: Record<IdentifierType, IdentifiersMap> = {
@@ -351,7 +367,7 @@ async function getFunctionIdentifiers(
 			// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 			{ identifierMaps, programIdentifiers: entrypointsMap.get(entrypoint)! },
 			program,
-			{ disableChunksDedup },
+			{ disableChunksDedup }
 		);
 	}
 
@@ -376,7 +392,7 @@ function fixFunctionContents(contents: string): string {
 		// TODO: This hack is not good. We should replace this with something less brittle ASAP
 		// https://github.com/vercel/next.js/blob/2e7dfca362931be99e34eccec36074ab4a46ffba/packages/next/src/server/web/adapter.ts#L276-L282
 		/(Object.defineProperty\(globalThis,\s*"__import_unsupported",\s*{[\s\S]*?configurable:\s*)([^,}]*)(.*}\s*\))/gm,
-		'$1true$3',
+		'$1true$3'
 	);
 
 	// TODO: Investigate alternatives or a real fix. This hack is rather brittle.
@@ -385,7 +401,7 @@ function fixFunctionContents(contents: string): string {
 	// https://github.com/vercel/next.js/blob/canary/packages/next/src/compiled/react/cjs/react.shared-subset.development.js#L198
 	contents = contents.replace(
 		/(?:(JSON\.stringify\(\[\w+\.method\S+,)\w+\.mode(,\S+,)\w+\.credentials(,\S+,)\w+\.integrity(\]\)))/gm,
-		'$1null$2null$3null$4',
+		'$1null$2null$3null$4'
 	);
 
 	return contents;
@@ -400,7 +416,7 @@ function fixFunctionContents(contents: string): string {
  */
 async function getFunctionFile(
 	path: string,
-	fnInfo: FunctionInfo,
+	fnInfo: FunctionInfo
 ): Promise<{ contents: string; entrypoint: string }> {
 	const entrypoint = join(path, fnInfo.config.entrypoint);
 

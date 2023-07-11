@@ -11,7 +11,7 @@ import {
 	stripFuncExtension,
 	validateFile,
 } from '../../utils';
-import { cliError, cliWarn } from '../../cli';
+import { cliWarn } from '../../cli';
 
 /**
  * Processes the prerendered routes found in the Vercel build output.
@@ -26,7 +26,7 @@ import { cliError, cliWarn } from '../../cli';
  */
 export async function processPrerenderFunctions(
 	{ invalidFunctions, prerenderedFunctions }: CollectedFunctions,
-	opts: ProcessVercelFunctionsOpts,
+	opts: ProcessVercelFunctionsOpts
 ): Promise<void> {
 	for (const [path, fnInfo] of prerenderedFunctions) {
 		const routeInfo = await validateRoute(path, fnInfo.relativePath, opts);
@@ -59,7 +59,7 @@ export async function processPrerenderFunctions(
 async function validateRoute(
 	fullPath: string,
 	relativePath: string,
-	opts: ProcessVercelFunctionsOpts,
+	opts: ProcessVercelFunctionsOpts
 ): Promise<ValidatedRouteInfo | null> {
 	const config = await getRouteConfig(fullPath, relativePath);
 	if (!config) return null;
@@ -71,6 +71,7 @@ async function validateRoute(
 
 	return { config, originalFile, ...dest };
 }
+
 type ValidatedRouteInfo = {
 	config: VercelPrerenderConfig;
 	originalFile: string;
@@ -87,7 +88,7 @@ type ValidatedRouteInfo = {
  */
 async function getRouteConfig(
 	fullPath: string,
-	relativePath: string,
+	relativePath: string
 ): Promise<VercelPrerenderConfig | null> {
 	const configPath = fullPath.replace(/\.func$/, '.prerender-config.json');
 	const config = await readJsonFile<VercelPrerenderConfig>(configPath);
@@ -116,7 +117,7 @@ async function getRouteConfig(
 async function getRoutePath(
 	{ fallback }: VercelPrerenderConfig,
 	relativePath: string,
-	{ functionsDir }: ProcessVercelFunctionsOpts,
+	{ functionsDir }: ProcessVercelFunctionsOpts
 ): Promise<string | null> {
 	const prerenderRoute = join(dirname(relativePath), fallback.fsPath);
 	const prerenderFile = join(functionsDir, prerenderRoute);
@@ -150,11 +151,11 @@ async function getRoutePath(
 async function getRouteDest(
 	{ fallback }: VercelPrerenderConfig,
 	relativePath: string,
-	{ outputDir }: ProcessVercelFunctionsOpts,
+	{ outputDir }: ProcessVercelFunctionsOpts
 ): Promise<{ destFile: string; destRoute: string }> {
 	const fixedFileName = fallback.fsPath.replace(
 		/\.prerender-fallback(?:\.(?:rsc|body|json))?/gi,
-		'',
+		''
 	);
 	const destRoute = normalizePath(join(dirname(relativePath), fixedFileName));
 	const destFile = join(outputDir, destRoute);
@@ -180,16 +181,12 @@ async function copyNewFiles({
 		return;
 	}
 
-	const originalFileHash = getFileHash(originalFile);
-	if (!originalFileHash) {
-		// This should never occur since we already know the file exists.
-		cliError(`Could not find prerendered file to copy at ${originalFile}`);
-		process.exit(1);
-	}
+	// We already know the original file exists, so we can safely get its hash.
+	const originalFileHash = getFileHash(originalFile) as Buffer;
 
 	if (!originalFileHash.equals(destFileHash)) {
 		cliWarn(
-			`Static asset with different hash exists for ${destRoute}, overwriting...`,
+			`Static asset with different hash exists for ${destRoute}, overwriting...`
 		);
 		await copyFileWithDir(originalFile, destFile);
 	}

@@ -6,26 +6,26 @@ import { cliWarn } from '../../cli';
 /**
  * Processes the Edge function routes found in the Vercel build output.
  *
- * - Ensure middleware functions have use the correct file for the entrypoint.
- * - Check edge function entrypoints exists.
- * - Try to fix invalid functions that have a valid edge function that can be used instead.
+ * - Ensures middleware functions have use the correct file for the entrypoint.
+ * - Checks edge function entrypoints exists.
+ * - Tries to fix invalid functions that have a valid edge function that can be used instead.
  *
  * @param collectedFunctions Collected functions from the Vercel build output.
  */
 export async function processEdgeFunctions(
-	collectedFunctions: CollectedFunctions,
+	collectedFunctions: CollectedFunctions
 ) {
 	const { edgeFunctions, invalidFunctions, ignoredFunctions } =
 		collectedFunctions;
 
 	const tempFunctionsMap = new Map<string, string>();
-	const rscFunctions = new Map<string, string>();
+	const foundRscFunctions = new Map<string, string>();
 
 	for (const [path, fnInfo] of edgeFunctions) {
 		const { result, finalEntrypoint } = await checkEntrypoint(
 			path,
 			fnInfo.relativePath,
-			fnInfo.config.entrypoint,
+			fnInfo.config.entrypoint
 		);
 
 		switch (result) {
@@ -44,7 +44,7 @@ export async function processEdgeFunctions(
 				}
 
 				if (formattedPathName.endsWith('.rsc')) {
-					rscFunctions.set(formattedPathName, path);
+					foundRscFunctions.set(formattedPathName, path);
 				}
 				break;
 			}
@@ -64,7 +64,7 @@ export async function processEdgeFunctions(
 	// Remove any RSC functions that have a valid non-RSC function that can be used instead.
 	// NOTE: RSC functions are identical to non-RSC functions, so this is okay.
 	// https://github.com/vercel/vercel/blob/main/packages/next/src/server-build.ts#L1193
-	for (const [formattedPath, path] of rscFunctions) {
+	for (const [formattedPath, path] of foundRscFunctions) {
 		replaceRscWithNonRsc(collectedFunctions, tempFunctionsMap, {
 			formattedPath,
 			path,
@@ -82,12 +82,12 @@ export async function processEdgeFunctions(
  * @param fullPath Full path to the function's directory.
  * @param relativePath Relative path to the function's directory.
  * @param entrypoint Function entrypoint file name.
- * @returns
+ * @returns Whether the entrypoint is valid, and if the final entrypoint needs to be updated.
  */
 async function checkEntrypoint(
 	fullPath: string,
 	relativePath: string,
-	entrypoint: string,
+	entrypoint: string
 ): Promise<
 	| { result: 'ignore' | 'invalid'; finalEntrypoint?: never }
 	| { result: 'valid'; finalEntrypoint: string }
@@ -108,7 +108,7 @@ async function checkEntrypoint(
 			// We sometimes encounter an uncompiled `middleware.js` with no compiled `index.js` outside of a base path.
 			// Outside the base path, it should not be utilised, so it should be safe to ignore the function.
 			cliWarn(
-				`Detected an invalid middleware function for ${relativePath}. Skipping...`,
+				`Detected an invalid middleware function for ${relativePath}. Skipping...`
 			);
 			return { result: 'ignore' };
 		}
@@ -142,7 +142,7 @@ async function checkEntrypoint(
  */
 async function tryToFixInvalidFunctions(
 	collectedFunctions: CollectedFunctions,
-	tempFunctionsMap: Map<string, string>,
+	tempFunctionsMap: Map<string, string>
 ): Promise<void> {
 	const { invalidFunctions } = collectedFunctions;
 
@@ -168,7 +168,7 @@ async function tryToFixInvalidFunctions(
 }
 
 /**
- * Tries to replace RSC functions with valid non-RSC functions.
+ * Attempts to replace RSC functions with valid non-RSC functions if they exist.
  *
  * NOTE: RSC functions are identical to non-RSC functions, so this is okay.
  * https://github.com/vercel/vercel/blob/main/packages/next/src/server-build.ts#L1193
@@ -180,8 +180,8 @@ async function tryToFixInvalidFunctions(
 function replaceRscWithNonRsc(
 	{ edgeFunctions, invalidFunctions, ignoredFunctions }: CollectedFunctions,
 	tempFunctionsMap: Map<string, string>,
-	{ formattedPath, path }: { formattedPath: string; path: string },
-) {
+	{ formattedPath, path }: { formattedPath: string; path: string }
+): void {
 	const pathWithoutRsc = formattedPath.replace(/\.rsc$/, '');
 	const nonRscFuncPath = tempFunctionsMap.get(pathWithoutRsc);
 
