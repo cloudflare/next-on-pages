@@ -45,7 +45,7 @@ export function isUrl(url: string): boolean {
 /**
  * Merges search params from one URLSearchParams object to another.
  *
- * Only updates the a parameter if the target does not contain it, or the source value is not empty.
+ * Only appends the parameter if the target does not contain it, or if the value is different and not undefined.
  *
  * For params prefixed with `nxtP`, it also sets the param without the prefix if it does not exist.
  * The `nxtP` prefix indicates that it is for Next.js dynamic route parameters. In some cases,
@@ -60,13 +60,13 @@ export function applySearchParams(
 	source: URLSearchParams,
 ) {
 	for (const [key, value] of source.entries()) {
-		if (!target.has(key) || !!value) {
-			target.set(key, value);
+		if (!target.has(key) || (target.get(key) !== value && !!value)) {
+			target.append(key, value);
+		}
 
-			const paramMatch = /^nxtP(.+)$/.exec(key);
-			if (paramMatch?.[1] && !target.has(paramMatch[1])) {
-				target.set(paramMatch[1], value);
-			}
+		const paramMatch = /^nxtP(.+)$/.exec(key);
+		if (paramMatch?.[1]) {
+			target.set(paramMatch[1], value);
 		}
 	}
 }

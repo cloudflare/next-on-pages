@@ -81,6 +81,25 @@ describe('applySearchParams', () => {
 			'http://localhost/page?other=value&foo=bar',
 		);
 	});
+
+	test('allows multiple query params with the same key', () => {
+		const source = new URL('http://localhost/page?foo=bar');
+		const target = new URL(
+			'http://localhost/page?other=value&foo=baz&foo=test',
+		);
+
+		expect([...source.searchParams.entries()].length).toEqual(1);
+		expect([...target.searchParams.entries()].length).toEqual(3);
+
+		applySearchParams(target.searchParams, source.searchParams);
+
+		expect([...source.searchParams.entries()].length).toEqual(1);
+		expect([...target.searchParams.entries()].length).toEqual(4);
+
+		expect(target.toString()).toEqual(
+			'http://localhost/page?other=value&foo=bar&foo=baz&foo=test',
+		);
+	});
 });
 
 describe('createRouteRequest', () => {
