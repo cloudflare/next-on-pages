@@ -14,9 +14,10 @@ declare const __BUILD_OUTPUT__: VercelBuildOutput;
 
 declare const __ENV_ALS_PROMISE__: Promise<null | AsyncLocalStorage<unknown>>;
 
+patchFetchToAllowBundledAssets();
+
 export default {
 	async fetch(request, env, ctx) {
-		patchFetchToAllowBundledAssets();
 		const envAsyncLocalStorage = await __ENV_ALS_PROMISE__;
 		if (!envAsyncLocalStorage) {
 			return new Response(
