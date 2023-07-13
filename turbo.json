@@ -18,6 +18,7 @@
 			"persistent": true,
 			"cache": false
 		},
+		"test:e2e": {},
 		"publish": {}
 	}
 }
