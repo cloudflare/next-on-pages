@@ -17,6 +17,15 @@ describe('generateGlobalJs', async () => {
 			);
 		});
 
+		test('should make the Buffer globally available', async () => {
+			/*
+				Note: we need Buffer in the global scope
+					as it is sometimes used by Next under the hood
+			*/
+			const globalJs = generateGlobalJs();
+			expect(globalJs).toContain('globalThis.Buffer = Buffer');
+		});
+
 		test('create an AsyncLocalStorage and set it as a proxy to process.env', async () => {
 			const globalJs = generateGlobalJs();
 			expect(globalJs).toContain(

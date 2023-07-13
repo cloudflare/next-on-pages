@@ -34,10 +34,39 @@ function applyPatch() {
 				//
 				//       if the above issue/constraint were to change we should replace the following with a real Response object
 				const resp = {
-					arrayBuffer() {
+					async arrayBuffer() {
 						return binaryContent;
 					},
+					get body(): ReadableStream<unknown> | null {
+						return new ReadableStream({
+							start(controller) {
+								return pump();
+								function pump() {
+									const b = Buffer.from(binaryContent);
+									controller.enqueue(b);
+									controller.close();
+									return pump();
+								}
+							},
+						});
+					},
+					async text() {
+						const b = Buffer.from(binaryContent);
+						return b.toString();
+					},
+					async json() {
+						const b = Buffer.from(binaryContent);
+						return JSON.stringify(b.toString());
+					},
+					async blob() {
+						return new Blob(binaryContent);
+					},
 				} as Response;
+
+				// Note: clone is necessary so that body does work
+				resp.clone = (): Response => {
+					return resp;
+				};
 
 				return resp;
 			} catch {
