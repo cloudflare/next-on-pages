@@ -6,6 +6,11 @@
  */
 export function generateGlobalJs(): string {
 	return `
+		import('node:buffer').then(({ Buffer }) => {
+			globalThis.Buffer = Buffer;
+		})
+		.catch(() => null);
+
 		const __ENV_ALS_PROMISE__ = import('node:async_hooks').then(({ AsyncLocalStorage }) => {
 			globalThis.AsyncLocalStorage = AsyncLocalStorage;
 

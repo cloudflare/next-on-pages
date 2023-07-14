@@ -89,6 +89,13 @@ export async function generateFunctionsMap(
 		);
 	}
 
+	if (processingResults.bundledAssetsInfo.size) {
+		await copyBundledAssetFiles(
+			nextOnPagesDistDir,
+			processingResults.bundledAssetsInfo,
+		);
+	}
+
 	return processingResults;
 }
 
@@ -139,6 +146,11 @@ async function tryToFixInvalidFunctions({
 	}
 }
 
+type BundledAssetInfo = {
+	filename: string;
+	originalFileLocation: string;
+};
+
 type WasmModuleInfo = {
 	identifier: string;
 	importPath: string;
@@ -155,6 +167,7 @@ async function processDirectoryRecursively(
 	const prerenderedRoutes = new Map<string, PrerenderedFileData>();
 	const wasmIdentifiers = new Map<string, WasmModuleInfo>();
 	const nextJsManifests = new Map<string, string>();
+	const bundledAssetsInfo = new Map<string, BundledAssetInfo>();
 
 	const files = await readdir(dir);
 	const functionFiles = await fixPrerenderedRoutes(
@@ -190,6 +203,9 @@ async function processDirectoryRecursively(
 			dirResults.nextJsManifests?.forEach((value, key) =>
 				nextJsManifests.set(key, value),
 			);
+			dirResults.bundledAssetsInfo?.forEach((value, key) =>
+				bundledAssetsInfo.set(key, value),
+			);
 		}
 	}
 
@@ -200,6 +216,7 @@ async function processDirectoryRecursively(
 		prerenderedRoutes,
 		wasmIdentifiers,
 		nextJsManifests,
+		bundledAssetsInfo,
 	};
 }
 
@@ -216,12 +233,12 @@ type FunctionConfig = {
 
 async function processFuncDirectory(
 	setup: ProcessingSetup,
-	filepath: string,
+	directoryFilepath: string,
 ): Promise<Partial<DirectoryProcessingResults>> {
-	const relativePath = relative(setup.functionsDir, filepath);
+	const relativePath = relative(setup.functionsDir, directoryFilepath);
 
 	const functionConfig = await readJsonFile<FunctionConfig>(
-		join(filepath, '.vc-config.json'),
+		join(directoryFilepath, '.vc-config.json'),
 	);
 
 	if (functionConfig?.runtime !== 'edge') {
@@ -239,7 +256,7 @@ async function processFuncDirectory(
 		functionConfig.entrypoint = 'index.js';
 	}
 
-	const functionFilePath = join(filepath, functionConfig.entrypoint);
+	const functionFilePath = join(directoryFilepath, functionConfig.entrypoint);
 	if (!(await validateFile(functionFilePath))) {
 		if (isMiddleware) {
 			// We sometimes encounter an uncompiled `middleware.js` with no compiled `index.js` outside of a base path.
@@ -291,6 +308,20 @@ async function processFuncDirectory(
 	contents = wasmExtractionResult.updatedContents;
 	wasmIdentifiers = wasmExtractionResult.wasmIdentifiers;
 
+	const bundledAssetsInfo = new Map<string, BundledAssetInfo>();
+
+	const assetsDir = join(directoryFilepath, 'assets');
+	const assetsDirExists = await validateDir(join(directoryFilepath, 'assets'));
+	if (assetsDirExists) {
+		const files = await readdir(assetsDir);
+		files.forEach(file => {
+			bundledAssetsInfo.set(file, {
+				filename: file,
+				originalFileLocation: join(assetsDir, file),
+			});
+		});
+	}
+
 	const newFilePath = join(setup.distFunctionsDir, `${relativePath}.js`);
 	await mkdir(dirname(newFilePath), { recursive: true });
 	const relativeNextOnPagesDistPath =
@@ -322,6 +353,7 @@ async function processFuncDirectory(
 		webpackChunks,
 		wasmIdentifiers,
 		nextJsManifests,
+		bundledAssetsInfo,
 	};
 }
 
@@ -635,6 +667,7 @@ export type DirectoryProcessingResults = {
 	prerenderedRoutes: Map<string, PrerenderedFileData>;
 	wasmIdentifiers: Map<string, WasmModuleInfo>;
 	nextJsManifests: Map<string, string>;
+	bundledAssetsInfo: Map<string, BundledAssetInfo>;
 };
 
 /**
@@ -921,4 +954,23 @@ async function collectChunksConsumersInfosFromFuncDirectory(
 	});
 
 	return chunksConsumersInfos;
+}
+
+/**
+ * Copies bundled asset files into the __next-on-pages-dist__/assets folder as binary files (so that they can be
+ * fetched as binaries)
+ *
+ * @param distDir the __next-on-pages-dist__ directory's path
+ * @param bundledAssetsInfo map containing all the bundled assets files info collected during the build process
+ */
+async function copyBundledAssetFiles(
+	distDir: string,
+	bundledAssetsInfo: Map<string, BundledAssetInfo>,
+): Promise<void> {
+	const assetsDir = join(distDir, 'assets');
+	await mkdir(assetsDir);
+	for (const { filename, originalFileLocation } of bundledAssetsInfo.values()) {
+		const newLocation = join(assetsDir, `${filename}.bin`);
+		await copyFile(originalFileLocation, newLocation);
+	}
 }

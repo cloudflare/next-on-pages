@@ -1,5 +1,9 @@
 import { handleRequest } from './handleRequest';
-import { adjustRequestForVercel, handleImageResizingRequest } from './utils';
+import {
+	adjustRequestForVercel,
+	handleImageResizingRequest,
+	patchFetchToAllowBundledAssets,
+} from './utils';
 import type { AsyncLocalStorage } from 'node:async_hooks';
 
 declare const __NODE_ENV__: string;
@@ -9,6 +13,8 @@ declare const __CONFIG__: ProcessedVercelConfig;
 declare const __BUILD_OUTPUT__: VercelBuildOutput;
 
 declare const __ENV_ALS_PROMISE__: Promise<null | AsyncLocalStorage<unknown>>;
+
+patchFetchToAllowBundledAssets();
 
 export default {
 	async fetch(request, env, ctx) {
