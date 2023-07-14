@@ -2,8 +2,8 @@
 	"name": "pages-e2e",
 	"private": true,
 	"scripts": {
-		"//test:e2e 1": "we start with npm i because this fixes an existing but in the pages-e2e-test-runner-cli",
-		"//test:e2e 2": "which fails to detect test suites in the files after any run of the test-runner cli",
+		"//test:e2e 1 ": "we start with npm i because this fixes an existing but in the pages-e2e-test-runner-cli",
+		"//test:e2e 2 ": "which fails to detect test suites in the files after any run of the test-runner cli",
 		"test:e2e": "npm i ; npx @cfpreview/pages-e2e-test-runner-cli --environment=local"
 	},
 	"dependencies": {
