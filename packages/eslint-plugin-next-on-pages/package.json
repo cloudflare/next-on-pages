@@ -1,6 +1,6 @@
 {
 	"name": "eslint-plugin-next-on-pages",
-	"version": "1.3.0",
+	"version": "1.3.1",
 	"main": "dist/index.js",
 	"scripts": {
 		"prebuild": "rimraf dist",
