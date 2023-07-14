@@ -310,8 +310,9 @@ async function processFuncDirectory(
 
 	const bundledAssetsInfo = new Map<string, BundledAssetInfo>();
 
-	try {
-		const assetsDir = join(directoryFilepath, 'assets');
+	const assetsDir = join(directoryFilepath, 'assets');
+	const assetsDirExists = await validateDir(join(directoryFilepath, 'assets'));
+	if (assetsDirExists) {
 		const files = await readdir(assetsDir);
 		files.forEach(file => {
 			bundledAssetsInfo.set(file, {
@@ -319,8 +320,6 @@ async function processFuncDirectory(
 				originalFileLocation: join(assetsDir, file),
 			});
 		});
-	} catch {
-		/* empty */
 	}
 
 	const newFilePath = join(setup.distFunctionsDir, `${relativePath}.js`);
