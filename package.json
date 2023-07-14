@@ -1,5 +1,5 @@
 {
-	"name": "next-on-pages-_-monorepo",
+	"name": "next-on-pages-monorepo",
 	"private": true,
 	"workspaces": [
 		"internal-packages/*",
