@@ -34,7 +34,7 @@ export async function processPrerenderFunctions(
 		if (routeInfo) {
 			const { config, destRoute } = routeInfo;
 
-			await copyNewFiles(routeInfo);
+			await copyNewFiles({ ...routeInfo, relativeName: destRoute });
 
 			fnInfo.route = {
 				path: destRoute,
@@ -164,17 +164,17 @@ async function getRouteDest(
 }
 
 /**
- * Copies the prerendered assets to the output directory.
+ * Copies the asset to the output directory.
  *
- * If a static asset already exists and the hash is different, it will log a warning and be overwritten.
+ * If an asset already exists and the hash is different, it will log a warning and be overwritten.
  *
- * @param route Information about a valid prerendered route.
+ * @param asset - Information about the asset's original location, name, and destination.
  */
-async function copyNewFiles({
+export async function copyNewFiles({
 	originalFile,
 	destFile,
-	destRoute,
-}: ValidatedRouteInfo): Promise<void> {
+	relativeName,
+}: CopyNewFilesArgs): Promise<void> {
 	const destFileHash = getFileHash(destFile);
 	if (!destFileHash) {
 		await copyFileWithDir(originalFile, destFile);
@@ -186,8 +186,14 @@ async function copyNewFiles({
 
 	if (!originalFileHash.equals(destFileHash)) {
 		cliWarn(
-			`Static asset with different hash exists for ${destRoute}, overwriting...`,
+			`Asset with different hash exists for ${relativeName}, overwriting...`,
 		);
 		await copyFileWithDir(originalFile, destFile);
 	}
 }
+
+type CopyNewFilesArgs = {
+	originalFile: string;
+	destFile: string;
+	relativeName: string;
+};

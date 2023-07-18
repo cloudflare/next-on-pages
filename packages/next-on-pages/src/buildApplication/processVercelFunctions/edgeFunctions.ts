@@ -14,7 +14,7 @@ import { cliWarn } from '../../cli';
  */
 export async function processEdgeFunctions(
 	collectedFunctions: CollectedFunctions,
-) {
+): Promise<void> {
 	const { edgeFunctions, invalidFunctions, ignoredFunctions } =
 		collectedFunctions;
 

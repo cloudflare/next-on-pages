@@ -14,7 +14,9 @@ import type {
 } from './ast';
 import { collectIdentifiers } from './ast';
 import { buildFile, getRelativePath } from './build';
-import { addLeadingSlash, copyFileWithDir } from '../../utils';
+import { addLeadingSlash, copyFileWithDir, validateFile } from '../../utils';
+import { copyNewFiles } from './prerenderFunctions';
+import { cliError } from '../../cli';
 
 /**
  * Dedupes edge functions that were found in the build output.
@@ -35,6 +37,8 @@ export async function dedupeEdgeFunctions(
 	const identifiers = await getFunctionIdentifiers({ edgeFunctions }, opts);
 
 	await processFunctionIdentifiers({ edgeFunctions }, identifiers, opts);
+
+	await processBundledAssets({ edgeFunctions }, opts);
 
 	return identifiers;
 }
@@ -446,4 +450,26 @@ function replaceLastInstance(contents: string, target: string, value: string) {
 		value +
 		contents.slice(lastIndex + target.length)
 	);
+}
+
+async function processBundledAssets(
+	{ edgeFunctions }: Pick<CollectedFunctions, 'edgeFunctions'>,
+	{ nopDistDir }: ProcessVercelFunctionsOpts,
+): Promise<void> {
+	for (const [functionPath, { relativePath, config }] of edgeFunctions) {
+		for (const { name, path } of config.assets ?? []) {
+			const originalFile = join(functionPath, path);
+			const destFile = `${join(nopDistDir, 'assets', name)}.bin`;
+			const relativeName = join(relativePath, path);
+
+			const fileExists = await validateFile(originalFile);
+
+			if (!fileExists) {
+				cliError(`Could not find bundled asset file: ${originalFile}`);
+				process.exit(1);
+			}
+
+			await copyNewFiles({ originalFile, destFile, relativeName });
+		}
+	}
 }

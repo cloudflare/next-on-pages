@@ -52,6 +52,12 @@ export function printBuildSummary(
 
 			return a.localeCompare(b);
 		});
+	const bundledAssets = new Set(
+		[...edgeFunctions.values()]
+			.map(({ config }) => config?.assets?.map(asset => asset.name))
+			.flat()
+			.filter(Boolean) as string[],
+	);
 
 	const summaryTitle = `Build Summary (@cloudflare/next-on-pages v${nextOnPagesVersion})`;
 	const summarySections = constructSummarySections([
@@ -62,6 +68,7 @@ export function printBuildSummary(
 			name: 'Wasm Files',
 			rawItems: [...identifiers.identifierMaps.wasm.keys()],
 		},
+		{ name: 'Bundled Assets', rawItems: [...bundledAssets] },
 		{ name: 'Other Static Assets', rawItems: otherStatic, limit: 5 },
 	]);
 	const summary = `${summaryTitle}\n\n${summarySections}`;

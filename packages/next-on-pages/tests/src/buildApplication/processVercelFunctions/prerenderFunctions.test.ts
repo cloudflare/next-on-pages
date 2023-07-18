@@ -383,7 +383,7 @@ describe('processPrerenderFunctions', () => {
 		expect(invalidFunctions.size).toEqual(0);
 
 		mockedConsole.expectCalls([
-			/Static asset with different hash exists for \/nested\/page\.rsc, overwriting\.\.\./,
+			/Asset with different hash exists for \/nested\/page\.rsc, overwriting\.\.\./,
 		]);
 		mockedConsole.restore();
 	});
@@ -530,7 +530,7 @@ describe('processPrerenderFunctions', () => {
 			/Copying 1 static asset/,
 		]);
 		mockedConsoleWarn.expectCalls([
-			/Static asset with different hash exists for \/index\.rsc, overwriting\.\.\./,
+			/Asset with different hash exists for \/index\.rsc, overwriting\.\.\./,
 		]);
 
 		mockedConsoleLog.restore();

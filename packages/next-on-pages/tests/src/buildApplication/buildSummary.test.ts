@@ -35,7 +35,15 @@ describe('buildSummary', () => {
 				functionsDir: '',
 				edgeFunctions: new Map([
 					['/middleware', { route: { path: '/middleware' } } as FunctionInfo],
-					['/home', { route: { path: '/home' } } as FunctionInfo],
+					[
+						'/home',
+						{
+							route: { path: '/home' },
+							config: {
+								assets: [{ name: 'bundled.txt', path: 'assets/bundled.txt' }],
+							},
+						} as FunctionInfo,
+					],
 					['/nested/home', { route: { path: '/nested/home' } } as FunctionInfo],
 				]),
 				prerenderedFunctions: new Map([
@@ -90,6 +98,9 @@ describe('buildSummary', () => {
 			⚡️ 
 			⚡️ Wasm Files (1)
 			⚡️   - wasm-one
+			⚡️ 
+			⚡️ Bundled Assets (1)
+			⚡️   - bundled.txt
 			⚡️ 
 			⚡️ Other Static Assets (6)
 			⚡️   ┌ /static-a
