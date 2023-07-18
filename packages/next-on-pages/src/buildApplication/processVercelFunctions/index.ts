@@ -1,28 +1,3 @@
-/* eslint-disable no-console */
-/**
- * Goals:
- *
- * - Simplified and more readable code
- * - Improved performance
- * - Only parsing the AST once per Edge function
- *
- * Structure:
- *
- * 1. Collect list of functions from directory. ✅
- * 2. Process Prerender functions. ✅
- * 3. Process Edge functions. ✅
- * 4. Check for invalid functions. ✅
- * 5. Modify Edge functions (goal: only parse to an AST once per Edge function).
- * 5.1. Apply regex-based fixes to contents. ✅
- * 5.2. Extract Wasm, Webpack chunks, and manifest identifiers from AST. ✅
- * 5.3. Dedupe the extracted identifiers.
- * 5.2.1. Write Wasm to disk. ✅
- * 5.2.2. Write bundled assets to disk. ❌
- * 5.3.1. Write manifests to disk. ✅
- * 5.3.2. Write Webpack chunks to disk, grouped by the functions they're used in. ✅
- *
- */
-
 import { gtr as versionGreaterThan, coerce } from 'semver';
 import { cliError } from '../../cli';
 import type { CollectedFunctions, FunctionInfo } from './configs';
