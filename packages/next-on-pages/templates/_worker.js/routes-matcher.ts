@@ -218,7 +218,13 @@ export class RoutesMatcher {
 			return false;
 		}
 
+		// console.log(JSON.stringify([...resp.headers]));
 		this.processMiddlewareResp(resp);
+		// console.log(
+		// 	JSON.stringify([...this.headers.normal]),
+		// 	JSON.stringify([...this.headers.important]),
+		// 	this.headers.middlewareLocation
+		// );
 		return true;
 	}
 
@@ -453,8 +459,10 @@ export class RoutesMatcher {
 		// Call and process the middleware if this is a middleware route.
 		const success = await this.runRouteMiddleware(route.middlewarePath);
 		if (!success) return 'error';
-		// If the middleware set a response body, we are done.
-		if (this.body !== undefined) return 'done';
+		// If the middleware set a response body or resulted in a redirect, we are done.
+		if (this.body !== undefined || this.headers.middlewareLocation) {
+			return 'done';
+		}
 
 		// Update final headers with the ones from this route.
 		this.applyRouteHeaders(route, srcMatch, captureGroupKeys);
