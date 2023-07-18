@@ -12,21 +12,25 @@ import assert from 'node:assert';
  * @returns the assertion utility
  */
 export function getAssertVisible(page: Page) {
-    return (...args: Parameters<Page['locator']>) => assertVisible(page, ...args);
+	return (...args: Parameters<Page['locator']>) => assertVisible(page, ...args);
 }
 
-async function assertVisible(page: Page, ...[selector, options]: Parameters<Page['locator']>): Promise<void> {
-    const locator = page.locator(selector, options);
-    let isVisible = false;
-    try {
-        await locator.waitFor({
-            timeout: 500
-        });
-    } catch {}
-    isVisible = await locator.isVisible();
-    const elementStr = `${selector}${Object.keys(options ?? {}).length > 0 ? `[${JSON.stringify({options})}]` : ''}`;
-    assert(
-        isVisible,
-        `expected ${elementStr} to be visible but it isn't`
-    );
+async function assertVisible(
+	page: Page,
+	...[selector, options]: Parameters<Page['locator']>
+): Promise<void> {
+	const locator = page.locator(selector, options);
+	let isVisible = false;
+	try {
+		await locator.waitFor({
+			timeout: 500,
+		});
+	} catch {}
+	isVisible = await locator.isVisible();
+	const elementStr = `${selector}${
+		Object.keys(options ?? {}).length > 0
+			? `[${JSON.stringify({ options })}]`
+			: ''
+	}`;
+	assert(isVisible, `expected ${elementStr} to be visible but it isn't`);
 }
