@@ -218,13 +218,7 @@ export class RoutesMatcher {
 			return false;
 		}
 
-		// console.log(JSON.stringify([...resp.headers]));
 		this.processMiddlewareResp(resp);
-		// console.log(
-		// 	JSON.stringify([...this.headers.normal]),
-		// 	JSON.stringify([...this.headers.important]),
-		// 	this.headers.middlewareLocation
-		// );
 		return true;
 	}
 
