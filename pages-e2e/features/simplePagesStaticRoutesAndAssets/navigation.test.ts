@@ -1,8 +1,10 @@
 import { describe, it } from 'vitest';
+import { getAssertVisible } from '@features-utils/getAssertVisible';
 
 describe('Simple Pages Static SPA navigation', () => {
 	it('should soft navigate between static routes', async ({ expect }) => {
 		const page = await BROWSER.newPage();
+		const assertVisible = getAssertVisible(page);
 
 		const requestUrls: string[] = [];
 		await page.route('**/*', route => {
@@ -12,33 +14,20 @@ describe('Simple Pages Static SPA navigation', () => {
 
 		await page.goto(`${DEPLOYMENT_URL}/navigation`);
 
-		expect(
-			await page.locator('h1', { hasText: 'Navigation' }).isVisible(),
-		).toBe(true);
-		expect(await page.locator('h2', { hasText: 'Index' }).isVisible()).toBe(
-			true,
-		);
+		await assertVisible('h1', { hasText: 'Navigation' });
+		await assertVisible('h2', { hasText: 'Index' });
 
 		await page.locator('a', { hasText: 'to page A' }).click();
 
-		await page.locator('h2', { hasText: 'Page A' }).waitFor();
-		expect(await page.locator('h2', { hasText: 'Page A' }).isVisible()).toBe(
-			true,
-		);
+		await assertVisible('h2', { hasText: 'Page A' });
 
 		await page.locator('a', { hasText: 'to page B' }).click();
 
-		await page.locator('h2', { hasText: 'Page B' }).waitFor();
-		expect(await page.locator('h2', { hasText: 'Page B' }).isVisible()).toBe(
-			true,
-		);
+		await assertVisible('h2', { hasText: 'Page B' });
 
 		await page.goBack();
 
-		await page.locator('h2', { hasText: 'Page A' }).waitFor();
-		expect(await page.locator('h2', { hasText: 'Page A' }).isVisible()).toBe(
-			true,
-		);
+		await assertVisible('h2', { hasText: 'Page A' });
 
 		const hardNavigationRequests = requestUrls.filter(
 			url => !url.startsWith(`${DEPLOYMENT_URL}/_next/static`),

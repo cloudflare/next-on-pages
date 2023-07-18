@@ -8,5 +8,8 @@
 	},
 	"dependencies": {
 		"@cfpreview/pages-e2e-test-runner-cli": "^0.0.24"
+	},
+	"devDependencies": {
+		"playwright": "^1.36.1"
 	}
 }

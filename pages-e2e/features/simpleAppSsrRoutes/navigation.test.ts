@@ -1,8 +1,10 @@
 import { describe, it } from 'vitest';
+import { getAssertVisible } from '@features-utils/getAssertVisible';
 
 describe('Simple App Static SPA navigation', () => {
 	it('should soft navigate between static routes', async ({ expect }) => {
 		const page = await BROWSER.newPage();
+		const assertVisible = getAssertVisible(page);
 
 		const requestUrls: string[] = [];
 		await page.route('**/*', route => {
@@ -12,49 +14,20 @@ describe('Simple App Static SPA navigation', () => {
 
 		await page.goto(`${DEPLOYMENT_URL}/ssr-navigation`);
 
-		expect(
-			await page
-				.locator('h1', { hasText: 'Server Side Rendered Navigation' })
-				.isVisible(),
-		).toBe(true);
-		expect(
-			await page
-				.locator('h2', { hasText: 'Server Side Rendered Index' })
-				.isVisible(),
-		).toBe(true);
+		await assertVisible('h1', { hasText: 'Server Side Rendered Navigation' });
+		await assertVisible('h2', { hasText: 'Server Side Rendered Index' });
 
 		await page.locator('a', { hasText: 'to page A' }).click();
 
-		await page
-			.locator('h2', { hasText: 'Server Side Rendered Page A' })
-			.waitFor();
-		expect(
-			await page
-				.locator('h2', { hasText: 'Server Side Rendered Page A' })
-				.isVisible(),
-		).toBe(true);
+		await assertVisible('h2', { hasText: 'Server Side Rendered Page A' });
 
 		await page.locator('a', { hasText: 'to page B' }).click();
 
-		await page
-			.locator('h2', { hasText: 'Server Side Rendered Page B' })
-			.waitFor();
-		expect(
-			await page
-				.locator('h2', { hasText: 'Server Side Rendered Page B' })
-				.isVisible(),
-		).toBe(true);
+		await assertVisible('h2', { hasText: 'Server Side Rendered Page B' });
 
 		await page.goBack();
 
-		await page
-			.locator('h2', { hasText: 'Server Side Rendered Page A' })
-			.waitFor();
-		expect(
-			await page
-				.locator('h2', { hasText: 'Server Side Rendered Page A' })
-				.isVisible(),
-		).toBe(true);
+		await assertVisible('h2', { hasText: 'Server Side Rendered Page A' });
 
 		const hardNavigationRequests = requestUrls.filter(url => {
 			const urlObj = new URL(url);
