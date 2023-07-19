@@ -79,10 +79,7 @@ function collectIdentifierType<T extends IdentifierType>(
 		} else {
 			// Identifier already exists and it was already found in this file - this is a collision.
 			cliError(
-				`
-						ERROR: Detected a collision with the webpack chunks deduplication.
-									 Try adding the '--disable-chunks-dedup' argument to temporarily solve the issue.
-					`,
+				`ERROR: A duplicated identifier has been detected in the same function file, aborting.`,
 				{ spaced: true, showReport: true },
 			);
 			process.exit(1);
