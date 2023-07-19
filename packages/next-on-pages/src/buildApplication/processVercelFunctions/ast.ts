@@ -16,14 +16,14 @@ export function collectIdentifiers(
 	{ disableChunksDedup }: Partial<ProcessVercelFunctionsOpts>,
 ): void {
 	// Wasm
-	collectIdentifierType(
+	collectIdentifiersByType(
 		{ programIdentifiers, foundIdentifiers: identifierMaps.wasm },
 		program,
 		extractWasm,
 	);
 
 	// Manifests
-	collectIdentifierType(
+	collectIdentifiersByType(
 		{ programIdentifiers, foundIdentifiers: identifierMaps.manifest },
 		program,
 		extractManifest,
@@ -31,7 +31,7 @@ export function collectIdentifiers(
 
 	// Webpack chunks
 	if (!disableChunksDedup) {
-		collectIdentifierType(
+		collectIdentifiersByType(
 			{ programIdentifiers, foundIdentifiers: identifierMaps.webpack },
 			program,
 			extractWebpack,
@@ -51,8 +51,8 @@ type CollectIdentifiersOpts = {
  * @param program The AST for the function file.
  * @param callback A function that extracts the identifiers from a statement.
  */
-function collectIdentifierType<T extends IdentifierType>(
-	{ foundIdentifiers, programIdentifiers }: CollectIdentifierTypeOpts,
+function collectIdentifiersByType<T extends IdentifierType>(
+	{ foundIdentifiers, programIdentifiers }: CollectIdentifiersByTypeOpts,
 	program: AST.ProgramKind,
 	callback: (
 		statement: AST.StatementKind,
@@ -89,7 +89,7 @@ function collectIdentifierType<T extends IdentifierType>(
 	}
 }
 
-type CollectIdentifierTypeOpts = {
+type CollectIdentifiersByTypeOpts = {
 	foundIdentifiers: IdentifiersMap;
 	programIdentifiers: ProgramIdentifiers;
 };

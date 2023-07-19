@@ -10,7 +10,6 @@ import {
 	validateFile,
 } from '../../../src/utils';
 import mockFs from 'mock-fs';
-import { createHash } from 'crypto';
 
 describe('normalizePath', () => {
 	test('windows short path name format normalizes', () => {
@@ -235,12 +234,12 @@ describe('readDirectories', () => {
 describe('getFileHash', () => {
 	test('should return hash of file', async () => {
 		const fileContents = 'valid-file';
-		const textHash = createHash('sha256').update(fileContents).digest('hex');
-
 		mockFs({ 'index.js': fileContents });
 
 		const fileHash = getFileHash('index.js')?.toString('hex');
-		expect(fileHash).toEqual(textHash);
+		expect(fileHash).toMatchInlineSnapshot(
+			'"696467a96e868c7b199de171876416f4f043eb1e912865e966670ab439f4cb38"',
+		);
 
 		mockFs.restore();
 	});

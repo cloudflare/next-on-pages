@@ -13,18 +13,30 @@ import type {
 	RawIdentifierWithImport,
 } from './ast';
 import { collectIdentifiers } from './ast';
-import { buildFile, getRelativePath } from './build';
-import { addLeadingSlash, copyFileWithDir, validateFile } from '../../utils';
-import { copyNewFiles } from './prerenderFunctions';
+import { buildFile, getRelativePathToAncestor } from './build';
+import {
+	addLeadingSlash,
+	copyFileWithDir,
+	replaceLastSubstringInstance,
+	validateFile,
+} from '../../utils';
+import { copyAssetFile } from './prerenderFunctions';
 import { cliError } from '../../cli';
 
 /**
  * Dedupes edge functions that were found in the build output.
  *
- * Collects and processes the following identifiers from the functions' files:
+ * Collects the following identifiers from the functions' files:
  * - Wasm imports
  * - Webpack chunks
  * - Next.js JSON manifests
+ *
+ * Dedupes the collected identifiers in each function, and builds/creates new files for the deduped
+ * identifiers.
+ *
+ * Builds the newly deduped code for a function to the output directory.
+ *
+ * Copies and dedupes any bundled assets for the function to the output directory.
  *
  * @param collectedFunctions Functions collected from the Vercel build output.
  * @param opts Options for processing Vercel functions.
@@ -158,7 +170,7 @@ async function buildFunctionFile(
 	let functionImports = '';
 
 	importsToPrepend.forEach(({ key, path }) => {
-		const relativeImportPath = getRelativePath({
+		const relativeImportPath = getRelativePathToAncestor({
 			from: newFnLocation,
 			relativeTo: nopDistDir,
 		});
@@ -200,7 +212,7 @@ async function prependWasmImportsToCodeBlocks(
 		[...wasmImportsToPrepend.entries()].map(
 			async ([codeBlockRelativePath, wasmImports]) => {
 				const filePath = join(workerJsDir, codeBlockRelativePath);
-				const relativeImportPath = getRelativePath({
+				const relativeImportPath = getRelativePathToAncestor({
 					from: filePath,
 					relativeTo: nopDistDir,
 				});
@@ -244,7 +256,7 @@ async function processImportIdentifier(
 
 	if (!info.newDest) {
 		const importPathWithoutType = importPath
-			// Remove leading `../` from import path.
+			// Remove leading `../`s from import path.
 			.replace(/^(\.\.\/)+/, '')
 			// Remove `type` directory from import path if it starts with it.
 			.replace(new RegExp(`^/${type}/`), '/');
@@ -256,14 +268,18 @@ async function processImportIdentifier(
 		await copyFileWithDir(oldPath, newPath);
 	}
 
-	const relativeImportPath = getRelativePath({
+	const relativeImportPath = getRelativePathToAncestor({
 		from: newFnLocation,
 		relativeTo: nopDistDir,
 	});
 	const newImportPath = join(relativeImportPath, info.newDest);
 
 	const newVal = `import ${identifier} from "${newImportPath}";`;
-	updatedContents = replaceLastInstance(updatedContents, codeBlock, newVal);
+	updatedContents = replaceLastSubstringInstance(
+		updatedContents,
+		codeBlock,
+		newVal,
+	);
 
 	return { updatedContents };
 }
@@ -314,11 +330,19 @@ function processCodeBlockIdentifier(
 
 	if (type === 'webpack') {
 		const newVal = `__chunk_${identifier}`;
-		updatedContents = replaceLastInstance(updatedContents, codeBlock, newVal);
+		updatedContents = replaceLastSubstringInstance(
+			updatedContents,
+			codeBlock,
+			newVal,
+		);
 		newImport = { key: newVal, path: info.newDest };
 	} else if (type === 'manifest') {
 		const newVal = `self.${identifier}=${identifier};`;
-		updatedContents = replaceLastInstance(updatedContents, codeBlock, newVal);
+		updatedContents = replaceLastSubstringInstance(
+			updatedContents,
+			codeBlock,
+			newVal,
+		);
 		newImport = { key: identifier, path: info.newDest };
 	}
 
@@ -430,28 +454,6 @@ async function getFunctionFile(
 	return { contents: fixedContents, entrypoint };
 }
 
-/**
- * Replaces the last instance of a string, in a string.
- *
- * @param contents Contents of the file to replace the last instance in.
- * @param target The target string to replace.
- * @param value The value to replace the target with.
- * @returns The updated contents.
- */
-function replaceLastInstance(contents: string, target: string, value: string) {
-	const lastIndex = contents.lastIndexOf(target);
-
-	if (lastIndex === -1) {
-		return contents;
-	}
-
-	return (
-		contents.slice(0, lastIndex) +
-		value +
-		contents.slice(lastIndex + target.length)
-	);
-}
-
 async function processBundledAssets(
 	{ edgeFunctions }: Pick<CollectedFunctions, 'edgeFunctions'>,
 	{ nopDistDir }: ProcessVercelFunctionsOpts,
@@ -469,7 +471,7 @@ async function processBundledAssets(
 				process.exit(1);
 			}
 
-			await copyNewFiles({ originalFile, destFile, relativeName });
+			await copyAssetFile({ originalFile, destFile, relativeName });
 		}
 	}
 }

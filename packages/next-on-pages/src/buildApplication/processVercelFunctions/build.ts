@@ -18,7 +18,7 @@ export async function buildFile(
 	{ relativeTo }: Omit<RelativePathOpts, 'from'> = {},
 ) {
 	const relativeNopDistPath = join(
-		getRelativePath({ from: filePath, relativeTo }),
+		getRelativePathToAncestor({ from: filePath, relativeTo }),
 		'__next-on-pages-dist__',
 	);
 
@@ -41,7 +41,7 @@ export async function buildFile(
  * @param opts The paths for working out the relative path.
  * @returns The relative path of the function.
  */
-export function getRelativePath(opts: RelativePathOpts): string {
+export function getRelativePathToAncestor(opts: RelativePathOpts): string {
 	return '../'.repeat(getFunctionNestingLevel(opts));
 }
 

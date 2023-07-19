@@ -21,7 +21,7 @@ describe('processPrerenderFunctions', () => {
 	afterEach(() => mockFs.restore());
 
 	test('succeeds for root-level prerendered index route', async () => {
-		const collectedFunctions = await collectFunctionsFrom({
+		const { collectedFunctions, restoreFsMock } = await collectFunctionsFrom({
 			functions: {
 				'page.func': edgeFuncDir,
 				'page.rsc.func': edgeFuncDir,
@@ -40,6 +40,7 @@ describe('processPrerenderFunctions', () => {
 			workerJsDir,
 			nopDistDir,
 		});
+		restoreFsMock();
 
 		const { edgeFunctions, prerenderedFunctions, invalidFunctions } =
 			collectedFunctions;
@@ -73,7 +74,7 @@ describe('processPrerenderFunctions', () => {
 	});
 
 	test('succeeds for prerendered favicon', async () => {
-		const collectedFunctions = await collectFunctionsFrom({
+		const { collectedFunctions, restoreFsMock } = await collectFunctionsFrom({
 			functions: {
 				'page.func': edgeFuncDir,
 				'page.rsc.func': edgeFuncDir,
@@ -92,6 +93,7 @@ describe('processPrerenderFunctions', () => {
 			workerJsDir,
 			nopDistDir,
 		});
+		restoreFsMock();
 
 		const { edgeFunctions, prerenderedFunctions, invalidFunctions } =
 			collectedFunctions;
@@ -120,7 +122,7 @@ describe('processPrerenderFunctions', () => {
 	});
 
 	test('succeeds for prerendered json', async () => {
-		const collectedFunctions = await collectFunctionsFrom({
+		const { collectedFunctions, restoreFsMock } = await collectFunctionsFrom({
 			functions: {
 				_next: {
 					data: {
@@ -143,6 +145,9 @@ describe('processPrerenderFunctions', () => {
 			workerJsDir,
 			nopDistDir,
 		});
+		restoreFsMock();
+
+		restoreFsMock();
 
 		const { edgeFunctions, prerenderedFunctions, invalidFunctions } =
 			collectedFunctions;
@@ -173,7 +178,7 @@ describe('processPrerenderFunctions', () => {
 	});
 
 	test('succeeds for nested prerendered routes', async () => {
-		const collectedFunctions = await collectFunctionsFrom({
+		const { collectedFunctions, restoreFsMock } = await collectFunctionsFrom({
 			functions: {
 				'index.func': edgeFuncDir,
 				'index.rsc.func': edgeFuncDir,
@@ -197,6 +202,7 @@ describe('processPrerenderFunctions', () => {
 			workerJsDir,
 			nopDistDir,
 		});
+		restoreFsMock();
 
 		const { edgeFunctions, prerenderedFunctions, invalidFunctions } =
 			collectedFunctions;
@@ -235,7 +241,7 @@ describe('processPrerenderFunctions', () => {
 	});
 
 	test('succeeds for prerendered routes inside route groups', async () => {
-		const collectedFunctions = await collectFunctionsFrom({
+		const { collectedFunctions, restoreFsMock } = await collectFunctionsFrom({
 			functions: {
 				'index.func': edgeFuncDir,
 				'index.rsc.func': edgeFuncDir,
@@ -256,6 +262,7 @@ describe('processPrerenderFunctions', () => {
 			workerJsDir,
 			nopDistDir,
 		});
+		restoreFsMock();
 
 		const { edgeFunctions, prerenderedFunctions, invalidFunctions } =
 			collectedFunctions;
@@ -291,7 +298,7 @@ describe('processPrerenderFunctions', () => {
 	test('does not overwrite existing static file with same hash', async () => {
 		const mockedConsole = mockConsole('warn');
 
-		const collectedFunctions = await collectFunctionsFrom({
+		const { collectedFunctions, restoreFsMock } = await collectFunctionsFrom({
 			functions: {
 				'index.func': prerenderFuncDir,
 				'index.rsc.func': prerenderFuncDir,
@@ -309,6 +316,7 @@ describe('processPrerenderFunctions', () => {
 			workerJsDir,
 			nopDistDir,
 		});
+		restoreFsMock();
 
 		const { edgeFunctions, prerenderedFunctions, invalidFunctions } =
 			collectedFunctions;
@@ -339,7 +347,7 @@ describe('processPrerenderFunctions', () => {
 	test('overwrites existing static file with different hash', async () => {
 		const mockedConsole = mockConsole('warn');
 
-		const collectedFunctions = await collectFunctionsFrom({
+		const { collectedFunctions, restoreFsMock } = await collectFunctionsFrom({
 			functions: {
 				nested: {
 					'page.func': prerenderFuncDir,
@@ -359,6 +367,7 @@ describe('processPrerenderFunctions', () => {
 			workerJsDir,
 			nopDistDir,
 		});
+		restoreFsMock();
 
 		const { edgeFunctions, prerenderedFunctions, invalidFunctions } =
 			collectedFunctions;
@@ -391,7 +400,7 @@ describe('processPrerenderFunctions', () => {
 	test('fails with missing file', async () => {
 		const mockedConsole = mockConsole('warn');
 
-		const collectedFunctions = await collectFunctionsFrom({
+		const { collectedFunctions, restoreFsMock } = await collectFunctionsFrom({
 			functions: {
 				nested: {
 					'index.func': prerenderFuncDir,
@@ -410,6 +419,7 @@ describe('processPrerenderFunctions', () => {
 			workerJsDir,
 			nopDistDir,
 		});
+		restoreFsMock();
 
 		const { edgeFunctions, prerenderedFunctions, invalidFunctions } =
 			collectedFunctions;
@@ -437,7 +447,7 @@ describe('processPrerenderFunctions', () => {
 	test('fails with invalid config', async () => {
 		const mockedConsole = mockConsole('warn');
 
-		const collectedFunctions = await collectFunctionsFrom({
+		const { collectedFunctions, restoreFsMock } = await collectFunctionsFrom({
 			functions: {
 				nested: {
 					'index.func': prerenderFuncDir,
@@ -456,6 +466,7 @@ describe('processPrerenderFunctions', () => {
 			workerJsDir,
 			nopDistDir,
 		});
+		restoreFsMock();
 
 		const { edgeFunctions, prerenderedFunctions, invalidFunctions } =
 			collectedFunctions;
@@ -476,7 +487,7 @@ describe('processPrerenderFunctions', () => {
 		const mockedConsoleLog = mockConsole('log');
 		const mockedConsoleWarn = mockConsole('warn');
 
-		const collectedFunctions = await collectFunctionsFrom(
+		const { collectedFunctions, restoreFsMock } = await collectFunctionsFrom(
 			{
 				functions: {
 					'index.func': prerenderFuncDir,
@@ -524,6 +535,7 @@ describe('processPrerenderFunctions', () => {
 		expect(invalidFunctions.size).toEqual(0);
 
 		expect(readdirSync(resolve('custom'))).toEqual(['index.html', 'index.rsc']);
+		restoreFsMock();
 
 		mockedConsoleLog.expectCalls([
 			/output directory: custom/,
@@ -540,7 +552,7 @@ describe('processPrerenderFunctions', () => {
 	test('succeeds with custom output dir', async () => {
 		const mockedConsole = mockConsole('log');
 
-		const collectedFunctions = await collectFunctionsFrom(
+		const { collectedFunctions, restoreFsMock } = await collectFunctionsFrom(
 			{
 				functions: {
 					'page.func': edgeFuncDir,
@@ -597,6 +609,7 @@ describe('processPrerenderFunctions', () => {
 		expect(invalidFunctions.size).toEqual(0);
 
 		expect(readdirSync(resolve('custom'))).toEqual(['index.html', 'index.rsc']);
+		restoreFsMock();
 
 		mockedConsole.expectCalls([/output directory: custom/]);
 		mockedConsole.restore();

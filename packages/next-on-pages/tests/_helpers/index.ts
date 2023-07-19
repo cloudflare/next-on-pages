@@ -401,7 +401,11 @@ export async function collectFunctionsFrom(
 	});
 
 	await processOutputDir(outputDir, await getVercelStaticAssets());
-	return collectFunctionConfigsRecursively(functionsDir);
+	const collectedFunctions = await collectFunctionConfigsRecursively(
+		functionsDir,
+	);
+
+	return { collectedFunctions, restoreFsMock: () => mockFs.restore() };
 }
 
 /**

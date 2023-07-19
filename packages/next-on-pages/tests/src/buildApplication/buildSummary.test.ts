@@ -145,15 +145,25 @@ describe('buildSummary', () => {
 						{ route: { path: '/prerendered-two' } } as FunctionInfo,
 					],
 				]),
-				invalidFunctions: new Map(),
-				ignoredFunctions: new Map(),
+				invalidFunctions: new Map([
+					[
+						'/invalid-node-func',
+						{ route: { path: '/invalid-node-func' } } as FunctionInfo,
+					],
+				]),
+				ignoredFunctions: new Map([
+					[
+						'/ignored-rsc-route',
+						{ route: { path: '/ignored-rsc-route' } } as FunctionInfo,
+					],
+				]),
 			},
 			identifiers: {
 				entrypointsMap: new Map(),
 				identifierMaps: {
 					wasm: new Map([['wasm-one', { consumers: 1 }]]),
-					manifest: new Map(),
-					webpack: new Map(),
+					manifest: new Map([['__BUILD_MANIFEST', { consumers: 5 }]]),
+					webpack: new Map([['872', { consumers: 1 }]]),
 				},
 			},
 		};
@@ -183,8 +193,8 @@ describe('buildSummary', () => {
 					{ route: { path: '/home' } },
 					{ route: { path: '/nested/home' } },
 				],
-				ignored: [],
-				invalid: [],
+				ignored: [{ route: { path: '/ignored-rsc-route' } }],
+				invalid: [{ route: { path: '/invalid-node-func' } }],
 				middleware: ['middleware'],
 				prerendered: [
 					{ route: { path: '/prerendered-one' } },
@@ -193,9 +203,9 @@ describe('buildSummary', () => {
 			},
 			staticAssets: ['/static-one', '/static-two'],
 			identifiers: {
-				manifest: {},
+				manifest: { __BUILD_MANIFEST: { consumers: 5 } },
 				wasm: { 'wasm-one': { consumers: 1 } },
-				webpack: {},
+				webpack: { '872': { consumers: 1 } },
 			},
 		});
 

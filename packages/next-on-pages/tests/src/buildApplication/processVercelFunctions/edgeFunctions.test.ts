@@ -17,13 +17,14 @@ describe('processEdgeFunctions', () => {
 	afterEach(() => mockFs.restore());
 
 	test('valid index routes', async () => {
-		const collectedFunctions = await collectFunctionsFrom({
+		const { collectedFunctions, restoreFsMock } = await collectFunctionsFrom({
 			functions: {
 				'index.func': edgeFuncDir,
 			},
 		});
 
 		await processEdgeFunctions(collectedFunctions);
+		restoreFsMock();
 
 		const { edgeFunctions, invalidFunctions } = collectedFunctions;
 
@@ -37,7 +38,7 @@ describe('processEdgeFunctions', () => {
 	});
 
 	test('adds rsc routes as overrides if there is a valid non-rsc route', async () => {
-		const collectedFunctions = await collectFunctionsFrom({
+		const { collectedFunctions, restoreFsMock } = await collectFunctionsFrom({
 			functions: {
 				'index.func': edgeFuncDir,
 				'index.rsc.func': edgeFuncDir,
@@ -45,6 +46,7 @@ describe('processEdgeFunctions', () => {
 		});
 
 		await processEdgeFunctions(collectedFunctions);
+		restoreFsMock();
 
 		const { edgeFunctions, invalidFunctions, ignoredFunctions } =
 			collectedFunctions;
@@ -64,13 +66,14 @@ describe('processEdgeFunctions', () => {
 	});
 
 	test('uses rsc route if there is no valid non-rsc route', async () => {
-		const collectedFunctions = await collectFunctionsFrom({
+		const { collectedFunctions, restoreFsMock } = await collectFunctionsFrom({
 			functions: {
 				'index.rsc.func': edgeFuncDir,
 			},
 		});
 
 		await processEdgeFunctions(collectedFunctions);
+		restoreFsMock();
 
 		const { edgeFunctions, invalidFunctions, ignoredFunctions } =
 			collectedFunctions;
@@ -86,7 +89,7 @@ describe('processEdgeFunctions', () => {
 	});
 
 	test('valid nested routes', async () => {
-		const collectedFunctions = await collectFunctionsFrom({
+		const { collectedFunctions, restoreFsMock } = await collectFunctionsFrom({
 			functions: {
 				api: {
 					'hello.func': edgeFuncDir,
@@ -95,6 +98,7 @@ describe('processEdgeFunctions', () => {
 		});
 
 		await processEdgeFunctions(collectedFunctions);
+		restoreFsMock();
 
 		const { edgeFunctions, invalidFunctions } = collectedFunctions;
 
@@ -108,7 +112,7 @@ describe('processEdgeFunctions', () => {
 	});
 
 	test('valid middlewares (and ignore their potential middleware.js file)', async () => {
-		const collectedFunctions = await collectFunctionsFrom({
+		const { collectedFunctions, restoreFsMock } = await collectFunctionsFrom({
 			functions: {
 				'middlewarejs.func': {
 					'.vc-config.json': JSON.stringify({
@@ -126,6 +130,7 @@ describe('processEdgeFunctions', () => {
 		});
 
 		await processEdgeFunctions(collectedFunctions);
+		restoreFsMock();
 
 		const { edgeFunctions, invalidFunctions } = collectedFunctions;
 
@@ -151,7 +156,7 @@ describe('processEdgeFunctions', () => {
 	});
 
 	test('should squash valid routes in route groups', async () => {
-		const collectedFunctions = await collectFunctionsFrom({
+		const { collectedFunctions, restoreFsMock } = await collectFunctionsFrom({
 			functions: {
 				path: {
 					'(group-1)': {
@@ -166,6 +171,7 @@ describe('processEdgeFunctions', () => {
 		});
 
 		await processEdgeFunctions(collectedFunctions);
+		restoreFsMock();
 
 		const { edgeFunctions, invalidFunctions } = collectedFunctions;
 
@@ -181,7 +187,7 @@ describe('processEdgeFunctions', () => {
 	});
 
 	test('should squash invalid root functions with valid alternative', async () => {
-		const collectedFunctions = await collectFunctionsFrom({
+		const { collectedFunctions, restoreFsMock } = await collectFunctionsFrom({
 			functions: {
 				'should-be-valid.func': nodejsFuncDir,
 				'(is-actually-valid)': {
@@ -191,6 +197,7 @@ describe('processEdgeFunctions', () => {
 		});
 
 		await processEdgeFunctions(collectedFunctions);
+		restoreFsMock();
 
 		const { edgeFunctions, invalidFunctions } = collectedFunctions;
 
@@ -206,7 +213,7 @@ describe('processEdgeFunctions', () => {
 	});
 
 	test('should squash invalid root rsc functions with valid non-rsc alternative', async () => {
-		const collectedFunctions = await collectFunctionsFrom({
+		const { collectedFunctions, restoreFsMock } = await collectFunctionsFrom({
 			functions: {
 				'should-be-valid.rsc.func': nodejsFuncDir,
 				'(is-actually-valid)': {
@@ -216,6 +223,7 @@ describe('processEdgeFunctions', () => {
 		});
 
 		await processEdgeFunctions(collectedFunctions);
+		restoreFsMock();
 
 		const { edgeFunctions, invalidFunctions, ignoredFunctions } =
 			collectedFunctions;
@@ -237,7 +245,7 @@ describe('processEdgeFunctions', () => {
 	});
 
 	test('should return invalid functions', async () => {
-		const collectedFunctions = await collectFunctionsFrom({
+		const { collectedFunctions, restoreFsMock } = await collectFunctionsFrom({
 			functions: {
 				'index.func': nodejsFuncDir,
 				'index.rsc.func': nodejsFuncDir,
@@ -245,6 +253,7 @@ describe('processEdgeFunctions', () => {
 		});
 
 		await processEdgeFunctions(collectedFunctions);
+		restoreFsMock();
 
 		const { edgeFunctions, invalidFunctions, ignoredFunctions } =
 			collectedFunctions;
@@ -265,7 +274,7 @@ describe('processEdgeFunctions', () => {
 	test('should ignore a generated middleware.js file while also providing a warning', async () => {
 		const mockedConsole = mockConsole('warn');
 
-		const collectedFunctions = await collectFunctionsFrom({
+		const { collectedFunctions, restoreFsMock } = await collectFunctionsFrom({
 			functions: {
 				'middlewarejs.func': {
 					'.vc-config.json': JSON.stringify({
@@ -279,6 +288,7 @@ describe('processEdgeFunctions', () => {
 		});
 
 		await processEdgeFunctions(collectedFunctions);
+		restoreFsMock();
 
 		const { edgeFunctions, invalidFunctions, ignoredFunctions } =
 			collectedFunctions;
