@@ -63,7 +63,7 @@ export async function processEdgeFunctions(
 
 	// Remove any RSC functions that have a valid non-RSC function that can be used instead.
 	// NOTE: RSC functions are identical to non-RSC functions, so this is okay.
-	// https://github.com/vercel/vercel/blob/main/packages/next/src/server-build.ts#L1193
+	// https://github.com/vercel/vercel/blob/fdf86f/packages/next/src/server-build.ts#L1217
 	for (const [formattedPath, path] of foundRscFunctions) {
 		replaceRscWithNonRsc(collectedFunctions, tempFunctionsMap, {
 			formattedPath,
