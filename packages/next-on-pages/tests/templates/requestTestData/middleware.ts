@@ -27,6 +27,14 @@ const rawVercelConfig: VercelConfig = {
 			middlewareRawSrc: ['/:nextData(_next/data/[^/]{1,})?/api/:path*(.json)?'],
 			override: true,
 		},
+		{
+			src: '^/((?!.+\\.rsc).+?)(?:/)?$',
+			has: [{ type: 'header', key: 'rsc' }],
+			dest: '/$1.rsc',
+			headers: { vary: 'RSC, Next-Router-State-Tree, Next-Router-Prefetch' },
+			continue: true,
+			override: true,
+		},
 		{ handle: 'resource' },
 		{ src: '/.*', status: 404 },
 		{ handle: 'hit' },
@@ -101,6 +109,18 @@ export const testSet: TestSet = {
 		{
 			name: 'middleware route returns redirect for `NextResponse.redirect()`',
 			paths: ['/api/hello?redirect'],
+			expected: {
+				status: 307,
+				data: '',
+				headers: {
+					location: 'http://localhost/somewhere-else',
+				},
+			},
+		},
+		{
+			name: 'middleware route returns redirect when a later matching config rule would be an override',
+			paths: ['/api/hello?redirect'],
+			headers: { rsc: '1' },
 			expected: {
 				status: 307,
 				data: '',
