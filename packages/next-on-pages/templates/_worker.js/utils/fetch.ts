@@ -65,13 +65,9 @@ async function handleInlineAssetRequest(request: Request) {
 				get body(): ReadableStream<unknown> | null {
 					return new ReadableStream({
 						start(controller) {
-							return pump();
-							function pump() {
-								const b = Buffer.from(binaryContent);
-								controller.enqueue(b);
-								controller.close();
-								return pump();
-							}
+							const b = Buffer.from(binaryContent);
+							controller.enqueue(b);
+							controller.close();
 						},
 					});
 				},
