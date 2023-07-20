@@ -22,17 +22,17 @@ export async function processEdgeFunctions(
 	const foundRscFunctions = new Map<string, string>();
 
 	for (const [path, fnInfo] of edgeFunctions) {
-		const { result, finalEntrypoint } = await checkEntrypoint(
+		const entrypointStatus = await checkEntrypoint(
 			path,
 			fnInfo.relativePath,
 			fnInfo.config.entrypoint,
 		);
 
-		switch (result) {
+		switch (entrypointStatus.value) {
 			case 'valid': {
 				// update the edge function with the final entrypoint if it changed
-				if (finalEntrypoint !== fnInfo.config.entrypoint) {
-					fnInfo.config.entrypoint = finalEntrypoint;
+				if (entrypointStatus.finalEntrypoint !== fnInfo.config.entrypoint) {
+					fnInfo.config.entrypoint = entrypointStatus.finalEntrypoint;
 				}
 
 				const formattedPathName = formatRoutePath(fnInfo.relativePath);
@@ -89,8 +89,7 @@ async function checkEntrypoint(
 	relativePath: string,
 	entrypoint: string,
 ): Promise<
-	| { result: 'ignore' | 'invalid'; finalEntrypoint?: never }
-	| { result: 'valid'; finalEntrypoint: string }
+	{ value: 'ignore' | 'invalid' } | { value: 'valid'; finalEntrypoint: string }
 > {
 	let finalEntrypoint = entrypoint;
 
@@ -110,13 +109,13 @@ async function checkEntrypoint(
 			cliWarn(
 				`Detected an invalid middleware function for ${relativePath}. Skipping...`,
 			);
-			return { result: 'ignore' };
+			return { value: 'ignore' };
 		}
 
-		return { result: 'invalid' };
+		return { value: 'invalid' };
 	}
 
-	return { result: 'valid', finalEntrypoint };
+	return { value: 'valid', finalEntrypoint };
 }
 
 /**
