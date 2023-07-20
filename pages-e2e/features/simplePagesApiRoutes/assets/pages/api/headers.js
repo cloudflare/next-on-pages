@@ -4,9 +4,19 @@ export const config = {
 
 export default function handler(req) {
 	const allCookies = [];
-	req.cookies.getAll().forEach(({ value, name }) => {
-		allCookies.push({ name, value });
-	});
+
+	if (typeof req.cookies.getAll !== 'function') {
+		// Next.js <= 12
+		Array.from(req.cookies.keys()).forEach(name => {
+			const value = req.cookies.get(name);
+			allCookies.push({ name, value });
+		});
+	} else {
+		// Next.js >= 13
+		req.cookies.getAll().forEach(({ value, name }) => {
+			allCookies.push({ name, value });
+		});
+	}
 
 	const allHeaders = [];
 	req.headers.forEach((value, name) => {

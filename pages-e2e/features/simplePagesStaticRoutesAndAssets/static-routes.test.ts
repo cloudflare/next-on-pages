@@ -23,9 +23,7 @@ describe('Simple Pages Static Routes', () => {
 
 		const pageContent = await page.content();
 
-		const isOldStyleNextIndexPage = pageContent.includes(
-			'Welcome to <a href="https://nextjs.org">Next.js!</a>',
-		);
+		const isOldStyleNextIndexPage = pageContent.includes('Welcome to');
 
 		if (isOldStyleNextIndexPage) {
 			const bodyFontFamily = await bodyElement.evaluate(el => {
