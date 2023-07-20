@@ -1,4 +1,7 @@
-export const runtime = 'edge';
+
+export const config = {
+	runtime: 'experimental-edge',
+};
 
 export default function handler(req) {
 	const allCookies = [];
