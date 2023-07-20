@@ -3,11 +3,11 @@ import mockFs from 'mock-fs';
 import type { ProcessedVercelOutput } from '../../../src/buildApplication/processVercelOutput';
 import { processOutputDir } from '../../../src/buildApplication/processVercelOutput';
 import { processVercelOutput } from '../../../src/buildApplication/processVercelOutput';
-import type { PrerenderedFileData } from '../../../src/buildApplication/fixPrerenderedRoutes';
 import { mockConsole } from '../../_helpers';
 import { resolve } from 'path';
 import { existsSync } from 'node:fs';
 import { readdirSync } from 'fs';
+import type { FunctionInfo } from '../../../src/buildApplication/processVercelFunctions/configs';
 
 describe('processVercelOutput', () => {
 	test('should process the config and build output correctly', () => {
@@ -23,10 +23,24 @@ describe('processVercelOutput', () => {
 			],
 		};
 		const inputtedAssets = ['/static/test.png'];
-		const inputtedPrerendered = new Map<string, PrerenderedFileData>();
-		const inputtedFunctions = new Map<string, string>([
-			['/middleware', '/middleware/index.js'],
-			['/use-middleware', '/use-middleware/index.js'],
+		const inputtedPrerendered = new Map<string, FunctionInfo>();
+		const inputtedFunctions = new Map<string, FunctionInfo>([
+			[
+				'/middleware',
+				{
+					relativePath: '/middleware.func',
+					outputPath: '/middleware/index.js',
+					route: { path: '/middleware' },
+				} as FunctionInfo,
+			],
+			[
+				'/use-middleware',
+				{
+					relativePath: '/use-middleware.func',
+					outputPath: '/use-middleware/index.js',
+					route: { path: '/use-middleware' },
+				} as FunctionInfo,
+			],
 		]);
 
 		const processed = processVercelOutput(
@@ -93,9 +107,16 @@ describe('processVercelOutput', () => {
 			'/index.html',
 			'/test.html',
 		];
-		const inputtedPrerendered = new Map<string, PrerenderedFileData>();
-		const inputtedFunctions = new Map<string, string>([
-			['/page', '/page/index.js'],
+		const inputtedPrerendered = new Map<string, FunctionInfo>();
+		const inputtedFunctions = new Map<string, FunctionInfo>([
+			[
+				'/page',
+				{
+					relativePath: '/page.func',
+					outputPath: '/page/index.js',
+					route: { path: '/page' },
+				} as FunctionInfo,
+			],
 		]);
 
 		const processed = processVercelOutput(
@@ -228,38 +249,57 @@ describe('processVercelOutput', () => {
 			'/index.rsc',
 			'/nested/(route-group)/foo.html',
 		];
-		const inputtedPrerendered = new Map<string, PrerenderedFileData>([
+		const inputtedPrerendered = new Map<string, FunctionInfo>([
 			[
 				'/index.html',
 				{
-					headers: {
-						vary: 'RSC, Next-Router-State-Tree, Next-Router-Prefetch',
+					relativePath: '/index.html',
+					route: {
+						path: '/index.html',
+						headers: {
+							vary: 'RSC, Next-Router-State-Tree, Next-Router-Prefetch',
+						},
+						overrides: ['/index', '/'],
 					},
-					overrides: ['/index', '/'],
-				},
+				} as unknown as FunctionInfo,
 			],
 			[
 				'/index.rsc',
 				{
-					headers: {
-						'content-type': 'text/x-component',
-						vary: 'RSC, Next-Router-State-Tree, Next-Router-Prefetch',
+					relativePath: '/index.rsc',
+					route: {
+						path: '/index.rsc',
+						headers: {
+							'content-type': 'text/x-component',
+							vary: 'RSC, Next-Router-State-Tree, Next-Router-Prefetch',
+						},
+						overrides: [],
 					},
-					overrides: [],
-				},
+				} as unknown as FunctionInfo,
 			],
 			[
 				'/nested/(route-group)/foo.html',
 				{
-					headers: {
-						vary: 'RSC, Next-Router-State-Tree, Next-Router-Prefetch',
+					relativePath: '/nested/(route-group)/foo.html',
+					route: {
+						path: '/nested/(route-group)/foo.html',
+						headers: {
+							vary: 'RSC, Next-Router-State-Tree, Next-Router-Prefetch',
+						},
+						overrides: ['/nested/foo.html', '/nested/foo'],
 					},
-					overrides: ['/nested/foo.html', '/nested/foo'],
-				},
+				} as unknown as FunctionInfo,
 			],
 		]);
-		const inputtedFunctions = new Map<string, string>([
-			['/page', '/page/index.js'],
+		const inputtedFunctions = new Map<string, FunctionInfo>([
+			[
+				'/page',
+				{
+					relativePath: '/page',
+					outputPath: '/page/index.js',
+					route: { path: '/page' },
+				} as FunctionInfo,
+			],
 		]);
 
 		const processed = processVercelOutput(

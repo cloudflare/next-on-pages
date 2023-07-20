@@ -1,5 +1,7 @@
-import { readdir, readFile, stat, mkdir, copyFile } from 'fs/promises';
-import { resolve, dirname } from 'path';
+import { createHash } from 'node:crypto';
+import { readFileSync } from 'node:fs';
+import { readdir, readFile, stat, mkdir, copyFile } from 'node:fs/promises';
+import { resolve, dirname, join } from 'node:path';
 
 /**
  * Convert paths with backslashes to normalized paths with forward slashes.
@@ -124,4 +126,55 @@ export async function readPathsRecursively(dir: string): Promise<string[]> {
 export async function copyFileWithDir(sourceFile: string, destFile: string) {
 	await mkdir(dirname(destFile), { recursive: true });
 	await copyFile(sourceFile, destFile);
+}
+
+/**
+ * Reads all directories in a directory.
+ *
+ * @param path Path to read directories from.
+ * @returns Array of all directories in a directory.
+ */
+export async function readDirectories(
+	basePath: string,
+): Promise<DirectoryInfo[]> {
+	try {
+		const files = await readdir(basePath, { withFileTypes: true });
+
+		const dirs = await Promise.all(
+			files.map(async file => {
+				const path = normalizePath(join(basePath, file.name));
+				const isSymbolicLink = file.isSymbolicLink();
+				const isDirectory =
+					file.isDirectory() || (isSymbolicLink && (await validateDir(path)));
+
+				return { name: file.name, path, isDirectory, isSymbolicLink };
+			}),
+		);
+
+		return dirs.filter(file => file.isDirectory);
+	} catch {
+		return [];
+	}
+}
+
+type DirectoryInfo = {
+	name: string;
+	path: string;
+	isDirectory: boolean;
+	isSymbolicLink: boolean;
+};
+
+/**
+ * Retrieves the hash for a file.
+ *
+ * @param path File path.
+ * @returns The file's hash, or undefined if the file does not exist.
+ */
+export function getFileHash(path: string): Buffer | undefined {
+	try {
+		const file = readFileSync(path);
+		return createHash('sha256').update(file).digest();
+	} catch (e) {
+		return undefined;
+	}
 }

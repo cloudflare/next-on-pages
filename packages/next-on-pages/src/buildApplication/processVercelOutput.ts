@@ -1,17 +1,17 @@
 import { dirname, join, relative, resolve } from 'path';
 import { copyFile, mkdir, rm } from 'fs/promises';
-import { rmSync } from 'fs';
 import {
 	addLeadingSlash,
 	normalizePath,
 	readPathsRecursively,
+	stripFuncExtension,
 	stripIndexRoute,
 	validateDir,
 } from '../utils';
 import { cliError, cliLog, cliWarn } from '../cli';
 import { processVercelConfig } from './getVercelConfig';
-import type { PrerenderedFileData } from './fixPrerenderedRoutes';
 import { deleteNextTelemetryFiles } from './buildVercelOutput';
+import type { FunctionInfo } from './processVercelFunctions/configs';
 
 /**
  * Extracts a list of static assets from the Vercel build output.
@@ -32,8 +32,12 @@ export async function getVercelStaticAssets(): Promise<string[]> {
 	return (
 		(await readPathsRecursively(dir))
 			.map(file => addLeadingSlash(normalizePath(relative(dir, file))))
-			// Filter out the worker script output directory contents as those are not valid static assets.
-			.filter(path => !/^\/_worker\.js\//.test(path))
+			// Filter out the worker script output directory and NOP-generated files as those are not valid static assets.
+			.filter(
+				path =>
+					!/^\/_worker\.js\//.test(path) &&
+					!['/_headers', '/_routes.json'].includes(path),
+			)
 	);
 }
 
@@ -109,14 +113,14 @@ export type ProcessedVercelOutput = {
  * @param config Vercel build output config.
  * @param staticAssets List of static asset paths from the file system.
  * @param prerenderedRoutes Map of prerendered files from the file system.
- * @param functionsMap Map of functions from the file system.
+ * @param edgeFunctions Map of edge functions from the file system.
  * @returns Processed Vercel build output map.
  */
 export function processVercelOutput(
 	config: VercelConfig,
 	staticAssets: string[],
-	prerenderedRoutes = new Map<string, PrerenderedFileData>(),
-	functionsMap = new Map<string, string>(),
+	prerenderedRoutes = new Map<string, FunctionInfo>(),
+	edgeFunctions = new Map<string, FunctionInfo>(),
 ): ProcessedVercelOutput {
 	const processedConfig = processVercelConfig(config);
 
@@ -124,20 +128,18 @@ export function processVercelOutput(
 		staticAssets.map(path => [path, { type: 'static' }]),
 	);
 
-	functionsMap.forEach((value, key) => {
-		processedOutput.set(key, {
+	edgeFunctions.forEach(({ relativePath, outputPath, route }) => {
+		processedOutput.set(route?.path ?? stripFuncExtension(relativePath), {
 			type: 'function',
-			// NOTE: We replace the `.rsc.func.js` extension with `.func.js` as RSC functions have the
-			// same exact content (and hash) as their non-rsc counterpart, so we opt to use the latter instead.
-			// This also resolves an unclear runtime error that happens during routing when rsc functions are bundled:
-			// `TypeError: Cannot read properties of undefined (reading 'default')`
-			entrypoint: value.replace(/\.rsc\.func\.js$/i, '.func.js'),
+			entrypoint: outputPath as string,
 		});
 
-		// Remove the RSC functions from the dist directory as they are not needed since we replace them with non-rsc variants for the runtime routing
-		if (/\.rsc\.func\.js$/i.test(value)) {
-			rmSync(value);
-		}
+		route?.overrides?.forEach(overridenPath => {
+			processedOutput.set(overridenPath, {
+				type: 'function',
+				entrypoint: outputPath as string,
+			});
+		});
 	});
 
 	// Apply the overrides from the build output config to the processed output map.
@@ -261,21 +263,23 @@ function applyVercelOverrides(
  * @param vercelOutput Map of path names to build output items.
  */
 function applyPrerenderedRoutes(
-	prerenderedRoutes: Map<string, PrerenderedFileData>,
+	prerenderedRoutes: Map<string, FunctionInfo>,
 	vercelOutput: Map<string, BuildOutputItem>,
 ): void {
-	prerenderedRoutes.forEach(({ headers, overrides }, path) => {
+	prerenderedRoutes.forEach(({ relativePath, route }) => {
+		const path = route?.path ?? stripFuncExtension(relativePath);
+
 		vercelOutput.set(path, {
 			type: 'override',
 			path,
-			headers,
+			headers: route?.headers,
 		});
 
-		overrides?.forEach(overridenPath => {
+		route?.overrides?.forEach(overridenPath => {
 			vercelOutput.set(overridenPath, {
 				type: 'override',
 				path,
-				headers,
+				headers: route?.headers,
 			});
 		});
 	});

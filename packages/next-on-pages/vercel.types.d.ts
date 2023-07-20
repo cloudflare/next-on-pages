@@ -1,4 +1,27 @@
 /**
+ * Types for the build output functions.
+ */
+
+type VercelFunctionConfig = {
+	operationType?: 'ISR';
+	runtime: 'edge' | 'nodejs';
+	name: string;
+	deploymentTarget: 'v8-worker' | string;
+	entrypoint: string;
+	envVarsInUse?: string[];
+	assets?: { name: string; path: string }[];
+	regions?: string | string[];
+	framework?: { slug: string; version?: string };
+};
+
+type VercelPrerenderConfig = {
+	type: string;
+	sourcePath?: string;
+	fallback: { type: string; mode: number; fsPath: string };
+	initialHeaders?: Record<string, string>;
+};
+
+/**
  * Types for the Vercel build output configuration file.
  */
 

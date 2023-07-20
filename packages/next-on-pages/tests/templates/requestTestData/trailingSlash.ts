@@ -1,5 +1,5 @@
 import type { TestSet } from '../../_helpers';
-import { mockPrerenderConfigFile } from '../../_helpers';
+import { createInvalidFuncDir, mockPrerenderConfigFile } from '../../_helpers';
 import { createValidFuncDir } from '../../_helpers';
 
 // `trailingSlash` option in `next.config.js` is `true`.
@@ -61,6 +61,9 @@ export const testSet: TestSet = {
 		functions: {
 			api: { 'hello.func': createValidFuncDir('/api/hello') },
 			'[lang].func': createValidFuncDir('/[lang]'),
+			'robots.txt.func': createInvalidFuncDir('/robots.txt', {
+				prerender: true,
+			}),
 			'robots.txt.prerender-config.json': mockPrerenderConfigFile(
 				'robots.txt',
 				'body',

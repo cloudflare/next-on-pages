@@ -2,7 +2,6 @@ import { writeFile } from 'fs/promises';
 import { join, relative } from 'path';
 import { build } from 'esbuild';
 import { tmpdir } from 'os';
-import { cliSuccess } from '../cli';
 import { generateGlobalJs } from './generateGlobalJs';
 import type { ProcessedVercelOutput } from './processVercelOutput';
 import { getNodeEnv } from '../utils/getNodeEnv';
@@ -45,7 +44,7 @@ export async function buildWorkerFile(
 	{ vercelConfig, vercelOutput }: ProcessedVercelOutput,
 	outputDir: string,
 	minify: boolean,
-) {
+): Promise<string> {
 	const functionsFile = join(
 		tmpdir(),
 		`functions-${Math.random().toString(36).slice(2)}.js`,
@@ -81,5 +80,5 @@ export async function buildWorkerFile(
 		minify,
 	});
 
-	cliSuccess(`Generated '${relative('.', outputFile)}'.`);
+	return relative('.', outputFile);
 }

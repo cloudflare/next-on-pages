@@ -2,13 +2,18 @@ import mockFs from 'mock-fs';
 import type { DirectoryItems } from 'mock-fs/lib/filesystem';
 import { readFileSync } from 'fs';
 import { join, resolve } from 'path';
-import { generateFunctionsMap } from '../../src/buildApplication/generateFunctionsMap';
 import {
 	getVercelStaticAssets,
+	processOutputDir,
 	processVercelOutput,
 } from '../../src/buildApplication/processVercelOutput';
-import type { VercelPrerenderConfig } from '../../src/buildApplication/fixPrerenderedRoutes';
 import { expect, vi } from 'vitest';
+import {
+	processVercelFunctions,
+	type ProcessVercelFunctionsOpts,
+} from '../../src/buildApplication/processVercelFunctions';
+import type { FunctionInfo } from '../../src/buildApplication/processVercelFunctions/configs';
+import { collectFunctionConfigsRecursively } from '../../src/buildApplication/processVercelFunctions/configs';
 
 export type TestSet = {
 	name: string;
@@ -164,6 +169,7 @@ function createMockMiddlewareEntrypoint(file = '/'): EdgeFunction {
 
 function constructBuildOutputRecord(
 	item: BuildOutputItem,
+	workerJsDir: string,
 ): VercelBuildOutputItem {
 	if (item.type === 'static') {
 		return { type: item.type };
@@ -177,7 +183,10 @@ function constructBuildOutputRecord(
 		};
 	}
 
-	const fileContents = readFileSync(item.entrypoint, 'utf-8');
+	const fileContents = readFileSync(
+		join(workerJsDir, item.entrypoint),
+		'utf-8',
+	);
 
 	if (item.type === 'middleware') {
 		vi.doMock(item.entrypoint, () =>
@@ -204,24 +213,28 @@ export async function createRouterTestData(
 ): Promise<RouterTestData> {
 	mockFs({ '.vercel': { output: files } });
 
-	const { functionsMap, prerenderedRoutes } = await generateFunctionsMap(
-		join('.vercel', 'output', 'functions'),
+	const workerJsDir = join(outputDir, '_worker.js');
+
+	const { collectedFunctions } = await processVercelFunctions({
+		functionsDir: join('.vercel', 'output', 'functions'),
 		outputDir,
-		true,
-	);
+		workerJsDir: workerJsDir,
+		nopDistDir: join(workerJsDir, '__next-on-pages-dist__'),
+		disableChunksDedup: true,
+	});
 
 	const staticAssets = await getVercelStaticAssets();
 
 	const { vercelConfig, vercelOutput } = processVercelOutput(
 		rawVercelConfig,
 		staticAssets,
-		prerenderedRoutes,
-		functionsMap,
+		collectedFunctions.prerenderedFunctions,
+		collectedFunctions.edgeFunctions,
 	);
 
 	const buildOutput = [...vercelOutput.entries()].reduce(
 		(prev, [name, item]) => {
-			prev[name] = constructBuildOutputRecord(item);
+			prev[name] = constructBuildOutputRecord(item, workerJsDir);
 			return prev;
 		},
 		{} as VercelBuildOutput,
@@ -271,10 +284,14 @@ export function createValidFuncDir(data: string) {
 	};
 }
 
-export function createInvalidFuncDir(data: string) {
+export function createInvalidFuncDir(
+	data: string,
+	{ prerender }: { prerender?: boolean } = {},
+) {
 	return {
 		'.vc-config.json': JSON.stringify({
 			runtime: 'nodejs',
+			...(prerender && { operationType: 'ISR' }),
 			entrypoint: 'index.js',
 		}),
 		'index.js': data,
@@ -318,8 +335,10 @@ export function createPrerenderedRoute(
 ): DirectoryItems {
 	const fileWithBase = `${base}/${file}`;
 	return {
-		[`${file}.func`]: createInvalidFuncDir(fileWithBase),
-		[`${file}.rsc.func`]: createInvalidFuncDir(`${fileWithBase}.rsc`),
+		[`${file}.func`]: createInvalidFuncDir(fileWithBase, { prerender: true }),
+		[`${file}.rsc.func`]: createInvalidFuncDir(`${fileWithBase}.rsc`, {
+			prerender: true,
+		}),
 		[`${file}.prerender-config.json`]: mockPrerenderConfigFile(`${file}`),
 		[`${file}.prerender-fallback.html`]: `${fileWithBase}.prerender-fallback.html`,
 		[`${file}.rsc.prerender-config.json`]: mockPrerenderConfigFile(
@@ -351,3 +370,94 @@ export function mockConsole(method: ConsoleMethods) {
 
 	return { restore, expectCalls };
 }
+
+/**
+ * Collects the functions from the file system and generates functions maps.
+ *
+ * @param functions Functions directory items.
+ * @param staticAssets Static assets directory items.
+ * @param opts Options for processing the functions.
+ * @param otherDirs Other root-level directories to create in the mock file system
+ * @returns Results from collecting the functions.
+ */
+export async function collectFunctionsFrom(
+	{
+		functions = {},
+		static: staticAssets = {},
+		otherDirs = {},
+	}: {
+		functions?: DirectoryItems;
+		static?: DirectoryItems;
+		otherDirs?: DirectoryItems;
+	},
+	{
+		functionsDir = resolve('.vercel', 'output', 'functions'),
+		outputDir = resolve('.vercel', 'output', 'static'),
+	}: Partial<ProcessVercelFunctionsOpts> = {},
+) {
+	mockFs({
+		'.vercel': { output: { functions, static: staticAssets } },
+		...otherDirs,
+	});
+
+	await processOutputDir(outputDir, await getVercelStaticAssets());
+	const collectedFunctions = await collectFunctionConfigsRecursively(
+		functionsDir,
+	);
+
+	return { collectedFunctions, restoreFsMock: () => mockFs.restore() };
+}
+
+/**
+ * Gets the route info for a function.
+ *
+ * @param functions Map of functions to get the route info from.
+ * @param path Path to the function.
+ * @returns The route info for the function.
+ */
+export function getRouteInfo(
+	functions: Map<string, FunctionInfo>,
+	path: string,
+) {
+	return functions.get(resolve('.vercel', 'output', 'functions', path))?.route;
+}
+
+/**
+ * Gets the entrypoint for a function.
+ *
+ * @param functions Map of functions to get the entrypoint from.
+ * @param path Path to the function.
+ * @returns The entrypoint for the function.
+ */
+export function getRouteEntrypoint(
+	functions: Map<string, FunctionInfo>,
+	path: string,
+) {
+	return functions.get(resolve('.vercel', 'output', 'functions', path))?.config
+		?.entrypoint;
+}
+
+export const edgeFuncDir = {
+	'.vc-config.json': JSON.stringify({
+		runtime: 'edge',
+		entrypoint: 'index.js',
+	}),
+	'index.js': '',
+};
+
+export const nodejsFuncDir = {
+	'.vc-config.json': JSON.stringify({
+		runtime: 'nodejs',
+		entrypoint: 'index.js',
+	}),
+	'index.js': '',
+};
+
+export const prerenderFuncDir = {
+	'.vc-config.json': JSON.stringify({
+		operationType: 'ISR',
+		runtime: 'nodejs',
+		entrypoint: 'index.js',
+	}),
+	'index.js': '',
+};

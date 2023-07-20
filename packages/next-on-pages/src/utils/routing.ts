@@ -68,3 +68,19 @@ export function formatRoutePath(path: string) {
 		stripRouteGroups(addLeadingSlash(normalizePath(stripFuncExtension(path)))),
 	);
 }
+
+/**
+ * Creates a list of overrides for a new route that might normally be created by the build output config.
+ *
+ * @param routePath Path of the route to create overrides for.
+ * @returns List of overrides for the route.
+ */
+export function getRouteOverrides(routePath: string): string[] {
+	const formattedPathName = formatRoutePath(routePath);
+	const withoutHtmlExt = formattedPathName.replace(/\.html$/, '');
+	const strippedIndexRoute = stripIndexRoute(withoutHtmlExt);
+
+	return [
+		...new Set([formattedPathName, withoutHtmlExt, strippedIndexRoute]),
+	].filter(route => route !== routePath);
+}
