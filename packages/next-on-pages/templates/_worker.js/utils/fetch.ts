@@ -86,7 +86,7 @@ async function handleInlineAssetRequest(request: Request) {
 
 			// Note: clone is necessary so that body does work
 			resp.clone = (): Response => {
-				return { ...resp };
+				return { ...resp } as Response;
 			};
 
 			return resp;
