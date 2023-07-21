@@ -27,10 +27,9 @@ describe('Simple Pages SSR routes SPA navigation', () => {
 
 		await assertVisible('h2', { hasText: 'Server Side Rendered Page A' });
 
-		// Note: we don't check the hardNavigationRequests here as this is broken in Next 12.2
-		//       we can either: fix for 12.2 (if worth it), find a way to discern and avoid these
-		//       checks if we are in 12.2 or uncomment the lines below when/if we drop support for 12
-		// expect(hardNavigationRequests.length).toBe(1);
-		// expect(hardNavigationRequests[0].url()).toBe(`${DEPLOYMENT_URL}/ssr-navigation`);
+		expect(hardNavigationRequests.length).toBe(1);
+		expect(hardNavigationRequests[0].url()).toBe(
+			`${DEPLOYMENT_URL}/ssr-navigation`,
+		);
 	});
 });
