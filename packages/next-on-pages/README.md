@@ -62,6 +62,8 @@ Next, in the [Cloudflare Dashboard](https://dash.cloudflare.com/?to=/:account/pa
 
 > If you don't want to set up a Git repository, you can build your application (as indicated in [Local Development](#local-development)) and publish it manually via the [`wrangler pages publish` command](https://developers.cloudflare.com/workers/wrangler/commands/#publish-1) instead (you'll still need to set the **`nodejs_compat`** flag for your project in the Cloudflare dashboard).
 
+> **Note** When deploying via the Git integration, for better compatibility with tools such as `yarn` and `pnpm` we recommend using the Build system version 2 (that is the default so no action is required).
+
 ## Local development
 
 To run the CLI locally, simply run:
