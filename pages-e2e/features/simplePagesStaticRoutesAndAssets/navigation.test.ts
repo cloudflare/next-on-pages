@@ -1,16 +1,13 @@
 import { describe, it } from 'vitest';
 import { getAssertVisible } from '@features-utils/getAssertVisible';
+import { collectHardNavigationRequests } from '@features-utils/collectHardNavigationRequests';
 
 describe('Simple Pages Static SPA navigation', () => {
 	it('should soft navigate between static routes', async ({ expect }) => {
 		const page = await BROWSER.newPage();
 		const assertVisible = getAssertVisible(page);
 
-		const requestUrls: string[] = [];
-		await page.route('**/*', route => {
-			requestUrls.push(route.request().url());
-			route.continue();
-		});
+		const hardNavigationRequests = await collectHardNavigationRequests(page);
 
 		await page.goto(`${DEPLOYMENT_URL}/navigation`);
 
@@ -29,12 +26,7 @@ describe('Simple Pages Static SPA navigation', () => {
 
 		await assertVisible('h2', { hasText: 'Page A' });
 
-		const hardNavigationRequests = requestUrls.filter(
-			url => !url.startsWith(`${DEPLOYMENT_URL}/_next/static`),
-		);
-
-		// TODO FIX AND RE-ENABLE
-		// expect(hardNavigationRequests.length).toBe(1);
-		// expect(hardNavigationRequests[0]).toBe(`${DEPLOYMENT_URL}/navigation`);
+		expect(hardNavigationRequests.length).toBe(1);
+		expect(hardNavigationRequests[0].url()).toBe(`${DEPLOYMENT_URL}/navigation`);
 	});
 });
