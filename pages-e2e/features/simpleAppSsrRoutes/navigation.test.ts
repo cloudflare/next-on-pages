@@ -27,6 +27,8 @@ describe('Simple App Static SPA navigation', () => {
 		await assertVisible('h2', { hasText: 'Server Side Rendered Page A' });
 
 		expect(hardNavigationRequests.length).toBe(1);
-		expect(hardNavigationRequests[0].url()).toBe(`${DEPLOYMENT_URL}/ssr-navigation`);
+		expect(hardNavigationRequests[0].url()).toBe(
+			`${DEPLOYMENT_URL}/ssr-navigation`,
+		);
 	});
 });

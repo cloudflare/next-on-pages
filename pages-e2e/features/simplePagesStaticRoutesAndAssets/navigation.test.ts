@@ -27,6 +27,8 @@ describe('Simple Pages Static SPA navigation', () => {
 		await assertVisible('h2', { hasText: 'Page A' });
 
 		expect(hardNavigationRequests.length).toBe(1);
-		expect(hardNavigationRequests[0].url()).toBe(`${DEPLOYMENT_URL}/navigation`);
+		expect(hardNavigationRequests[0].url()).toBe(
+			`${DEPLOYMENT_URL}/navigation`,
+		);
 	});
 });
