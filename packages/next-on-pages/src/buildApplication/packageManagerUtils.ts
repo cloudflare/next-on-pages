@@ -1,6 +1,4 @@
-import YAML from 'js-yaml';
 import { execFileSync, spawn } from 'child_process';
-import { readFile } from 'fs/promises';
 import { cliError } from '../cli';
 import { validateFile } from '../utils';
 
@@ -30,17 +28,6 @@ export async function getCurrentPackageManager(): Promise<PackageManager> {
 			});
 		});
 		if (!yarnV.startsWith('1.')) {
-			const yarnrc = await readFile('.yarnrc.yml', 'utf-8');
-			const { nodeLinker } = YAML.load(yarnrc) as {
-				nodeLinker: string;
-			};
-			if (nodeLinker !== 'node-modules')
-				throw new Error(`
-				@cloudflare/next-on-pages doesn't support Plug'n'Play features from yarn berry.
-
-				If you want to use @cloudflare/next-on-pages with yarn berry,
-				please add "nodeLinker: node-modules" to your .yarnrc.yml
-				`);
 			return 'yarn (berry)';
 		} else {
 			return 'yarn (classic)';
