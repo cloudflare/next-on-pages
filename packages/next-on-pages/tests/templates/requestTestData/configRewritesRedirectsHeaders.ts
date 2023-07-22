@@ -60,7 +60,7 @@ const rawVercelConfig: VercelConfig = {
 		{ handle: 'resource' },
 		{
 			src: '^(?:/((?:[^/]+?)(?:/(?:[^/]+?))*))?(?:/)?$',
-			dest: 'https://my-old-site.com/$1',
+			dest: 'https://uuid.rocks/$1',
 			check: true,
 		},
 		{ src: '/.*', status: 404 },
@@ -165,11 +165,11 @@ export const testSet: TestSet = {
 		},
 		{
 			name: 'rewrites - `fallback`: rewrites on any request that has not been matched',
-			paths: ['/invalid-route'],
+			paths: ['/plain'],
 			expected: {
-				status: 307,
-				data: '',
-				headers: { location: 'https://my-old-site.com/invalid-route' },
+				status: 200,
+				data: /^\w+-\w+-\w+-\w+-\w+$/,
+				ignoreHeaders: true,
 			},
 		},
 		{

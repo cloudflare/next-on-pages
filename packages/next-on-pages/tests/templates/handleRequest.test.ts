@@ -63,10 +63,17 @@ function runTestCase(
 			);
 
 			expect(res.status).toEqual(expected.status);
-			await expect(res.text()).resolves.toEqual(expected.data);
-			expect(Object.fromEntries(res.headers.entries())).toEqual(
-				expected.headers || {},
-			);
+			const textContent = await res.text();
+			if (expected.data instanceof RegExp) {
+				expect(textContent).toMatch(expected.data);
+			} else {
+				expect(textContent).toEqual(expected.data);
+			}
+			if (!expected.ignoreHeaders) {
+				expect(Object.fromEntries(res.headers.entries())).toEqual(
+					expected.headers || {},
+				);
+			}
 			if (expected.reqHeaders) {
 				expect(Object.fromEntries(req.headers.entries())).toEqual(
 					expected.reqHeaders,

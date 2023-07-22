@@ -1,5 +1,5 @@
 import type { MatchedSet } from './utils';
-import { applyHeaders, runOrFetchBuildOutputItem } from './utils';
+import { applyHeaders, isUrl, runOrFetchBuildOutputItem } from './utils';
 import { RoutesMatcher } from './routes-matcher';
 import type { RequestContext } from '../../src/utils/requestContext';
 
@@ -86,16 +86,23 @@ async function generateResponse(
 		return new Response(null, { status, headers: headers.normal });
 	}
 
-	let resp =
-		body !== undefined
-			? // If we have a response body from matching, use it instead.
-			  new Response(body, { status })
-			: await runOrFetchBuildOutputItem(output[path], reqCtx, {
-					path,
-					status,
-					headers,
-					searchParams,
-			  });
+	let resp: Response;
+
+	if (body !== undefined) {
+		// If we have a response body from matching, use it instead.
+		resp = new Response(body, { status });
+	} else if (isUrl(path)) {
+		// If the path is an URL from matching, that means it was rewritten to a full URL.
+		resp = await fetch(new URL(path), { headers: reqCtx.request.headers });
+	} else {
+		// Otherwise, we need to serve a file from the Vercel build output.
+		resp = await runOrFetchBuildOutputItem(output[path], reqCtx, {
+			path,
+			status,
+			headers,
+			searchParams,
+		});
+	}
 
 	const newHeaders = headers.normal;
 	applyHeaders(newHeaders, resp.headers);

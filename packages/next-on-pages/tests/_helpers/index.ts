@@ -29,8 +29,9 @@ export type TestCase = {
 	method?: string;
 	expected: {
 		status: number;
-		data: string;
+		data: string | RegExp;
 		headers?: Record<string, string>;
+		ignoreHeaders?: boolean;
 		reqHeaders?: Record<string, string>;
 		mockConsole?: { log?: string[]; error?: (string | Error)[] };
 	};
