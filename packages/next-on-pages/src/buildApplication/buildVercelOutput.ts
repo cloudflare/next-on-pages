@@ -90,8 +90,7 @@ async function runVercelBuild(
 	pkgMng: PackageManager,
 	additionalArgs: string[] = [],
 ): Promise<void> {
-	const pmInfo = await getPackageManagerInfo(pkgMng);
-	const { pm, baseCmd } = pmInfo;
+	const { pm, baseCmd } = await getPackageManagerInfo(pkgMng);
 
 	if (pm === 'yarn (classic)') {
 		cliLog(
