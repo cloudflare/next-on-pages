@@ -1,0 +1,23 @@
+{
+	"$schema": "https://turbo.build/schema.json",
+	"pipeline": {
+		"build": {
+			"outputs": ["dist/**"]
+		},
+		"build:watch": {
+			"persistent": true,
+			"cache": false,
+			"outputs": ["dist/**"]
+		},
+		"lint": {},
+		"prettier:fix": {
+			"cache": false
+		},
+		"types-check": {},
+		"test:unit": {
+			"persistent": true,
+			"cache": false
+		},
+		"publish": {}
+	}
+}

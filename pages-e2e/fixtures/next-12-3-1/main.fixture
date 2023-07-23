@@ -1,0 +1,11 @@
+{
+	"features": ["next-pages-experimental-edge-api-route"],
+	"localSetup": "npm install",
+	"buildConfig": {
+		"buildCommand": "npx @cloudflare/next-on-pages --experimental-minify",
+		"buildOutputDirectory": ".vercel/output/static"
+	},
+	"deploymentConfig": {
+		"compatibilityFlags": ["nodejs_compat"]
+	}
+}
