@@ -93,7 +93,7 @@ async function generateResponse(
 		resp = new Response(body, { status });
 	} else if (isUrl(path)) {
 		// If the path is an URL from matching, that means it was rewritten to a full URL.
-		resp = await fetch(new URL(path), { headers: reqCtx.request.headers });
+		resp = await fetch(new URL(path), reqCtx.request);
 	} else {
 		// Otherwise, we need to serve a file from the Vercel build output.
 		resp = await runOrFetchBuildOutputItem(output[path], reqCtx, {
