@@ -10,13 +10,13 @@
 			"outputs": ["dist/**"]
 		},
 		"lint": {},
-		"prettier:fix": {
+		"//#prettier__check": {},
+		"//#prettier__fix": {
 			"cache": false
 		},
 		"types-check": {},
 		"test:unit": {
-			"persistent": true,
-			"cache": false
+			"persistent": true
 		},
 		"publish": {}
 	}
