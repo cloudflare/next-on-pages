@@ -6,10 +6,13 @@ import { getPhaseRoutes, getVercelConfig } from './getVercelConfig';
 /**
  * Builds metadata files needed for the worker to correctly run.
  */
-export async function buildMetadataFiles(outputDir: string) {
+export async function buildMetadataFiles(
+	outputDir: string,
+	opts: BuildMetadataFilesOpts,
+) {
 	await Promise.all([
 		buildNextStaticHeaders(outputDir),
-		buildRoutes(outputDir),
+		buildRoutes(outputDir, opts),
 	]);
 }
 
@@ -41,7 +44,9 @@ ${Object.entries(nextStaticHeaders)
 	}
 }
 
-async function buildRoutes(outputDir: string) {
+async function buildRoutes(outputDir: string, opts: BuildMetadataFilesOpts) {
+	const nextStaticPath = getNextStaticDirPath(opts);
+
 	try {
 		await writeFile(
 			join(outputDir, '_routes.json'),
@@ -49,7 +54,7 @@ async function buildRoutes(outputDir: string) {
 				version: 1,
 				description: `Built with @cloudflare/next-on-pages@${nextOnPagesVersion}.`,
 				include: ['/*'],
-				exclude: ['/_next/static/*'],
+				exclude: [`${nextStaticPath}/*`],
 			}),
 			{ flag: 'ax' }, // don't generate file if it's already manually maintained
 		);
@@ -59,3 +64,22 @@ async function buildRoutes(outputDir: string) {
 		}
 	}
 }
+
+/**
+ * Finds the path to the `/_next/static` directory from the list of static assets. Accounts for the
+ * path being inside sub-directories, e.g. `/blog/_next/static`, and falls back to `/_next/static`.
+ *
+ * @param opts Options for building metadata files.
+ * @returns The path to the `/_next/static` directory.
+ */
+function getNextStaticDirPath({
+	staticAssets,
+}: BuildMetadataFilesOpts): string {
+	const regex = /^(.*\/_next\/static)\/.+$/;
+	const asset = staticAssets.find(a => regex.test(a));
+	return asset?.match(regex)?.[1] ?? '/_next/static';
+}
+
+type BuildMetadataFilesOpts = {
+	staticAssets: string[];
+};
