@@ -2,30 +2,31 @@ import type { Node } from 'acorn';
 import type * as AST from 'ast-types/gen/kinds';
 import type { ProcessVercelFunctionsOpts } from '.';
 import { cliError } from '../../cli';
+import { createHash } from 'crypto';
 
 /**
  * Collects the identifiers from the AST and adds them to the provided maps and lists.
  *
  * @param collectedIdentifiers The collected identifiers.
- * @param program The AST for the function file.
+ * @param programInfo The AST for the function file and its entrypoint.
  * @param opts The options for the function processing.
  */
 export function collectIdentifiers(
 	{ identifierMaps, programIdentifiers }: CollectIdentifiersOpts,
-	program: AST.ProgramKind,
+	programInfo: ProgramInfo,
 	{ disableChunksDedup }: Partial<ProcessVercelFunctionsOpts>,
 ): void {
 	// Wasm
 	collectIdentifiersByType(
 		{ programIdentifiers, foundIdentifiers: identifierMaps.wasm },
-		program,
+		programInfo,
 		extractWasm,
 	);
 
 	// Manifests
 	collectIdentifiersByType(
 		{ programIdentifiers, foundIdentifiers: identifierMaps.manifest },
-		program,
+		programInfo,
 		extractManifest,
 	);
 
@@ -33,14 +34,27 @@ export function collectIdentifiers(
 	if (!disableChunksDedup) {
 		collectIdentifiersByType(
 			{ programIdentifiers, foundIdentifiers: identifierMaps.webpack },
-			program,
+			programInfo,
 			extractWebpack,
 		);
 	}
 }
 
+/**
+ * Groups the identifiers in the provided maps by their consumers.
+ *
+ * @param identifierMaps The maps of found identifiers in the AST.
+ */
+export function groupIdentifiers(identifierMaps: IdentifierMaps) {
+	// Webpack Chunks
+	groupIdentifiersByType(identifierMaps.webpack);
+	// Manifests
+	groupIdentifiersByType(identifierMaps.manifest);
+}
+
+type IdentifierMaps = Record<IdentifierType, IdentifiersMap>;
 type CollectIdentifiersOpts = {
-	identifierMaps: Record<IdentifierType, IdentifiersMap>;
+	identifierMaps: IdentifierMaps;
 	programIdentifiers: ProgramIdentifiers;
 };
 
@@ -48,12 +62,12 @@ type CollectIdentifiersOpts = {
  * Collects a specific type of identifier from the AST and adds them to the provided map and list.
  *
  * @param collectedIdentifiers The collected identifiers.
- * @param program The AST for the function file.
+ * @param programInfo The AST for the function file and its entrypoint.
  * @param callback A function that extracts the identifiers from a statement.
  */
 function collectIdentifiersByType<T extends IdentifierType>(
 	{ foundIdentifiers, programIdentifiers }: CollectIdentifiersByTypeOpts,
-	program: AST.ProgramKind,
+	{ program, entrypoint }: ProgramInfo,
 	callback: (
 		statement: AST.StatementKind,
 	) => RawIdentifier<T> | null | RawIdentifier<T>[],
@@ -72,10 +86,10 @@ function collectIdentifiersByType<T extends IdentifierType>(
 		const existing = foundIdentifiers.get(ident.identifier);
 		if (!existing) {
 			// Identifier doesn't exist yet, add it.
-			foundIdentifiers.set(ident.identifier, { consumers: 1 });
+			foundIdentifiers.set(ident.identifier, { consumers: [entrypoint] });
 		} else if (!uniqueIdentifiers.has(ident.identifier)) {
 			// Identifier already exists, but it's not a collision in this file.
-			existing.consumers += 1;
+			existing.consumers.push(entrypoint);
 		} else {
 			// Identifier already exists and it was already found in this file - this is a collision.
 			cliError(
@@ -88,6 +102,41 @@ function collectIdentifiersByType<T extends IdentifierType>(
 		uniqueIdentifiers.add(ident.identifier);
 	}
 }
+/**
+ * Groups the identifiers of a specific type in the provided map by their consumers.
+ *
+ * @param foundIdentifiers The found identifiers in the AST.
+ */
+function groupIdentifiersByType(foundIdentifiers: IdentifiersMap): void {
+	const groupedIdentifiers = new Map<string, Set<string>>();
+
+	// Group the identifiers by entrypoints, with the sorted entrypoints as the key.
+	for (const [identifier, info] of foundIdentifiers) {
+		const key = info.consumers.sort().join(',');
+
+		const existing = groupedIdentifiers.get(key);
+		if (!existing) {
+			groupedIdentifiers.set(key, new Set([identifier]));
+		} else {
+			existing.add(identifier);
+		}
+	}
+
+	for (const [, identifiers] of groupedIdentifiers) {
+		// Generate a hash for the grouped file name to prevent excessively long file names.
+		const newGroupedPath = createHash('md5')
+			.update([...identifiers].join('-'))
+			.digest('hex');
+
+		// Update each identifier in the group with the new grouped path.
+		for (const identifier of identifiers) {
+			// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+			foundIdentifiers.get(identifier)!.groupedPath = newGroupedPath;
+		}
+	}
+}
+
+type ProgramInfo = { program: AST.ProgramKind; entrypoint: string };
 
 type CollectIdentifiersByTypeOpts = {
 	foundIdentifiers: IdentifiersMap;
@@ -107,7 +156,11 @@ export type RawIdentifierWithImport<T extends IdentifierType> = Override<
 	string
 >;
 
-export type IdentifierInfo = { consumers: number; newDest?: string };
+export type IdentifierInfo = {
+	consumers: string[];
+	newDest?: string;
+	groupedPath?: string;
+};
 export type IdentifiersMap = Map<string, IdentifierInfo>;
 export type ProgramIdentifiers = RawIdentifier<IdentifierType>[];
 

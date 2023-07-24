@@ -66,7 +66,7 @@ describe('buildSummary', () => {
 			identifiers: {
 				entrypointsMap: new Map(),
 				identifierMaps: {
-					wasm: new Map([['wasm-one', { consumers: 1 }]]),
+					wasm: new Map([['wasm-one', { consumers: ['/home'] }]]),
 					manifest: new Map(),
 					webpack: new Map(),
 				},
@@ -161,9 +161,11 @@ describe('buildSummary', () => {
 			identifiers: {
 				entrypointsMap: new Map(),
 				identifierMaps: {
-					wasm: new Map([['wasm-one', { consumers: 1 }]]),
-					manifest: new Map([['__BUILD_MANIFEST', { consumers: 5 }]]),
-					webpack: new Map([['872', { consumers: 1 }]]),
+					wasm: new Map([['wasm-one', { consumers: ['/middleware'] }]]),
+					manifest: new Map([
+						['__BUILD_MANIFEST', { consumers: ['/home', '/nested/home'] }],
+					]),
+					webpack: new Map([['872', { consumers: ['/home'] }]]),
 				},
 			},
 		};
@@ -203,7 +205,7 @@ describe('buildSummary', () => {
 			},
 			staticAssets: ['/static-one', '/static-two'],
 			identifiers: {
-				manifest: { __BUILD_MANIFEST: { consumers: 5 } },
+				manifest: { __BUILD_MANIFEST: { consumers: 2 } },
 				wasm: { 'wasm-one': { consumers: 1 } },
 				webpack: { '872': { consumers: 1 } },
 			},
