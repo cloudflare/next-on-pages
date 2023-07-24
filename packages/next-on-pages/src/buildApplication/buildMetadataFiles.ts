@@ -6,10 +6,13 @@ import { getPhaseRoutes, getVercelConfig } from './getVercelConfig';
 /**
  * Builds metadata files needed for the worker to correctly run.
  */
-export async function buildMetadataFiles(outputDir: string) {
+export async function buildMetadataFiles(
+	outputDir: string,
+	opts: BuildMetadataFilesOpts,
+) {
 	await Promise.all([
 		buildNextStaticHeaders(outputDir),
-		buildRoutes(outputDir),
+		buildRoutes(outputDir, opts),
 	]);
 }
 
@@ -41,7 +44,15 @@ ${Object.entries(nextStaticHeaders)
 	}
 }
 
-async function buildRoutes(outputDir: string) {
+async function buildRoutes(
+	outputDir: string,
+	{ staticAssets }: BuildMetadataFilesOpts,
+) {
+	const nextStaticRegex = /^(.*\/_next\/static)\/.+$/;
+	const nextStaticAsset = staticAssets.find(a => nextStaticRegex.test(a));
+	const nextStaticPath =
+		nextStaticAsset?.match(nextStaticRegex)?.[1] ?? '/_next/static';
+
 	try {
 		await writeFile(
 			join(outputDir, '_routes.json'),
@@ -49,7 +60,7 @@ async function buildRoutes(outputDir: string) {
 				version: 1,
 				description: `Built with @cloudflare/next-on-pages@${nextOnPagesVersion}.`,
 				include: ['/*'],
-				exclude: ['/_next/static/*'],
+				exclude: [`${nextStaticPath}/*`],
 			}),
 			{ flag: 'ax' }, // don't generate file if it's already manually maintained
 		);
@@ -59,3 +70,7 @@ async function buildRoutes(outputDir: string) {
 		}
 	}
 }
+
+type BuildMetadataFilesOpts = {
+	staticAssets: string[];
+};

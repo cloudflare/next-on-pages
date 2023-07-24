@@ -63,7 +63,6 @@ export async function buildApplication({
 		disableChunksDedup,
 		disableWorkerMinification,
 	});
-	await buildMetadataFiles(outputDir);
 
 	const totalBuildTime = ((Date.now() - buildStartTime) / 1000).toFixed(2);
 	cliLog(`Build completed in ${totalBuildTime.toLocaleString()}s`);
@@ -130,4 +129,6 @@ async function prepareAndBuildWorker(
 	);
 
 	cliSuccess(`Generated '${outputtedWorkerPath}'.`);
+
+	await buildMetadataFiles(outputDir, { staticAssets });
 }
