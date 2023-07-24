@@ -354,6 +354,7 @@ async function processCodeBlockIdentifier(
 	}
 
 	const newImport: NewImportInfo = { key: identifierKey, path: info.newDest };
+
 	updatedContents = replaceLastSubstringInstance(
 		updatedContents,
 		codeBlock,
