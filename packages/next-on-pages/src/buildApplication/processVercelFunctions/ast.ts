@@ -123,15 +123,17 @@ function groupIdentifiersByType(foundIdentifiers: IdentifiersMap): void {
 	}
 
 	for (const [, identifiers] of groupedIdentifiers) {
-		// Generate a hash for the grouped file name to prevent excessively long file names.
-		const newGroupedPath = createHash('md5')
-			.update([...identifiers].join('-'))
-			.digest('hex');
+		if (identifiers.size > 1) {
+			// Generate a hash for the grouped file name to prevent excessively long file names.
+			const newGroupedPath = createHash('md5')
+				.update([...identifiers].join('-'))
+				.digest('hex');
 
-		// Update each identifier in the group with the new grouped path.
-		for (const identifier of identifiers) {
-			// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-			foundIdentifiers.get(identifier)!.groupedPath = newGroupedPath;
+			// Update each identifier in the group with the new grouped path.
+			for (const identifier of identifiers) {
+				// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+				foundIdentifiers.get(identifier)!.groupedPath = newGroupedPath;
+			}
 		}
 	}
 }
