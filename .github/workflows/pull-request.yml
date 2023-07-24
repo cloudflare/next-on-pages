@@ -18,45 +18,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-      - name: Setup node
-        uses: actions/setup-node@v3
-        with:
-          node-version: 16.13.x
 
-      - name: Get current node version
-        id: node-version
-        run: |
-          node_version=$(node -v)
-          echo "node_version=$node_version" >> $GITHUB_OUTPUT
+      - name: Setup Node
+        uses: ./.github/actions/node-setup
 
-        # Attempt to cache all the node_modules directories based on the node version and package lock
-      - name: Cache node_modules
-        id: npm-cache
-        uses: actions/cache@v3
-        env:
-          cache-name: cache-node-modules-${{ steps.node-version.outputs.node_version }}
-        with:
-          key: ${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
-          path: |
-            **/node_modules
-            !/pages-e2e/workspaces/**/node_modules
-
-      # If the cache missed then install using `npm ci` to follow package lock exactly
-      - if: ${{ steps.npm-cache.outputs.cache-hit != 'true'}}
-        name: Install NPM Dependencies
-        run: npm ci
-
-      - name: Cache turbo
-        id: turbo-cache
-        uses: actions/cache@v3
-        with:
-          path: ./turbo-cache
-          key: cache-turbo-${{ github.workflow }}-${{ github.job }}-${{ github.base_ref }}-${{ github.ref_name }}-${{ github.sha }}
-          restore-keys: |
-            cache-turbo-${{ github.workflow }}-${{ github.job }}-${{ github.base_ref }}-${{ github.ref_name }}-${{ github.sha }}
-            cache-turbo-${{ github.workflow }}-${{ github.job }}-${{ github.base_ref }}-${{ github.ref_name }}-
-            cache-turbo-${{ github.workflow }}-${{ github.job }}-${{ github.base_ref }}-
-            cache-turbo-${{ github.workflow }}-${{ github.job }}
+      - name: Cache Turbo
+        uses: ./.github/actions/cache-turbo
 
       - name: Check formatting
         run: npm run prettier:check -- --cache-dir ./turbo-cache
@@ -66,45 +33,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-      - name: Setup node
-        uses: actions/setup-node@v3
-        with:
-          node-version: 16.13.x
 
-      - name: Get current node version
-        id: node-version
-        run: |
-          node_version=$(node -v)
-          echo "node_version=$node_version" >> $GITHUB_OUTPUT
+      - name: Setup Node
+        uses: ./.github/actions/node-setup
 
-        # Attempt to cache all the node_modules directories based on the node version and package lock.
-      - name: Cache node_modules
-        id: npm-cache
-        uses: actions/cache@v3
-        env:
-          cache-name: cache-node-modules-${{ steps.node-version.outputs.node_version }}
-        with:
-          key: ${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
-          path: |
-            **/node_modules
-            !/pages-e2e/workspaces/**/node_modules
-
-      # If the cache missed then install using `npm ci` to follow package lock exactly
-      - if: ${{ steps.npm-cache.outputs.cache-hit != 'true'}}
-        name: Install NPM Dependencies
-        run: npm ci
-
-      - name: Cache turbo
-        id: turbo-cache
-        uses: actions/cache@v3
-        with:
-          path: ./turbo-cache
-          key: cache-turbo-${{ github.workflow }}-${{ github.job }}-${{ github.base_ref }}-${{ github.ref_name }}-${{ github.sha }}
-          restore-keys: |
-            cache-turbo-${{ github.workflow }}-${{ github.job }}-${{ github.base_ref }}-${{ github.ref_name }}-${{ github.sha }}
-            cache-turbo-${{ github.workflow }}-${{ github.job }}-${{ github.base_ref }}-${{ github.ref_name }}-
-            cache-turbo-${{ github.workflow }}-${{ github.job }}-${{ github.base_ref }}-
-            cache-turbo-${{ github.workflow }}-${{ github.job }}
+      - name: Cache Turbo
+        uses: ./.github/actions/cache-turbo
 
       - name: Check linting
         run: npm run lint -- --cache-dir ./turbo-cache
@@ -114,45 +48,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-      - name: Setup node
-        uses: actions/setup-node@v3
-        with:
-          node-version: 16.13.x
 
-      - name: Get current node version
-        id: node-version
-        run: |
-          node_version=$(node -v)
-          echo "node_version=$node_version" >> $GITHUB_OUTPUT
+      - name: Setup Node
+        uses: ./.github/actions/node-setup
 
-        # Attempt to cache all the node_modules directories based on the node version and package lock.
-      - name: Cache node_modules
-        id: npm-cache
-        uses: actions/cache@v3
-        env:
-          cache-name: cache-node-modules-${{ steps.node-version.outputs.node_version }}
-        with:
-          key: ${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
-          path: |
-            **/node_modules
-            !/pages-e2e/workspaces/**/node_modules
-
-      # If the cache missed then install using `npm ci` to follow package lock exactly
-      - if: ${{ steps.npm-cache.outputs.cache-hit != 'true'}}
-        name: Install NPM Dependencies
-        run: npm ci
-
-      - name: Cache turbo
-        id: turbo-cache
-        uses: actions/cache@v3
-        with:
-          path: ./turbo-cache
-          key: cache-turbo-${{ github.workflow }}-${{ github.job }}-${{ github.base_ref }}-${{ github.ref_name }}-${{ github.sha }}
-          restore-keys: |
-            cache-turbo-${{ github.workflow }}-${{ github.job }}-${{ github.base_ref }}-${{ github.ref_name }}-${{ github.sha }}
-            cache-turbo-${{ github.workflow }}-${{ github.job }}-${{ github.base_ref }}-${{ github.ref_name }}-
-            cache-turbo-${{ github.workflow }}-${{ github.job }}-${{ github.base_ref }}-
-            cache-turbo-${{ github.workflow }}-${{ github.job }}
+      - name: Cache Turbo
+        uses: ./.github/actions/cache-turbo
 
       - name: Check types
         run: npm run types-check -- --cache-dir ./turbo-cache
@@ -162,45 +63,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-      - name: Setup node
-        uses: actions/setup-node@v3
-        with:
-          node-version: 16.13.x
 
-      - name: Get current node version
-        id: node-version
-        run: |
-          node_version=$(node -v)
-          echo "node_version=$node_version" >> $GITHUB_OUTPUT
+      - name: Setup Node
+        uses: ./.github/actions/node-setup
 
-        # Attempt to cache all the node_modules directories based on the node version and package lock.
-      - name: Cache node_modules
-        id: npm-cache
-        uses: actions/cache@v3
-        env:
-          cache-name: cache-node-modules-${{ steps.node-version.outputs.node_version }}
-        with:
-          key: ${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
-          path: |
-            **/node_modules
-            !/pages-e2e/workspaces/**/node_modules
-
-      # If the cache missed then install using `npm ci` to follow package lock exactly
-      - if: ${{ steps.npm-cache.outputs.cache-hit != 'true'}}
-        name: Install NPM Dependencies
-        run: npm ci
-
-      - name: Cache turbo
-        id: turbo-cache
-        uses: actions/cache@v3
-        with:
-          path: ./turbo-cache
-          key: cache-turbo-${{ github.workflow }}-${{ github.job }}-${{ github.base_ref }}-${{ github.ref_name }}-${{ github.sha }}
-          restore-keys: |
-            cache-turbo-${{ github.workflow }}-${{ github.job }}-${{ github.base_ref }}-${{ github.ref_name }}-${{ github.sha }}
-            cache-turbo-${{ github.workflow }}-${{ github.job }}-${{ github.base_ref }}-${{ github.ref_name }}-
-            cache-turbo-${{ github.workflow }}-${{ github.job }}-${{ github.base_ref }}-
-            cache-turbo-${{ github.workflow }}-${{ github.job }}
+      - name: Cache Turbo
+        uses: ./.github/actions/cache-turbo
 
       - name: Build
         run: npm run build -- --cache-dir ./turbo-cache
@@ -210,45 +78,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-      - name: Setup node
-        uses: actions/setup-node@v3
-        with:
-          node-version: 16.13.x
 
-      - name: Get current node version
-        id: node-version
-        run: |
-          node_version=$(node -v)
-          echo "node_version=$node_version" >> $GITHUB_OUTPUT
+      - name: Setup Node
+        uses: ./.github/actions/node-setup
 
-        # Attempt to cache all the node_modules directories based on the node version and package lock.
-      - name: Cache node_modules
-        id: npm-cache
-        uses: actions/cache@v3
-        env:
-          cache-name: cache-node-modules-${{ steps.node-version.outputs.node_version }}
-        with:
-          key: ${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
-          path: |
-            **/node_modules
-            !/pages-e2e/workspaces/**/node_modules
-
-      # If the cache missed then install using `npm ci` to follow package lock exactly
-      - if: ${{ steps.npm-cache.outputs.cache-hit != 'true'}}
-        name: Install NPM Dependencies
-        run: npm ci
-
-      - name: Cache turbo
-        id: turbo-cache
-        uses: actions/cache@v3
-        with:
-          path: ./turbo-cache
-          key: cache-turbo-${{ github.workflow }}-${{ github.job }}-${{ github.base_ref }}-${{ github.ref_name }}-${{ github.sha }}
-          restore-keys: |
-            cache-turbo-${{ github.workflow }}-${{ github.job }}-${{ github.base_ref }}-${{ github.ref_name }}-${{ github.sha }}
-            cache-turbo-${{ github.workflow }}-${{ github.job }}-${{ github.base_ref }}-${{ github.ref_name }}-
-            cache-turbo-${{ github.workflow }}-${{ github.job }}-${{ github.base_ref }}-
-            cache-turbo-${{ github.workflow }}-${{ github.job }}
+      - name: Cache Turbo
+        uses: ./.github/actions/cache-turbo
 
       - name: Run unit tests
         run: npm run test:unit -- --cache-dir ./turbo-cache
@@ -258,33 +93,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-      - name: Setup node
-        uses: actions/setup-node@v3
-        with:
-          node-version: 16.13.x
 
-      - name: Get current node version
-        id: node-version
-        run: |
-          node_version=$(node -v)
-          echo "node_version=$node_version" >> $GITHUB_OUTPUT
-
-        # Attempt to cache all the node_modules directories based on the node version and package lock.
-      - name: Cache node_modules
-        id: npm-cache
-        uses: actions/cache@v3
-        env:
-          cache-name: cache-node-modules-${{ steps.node-version.outputs.node_version }}
-        with:
-          key: ${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
-          path: |
-            **/node_modules
-            !/pages-e2e/workspaces/**/node_modules
-
-      # If the cache missed then install using `npm ci` to follow package lock exactly
-      - if: ${{ steps.npm-cache.outputs.cache-hit != 'true'}}
-        name: Install NPM Dependencies
-        run: npm ci
+      - name: Setup Node
+        uses: ./.github/actions/node-setup
 
       - name: Run e2e tests
         uses: nick-fields/retry@v2

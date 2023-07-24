@@ -1,0 +1,16 @@
+name: Cache turbo
+description: Attempts to cache turborepo files for the current workflow and job
+runs:
+  using: composite
+  steps:
+    - name: Cache turbo
+      id: turbo-cache
+      uses: actions/cache@v3
+      with:
+        path: ./turbo-cache
+        key: cache-turbo-${{ github.workflow }}-${{ github.job }}-${{ github.base_ref }}-${{ github.ref_name }}-${{ github.sha }}
+        restore-keys: |
+          cache-turbo-${{ github.workflow }}-${{ github.job }}-${{ github.base_ref }}-${{ github.ref_name }}-${{ github.sha }}
+          cache-turbo-${{ github.workflow }}-${{ github.job }}-${{ github.base_ref }}-${{ github.ref_name }}-
+          cache-turbo-${{ github.workflow }}-${{ github.job }}-${{ github.base_ref }}-
+          cache-turbo-${{ github.workflow }}-${{ github.job }}
