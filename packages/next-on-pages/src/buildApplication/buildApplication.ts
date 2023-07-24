@@ -120,6 +120,8 @@ async function prepareAndBuildWorker(
 		!disableWorkerMinification,
 	);
 
+	await buildMetadataFiles(outputDir, { staticAssets });
+
 	printBuildSummary(staticAssets, processedVercelOutput, processedFunctions);
 	await writeBuildInfo(
 		join(outputDir, '_worker.js'),
@@ -129,6 +131,4 @@ async function prepareAndBuildWorker(
 	);
 
 	cliSuccess(`Generated '${outputtedWorkerPath}'.`);
-
-	await buildMetadataFiles(outputDir, { staticAssets });
 }

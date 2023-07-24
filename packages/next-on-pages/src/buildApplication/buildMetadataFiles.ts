@@ -44,14 +44,8 @@ ${Object.entries(nextStaticHeaders)
 	}
 }
 
-async function buildRoutes(
-	outputDir: string,
-	{ staticAssets }: BuildMetadataFilesOpts,
-) {
-	const nextStaticRegex = /^(.*\/_next\/static)\/.+$/;
-	const nextStaticAsset = staticAssets.find(a => nextStaticRegex.test(a));
-	const nextStaticPath =
-		nextStaticAsset?.match(nextStaticRegex)?.[1] ?? '/_next/static';
+async function buildRoutes(outputDir: string, opts: BuildMetadataFilesOpts) {
+	const nextStaticPath = getNextStaticDirPath(opts);
 
 	try {
 		await writeFile(
@@ -69,6 +63,21 @@ async function buildRoutes(
 			throw e;
 		}
 	}
+}
+
+/**
+ * Finds the path to the `/_next/static` directory from the list of static assets. Accounts for the
+ * path being inside sub-directories, e.g. `/blog/_next/static`, and falls back to `/_next/static`.
+ *
+ * @param opts Options for building metadata files.
+ * @returns The path to the `/_next/static` directory.
+ */
+function getNextStaticDirPath({
+	staticAssets,
+}: BuildMetadataFilesOpts): string {
+	const regex = /^(.*\/_next\/static)\/.+$/;
+	const asset = staticAssets.find(a => regex.test(a));
+	return asset?.match(regex)?.[1] ?? '/_next/static';
 }
 
 type BuildMetadataFilesOpts = {
