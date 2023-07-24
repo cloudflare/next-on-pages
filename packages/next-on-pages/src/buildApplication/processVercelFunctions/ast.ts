@@ -46,10 +46,7 @@ export function collectIdentifiers(
  * @param identifierMaps The maps of found identifiers in the AST.
  */
 export function groupIdentifiers(identifierMaps: IdentifierMaps) {
-	// Webpack Chunks
-	groupIdentifiersByType(identifierMaps.webpack);
-	// Manifests
-	groupIdentifiersByType(identifierMaps.manifest);
+	Object.values(identifierMaps).forEach(map => groupIdentifiersByType(map));
 }
 
 type IdentifierMaps = Record<IdentifierType, IdentifiersMap>;
