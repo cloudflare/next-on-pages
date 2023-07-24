@@ -94,6 +94,18 @@ function runTestCase(
  * @param testSet Test set to run.
  */
 async function runTestSet({ config, files, testCases }: TestSet) {
+	const originalFetch = globalThis.fetch;
+	globalThis.fetch = async (...args: Parameters<typeof originalFetch>) => {
+		const req = new Request(...args);
+		const url = new URL(req.url);
+
+		if (url.hostname === 'external-test-url.com') {
+			return new Response('external test url response');
+		}
+
+		return originalFetch(...args);
+	};
+
 	const { vercelConfig, buildOutput, assetsFetcher, restoreMocks } =
 		await createRouterTestData(config, files);
 
@@ -106,7 +118,10 @@ async function runTestSet({ config, files, testCases }: TestSet) {
 		runTestCase(reqCtx, vercelConfig, buildOutput, testCase),
 	);
 
-	afterAll(() => restoreMocks());
+	afterAll(() => {
+		globalThis.fetch = originalFetch;
+		restoreMocks();
+	});
 }
 
 vi.mock('esbuild', async () => {

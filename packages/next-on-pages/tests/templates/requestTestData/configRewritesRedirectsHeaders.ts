@@ -60,7 +60,7 @@ const rawVercelConfig: VercelConfig = {
 		{ handle: 'resource' },
 		{
 			src: '^(?:/((?:[^/]+?)(?:/(?:[^/]+?))*))?(?:/)?$',
-			dest: 'https://uuid.rocks/$1',
+			dest: 'https://external-test-url.com/$1',
 			check: true,
 		},
 		{ src: '/.*', status: 404 },
@@ -168,8 +168,10 @@ export const testSet: TestSet = {
 			paths: ['/plain'],
 			expected: {
 				status: 200,
-				data: /^\w+-\w+-\w+-\w+-\w+$/,
-				ignoreHeaders: true,
+				data: 'external test url response',
+				headers: {
+					'content-type': 'text/plain;charset=UTF-8',
+				},
 			},
 		},
 		{
