@@ -18,6 +18,7 @@
 		"build": "FORCE_COLOR=1 turbo build",
 		"build:watch": "FORCE_COLOR=1 turbo build:watch",
 		"test:unit": "FORCE_COLOR=1 turbo test:unit",
+		"pretest:e2e": "npm run build -- --scope next-on-pages",
 		"test:e2e": "FORCE_COLOR=1 turbo test:e2e",
 		"publish": "turbo build & changeset publish",
 		"changeset": "npx changeset"
