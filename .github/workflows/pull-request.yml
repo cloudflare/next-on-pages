@@ -286,9 +286,6 @@ jobs:
         name: Install NPM Dependencies
         run: npm ci
 
-      - name: build next-on-pages local package
-        run: npm run build -- --scope next-on-pages
-
       - name: Run e2e tests
         uses: nick-fields/retry@v2
         with:
