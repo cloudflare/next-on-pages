@@ -1,5 +1,9 @@
 name: Cache turbo
 description: Attempts to cache turborepo files for the current workflow and job
+inputs:
+  script:
+    description: target script for the turborepo cache
+    required: true
 runs:
   using: composite
   steps:
@@ -8,9 +12,10 @@ runs:
       uses: actions/cache@v3
       with:
         path: ./turbo-cache
-        key: cache-turbo-${{ github.workflow }}-${{ github.job }}-${{ github.base_ref }}-${{ github.ref_name }}-${{ github.sha }}
+        key: cache-turbo-${{ github.workflow }}-${{ github.job }}-${{ inputs.script }}-${{ github.base_ref }}-${{ github.ref_name }}-${{ github.sha }}
         restore-keys: |
-          cache-turbo-${{ github.workflow }}-${{ github.job }}-${{ github.base_ref }}-${{ github.ref_name }}-${{ github.sha }}
-          cache-turbo-${{ github.workflow }}-${{ github.job }}-${{ github.base_ref }}-${{ github.ref_name }}-
-          cache-turbo-${{ github.workflow }}-${{ github.job }}-${{ github.base_ref }}-
+          cache-turbo-${{ github.workflow }}-${{ github.job }}-${{ inputs.script }}-${{ github.base_ref }}-${{ github.ref_name }}-${{ github.sha }}
+          cache-turbo-${{ github.workflow }}-${{ github.job }}-${{ inputs.script }}-${{ github.base_ref }}-${{ github.ref_name }}
+          cache-turbo-${{ github.workflow }}-${{ github.job }}-${{ inputs.script }}-${{ github.base_ref }}
+          cache-turbo-${{ github.workflow }}-${{ github.job }}-${{ inputs.script }}
           cache-turbo-${{ github.workflow }}-${{ github.job }}

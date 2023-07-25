@@ -12,8 +12,18 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  formatting:
-    name: Formatting
+  simple-checks:
+    strategy:
+      matrix:
+        check:
+          [
+            { name: formatting, script: 'prettier:check' },
+            { name: linting, script: lint },
+            { name: type checking, script: types-check },
+            { name: building, script: build },
+            { name: unit testing, script: 'test:unit' },
+          ]
+    name: ${{ matrix.check.name }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -24,69 +34,11 @@ jobs:
 
       - name: Cache Turbo
         uses: ./.github/actions/cache-turbo
+        with:
+          script: ${{ matrix.check.script }}
 
-      - name: Check formatting
-        run: npm run prettier:check -- --cache-dir ./turbo-cache
-  linting:
-    name: Linting
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-
-      - name: Setup Node
-        uses: ./.github/actions/node-setup
-
-      - name: Cache Turbo
-        uses: ./.github/actions/cache-turbo
-
-      - name: Check linting
-        run: npm run lint -- --cache-dir ./turbo-cache
-  types:
-    name: Types
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-
-      - name: Setup Node
-        uses: ./.github/actions/node-setup
-
-      - name: Cache Turbo
-        uses: ./.github/actions/cache-turbo
-
-      - name: Check types
-        run: npm run types-check -- --cache-dir ./turbo-cache
-  build:
-    name: Build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-
-      - name: Setup Node
-        uses: ./.github/actions/node-setup
-
-      - name: Cache Turbo
-        uses: ./.github/actions/cache-turbo
-
-      - name: Build
-        run: npm run build -- --cache-dir ./turbo-cache
-  unit-tests:
-    name: Unit tests
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-
-      - name: Setup Node
-        uses: ./.github/actions/node-setup
-
-      - name: Cache Turbo
-        uses: ./.github/actions/cache-turbo
-
-      - name: Run unit tests
-        run: npm run test:unit -- --cache-dir ./turbo-cache
+      - name: Run Script
+        run: npm run ${{ matrix.check.script }} -- --cache-dir ./turbo-cache
   e2e-tests:
     name: e2e tests
     runs-on: ubuntu-latest
