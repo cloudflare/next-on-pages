@@ -1,5 +1,5 @@
 ---
-'@cloudflare/next-on-pages': minor
+'@cloudflare/next-on-pages': patch
 ---
 
-allow next-on-pages applications to be built using `yarn pnp`
+clarify that Yarn Plug'n'Play can't be used simply because not supported by vercel
