@@ -1,10 +1,14 @@
 import { join } from 'path';
 import { writeFile } from 'fs/promises';
-import { nextOnPagesVersion } from '../utils';
+import { nextOnPagesVersion, readJsonFile } from '../utils';
 import { getPhaseRoutes, getVercelConfig } from './getVercelConfig';
+import { cliError } from '../cli';
 
 /**
  * Builds metadata files needed for the worker to correctly run.
+ *
+ * @param outputDir Output directory for the metadata files.
+ * @param opts Options for building metadata files.
  */
 export async function buildMetadataFiles(
 	outputDir: string,
@@ -16,6 +20,12 @@ export async function buildMetadataFiles(
 	]);
 }
 
+/**
+ * Builds the `_headers` file, which is used by Cloudflare to determine which headers to add to
+ * responses for routes that match the given pattern.
+ *
+ * @param outputDir Output directory for the metadata files.
+ */
 async function buildNextStaticHeaders(outputDir: string) {
 	const vercelConfig = await getVercelConfig();
 
@@ -44,8 +54,29 @@ ${Object.entries(nextStaticHeaders)
 	}
 }
 
+/**
+ * Builds the `_routes.json` file, which is used by Cloudflare to determine which routes should
+ * invoke the worker.
+ *
+ * Collects existing entries from the `_routes.json` file in the root of the project, if it exists.
+ *
+ * @param outputDir Output directory for the metadata files.
+ * @param opts Options for building metadata files.
+ */
 async function buildRoutes(outputDir: string, opts: BuildMetadataFilesOpts) {
 	const nextStaticPath = getNextStaticDirPath(opts);
+
+	const existingFile = await readJsonFile<RoutesJsonFile>('_routes.json');
+	if (existingFile && existingFile.version !== 1) {
+		cliError(
+			`Found _routes.json with version ${existingFile.version}, but only version 1 is supported.`,
+		);
+		process.exit(1);
+	}
+
+	const { include = [], exclude = [] } = existingFile ?? {};
+	const includeEntries = include.length > 0 ? include : ['/*'];
+	const excludeEntries = new Set([`${nextStaticPath}/*`, ...exclude]);
 
 	try {
 		await writeFile(
@@ -53,10 +84,9 @@ async function buildRoutes(outputDir: string, opts: BuildMetadataFilesOpts) {
 			JSON.stringify({
 				version: 1,
 				description: `Built with @cloudflare/next-on-pages@${nextOnPagesVersion}.`,
-				include: ['/*'],
-				exclude: [`${nextStaticPath}/*`],
+				include: includeEntries,
+				exclude: [...excludeEntries],
 			}),
-			{ flag: 'ax' }, // don't generate file if it's already manually maintained
 		);
 	} catch (e) {
 		if ((e as { code?: string }).code !== 'EEXIST') {
@@ -64,6 +94,13 @@ async function buildRoutes(outputDir: string, opts: BuildMetadataFilesOpts) {
 		}
 	}
 }
+
+type RoutesJsonFile = {
+	version: 1;
+	description: string;
+	include: string[];
+	exclude: string[];
+};
 
 /**
  * Finds the path to the `/_next/static` directory from the list of static assets. Accounts for the
