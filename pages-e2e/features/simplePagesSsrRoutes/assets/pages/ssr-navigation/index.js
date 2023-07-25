@@ -1,0 +1,17 @@
+import Layout from './layout';
+
+export const config = { runtime: 'experimental-edge' };
+
+export async function getServerSideProps() {
+	return {
+		props: { title: 'Server Side Rendered Index' },
+	};
+}
+
+export default function IndexPage({ title }) {
+	return (
+		<Layout>
+			<h2>{title}</h2>
+		</Layout>
+	);
+}
