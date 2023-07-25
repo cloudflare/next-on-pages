@@ -76,7 +76,7 @@ async function buildRoutes(outputDir: string, opts: BuildMetadataFilesOpts) {
 
 	const { include = [], exclude = [] } = existingFile ?? {};
 	const includeEntries = include.length > 0 ? include : ['/*'];
-	const excludeEntries = new Set([`${nextStaticPath}/*`, ...(exclude ?? [])]);
+	const excludeEntries = new Set([`${nextStaticPath}/*`, ...exclude]);
 
 	try {
 		await writeFile(
