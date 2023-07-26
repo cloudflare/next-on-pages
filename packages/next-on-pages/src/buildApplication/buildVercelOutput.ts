@@ -34,7 +34,7 @@ export async function buildVercelOutput(): Promise<void> {
 		await rm(tempVercelConfig.tempPath);
 	}
 
-	const execStr = `${execCmd ?? baseCmd} ${execArgs?.join(',')}`;
+	const execStr = `${execCmd ?? baseCmd} ${execArgs?.join(',') ?? ''}`;
 	cliLog(`Completed \`${execStr} vercel build\`.`);
 }
 

@@ -43,7 +43,7 @@ export async function buildApplication({
 		try {
 			await buildVercelOutput();
 		} catch {
-			const execStr = `${execCmd ?? baseCmd} ${execArgs?.join(',')}`;
+			const execStr = `${execCmd ?? baseCmd} ${execArgs?.join(',') ?? ''}`;
 			cliError(
 				`
 					The Vercel build (\`${execStr} vercel build\`) command failed. For more details see the Vercel logs above.
