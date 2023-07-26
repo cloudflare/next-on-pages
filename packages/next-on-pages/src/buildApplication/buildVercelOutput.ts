@@ -5,6 +5,8 @@ import { cliLog } from '../cli';
 import { readJsonFile, validateDir, validateFile } from '../utils';
 import type { PackageManager } from './packageManagerUtils';
 import {
+	getCurrentPackageManager,
+	getExecStr,
 	getPackageManagerInfo,
 	getPackageVersion,
 	waitForProcessToClose,
@@ -22,7 +24,7 @@ import {
  *
  */
 export async function buildVercelOutput(): Promise<void> {
-	const { pm, baseCmd, execCmd, execArgs } = await getPackageManagerInfo();
+	const pm = await getCurrentPackageManager();
 	cliLog(`Detected Package Manager: ${pm}\n`);
 
 	cliLog('Preparing project...');
@@ -34,7 +36,7 @@ export async function buildVercelOutput(): Promise<void> {
 		await rm(tempVercelConfig.tempPath);
 	}
 
-	const execStr = `${execCmd ?? baseCmd} ${execArgs?.join(',') ?? ''}`;
+	const execStr = await getExecStr(pm, 'vercel');
 	cliLog(`Completed \`${execStr} vercel build\`.`);
 }
 

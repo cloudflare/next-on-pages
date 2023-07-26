@@ -224,6 +224,35 @@ export async function waitForProcessToClose(
 }
 
 /**
+ * Gets the executable string used for the package manager.
+ *
+ * @param pm Package manager name.
+ * @param packageName Package name.
+ * @returns The executable string used for the package manager.
+ */
+export async function getExecStr(
+	pm: PackageManager,
+	packageName?: string,
+): Promise<string> {
+	const {
+		baseCmd,
+		execCmd,
+		dlxOrExec,
+		execArgs = [],
+	} = await getPackageManagerInfo(pm);
+
+	let dlxArgs: string[] = [];
+	if (packageName && dlxOrExec) {
+		const vercelPackageIsInstalled = await getPackageVersion(packageName, pm);
+		dlxArgs = dlxOrExec(!vercelPackageIsInstalled);
+	}
+
+	const args = [...dlxArgs, ...execArgs];
+
+	return `${execCmd ?? baseCmd} ${args.join(' ') ?? ''}`.trim();
+}
+
+/**
  * Checks whether the current platform is Windows.
  *
  * @returns Whether the current platform is Windows.

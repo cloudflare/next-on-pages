@@ -12,7 +12,7 @@ import {
 	processVercelOutput,
 	processOutputDir,
 } from './processVercelOutput';
-import { getPackageManagerInfo } from './packageManagerUtils';
+import { getCurrentPackageManager, getExecStr } from './packageManagerUtils';
 import { printBuildSummary, writeBuildInfo } from './buildSummary';
 import type { ProcessedVercelFunctions } from './processVercelFunctions';
 import { processVercelFunctions } from './processVercelFunctions';
@@ -36,14 +36,14 @@ export async function buildApplication({
 	| 'watch'
 	| 'outdir'
 >) {
-	const { baseCmd, execCmd, execArgs } = await getPackageManagerInfo();
+	const pm = await getCurrentPackageManager();
 
 	let buildSuccess = true;
 	if (!skipBuild) {
 		try {
 			await buildVercelOutput();
 		} catch {
-			const execStr = `${execCmd ?? baseCmd} ${execArgs?.join(',') ?? ''}`;
+			const execStr = await getExecStr(pm, 'vercel');
 			cliError(
 				`
 					The Vercel build (\`${execStr} vercel build\`) command failed. For more details see the Vercel logs above.
