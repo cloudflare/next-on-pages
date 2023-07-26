@@ -69,6 +69,7 @@ async function generateProjectJsonFileIfNeeded(
 		const tempConfig: VercelConfigJson = {
 			buildCommand: 'bun run build',
 			installCommand: 'bun install',
+			framework: 'nextjs',
 			// User-defined config values should override the ones we set.
 			...originalConfig,
 		};
@@ -84,7 +85,11 @@ async function generateProjectJsonFileIfNeeded(
 	return undefined;
 }
 
-type VercelConfigJson = { buildCommand?: string; installCommand?: string };
+type VercelConfigJson = {
+	buildCommand?: string;
+	installCommand?: string;
+	framework?: string;
+};
 
 async function runVercelBuild(
 	pkgMng: PackageManager,
