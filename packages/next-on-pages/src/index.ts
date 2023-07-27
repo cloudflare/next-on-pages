@@ -32,9 +32,10 @@ async function runNextOnPages(): Promise<void> {
 
 	if (isWindows()) {
 		cliWarn(
-			`Warning: It seems like you're on a Windows system, running @cloudflare/next-on-pages
-			is discouraged, if you experience issues try switching to a different operating system
-			or running @cloudflare/next-on-pages under the Windows Subsystem for Linux`,
+			`Warning: It seems like you're on a Windows system, the Vercel CLI (run by @cloudflare/next-on-pages
+			to build your application) seems not to work reliably on Windows so if you experience issues during
+			the build process please try switching to a different operating system or running
+			@cloudflare/next-on-pages under the Windows Subsystem for Linux`,
 			{ spaced: true },
 		);
 	}
