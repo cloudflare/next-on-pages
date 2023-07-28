@@ -63,11 +63,14 @@ export async function buildVercelOutput(): Promise<void> {
 async function generateProjectJsonFileIfNeeded(): Promise<void> {
 	const projectJsonFilePath = join('.vercel', 'project.json');
 	if (!(await validateFile(projectJsonFilePath))) {
+		const projectJson: VercelProjectJson = {
+			projectId: '_',
+			orgId: '_',
+			settings: { framework: 'nextjs' },
+		};
+
 		await mkdir('.vercel', { recursive: true });
-		await writeFile(
-			projectJsonFilePath,
-			JSON.stringify({ projectId: '_', orgId: '_', settings: {} }),
-		);
+		await writeFile(projectJsonFilePath, JSON.stringify(projectJson));
 	}
 }
 
@@ -79,7 +82,7 @@ async function generateProjectJsonFileIfNeeded(): Promise<void> {
  * @returns The path and args for the temporary config file.
  */
 async function createTempVercelConfig(
-	config: Partial<VercelConfigJson>,
+	config: Partial<VercelConfigJson>
 ): Promise<TempVercelConfigInfo> {
 	const oldConfigPath = join('vercel.json');
 	const originalConfig = await readJsonFile<VercelConfigJson>(oldConfigPath);
@@ -106,17 +109,23 @@ type VercelConfigJson = {
 	framework?: string;
 };
 
+type VercelProjectJson = {
+	projectId: string;
+	orgId: string;
+	settings: VercelConfigJson;
+};
+
 type TempVercelConfigInfo = { additionalArgs: string[]; tempPath: string };
 
 async function runVercelBuild(
 	pkgMng: PackageManager,
-	additionalArgs: string[] = [],
+	additionalArgs: string[] = []
 ): Promise<void> {
 	const { pm, baseCmd } = await getPackageManagerInfo(pkgMng);
 
 	if (pm === 'yarn (classic)') {
 		cliLog(
-			`Installing vercel as dev dependencies with '${baseCmd} add vercel -D'...`,
+			`Installing vercel as dev dependencies with '${baseCmd} add vercel -D'...`
 		);
 
 		const installVercel = spawn(baseCmd, ['add', 'vercel', '-D']);
@@ -139,7 +148,7 @@ async function runVercelBuild(
 
 async function getVercelBuildChildProcess(
 	pkgMng: PackageManager,
-	additionalArgs: string[] = [],
+	additionalArgs: string[] = []
 ): Promise<ChildProcessWithoutNullStreams> {
 	const { pm, baseCmd, execCmd, execArgs, dlxOrExec } =
 		await getPackageManagerInfo(pkgMng);
@@ -168,7 +177,7 @@ async function getVercelBuildChildProcess(
  * We do not need these files, nor do we want to run the risk of them being available. Therefore, we should delete them instead of uploading them to Cloudflare Pages.
  */
 export async function deleteNextTelemetryFiles(
-	outputDir: string,
+	outputDir: string
 ): Promise<void> {
 	const nextDir = resolve(outputDir, '_next');
 	const privateDir = join(nextDir, '__private');
@@ -191,16 +200,16 @@ export async function deleteNextTelemetryFiles(
  * @param vercelProcess Spawned Vercel process.
  */
 function logVercelProcessOutput(
-	vercelProcess: ChildProcessWithoutNullStreams,
+	vercelProcess: ChildProcessWithoutNullStreams
 ): void {
 	vercelProcess.stdout.on('data', data =>
-		cliLog(`\n${data}`, { fromVercelCli: true }),
+		cliLog(`\n${data}`, { fromVercelCli: true })
 	);
 
 	vercelProcess.stderr.on('data', data =>
 		// here we use cliLog instead of cliError because the Vercel cli
 		// currently displays non-error messages in stderr
 		// so we just display all Vercel logs as standard logs
-		cliLog(`\n${data}`, { fromVercelCli: true }),
+		cliLog(`\n${data}`, { fromVercelCli: true })
 	);
 }
