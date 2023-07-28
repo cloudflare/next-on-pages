@@ -25,20 +25,6 @@ export async function getCurrentPackageManager(): Promise<PackageManager> {
 		['yarn.lock', 'pnpm-lock.yaml', 'bun.lockb'].map(validateFile),
 	);
 
-	if (hasBunAgent || hasBunLock) {
-		if (isWindows()) {
-			cliWarn(
-				'Bun is not supported on Windows, falling back to alternative package manager',
-			);
-		} else if (process.env.CF_PAGES && !(await getBinaryVersion('bun'))) {
-			cliWarn(
-				'Bun is not supported in the Cloudflare Pages build image, falling back to alternative package manager',
-			);
-		} else {
-			return 'bun';
-		}
-	}
-
 	if (hasPnpmAgent || hasPnpmLock) return 'pnpm';
 
 	if (hasYarnAgent || hasYarnLock) {
@@ -78,6 +64,18 @@ export async function getCurrentPackageManager(): Promise<PackageManager> {
 		}
 	}
 
+	if (hasBunAgent || hasBunLock) {
+		if (isWindows()) {
+			cliWarn('Bun is not supported on Windows, falling back to npm...');
+		} else if (process.env.CF_PAGES && !(await getBinaryVersion('bun'))) {
+			cliWarn(
+				'Bun is not supported in the Cloudflare Pages build image, falling back to npm...',
+			);
+		} else {
+			return 'bun';
+		}
+	}
+
 	return 'npm';
 }
 
@@ -101,7 +99,8 @@ export async function getPackageManagerInfo(
 				baseCmd: `bun${cmd}`,
 				execArgs: ['x'],
 				infoArgs: ['pm', 'ls'],
-				infoRegex: (name: string) => new RegExp(`^.+ ${name}@(.*)$`, 'im'),
+				getPackageVersionRegex: (name: string) =>
+					new RegExp(`^.+ ${name}@(.*)$`, 'im'),
 			};
 		case 'pnpm':
 			return {
@@ -146,9 +145,8 @@ export async function getPackageVersion(
 ): Promise<string | null> {
 	try {
 		packageManager ??= await getCurrentPackageManager();
-		const { pm, baseCmd, infoArgs, infoRegex } = await getPackageManagerInfo(
-			packageManager,
-		);
+		const { pm, baseCmd, infoArgs, getPackageVersionRegex } =
+			await getPackageManagerInfo(packageManager);
 
 		const commandOutput = execFileSync(
 			baseCmd,
@@ -160,8 +158,8 @@ export async function getPackageVersion(
 
 		let packageVersion: string | undefined;
 
-		if (infoRegex) {
-			const match = commandOutput.match(infoRegex(packageName));
+		if (getPackageVersionRegex) {
+			const match = commandOutput.match(getPackageVersionRegex(packageName));
 			packageVersion = match?.[1];
 		} else {
 			const commandOutputJson = JSON.parse(commandOutput);
@@ -269,12 +267,27 @@ export type PackageManager =
 	| 'yarn'
 	| 'npm';
 
+// export type PackageManagerInfo = {
+// 	pm: PackageManager;
+// 	baseCmd: string;
+// 	execCmd?: string;
+// 	execArgs?: string[];
+// 	dlxOrExec?: (useDlx: boolean) => string[];
+// 	infoArgs: string[];
+// 	getPackageVersionRegex?: (name: string) => RegExp;
+// };
+
+type PlainPackageManager = Exclude<
+	PackageManager,
+	'yarn (berry)' | 'yarn (classic)'
+>;
+type PackageManagerBaseCmd = `${PlainPackageManager}${'' | '.cmd'}`;
 export type PackageManagerInfo = {
 	pm: PackageManager;
-	baseCmd: string;
-	execCmd?: string;
+	baseCmd: PackageManagerBaseCmd;
+	execCmd?: `npx${'' | '.cmd'}`;
 	execArgs?: string[];
-	dlxOrExec?: (useDlx: boolean) => string[];
+	dlxOrExec?: (useDlx: boolean) => ('dlx' | 'exec')[];
 	infoArgs: string[];
-	infoRegex?: (name: string) => RegExp;
+	getPackageVersionRegex?: (name: string) => RegExp;
 };

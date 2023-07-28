@@ -22,13 +22,27 @@ import {
  * TODO: once we stop relying on it add an `rm` command at the end of the function to delete the .next directory
  *       to ensure that we won't regress and rely on it anymore
  *
+ * Creates a temporary config file when using the Bun package manager so that Vercel knows to use
+ * Bun to install and build the project.
+ *
  */
 export async function buildVercelOutput(): Promise<void> {
 	const pm = await getCurrentPackageManager();
 	cliLog(`Detected Package Manager: ${pm}\n`);
 
 	cliLog('Preparing project...');
-	const tempVercelConfig = await generateProjectJsonFileIfNeeded(pm);
+	await generateProjectJsonFileIfNeeded();
+
+	let tempVercelConfig: TempVercelConfigInfo | undefined;
+	// When using the Bun package manager, we need to ensure the Vercel CLI has a config file that
+	// tells it to use Bun, since Vercel doesn't support auto-detecting Bun yet.
+	if (pm === 'bun') {
+		tempVercelConfig = await createTempVercelConfig({
+			buildCommand: 'bun run build',
+			installCommand: 'bun install',
+		});
+	}
+
 	cliLog('Project is ready');
 
 	await runVercelBuild(pm, tempVercelConfig?.additionalArgs);
@@ -44,14 +58,9 @@ export async function buildVercelOutput(): Promise<void> {
  * The Vercel CLI requires the presence of a project.json file, so we create a dummy one just to
  * satisfy Vercel.
  *
- * Creates a temporary config file when using the Bun package manager so that Vercel knows to use
- * Bun to install and build the project.
- *
  * @returns The path and args for a temporary config file, if one was created.
  */
-async function generateProjectJsonFileIfNeeded(
-	pm?: PackageManager,
-): Promise<{ additionalArgs: string[]; tempPath: string } | undefined> {
+async function generateProjectJsonFileIfNeeded(): Promise<void> {
 	const projectJsonFilePath = join('.vercel', 'project.json');
 	if (!(await validateFile(projectJsonFilePath))) {
 		await mkdir('.vercel', { recursive: true });
@@ -60,31 +69,35 @@ async function generateProjectJsonFileIfNeeded(
 			JSON.stringify({ projectId: '_', orgId: '_', settings: {} }),
 		);
 	}
+}
 
-	// When using the Bun package manager, we need to ensure the Vercel CLI has a config file that
-	// tells it to use Bun, since Vercel doesn't support auto-detecting Bun yet.
-	if (pm === 'bun') {
-		const oldConfigPath = join('vercel.json');
-		const originalConfig = await readJsonFile<VercelConfigJson>(oldConfigPath);
+/**
+ * Creates a temporary Vercel config file that can be provided to the Vercel CLI via to give it
+ * additional configuration when building the project.
+ *
+ * @param config The values to set in the temporary config file.
+ * @returns The path and args for the temporary config file.
+ */
+async function createTempVercelConfig(
+	config: Partial<VercelConfigJson>,
+): Promise<TempVercelConfigInfo> {
+	const oldConfigPath = join('vercel.json');
+	const originalConfig = await readJsonFile<VercelConfigJson>(oldConfigPath);
 
-		const tempConfigPath = join('.vercel', 'temp-nop-config.json');
-		const tempConfig: VercelConfigJson = {
-			buildCommand: 'bun run build',
-			installCommand: 'bun install',
-			framework: 'nextjs',
-			// User-defined config values should override the ones we set.
-			...originalConfig,
-		};
+	const tempConfigPath = join('.vercel', 'temp-nop-config.json');
+	const tempConfig: VercelConfigJson = {
+		framework: 'nextjs',
+		...config,
+		// User-defined config values should override the ones we set.
+		...originalConfig,
+	};
 
-		await writeFile(tempConfigPath, JSON.stringify(tempConfig));
+	await writeFile(tempConfigPath, JSON.stringify(tempConfig));
 
-		return {
-			additionalArgs: ['--local-config', tempConfigPath],
-			tempPath: tempConfigPath,
-		};
-	}
-
-	return undefined;
+	return {
+		additionalArgs: ['--local-config', tempConfigPath],
+		tempPath: tempConfigPath,
+	};
 }
 
 type VercelConfigJson = {
@@ -92,6 +105,8 @@ type VercelConfigJson = {
 	installCommand?: string;
 	framework?: string;
 };
+
+type TempVercelConfigInfo = { additionalArgs: string[]; tempPath: string };
 
 async function runVercelBuild(
 	pkgMng: PackageManager,
