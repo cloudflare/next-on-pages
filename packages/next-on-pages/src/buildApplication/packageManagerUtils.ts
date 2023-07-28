@@ -267,7 +267,6 @@ export type PackageManager =
 	| 'yarn'
 	| 'npm';
 
-
 type PlainPackageManager = Exclude<
 	PackageManager,
 	'yarn (berry)' | 'yarn (classic)'
