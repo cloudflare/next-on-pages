@@ -72,7 +72,7 @@ async function generateProjectJsonFileIfNeeded(): Promise<void> {
 }
 
 /**
- * Creates a temporary Vercel config file that can be provided to the Vercel CLI via to give it
+ * Creates a temporary Vercel config file that can be provided to the Vercel CLI to give it
  * additional configuration when building the project.
  *
  * @param config The values to set in the temporary config file.
