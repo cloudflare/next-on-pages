@@ -94,7 +94,7 @@ async function checkEntrypoint(
 	let finalEntrypoint = entrypoint;
 
 	// There are instances where the build output will generate an uncompiled `middleware.js` file that is used as the entrypoint.
-	// TODO: investigate when and where the file is generated.
+	// NOTE: This problem has likely been resolved, but we still check for it just in case it hasn't, to avoid any potential issues.
 	// This file is not able to be used as it is uncompiled, so we try to instead use the compiled `index.js` if it exists.
 	let isMiddleware = false;
 	if (finalEntrypoint === 'middleware.js') {
