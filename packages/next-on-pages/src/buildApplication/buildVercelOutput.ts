@@ -63,11 +63,14 @@ export async function buildVercelOutput(): Promise<void> {
 async function generateProjectJsonFileIfNeeded(): Promise<void> {
 	const projectJsonFilePath = join('.vercel', 'project.json');
 	if (!(await validateFile(projectJsonFilePath))) {
+		const projectJson: VercelProjectJson = {
+			projectId: '_',
+			orgId: '_',
+			settings: { framework: 'nextjs' },
+		};
+
 		await mkdir('.vercel', { recursive: true });
-		await writeFile(
-			projectJsonFilePath,
-			JSON.stringify({ projectId: '_', orgId: '_', settings: {} }),
-		);
+		await writeFile(projectJsonFilePath, JSON.stringify(projectJson));
 	}
 }
 
@@ -104,6 +107,12 @@ type VercelConfigJson = {
 	buildCommand?: string;
 	installCommand?: string;
 	framework?: string;
+};
+
+type VercelProjectJson = {
+	projectId: string;
+	orgId: string;
+	settings: VercelConfigJson;
 };
 
 type TempVercelConfigInfo = { additionalArgs: string[]; tempPath: string };
