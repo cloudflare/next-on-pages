@@ -177,7 +177,7 @@ describe('getPackageManagerInfo', () => {
 			expect(dlxOrExec).toEqual(undefined);
 
 			mockedWarn.expectCalls([
-				/Bun is not supported on Windows, falling back to alternative/,
+				/Bun is not supported on Windows, falling back to npm/,
 			]);
 			mockedWarn.restore();
 		});
