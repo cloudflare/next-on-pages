@@ -267,15 +267,6 @@ export type PackageManager =
 	| 'yarn'
 	| 'npm';
 
-// export type PackageManagerInfo = {
-// 	pm: PackageManager;
-// 	baseCmd: string;
-// 	execCmd?: string;
-// 	execArgs?: string[];
-// 	dlxOrExec?: (useDlx: boolean) => string[];
-// 	infoArgs: string[];
-// 	getPackageVersionRegex?: (name: string) => RegExp;
-// };
 
 type PlainPackageManager = Exclude<
 	PackageManager,
