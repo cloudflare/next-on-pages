@@ -5,4 +5,7 @@ module.exports = {
 		runtime: 'experimental-edge',
 	},
 	swcMinify: false,
+	env: {
+		frameworkVersion: '12',
+	},
 };

@@ -1,5 +1,10 @@
 {
-	"features": ["simpleAppApiRoutes", "simpleAppSsrRoutes", "simpleAppStaticRoutesAndAssets"],
+	"features": [
+		"simpleAppApiRoutes",
+		"simpleAppSsrRoutes",
+		"simpleAppStaticRoutesAndAssets",
+		"appMiddleware"
+	],
 	"localSetup": "npm install",
 	"buildConfig": {
 		"buildCommand": "npx @cloudflare/next-on-pages",
