@@ -5,6 +5,7 @@ on:
 
 jobs:
   scrape_docs:
+    if: ${{ github.repository_owner == 'cloudflare' }}
     name: Scrape docs and create/update issue if needed
     runs-on: ubuntu-latest
     permissions:
