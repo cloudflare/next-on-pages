@@ -10,7 +10,7 @@ import { validateFile } from '../utils';
  * Tries to detect the package manager based on the `npm_config_user_agent` environment variable,
  * or the lockfile in the project.
  *
- * Prioritizes Bun > PNPM > Yarn > NPM. If Bun is used on Windows or in the build image, it falls back
+ * Prioritizes PNPM > Yarn > Bun > NPM. If Bun is used on Windows or in the build image, it falls back
  * to the next suitable package manager, with NPM being the default option.
  *
  * @returns Package manager name.
