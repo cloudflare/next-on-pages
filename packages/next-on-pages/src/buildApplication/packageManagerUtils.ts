@@ -2,7 +2,7 @@ import { execFileSync, spawn } from 'child_process';
 import { readFile } from 'fs/promises';
 import YAML from 'js-yaml';
 import { cliError, cliWarn } from '../cli';
-import { validateFile } from '../utils';
+import { isWindows, validateFile } from '../utils';
 
 /**
  * Gets the current package manager for the project.
@@ -248,15 +248,6 @@ export async function getExecStr(
 	const args = [...dlxArgs, ...execArgs];
 
 	return `${execCmd ?? baseCmd} ${args.join(' ') ?? ''}`.trim();
-}
-
-/**
- * Checks whether the current platform is Windows.
- *
- * @returns Whether the current platform is Windows.
- */
-function isWindows(): boolean {
-	return process.platform === 'win32';
 }
 
 export type PackageManager =

@@ -4,7 +4,7 @@ import type { CliOptions } from './cli';
 import { cliWarn, cliError } from './cli';
 import { cliLog, parseCliArgs, printCliHelpMessage, printEnvInfo } from './cli';
 import { buildApplication } from './buildApplication';
-import { nextOnPagesVersion } from './utils';
+import { isWindows, nextOnPagesVersion } from './utils';
 
 const limit = pLimit(1);
 
@@ -28,6 +28,16 @@ async function runNextOnPages(): Promise<void> {
 	if (args.help) {
 		printCliHelpMessage();
 		return;
+	}
+
+	if (isWindows()) {
+		cliWarn(
+			`Warning: It seems like you're on a Windows system, the Vercel CLI (run by @cloudflare/next-on-pages
+			to build your application) seems not to work reliably on Windows so if you experience issues during
+			the build process please try switching to a different operating system or running
+			@cloudflare/next-on-pages under the Windows Subsystem for Linux`,
+			{ spaced: true },
+		);
 	}
 
 	if (args.experimentalMinify) {
