@@ -106,21 +106,25 @@ describe('App Middleware', () => {
 		});
 		const assertVisible = getAssertVisible(page);
 
-		await page.goto(`${DEPLOYMENT_URL}/middleware-test/page?set-headers`);
+		await page.goto(
+			`${DEPLOYMENT_URL}/middleware-test/page?set-request-headers`,
+		);
 
 		await assertVisible('h1', { hasText: 'Page' });
 		expect(page.url()).toEqual(
-			`${DEPLOYMENT_URL}/middleware-test/page?set-headers`,
+			`${DEPLOYMENT_URL}/middleware-test/page?set-request-headers`,
 		);
 
 		await assertVisible('h1', { hasText: 'Page' });
-		await assertVisible('li#header-header-set-from-middleware');
+		await assertVisible('li#header-req-header-set-from-middleware');
 		expect(
-			await page.locator('li#header-header-set-from-middleware').textContent(),
+			await page
+				.locator('li#header-req-header-set-from-middleware')
+				.textContent(),
 		).toBe(
-			'header-set-from-middleware: this is a test header added by the middleware',
+			'req-header-set-from-middleware: this is a test header added by the middleware',
 		);
-		await assertVisible('li#header-header-set-from-middleware');
+		await assertVisible('li#header-original-header-for-testing-a');
 		expect(
 			await page
 				.locator('li#header-original-header-for-testing-a')
@@ -128,13 +132,22 @@ describe('App Middleware', () => {
 		).toBe(
 			'original-header-for-testing-a: this header should be left untouched',
 		);
-		await assertVisible('li#header-header-set-from-middleware');
+		await assertVisible('li#header-original-header-for-testing-b');
 		expect(
 			await page
 				.locator('li#header-original-header-for-testing-b')
 				.textContent(),
 		).toBe(
 			'original-header-for-testing-b: this header has been overridden by the middleware',
+		);
+	});
+
+	test('response headers modification', async ({ expect }) => {
+		const response = await fetch(
+			`${DEPLOYMENT_URL}/api/middleware-test/hello?set-response-headers`,
+		);
+		expect(response.headers.get('resp-header-set-from-middleware')).toEqual(
+			'this is a test header added to the response by the middleware',
 		);
 	});
 

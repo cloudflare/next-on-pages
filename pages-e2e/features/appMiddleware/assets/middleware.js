@@ -25,10 +25,10 @@ export function middleware(request) {
 		return NextResponse.redirect(new URL('/middleware-test/page', request.url));
 	}
 
-	if (request.nextUrl.searchParams.has('set-headers')) {
+	if (request.nextUrl.searchParams.has('set-request-headers')) {
 		const requestHeaders = new Headers(request.headers);
 		requestHeaders.set(
-			'header-set-from-middleware',
+			'req-header-set-from-middleware',
 			'this is a test header added by the middleware',
 		);
 		requestHeaders.set(
@@ -40,6 +40,15 @@ export function middleware(request) {
 				headers: requestHeaders,
 			},
 		});
+	}
+
+	if (request.nextUrl.searchParams.has('set-response-headers')) {
+		const response = NextResponse.next();
+		response.headers.set(
+			'resp-header-set-from-middleware',
+			'this is a test header added to the response by the middleware',
+		);
+		return response;
 	}
 
 	if (request.nextUrl.searchParams.has('error')) {
