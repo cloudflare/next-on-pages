@@ -1,5 +1,22 @@
 # @cloudflare/next-on-pages
 
+## 1.5.0
+
+### Minor Changes
+
+- ea98a8f: Support for defining an `_routes.json` file in the root of the project. Entries in the root's file are copied over to the generated one in the output directory.
+- 9faf701: add warning indicating that usage under windows is not advised
+- c6621c6: Support for using Bun as a package manager in projects.
+
+### Patch Changes
+
+- 3affd17: Normalize injected import paths for builds done on Windows machines.
+- 226d562: Specify the `framework` is `nextjs` in the Vercel `project.json` file.
+- 5aefce5: watch mode only on file changes
+
+  only watch for file changes instead of watching for all possible changes (such as directories additions/removals, etc...),
+  making sure that we don't rerun the build process unnecessarily
+
 ## 1.4.0
 
 ### Minor Changes
