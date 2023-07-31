@@ -7,8 +7,21 @@ export function middleware(request) {
 	// (we can enabled it if we were to drop support for older Pages projects)
 	//
 	// if (request.nextUrl.pathname === '/api/middleware-test/unreachable') {
+	// 	return new NextResponse('The requested api route is unreachable');
+	// }
+	//
+	// if (request.nextUrl.pathname === '/middleware-test/unreachable') {
 	// 	return new NextResponse('The requested route is unreachable');
 	// }
+	//
+	// if (request.nextUrl.pathname === '/api/middleware-test/non-existent/api') {
+	// 	return new NextResponse('The requested api route is non-existent');
+	// }
+	//
+	// if (request.nextUrl.pathname === '/middleware-test/non-existent/page') {
+	// 	return new NextResponse('The requested route is non-existent');
+	// }
+	//
 
 	if (request.nextUrl.searchParams.has('rewrite-to-page')) {
 		return NextResponse.rewrite(new URL('/middleware-test-page', request.url));

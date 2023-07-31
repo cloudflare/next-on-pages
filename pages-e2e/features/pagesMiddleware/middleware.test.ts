@@ -2,28 +2,56 @@ import { getAssertVisible } from '@features-utils/getAssertVisible';
 import { describe, test } from 'vitest';
 
 describe('Pages Middleware', () => {
-	test('unmodified api call', async ({ expect }) => {
+	test('unmodified api request', async ({ expect }) => {
 		const response = await fetch(`${DEPLOYMENT_URL}/api/middleware-test/hello`);
 		expect(await response.text()).toBe('Hello middleware-test');
 	});
 
-	// Note: the following is commented out because Pages on Next <= 13
+	// Note: the following suite of tests is skipped because Pages on Next <= 13
 	// can't return a response (this actually fails `next build`)
 	// (https://nextjs.org/docs/messages/returning-response-body-in-middleware)
 	// (we can enabled it if we were to drop support for older Pages projects)
-	//
-	// test('overridden api call', async ({ expect }) => {
-	// 	const response = await fetch(
-	// 		`${DEPLOYMENT_URL}/api/middleware-test/unreachable`,
-	// 	);
-	// 	const responseText = await response.text();
-	// 	expect(responseText).not.toContain(
-	// 		'ERROR: This route should not be reachable!',
-	// 	);
-	// 	expect(responseText).toContain('The requested route is unreachable');
-	// });
+	describe.skip('direct NextResponse responses returned from middleware', () => {
+		test('overridden api request', async ({ expect }) => {
+			const response = await fetch(
+				`${DEPLOYMENT_URL}/api/middleware-test/unreachable`,
+			);
+			const responseText = await response.text();
+			expect(responseText).not.toContain(
+				'ERROR: This route should not be reachable!',
+			);
+			expect(responseText).toContain('The requested route is unreachable');
+		});
 
-	test('rewrite api call', async ({ expect }) => {
+		test('overridden page request', async ({ expect }) => {
+			const response = await fetch(
+				`${DEPLOYMENT_URL}/api/middleware-test/unreachable`,
+			);
+			const responseText = await response.text();
+			expect(responseText).not.toContain(
+				'ERROR: This route should not be reachable!',
+			);
+			expect(responseText).toContain('The requested route is unreachable');
+		});
+
+		test('overridden non-existent api request', async ({ expect }) => {
+			const response = await fetch(
+				`${DEPLOYMENT_URL}/api/middleware-test/non-existent/api`,
+			);
+			const responseText = await response.text();
+			expect(responseText).toContain('The requested api route is non-existent');
+		});
+
+		test('overridden non-existent page request', async ({ expect }) => {
+			const response = await fetch(
+				`${DEPLOYMENT_URL}/middleware-test/non-existent/page`,
+			);
+			const responseText = await response.text();
+			expect(responseText).toContain('The requested route is non-existent');
+		});
+	});
+
+	test('rewrite api request', async ({ expect }) => {
 		const page = await BROWSER.newPage();
 		const assertVisible = getAssertVisible(page);
 
@@ -37,7 +65,7 @@ describe('Pages Middleware', () => {
 		);
 	});
 
-	test('redirect api call', async ({ expect }) => {
+	test('redirect api request', async ({ expect }) => {
 		const page = await BROWSER.newPage();
 		const assertVisible = getAssertVisible(page);
 
