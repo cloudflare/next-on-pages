@@ -63,6 +63,23 @@ export function middleware(request) {
 		return NextResponse.json({ text: 'json response from middleware' });
 	}
 
+	const middlewareTestCount = request.cookies.get('middleware-test-count');
+	if (middlewareTestCount) {
+		const middlewareTestCountValue = parseInt(middlewareTestCount.value);
+		const requestHeaders = new Headers(request.headers);
+		const cookieHeader = `middleware-test-count=${
+			middlewareTestCountValue + 1
+		}`;
+		requestHeaders.set('Set-Cookie', cookieHeader);
+		const response = NextResponse.next({
+			request: {
+				headers: requestHeaders,
+			},
+		});
+		response.headers.set('Set-Cookie', cookieHeader);
+		return response;
+	}
+
 	return NextResponse.next();
 }
 

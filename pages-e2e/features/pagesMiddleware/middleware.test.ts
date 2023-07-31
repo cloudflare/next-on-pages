@@ -158,4 +158,19 @@ describe('Pages Middleware', () => {
 	// 	);
 	// 	expect(await response.json()).toEqual({ text: 'json response from middleware' });
 	// });
+
+	test('middleware to be invoked once and only once', async ({ expect }) => {
+		const response = await fetch(
+			`${DEPLOYMENT_URL}/api/middleware-test/hello`,
+			{
+				headers: {
+					cookie: 'middleware-test-count=0',
+				},
+			},
+		);
+
+		expect(response.headers.get('Set-Cookie')).toEqual(
+			'middleware-test-count=1',
+		);
+	});
 });
