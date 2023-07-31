@@ -136,4 +136,14 @@ describe('Pages Middleware', () => {
 		);
 		expect(response.status).toBe(500);
 	});
+
+	// Note: the following test is skipped because Pages on Next <= 13
+	// don't seem to correctly generate json responses
+	// (we can enabled it if we were to drop support for older Pages projects)
+	// test('json from middleware', async ({ expect }) => {
+	// 	const response = await fetch(
+	// 		`${DEPLOYMENT_URL}/api/middleware-test/hello?json`,
+	// 	);
+	// 	expect(await response.json()).toEqual({ text: 'json response from middleware' });
+	// });
 });

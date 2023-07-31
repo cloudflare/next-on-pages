@@ -144,4 +144,13 @@ describe('App Middleware', () => {
 		);
 		expect(response.status).toBe(500);
 	});
+
+	test('json from middleware', async ({ expect }) => {
+		const response = await fetch(
+			`${DEPLOYMENT_URL}/api/middleware-test/hello?json`,
+		);
+		expect(await response.json()).toEqual({
+			text: 'json response from middleware',
+		});
+	});
 });

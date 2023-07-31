@@ -52,6 +52,10 @@ export function middleware(request) {
 		throw new Error('Error from middleware');
 	}
 
+	if (request.nextUrl.searchParams.has('json')) {
+		return NextResponse.json({ text: 'json response from middleware' });
+	}
+
 	return NextResponse.next();
 }
 

@@ -50,6 +50,10 @@ export function middleware(request) {
 		return new NextResponse('(Soft) Error from middleware', { status: 418 });
 	}
 
+	if (request.nextUrl.searchParams.has('json')) {
+		return NextResponse.json({ text: 'json response from middleware' });
+	}
+
 	return NextResponse.next();
 }
 
