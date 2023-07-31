@@ -81,5 +81,5 @@ function setWatchMode(fn: () => void): void {
 			'package.json',
 		],
 		ignoreInitial: true,
-	}).on('all', fn);
+	}).on('change', fn);
 }
