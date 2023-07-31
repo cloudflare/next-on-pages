@@ -17,6 +17,7 @@ import { buildFile, getRelativePathToAncestor } from './build';
 import {
 	addLeadingSlash,
 	copyFileWithDir,
+	normalizePath,
 	replaceLastSubstringInstance,
 	validateFile,
 } from '../../utils';
@@ -185,7 +186,9 @@ async function buildFunctionFile(
 			from: newFnLocation,
 			relativeTo: nopDistDir,
 		});
-		const importPath = join(relativeImportPath, addLeadingSlash(path));
+		const importPath = normalizePath(
+			join(relativeImportPath, addLeadingSlash(path)),
+		);
 
 		functionImports += `import { ${keys} } from '${importPath}';\n`;
 	});
@@ -233,7 +236,9 @@ async function prependWasmImportsToCodeBlocks(
 				for (const identifier of wasmImports) {
 					// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 					const { newDest } = identifierMaps.wasm.get(identifier)!;
-					const wasmImportPath = join(relativeImportPath, newDest as string);
+					const wasmImportPath = normalizePath(
+						join(relativeImportPath, newDest as string),
+					);
 					functionImports += `import ${identifier} from "${wasmImportPath}";\n`;
 				}
 
@@ -274,7 +279,7 @@ async function processImportIdentifier(
 
 		const oldPath = join(dirname(entrypoint), importPath);
 		const newPath = join(nopDistDir, type, importPathWithoutType);
-		info.newDest = relative(workerJsDir, newPath);
+		info.newDest = normalizePath(relative(workerJsDir, newPath));
 
 		await copyFileWithDir(oldPath, newPath);
 	}
@@ -283,7 +288,7 @@ async function processImportIdentifier(
 		from: newFnLocation,
 		relativeTo: nopDistDir,
 	});
-	const newImportPath = join(relativeImportPath, info.newDest);
+	const newImportPath = normalizePath(join(relativeImportPath, info.newDest));
 
 	const newVal = `import ${identifier} from "${newImportPath}";`;
 	updatedContents = replaceLastSubstringInstance(
@@ -339,7 +344,7 @@ async function processCodeBlockIdentifier(
 	if (!info.newDest) {
 		const identTypeDir = join(nopDistDir, type);
 		newFilePath = join(identTypeDir, `${info.groupedPath ?? identifier}.js`);
-		info.newDest = relative(workerJsDir, newFilePath);
+		info.newDest = normalizePath(relative(workerJsDir, newFilePath));
 
 		// Record the wasm identifiers used in the code block.
 		wasmIdentifierKeys
