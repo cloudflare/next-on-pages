@@ -14,7 +14,7 @@ export async function getBuildId(): Promise<string> {
 				The BUILD_ID file was not found in .next folder.
 				Next.js uses a constant id generated at build time to identify which version of your application is being served.
 		`,
-			{ spaced: true }
+			{ spaced: true },
 		);
 	}
 

@@ -75,7 +75,7 @@ export default class FetchCache implements CacheHandler {
 
 			// Fetch the existing tags manifest
 			const manifestKey = new Request(
-				new URL(`https://next-on-page.com/${__BUILD_ID__}/tags-manifest.json`)
+				new URL(`https://next-on-page.com/${__BUILD_ID__}/tags-manifest.json`),
 			);
 			const manifestResponse = await cache.match(manifestKey);
 			if (!manifestResponse) {
@@ -91,8 +91,8 @@ export default class FetchCache implements CacheHandler {
 					for (const key of tagItem.keys) {
 						await cache.delete(
 							new Request(
-								new URL(`https://next-on-page.com/${__BUILD_ID__}${key}`)
-							)
+								new URL(`https://next-on-page.com/${__BUILD_ID__}${key}`),
+							),
 						);
 					}
 					// Delete the tag from the manifest
@@ -124,8 +124,8 @@ export default class FetchCache implements CacheHandler {
 			const start = Date.now();
 			const cacheKeyRequest = new Request(
 				new URL(
-					`https://next-on-page.com/${__BUILD_ID__}/v1/suspense-cache/${key}`
-				)
+					`https://next-on-page.com/${__BUILD_ID__}/v1/suspense-cache/${key}`,
+				),
 			);
 
 			// Check whether the value is already available in the cache API
@@ -133,7 +133,9 @@ export default class FetchCache implements CacheHandler {
 			if (!cachedResponse) {
 				if (this.debug) {
 					console.log(
-						`no fetch cache entry for ${key}, duration: ${Date.now() - start}ms`
+						`no fetch cache entry for ${key}, duration: ${
+							Date.now() - start
+						}ms`,
 					);
 				}
 				return null;
@@ -167,7 +169,7 @@ export default class FetchCache implements CacheHandler {
 				console.log(
 					`got fetch cache entry for ${key}, duration: ${
 						Date.now() - start
-					}ms, size: ${Object.keys(cached).length}, cache-state: ${cacheState}`
+					}ms, size: ${Object.keys(cached).length}, cache-state: ${cacheState}`,
 				);
 			}
 		} catch (err) {
@@ -197,7 +199,7 @@ export default class FetchCache implements CacheHandler {
 	public async set(
 		key: string,
 		data: CacheHandlerValue['value'],
-		fetchCache?: boolean
+		fetchCache?: boolean,
 	) {
 		if (!fetchCache) return;
 
@@ -205,8 +207,8 @@ export default class FetchCache implements CacheHandler {
 			const cache = await caches.open('next:cache');
 			const cacheKeyRequest = new Request(
 				new URL(
-					`https://next-on-page.com/${__BUILD_ID__}/v1/suspense-cache/${key}`
-				)
+					`https://next-on-page.com/${__BUILD_ID__}/v1/suspense-cache/${key}`,
+				),
 			);
 			const start = Date.now();
 			if (data !== null && 'revalidate' in data) {
@@ -245,7 +247,9 @@ export default class FetchCache implements CacheHandler {
 				// Fetch the existing tags manifest
 				// we should probably try to use DO or R2 to have a unique global tags-manifest
 				const manifestKey = new Request(
-					new URL(`https://next-on-page.com/${__BUILD_ID__}/tags-manifest.json`)
+					new URL(
+						`https://next-on-page.com/${__BUILD_ID__}/tags-manifest.json`,
+					),
 				);
 				const manifestResponse = await cache.match(manifestKey);
 				let manifest: TagsManifest;
@@ -284,7 +288,7 @@ export default class FetchCache implements CacheHandler {
 				console.log(
 					`successfully set to fetch-cache for ${key}, duration: ${
 						Date.now() - start
-					}ms, size: ${body.length}`
+					}ms, size: ${body.length}`,
 				);
 			}
 		} catch (err) {
@@ -302,7 +306,7 @@ function generateNextCacheHeaders(headers: Record<string, string>) {
 	if (responseHeaders.has('x-vercel-revalidate')) {
 		const revalidateSecs = parseInt(
 			responseHeaders.get('x-vercel-revalidate') as string,
-			10
+			10,
 		);
 		const date = new Date();
 		date.setSeconds(date.getSeconds() + revalidateSecs);
