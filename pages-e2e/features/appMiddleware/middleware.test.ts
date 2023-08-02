@@ -73,12 +73,12 @@ describe('App Middleware', () => {
 		const assertVisible = getAssertVisible(page);
 
 		await page.goto(
-			`${DEPLOYMENT_URL}/api/middleware-test/hello?rewrite-to-page`,
+			`${DEPLOYMENT_URL}/api/middleware-test/hello?rewrite-to-page-a`,
 		);
 
-		await assertVisible('h1', { hasText: 'Page' });
+		await assertVisible('h1', { hasText: 'Page A' });
 		expect(page.url()).toEqual(
-			`${DEPLOYMENT_URL}/api/middleware-test/hello?rewrite-to-page`,
+			`${DEPLOYMENT_URL}/api/middleware-test/hello?rewrite-to-page-a`,
 		);
 	});
 
@@ -87,15 +87,12 @@ describe('App Middleware', () => {
 		const assertVisible = getAssertVisible(page);
 
 		await page.goto(
-			`${DEPLOYMENT_URL}/api/middleware-test/hello?redirect-to-page`,
+			`${DEPLOYMENT_URL}/api/middleware-test/hello?redirect-to-page-a`,
 		);
 
-		await assertVisible('h1', { hasText: 'Page' });
-		const url = page.url();
-		const fixedUrlForLocalTesting = url.replace('localhost', '127.0.0.1');
-		expect(fixedUrlForLocalTesting).toEqual(
-			`${DEPLOYMENT_URL}/middleware-test/page`,
-		);
+		await assertVisible('h1', { hasText: 'Page A' });
+		// Note: we can't match the full url because with redirects locally instead of 'localhost' we get '127.0.0.1'
+		expect(page.url()).toMatch(/.*\/middleware-test\/pageA$/);
 	});
 
 	test('request headers modification', async ({ expect }) => {
@@ -107,15 +104,15 @@ describe('App Middleware', () => {
 		const assertVisible = getAssertVisible(page);
 
 		await page.goto(
-			`${DEPLOYMENT_URL}/middleware-test/page?set-request-headers`,
+			`${DEPLOYMENT_URL}/middleware-test/pageA?set-request-headers`,
 		);
 
-		await assertVisible('h1', { hasText: 'Page' });
+		await assertVisible('h1', { hasText: 'Page A' });
 		expect(page.url()).toEqual(
-			`${DEPLOYMENT_URL}/middleware-test/page?set-request-headers`,
+			`${DEPLOYMENT_URL}/middleware-test/pageA?set-request-headers`,
 		);
 
-		await assertVisible('h1', { hasText: 'Page' });
+		await assertVisible('h1', { hasText: 'Page A' });
 		await assertVisible('li#header-req-header-set-from-middleware');
 		expect(
 			await page
@@ -180,5 +177,47 @@ describe('App Middleware', () => {
 		expect(response.headers.get('Set-Cookie')).toEqual(
 			'middleware-test-count=1',
 		);
+	});
+
+	describe('with client-side navigation', () => {
+		test('redirection to page', async ({ expect }) => {
+			const page = await BROWSER.newPage();
+			const assertVisible = getAssertVisible(page);
+
+			await page.goto(`${DEPLOYMENT_URL}/middleware-test/pageB`);
+
+			await assertVisible('h1', { hasText: 'Page B' });
+			await page
+				.locator('a[href="/middleware-test/pageC?redirect-to-page-a"]')
+				.click();
+
+			await assertVisible('h1', { hasText: 'Page A' });
+			// Note: we can't match the full url because with redirects locally instead of 'localhost' we get '127.0.0.1'
+			expect(page.url()).toMatch(/.*\/middleware-test\/pageA$/);
+		});
+
+		test('rewrite to page', async ({ expect }) => {
+			const page = await BROWSER.newPage();
+			const assertVisible = getAssertVisible(page);
+
+			await page.goto(`${DEPLOYMENT_URL}/middleware-test/pageB`);
+
+			await assertVisible('h1', { hasText: 'Page B' });
+			await page
+				.locator('a[href="/middleware-test/pageC?rewrite-to-page-a"]')
+				.click();
+
+			await assertVisible('h1', { hasText: 'Page A' });
+			// Note: we can't match the full url because with redirects locally instead of 'localhost' we get '127.0.0.1'
+			expect(page.url()).toMatch(
+				/.*\/middleware-test\/pageC\?rewrite-to-page-a$/,
+			);
+		});
+
+		test.skip('middleware to be invoked for each navigation', async ({
+			expect,
+		}) => {
+			// We need access to playwright's browser to be able to set cookies
+		});
 	});
 });

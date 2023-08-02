@@ -8,7 +8,7 @@ export default function Page() {
 
 	return (
 		<div>
-			<h1>Some Page</h1>
+			<h1>Page A</h1>
 			<h2>Headers</h2>
 			<p>The request contained the following headers:</p>
 			<ul>

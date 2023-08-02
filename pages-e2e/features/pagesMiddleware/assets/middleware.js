@@ -18,17 +18,19 @@ export function middleware(request) {
 	// 	return new NextResponse('The requested api route is non-existent');
 	// }
 	//
-	// if (request.nextUrl.pathname === '/middleware-test/non-existent/page') {
+	// if (request.nextUrl.pathname === '/middleware-test/non-existent-page') {
 	// 	return new NextResponse('The requested route is non-existent');
 	// }
 	//
 
-	if (request.nextUrl.searchParams.has('rewrite-to-page')) {
-		return NextResponse.rewrite(new URL('/middleware-test-page', request.url));
+	if (request.nextUrl.searchParams.has('rewrite-to-page-a')) {
+		return NextResponse.rewrite(new URL('/middleware-test/pageA', request.url));
 	}
 
-	if (request.nextUrl.searchParams.has('redirect-to-page')) {
-		return NextResponse.redirect(new URL('/middleware-test-page', request.url));
+	if (request.nextUrl.searchParams.has('redirect-to-page-a')) {
+		return NextResponse.redirect(
+			new URL('/middleware-test/pageA', request.url),
+		);
 	}
 
 	if (request.nextUrl.searchParams.has('set-request-headers')) {
@@ -92,5 +94,5 @@ export function middleware(request) {
 }
 
 export const config = {
-	matcher: ['/api/middleware-test/:path*', '/middleware-test-page'],
+	matcher: ['/api/middleware-test/:path*', '/middleware-test/:path*'],
 };
