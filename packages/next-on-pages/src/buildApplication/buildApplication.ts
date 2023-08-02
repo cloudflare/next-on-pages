@@ -12,7 +12,7 @@ import {
 	processVercelOutput,
 	processOutputDir,
 } from './processVercelOutput';
-import { getCurrentPackageExecuter } from './packageManagerUtils';
+import { getCurrentPackageManager, getExecStr } from './packageManagerUtils';
 import { printBuildSummary, writeBuildInfo } from './buildSummary';
 import type { ProcessedVercelFunctions } from './processVercelFunctions';
 import { processVercelFunctions } from './processVercelFunctions';
@@ -36,14 +36,17 @@ export async function buildApplication({
 	| 'watch'
 	| 'outdir'
 >) {
+	const pm = await getCurrentPackageManager();
+
 	let buildSuccess = true;
 	if (!skipBuild) {
 		try {
 			await buildVercelOutput();
 		} catch {
+			const execStr = await getExecStr(pm, 'vercel');
 			cliError(
 				`
-					The Vercel build (\`${await getCurrentPackageExecuter()} vercel build\`) command failed. For more details see the Vercel logs above.
+					The Vercel build (\`${execStr} vercel build\`) command failed. For more details see the Vercel logs above.
 					If you need help solving the issue, refer to the Vercel or Next.js documentation or their repositories.
 				`,
 				{ spaced: true },
@@ -63,7 +66,6 @@ export async function buildApplication({
 		disableChunksDedup,
 		disableWorkerMinification,
 	});
-	await buildMetadataFiles(outputDir);
 
 	const totalBuildTime = ((Date.now() - buildStartTime) / 1000).toFixed(2);
 	cliLog(`Build completed in ${totalBuildTime.toLocaleString()}s`);
@@ -120,6 +122,8 @@ async function prepareAndBuildWorker(
 		outputDir,
 		!disableWorkerMinification,
 	);
+
+	await buildMetadataFiles(outputDir, { staticAssets });
 
 	printBuildSummary(staticAssets, processedVercelOutput, processedFunctions);
 	await writeBuildInfo(

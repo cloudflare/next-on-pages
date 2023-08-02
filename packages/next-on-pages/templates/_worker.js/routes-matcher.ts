@@ -593,11 +593,6 @@ export class RoutesMatcher {
 		this.checkPhaseCounter = 0;
 		const result = await this.checkPhase(phase);
 
-		// Check if path is an external URL.
-		if (isUrl(this.path)) {
-			this.headers.normal.set('location', this.path);
-		}
-
 		// Update status to redirect user to external URL.
 		if (
 			this.headers.normal.has('location') &&

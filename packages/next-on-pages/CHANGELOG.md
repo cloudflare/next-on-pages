@@ -1,5 +1,46 @@
 # @cloudflare/next-on-pages
 
+## 1.5.0
+
+### Minor Changes
+
+- ea98a8f: Support for defining an `_routes.json` file in the root of the project. Entries in the root's file are copied over to the generated one in the output directory.
+- 9faf701: add warning indicating that usage under windows is not advised
+- c6621c6: Support for using Bun as a package manager in projects.
+
+### Patch Changes
+
+- 3affd17: Normalize injected import paths for builds done on Windows machines.
+- 226d562: Specify the `framework` is `nextjs` in the Vercel `project.json` file.
+- 5aefce5: watch mode only on file changes
+
+  only watch for file changes instead of watching for all possible changes (such as directories additions/removals, etc...),
+  making sure that we don't rerun the build process unnecessarily
+
+## 1.4.0
+
+### Minor Changes
+
+- 660ed5e: Optimize build output function processing to increase next-on-pages' build speed by 2-4x.
+- 11afe0a: Group code block identifiers by the function files that they are consumed in. This reduces the total number of unique files created for identifiers that are used in multiple functions, like Webpack chunks or manifests.
+- ee6b7dc: add user-agent header to outgoing fetch requests
+
+  mimic Next.js' behavior of setting (if not already present) a `user-agent` header set to `Next.js Middleware`
+  see: https://github.com/vercel/next.js/blob/6705c803021d3bdea7fec20e5d98f6899e49836d/packages/next/src/server/web/sandbox/context.ts#L318-L320
+
+  this helps making next-on-pages more consistent with Next.js on Vercel
+  (it and can solve issues in which such header is necessary, as for example when making Github rest api calls,
+  see: https://github.com/cloudflare/next-on-pages/issues/376#issuecomment-1628416988)
+
+### Patch Changes
+
+- 660ed5e: Prevent prerender files from overwriting in the output directory when the file hashes are the same.
+- 660ed5e: Completely avoid processing rsc functions due to them being identical to non-rsc functions.
+- f08f2b9: Fix `next.config.js` rewrites unintentionally redirecting the user instead of rewriting the request.
+- 6c28128: Fix middleware redirects not always bailing out of the routing stages.
+- 9734795: clarify that Yarn Plug'n'Play can't be used simply because not supported by vercel
+- 551fa05: Fix the `/_next/static` exclusion in `_routes.json` being incorrect when the directory is not in the root.
+
 ## 1.3.1
 
 ### Patch Changes

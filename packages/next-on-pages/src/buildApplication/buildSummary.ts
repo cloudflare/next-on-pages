@@ -10,7 +10,10 @@ import {
 import type { ProcessedVercelOutput } from './processVercelOutput';
 import type { ProcessedVercelFunctions } from './processVercelFunctions';
 import type { FunctionInfo } from './processVercelFunctions/configs';
-import type { IdentifierInfo } from './processVercelFunctions/ast';
+import type {
+	IdentifierInfo,
+	IdentifiersMap,
+} from './processVercelFunctions/ast';
 
 /**
  * Prints a build summary to the console.
@@ -125,9 +128,9 @@ export async function writeBuildInfo(
 			},
 			staticAssets: staticAssets.filter(path => !prerenderedPaths.has(path)),
 			identifiers: {
-				wasm: Object.fromEntries(identifiers.identifierMaps.wasm),
-				manifest: Object.fromEntries(identifiers.identifierMaps.manifest),
-				webpack: Object.fromEntries(identifiers.identifierMaps.webpack),
+				wasm: formatIdentifiersMap(identifiers.identifierMaps.wasm),
+				manifest: formatIdentifiersMap(identifiers.identifierMaps.manifest),
+				webpack: formatIdentifiersMap(identifiers.identifierMaps.webpack),
 			},
 		},
 	};
@@ -137,6 +140,23 @@ export async function writeBuildInfo(
 	await writeFile(buildLogFilePath, buildLogText);
 
 	cliLog(`Build log saved to '${relative(currentDir, buildLogFilePath)}'`);
+}
+
+/**
+ * Formats a map of identifiers into an object with the consumers length added.
+ *
+ * @param identifiersMap Map of identifiers to process.
+ * @returns A new map with the formatted identifiers.
+ */
+function formatIdentifiersMap(
+	identifiersMap: IdentifiersMap,
+): Record<string, IdentifierInfoWithConsumersLength> {
+	return Object.fromEntries(
+		[...identifiersMap].map(([identifier, info]) => [
+			identifier,
+			{ ...info, consumers: info.consumers.length },
+		]),
+	);
 }
 
 const emptyProcessedVercelFunctions: ProcessedVercelFunctions = {
@@ -173,12 +193,18 @@ export type BuildLog = {
 		};
 		staticAssets: string[];
 		identifiers: {
-			wasm: Record<string, IdentifierInfo>;
-			manifest: Record<string, IdentifierInfo>;
-			webpack: Record<string, IdentifierInfo>;
+			wasm: Record<string, IdentifierInfoWithConsumersLength>;
+			manifest: Record<string, IdentifierInfoWithConsumersLength>;
+			webpack: Record<string, IdentifierInfoWithConsumersLength>;
 		};
 	};
 };
+
+type IdentifierInfoWithConsumersLength = Override<
+	IdentifierInfo,
+	'consumers',
+	number
+>;
 
 /**
  * Processes a map of items into a list that can be used in the build summary.

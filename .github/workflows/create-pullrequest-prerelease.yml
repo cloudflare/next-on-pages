@@ -14,14 +14,8 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Use Node.js 16.13
-        uses: actions/setup-node@v3
-        with:
-          node-version: 16.13
-          cache: 'npm' # cache ~/.npm in case 'npm ci' needs to run
-
-      - name: Install NPM Dependencies
-        run: npm ci
+      - name: Setup Node
+        uses: ./.github/actions/node-setup
 
       - name: Modify package.json version
         run: node .github/version-script.js PR=${{ github.event.number }}

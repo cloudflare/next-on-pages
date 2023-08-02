@@ -1,0 +1,24 @@
+{
+	"name": "pages12.0.0",
+	"version": "0.1.0",
+	"private": true,
+	"scripts": {
+		"dev": "next dev",
+		"build": "next build",
+		"start": "next start",
+		"lint": "next lint"
+	},
+	"dependencies": {
+		"next": "12.3.0",
+		"react": "18.0.0",
+		"react-dom": "18.0.0"
+	},
+	"devDependencies": {
+		"@types/node": "20.4.0",
+		"@types/react": "18.0.0",
+		"eslint": "7.32.0",
+		"eslint-config-next": "12.0.0",
+		"typescript": "5.1.6",
+		"@cloudflare/next-on-pages": "*"
+	}
+}

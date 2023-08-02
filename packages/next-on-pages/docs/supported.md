@@ -1,5 +1,9 @@
 # Supported Versions and Features
 
+## Operating Systems
+
+`@cloudflare/next-on-pages` can be run on Linux, Mac OS and Windows but its usage under the latter is discouraged as we've noticed that one of the CLI's dependencies, the [Vercel CLI](https://vercel.com/docs/cli) (used to build the Next.js application) seems not to work reliably on Windows. If you need to run `@cloudflare/next-on-pages` on Windows we advise you to run it under the [Windows Subsystem for Linux](https://learn.microsoft.com/en-us/windows/wsl/).
+
 ## Supported Next.js versions
 
 Based on manual testing, it seems like the latest Next.js version (`13.4.2` at the time of writing) is supported.

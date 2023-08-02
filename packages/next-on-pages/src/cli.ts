@@ -251,6 +251,16 @@ function prepareCliMessage(
 
 export async function printEnvInfo(): Promise<void> {
 	const packageManager = await getCurrentPackageManager();
+
+	const [nodeVersion, bunVersion, pnpmVersion, yarnVersion, npmVersion] =
+		await Promise.all(
+			['node', 'bun', 'pnpm', 'yarn', 'npm'].map(getBinaryVersion),
+		);
+
+	const [vercelVersion, nextVersion] = await Promise.all(
+		['vercel', 'next'].map(async pkg => getPackageVersion(pkg, packageManager)),
+	);
+
 	const envInfoMessage = dedent(`
 		System:
 			Platform: ${os.platform()}
@@ -258,17 +268,18 @@ export async function printEnvInfo(): Promise<void> {
 			Version: ${os.version()}
 			CPU: (${os.cpus().length}) ${os.arch()} ${os.cpus()[0]?.model}
 			Memory: ${Math.round(os.totalmem() / 1024 / 1024 / 1024)} GB
-			Shell: ${process.env['SHELL']?.toString() ?? 'Unknown'}
+			Shell: ${process.env.SHELL?.toString() ?? 'Unknown'}
 		Binaries:
-			Node: ${process.versions.node}
-			Yarn: ${getBinaryVersion('yarn') ?? 'N/A'}
-			npm: ${getBinaryVersion('npm') ?? 'N/A'}
-			pnpm: ${getBinaryVersion('pnpm') ?? 'N/A'}
-		Package Manager Used: ${await getCurrentPackageManager()}
+			Node: ${nodeVersion ?? 'N/A'}
+			Bun: ${bunVersion ?? 'N/A'}
+			pnpm: ${pnpmVersion ?? 'N/A'}
+			Yarn: ${yarnVersion ?? 'N/A'}
+			npm: ${npmVersion ?? 'N/A'}
+		Package Manager Used: ${packageManager}
 		Relevant Packages:
 			@cloudflare/next-on-pages: ${nextOnPagesVersion}
-			vercel: ${(await getPackageVersion('vercel', packageManager)) ?? 'N/A'}
-			next: ${(await getPackageVersion('next', packageManager)) ?? 'N/A'}
+			vercel: ${vercelVersion ?? 'N/A'}
+			next: ${nextVersion ?? 'N/A'}
 	`);
 
 	// eslint-disable-next-line no-console

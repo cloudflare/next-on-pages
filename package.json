@@ -4,23 +4,26 @@
 	"workspaces": [
 		"internal-packages/*",
 		"packages/*",
+		"pages-e2e",
 		"pages-e2e/features/*"
 	],
 	"scripts": {
-		"prettier": "npx prettier --ignore-path .prettierignore --ignore-path .gitignore .",
-		"prettier:check": "npm run prettier -- --check",
-		"prettier:fix": "npm run prettier -- --write",
+		"prettier": "prettier --ignore-path .prettierignore --ignore-path .gitignore .",
+		"prettier__check": "npm run prettier -- --check",
+		"prettier:check": "FORCE_COLOR=1 turbo run prettier__check",
+		"prettier__fix": "npm run prettier -- --write",
+		"prettier:fix": "FORCE_COLOR=1 turbo prettier__fix",
 		"lint": "FORCE_COLOR=1 turbo lint",
 		"types-check": "FORCE_COLOR=1 turbo types-check",
 		"build": "FORCE_COLOR=1 turbo build",
 		"build:watch": "FORCE_COLOR=1 turbo build:watch",
 		"test:unit": "FORCE_COLOR=1 turbo test:unit",
-		"test:e2e": "npx @cfpreview/pages-e2e-test-runner-cli --environment=local",
+		"pretest:e2e": "npm run build -- --scope next-on-pages",
+		"test:e2e": "FORCE_COLOR=1 turbo test:e2e",
 		"publish": "turbo build & changeset publish",
 		"changeset": "npx changeset"
 	},
 	"devDependencies": {
-		"@cfpreview/pages-e2e-test-runner-cli": "^0.0.18",
 		"prettier": "^3.0.0",
 		"turbo": "^1.10.3"
 	}

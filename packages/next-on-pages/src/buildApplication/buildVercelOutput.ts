@@ -2,13 +2,14 @@ import { writeFile, mkdir, rm, rmdir } from 'fs/promises';
 import { spawn, type ChildProcessWithoutNullStreams } from 'child_process';
 import { join, resolve } from 'path';
 import { cliLog } from '../cli';
-import { validateDir, validateFile } from '../utils';
+import { readJsonFile, validateDir, validateFile } from '../utils';
 import type { PackageManager } from './packageManagerUtils';
-import { getPackageVersion } from './packageManagerUtils';
 import {
-	getCurrentPackageExecuter,
 	getCurrentPackageManager,
-	getPackageManagerSpawnCommand,
+	getExecStr,
+	getPackageManagerInfo,
+	getPackageVersion,
+	waitForProcessToClose,
 } from './packageManagerUtils';
 
 /**
@@ -21,111 +22,151 @@ import {
  * TODO: once we stop relying on it add an `rm` command at the end of the function to delete the .next directory
  *       to ensure that we won't regress and rely on it anymore
  *
+ * Creates a temporary config file when using the Bun package manager so that Vercel knows to use
+ * Bun to install and build the project.
+ *
  */
 export async function buildVercelOutput(): Promise<void> {
-	const pkgMng = await getCurrentPackageManager();
-	cliLog(`Detected Package Manager: ${pkgMng}\n`);
+	const pm = await getCurrentPackageManager();
+	cliLog(`Detected Package Manager: ${pm}\n`);
+
 	cliLog('Preparing project...');
 	await generateProjectJsonFileIfNeeded();
+
+	let tempVercelConfig: TempVercelConfigInfo | undefined;
+	// When using the Bun package manager, we need to ensure the Vercel CLI has a config file that
+	// tells it to use Bun, since Vercel doesn't support auto-detecting Bun yet.
+	if (pm === 'bun') {
+		tempVercelConfig = await createTempVercelConfig({
+			buildCommand: 'bun run build',
+			installCommand: 'bun install',
+		});
+	}
+
 	cliLog('Project is ready');
-	await runVercelBuild(pkgMng);
-	cliLog(`Completed \`${await getCurrentPackageExecuter()} vercel build\`.`);
+
+	await runVercelBuild(pm, tempVercelConfig?.additionalArgs);
+	if (tempVercelConfig) {
+		await rm(tempVercelConfig.tempPath);
+	}
+
+	const execStr = await getExecStr(pm, 'vercel');
+	cliLog(`Completed \`${execStr} vercel build\`.`);
 }
 
 /**
- * The Vercel CLI seems to require the presence of a project.json file,
- * so we create a dummy one just to satisfy Vercel
+ * The Vercel CLI requires the presence of a project.json file, so we create a dummy one just to
+ * satisfy Vercel.
+ *
+ * @returns The path and args for a temporary config file, if one was created.
  */
 async function generateProjectJsonFileIfNeeded(): Promise<void> {
 	const projectJsonFilePath = join('.vercel', 'project.json');
 	if (!(await validateFile(projectJsonFilePath))) {
+		const projectJson: VercelProjectJson = {
+			projectId: '_',
+			orgId: '_',
+			settings: { framework: 'nextjs' },
+		};
+
 		await mkdir('.vercel', { recursive: true });
-		await writeFile(
-			projectJsonFilePath,
-			JSON.stringify({ projectId: '_', orgId: '_', settings: {} }),
-		);
+		await writeFile(projectJsonFilePath, JSON.stringify(projectJson));
 	}
 }
 
-async function runVercelBuild(pkgMng: PackageManager): Promise<void> {
-	const pkgMngCMD = getPackageManagerSpawnCommand(pkgMng);
+/**
+ * Creates a temporary Vercel config file that can be provided to the Vercel CLI to give it
+ * additional configuration when building the project.
+ *
+ * @param config The values to set in the temporary config file.
+ * @returns The path and args for the temporary config file.
+ */
+async function createTempVercelConfig(
+	config: Partial<VercelConfigJson>,
+): Promise<TempVercelConfigInfo> {
+	const oldConfigPath = join('vercel.json');
+	const originalConfig = await readJsonFile<VercelConfigJson>(oldConfigPath);
 
-	if (pkgMng === 'yarn (classic)') {
+	const tempConfigPath = join('.vercel', 'temp-nop-config.json');
+	const tempConfig: VercelConfigJson = {
+		framework: 'nextjs',
+		...config,
+		// User-defined config values should override the ones we set.
+		...originalConfig,
+	};
+
+	await writeFile(tempConfigPath, JSON.stringify(tempConfig));
+
+	return {
+		additionalArgs: ['--local-config', tempConfigPath],
+		tempPath: tempConfigPath,
+	};
+}
+
+type VercelConfigJson = {
+	buildCommand?: string;
+	installCommand?: string;
+	framework?: string;
+};
+
+type VercelProjectJson = {
+	projectId: string;
+	orgId: string;
+	settings: VercelConfigJson;
+};
+
+type TempVercelConfigInfo = { additionalArgs: string[]; tempPath: string };
+
+async function runVercelBuild(
+	pkgMng: PackageManager,
+	additionalArgs: string[] = [],
+): Promise<void> {
+	const { pm, baseCmd } = await getPackageManagerInfo(pkgMng);
+
+	if (pm === 'yarn (classic)') {
 		cliLog(
-			`Installing vercel as dev dependencies with 'yarn add vercel -D'...`,
+			`Installing vercel as dev dependencies with '${baseCmd} add vercel -D'...`,
 		);
 
-		const installVercel = spawn(pkgMngCMD, ['add', 'vercel', '-D']);
+		const installVercel = spawn(baseCmd, ['add', 'vercel', '-D']);
 
-		installVercel.stdout.on('data', data =>
-			cliLog(`\n${data}`, { fromVercelCli: true }),
-		);
-		installVercel.stderr.on('data', data =>
-			// here we use cliLog instead of cliError because the Vercel cli
-			// currently displays non-error messages in stderr
-			// so we just display all Vercel logs as standard logs
-			cliLog(`\n${data}`, { fromVercelCli: true }),
-		);
+		logVercelProcessOutput(installVercel);
 
-		await new Promise((resolve, reject) => {
-			installVercel.on('close', code => {
-				if (code === 0) {
-					resolve(null);
-				} else {
-					reject();
-				}
-			});
-		});
+		await waitForProcessToClose(installVercel);
 
 		cliLog('Install completed');
 	}
 
 	cliLog('Building project...');
 
-	const vercelBuild = await getVercelBuildChildProcess(pkgMng);
+	const vercelBuild = await getVercelBuildChildProcess(pm, additionalArgs);
 
-	vercelBuild.stdout.on('data', data =>
-		cliLog(`\n${data}`, { fromVercelCli: true }),
-	);
-	vercelBuild.stderr.on('data', data =>
-		// here we use cliLog instead of cliError because the Vercel cli
-		// currently displays non-error messages in stderr
-		// so we just display all Vercel logs as standard logs
-		cliLog(`\n${data}`, { fromVercelCli: true }),
-	);
+	logVercelProcessOutput(vercelBuild);
 
-	await new Promise((resolve, reject) => {
-		vercelBuild.on('close', code => {
-			if (code === 0) {
-				resolve(null);
-			} else {
-				reject();
-			}
-		});
-	});
+	await waitForProcessToClose(vercelBuild);
 }
 
 async function getVercelBuildChildProcess(
 	pkgMng: PackageManager,
+	additionalArgs: string[] = [],
 ): Promise<ChildProcessWithoutNullStreams> {
-	const pkgMngCMD = getPackageManagerSpawnCommand(pkgMng);
-	const isYarnBerry = pkgMng === 'yarn (berry)';
-	const isPnpm = pkgMngCMD.startsWith('pnpm');
-	let useDlx = false;
+	const { pm, baseCmd, execCmd, execArgs, dlxOrExec } =
+		await getPackageManagerInfo(pkgMng);
 
-	if (isYarnBerry || isPnpm) {
-		const vercelPackageIsInstalled = await isVercelPackageInstalled(pkgMng);
-		useDlx = !vercelPackageIsInstalled;
+	let dlxArgs: string[] = [];
+
+	if (dlxOrExec) {
+		const vercelPackageIsInstalled = await getPackageVersion('vercel', pm);
+		dlxArgs = dlxOrExec(!vercelPackageIsInstalled);
 	}
 
-	return spawn(pkgMngCMD, [...(useDlx ? ['dlx'] : []), 'vercel', 'build']);
-}
-
-async function isVercelPackageInstalled(
-	pkgMng: PackageManager,
-): Promise<boolean> {
-	const packageVersion = await getPackageVersion('vercel', pkgMng);
-	return !!packageVersion;
+	return spawn(execCmd ?? baseCmd, [
+		...dlxArgs,
+		...(execArgs ?? []),
+		'vercel',
+		'build',
+		...additionalArgs,
+	]);
 }
 
 /**
@@ -151,4 +192,24 @@ export async function deleteNextTelemetryFiles(
 			// Ignore error if the directory is not empty
 		}
 	}
+}
+
+/**
+ * Logs the output of the Vercel process to the CLI.
+ *
+ * @param vercelProcess Spawned Vercel process.
+ */
+function logVercelProcessOutput(
+	vercelProcess: ChildProcessWithoutNullStreams,
+): void {
+	vercelProcess.stdout.on('data', data =>
+		cliLog(`\n${data}`, { fromVercelCli: true }),
+	);
+
+	vercelProcess.stderr.on('data', data =>
+		// here we use cliLog instead of cliError because the Vercel cli
+		// currently displays non-error messages in stderr
+		// so we just display all Vercel logs as standard logs
+		cliLog(`\n${data}`, { fromVercelCli: true }),
+	);
 }
