@@ -23,5 +23,8 @@
 		"@cfpreview/pages-e2e-test-runner-cli": "^0.0.18",
 		"prettier": "^3.0.0",
 		"turbo": "^1.10.3"
+	},
+	"peerDependencies": {
+		"next": "^13.4.2"
 	}
 }

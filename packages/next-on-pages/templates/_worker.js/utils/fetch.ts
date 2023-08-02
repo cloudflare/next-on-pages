@@ -1,3 +1,8 @@
+import * as serverHooks from 'next/dist/client/components/hooks-server-context';
+import { IncrementalCache } from 'next/dist/server/lib/incremental-cache';
+import { patchFetch as nextPatchFetch } from 'next/dist/server/lib/patch-fetch';
+import FetchCache from './fetch-cache';
+
 /**
  * Patches the global fetch in ways necessary for Next.js (/next-on-pages) applications
  * to work
@@ -6,6 +11,33 @@ export function patchFetch(): void {
 	const alreadyPatched = (globalThis.fetch as Fetch)[patchFlagSymbol];
 
 	if (alreadyPatched) return;
+
+	// We get the AsyncStorage from the patched fetch by nextjs
+	// because he has property used by incremental cache
+	// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+	//@ts-ignore
+	const staticGenerationStore = globalThis.fetch.__nextGetStaticStore();
+	// We override the incrementalCache with a empty one
+	staticGenerationStore.incrementalCache = new IncrementalCache({
+		dev: false,
+		requestHeaders: {},
+		getPrerenderManifest: () => ({
+			version: 4,
+			routes: {},
+			dynamicRoutes: {},
+			preview: {
+				previewModeEncryptionKey: '',
+				previewModeId: '',
+				previewModeSigningKey: '',
+			},
+			notFoundRoutes: [],
+		}),
+		CurCacheHandler: FetchCache,
+	});
+	nextPatchFetch({
+		serverHooks,
+		staticGenerationAsyncStorage: staticGenerationStore,
+	});
 
 	applyPatch();
 
