@@ -63,10 +63,17 @@ function runTestCase(
 			);
 
 			expect(res.status).toEqual(expected.status);
-			await expect(res.text()).resolves.toEqual(expected.data);
-			expect(Object.fromEntries(res.headers.entries())).toEqual(
-				expected.headers || {},
-			);
+			const textContent = await res.text();
+			if (expected.data instanceof RegExp) {
+				expect(textContent).toMatch(expected.data);
+			} else {
+				expect(textContent).toEqual(expected.data);
+			}
+			if (!expected.ignoreHeaders) {
+				expect(Object.fromEntries(res.headers.entries())).toEqual(
+					expected.headers || {},
+				);
+			}
 			if (expected.reqHeaders) {
 				expect(Object.fromEntries(req.headers.entries())).toEqual(
 					expected.reqHeaders,
@@ -87,6 +94,18 @@ function runTestCase(
  * @param testSet Test set to run.
  */
 async function runTestSet({ config, files, testCases }: TestSet) {
+	const originalFetch = globalThis.fetch;
+	globalThis.fetch = async (...args: Parameters<typeof originalFetch>) => {
+		const req = new Request(...args);
+		const url = new URL(req.url);
+
+		if (url.hostname === 'external-test-url.com') {
+			return new Response('external test url response');
+		}
+
+		return originalFetch(...args);
+	};
+
 	const { vercelConfig, buildOutput, assetsFetcher, restoreMocks } =
 		await createRouterTestData(config, files);
 
@@ -99,7 +118,10 @@ async function runTestSet({ config, files, testCases }: TestSet) {
 		runTestCase(reqCtx, vercelConfig, buildOutput, testCase),
 	);
 
-	afterAll(() => restoreMocks());
+	afterAll(() => {
+		globalThis.fetch = originalFetch;
+		restoreMocks();
+	});
 }
 
 vi.mock('esbuild', async () => {

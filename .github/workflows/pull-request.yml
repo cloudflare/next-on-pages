@@ -12,102 +12,49 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  formatting:
-    name: Formatting
+  simple-checks:
+    strategy:
+      matrix:
+        check:
+          [
+            { name: formatting, script: 'prettier:check' },
+            { name: linting, script: lint },
+            { name: type checking, script: types-check },
+            { name: building, script: build },
+            { name: unit testing, script: 'test:unit' },
+          ]
+    name: ${{ matrix.check.name }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-      - name: Setup node
-        uses: actions/setup-node@v3
+
+      - name: Setup Node
+        uses: ./.github/actions/node-setup
+
+      - name: Cache Turbo
+        uses: ./.github/actions/cache-turbo
         with:
-          node-version: 16.13.x
+          script: ${{ matrix.check.script }}
 
-      - name: Install
-        run: npm ci
-
-      - name: Check formatting
-        run: npm run prettier:check
-  linting:
-    name: Linting
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-      - name: Setup node
-        uses: actions/setup-node@v3
-        with:
-          node-version: 16.13.x
-
-      - name: Install
-        run: npm ci
-
-      - name: Check linting
-        run: npm run lint
-  types:
-    name: Types
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-      - name: Setup node
-        uses: actions/setup-node@v3
-        with:
-          node-version: 16.13.x
-
-      - name: Install
-        run: npm ci
-
-      - name: Check types
-        run: npm run types-check
-  build:
-    name: Build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-      - name: Setup node
-        uses: actions/setup-node@v3
-        with:
-          node-version: 16.13.x
-
-      - name: Install
-        run: npm ci
-
-      - name: Build
-        run: npm run build
-  unit-tests:
-    name: Unit tests
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-      - name: Setup node
-        uses: actions/setup-node@v3
-        with:
-          node-version: 16.13.x
-
-      - name: Install
-        run: npm ci
-
-      - name: Run unit tests
-        run: npm run test:unit
+      - name: Run Script
+        run: npm run ${{ matrix.check.script }} -- --cache-dir ./turbo-cache
   e2e-tests:
     name: e2e tests
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-      - name: Setup node
-        uses: actions/setup-node@v3
-        with:
-          node-version: 18.x
 
-      - name: Install
-        run: npm ci
+      - name: Setup Node
+        uses: ./.github/actions/node-setup
 
       - name: Run e2e tests
-        run: npm run test:e2e
+        uses: nick-fields/retry@v2
+        with:
+          max_attempts: 3
+          timeout_minutes: 20
+          command: npm run test:e2e -- -- --log-timestamp
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}

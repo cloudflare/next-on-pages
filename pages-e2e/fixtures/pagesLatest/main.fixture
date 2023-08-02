@@ -1,0 +1,11 @@
+{
+	"features": ["simplePagesApiRoutes", "simplePagesSsrRoutes", "simplePagesStaticRoutesAndAssets"],
+	"localSetup": "./setup.sh",
+	"buildConfig": {
+		"buildCommand": "npx @cloudflare/next-on-pages",
+		"buildOutputDirectory": ".vercel/output/static"
+	},
+	"deploymentConfig": {
+		"compatibilityFlags": ["nodejs_compat"]
+	}
+}

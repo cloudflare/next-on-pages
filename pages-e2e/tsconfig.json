@@ -1,4 +1,9 @@
 {
 	"extends": "./tsconfig-base.json",
-	"include": ["./test-types.d.ts", "./**/*.test.ts"]
+	"include": ["./test-types.d.ts", "./**/*.test.ts"],
+	"compilerOptions": {
+		"paths": {
+			"@features-utils/*": ["./features/_utils/*"]
+		}
+	}
 }

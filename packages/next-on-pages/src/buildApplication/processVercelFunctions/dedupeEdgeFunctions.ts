@@ -1,6 +1,6 @@
 import { parse } from 'acorn';
 import type * as AST from 'ast-types/gen/kinds';
-import { readFile, writeFile } from 'node:fs/promises';
+import { appendFile, mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, join, relative } from 'node:path';
 import type { ProcessVercelFunctionsOpts } from '.';
 import type { CollectedFunctions, FunctionInfo } from './configs';
@@ -12,11 +12,12 @@ import type {
 	RawIdentifier,
 	RawIdentifierWithImport,
 } from './ast';
-import { collectIdentifiers } from './ast';
+import { collectIdentifiers, groupIdentifiers } from './ast';
 import { buildFile, getRelativePathToAncestor } from './build';
 import {
 	addLeadingSlash,
 	copyFileWithDir,
+	normalizePath,
 	replaceLastSubstringInstance,
 	validateFile,
 } from '../../utils';
@@ -83,12 +84,12 @@ async function processFunctionIdentifiers(
 			// Sort so that we make replacements from the end of the file to the start.
 			.sort((a, b) => b.start - a.start);
 
-		// Tracks the promises for building the identifiers so that we can wait for them all to finish.
-		const buildIdentifiersPromises: Promise<void>[] = [];
+		// Tracks the paths to the identifier files that need to be built before building the function's file.
+		const identifierPathsToBuild = new Set<string>();
 
 		// Tracks the imports to prepend to the final code for the function and identifiers.
 		const importsToPrepend: NewImportInfo[] = [];
-		const wasmImportsToPrepend: Map<string, string[]> = new Map();
+		const wasmImportsToPrepend = new Map<string, string[]>();
 
 		const newFnLocation = join('functions', `${fnInfo.relativePath}.js`);
 		const newFnPath = join(opts.nopDistDir, newFnLocation);
@@ -107,17 +108,17 @@ async function processFunctionIdentifiers(
 				);
 
 				fileContents = updatedContents;
-			} else if (identifierInfo.consumers > 1) {
+			} else if (identifierInfo.consumers.length > 1) {
 				// Only dedupe code blocks if there are multiple consumers.
-				const { updatedContents, newImport, buildPromise, wasmImports } =
-					processCodeBlockIdentifier(
+				const { updatedContents, newFilePath, newImport, wasmImports } =
+					await processCodeBlockIdentifier(
 						{ type, identifier, start, end, info: identifierInfo },
 						{ fileContents, wasmIdentifierKeys },
 						opts,
 					);
 
 				fileContents = updatedContents;
-				if (buildPromise) buildIdentifiersPromises.push(buildPromise);
+				if (newFilePath) identifierPathsToBuild.add(newFilePath);
 				if (newImport) importsToPrepend.push(newImport);
 				if (wasmImports.length) {
 					wasmImportsToPrepend.set(
@@ -128,8 +129,12 @@ async function processFunctionIdentifiers(
 			}
 		}
 
-		// Wait for any identifiers to be built before building the function's file.
-		await Promise.all(buildIdentifiersPromises);
+		// Build the identifier files before building the function's file.
+		await Promise.all(
+			[...identifierPathsToBuild].map(async path =>
+				buildFile(await readFile(path, 'utf8'), path),
+			),
+		);
 
 		// If wasm identifier is used in code block, prepend the import to the code block's file.
 		await prependWasmImportsToCodeBlocks(
@@ -169,14 +174,23 @@ async function buildFunctionFile(
 ): Promise<{ buildPromise: Promise<void> }> {
 	let functionImports = '';
 
-	importsToPrepend.forEach(({ key, path }) => {
+	// Group the identifier imports by the keys for each path.
+	const groupedImports = importsToPrepend.reduce((acc, { key, path }) => {
+		const existing = acc.get(path);
+		acc.set(path, existing ? `${existing},${key}` : key);
+		return acc;
+	}, new Map<string, string>());
+
+	groupedImports.forEach((keys, path) => {
 		const relativeImportPath = getRelativePathToAncestor({
 			from: newFnLocation,
 			relativeTo: nopDistDir,
 		});
-		const importPath = join(relativeImportPath, addLeadingSlash(path));
+		const importPath = normalizePath(
+			join(relativeImportPath, addLeadingSlash(path)),
+		);
 
-		functionImports += `import ${key} from '${importPath}';\n`;
+		functionImports += `import { ${keys} } from '${importPath}';\n`;
 	});
 
 	fnInfo.outputPath = relative(workerJsDir, newFnPath);
@@ -222,7 +236,9 @@ async function prependWasmImportsToCodeBlocks(
 				for (const identifier of wasmImports) {
 					// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 					const { newDest } = identifierMaps.wasm.get(identifier)!;
-					const wasmImportPath = join(relativeImportPath, newDest as string);
+					const wasmImportPath = normalizePath(
+						join(relativeImportPath, newDest as string),
+					);
 					functionImports += `import ${identifier} from "${wasmImportPath}";\n`;
 				}
 
@@ -263,7 +279,7 @@ async function processImportIdentifier(
 
 		const oldPath = join(dirname(entrypoint), importPath);
 		const newPath = join(nopDistDir, type, importPathWithoutType);
-		info.newDest = relative(workerJsDir, newPath);
+		info.newDest = normalizePath(relative(workerJsDir, newPath));
 
 		await copyFileWithDir(oldPath, newPath);
 	}
@@ -272,7 +288,7 @@ async function processImportIdentifier(
 		from: newFnLocation,
 		relativeTo: nopDistDir,
 	});
-	const newImportPath = join(relativeImportPath, info.newDest);
+	const newImportPath = normalizePath(join(relativeImportPath, info.newDest));
 
 	const newVal = `import ${identifier} from "${newImportPath}";`;
 	updatedContents = replaceLastSubstringInstance(
@@ -299,54 +315,58 @@ type ProcessImportIdentifierOpts = {
  * @param ident The code block identifier to process.
  * @param processOpts Contents of the function's file.
  * @param opts Options for processing the function.
- * @returns A promise that resolves when the code block is built, and the new import info to prepend
- * to the function's file, along with the updated file contents.
+ * @returns The new path for the identifier, and the new import info to prepend to the function's
+ * file, along with the updated file contents.
  */
-function processCodeBlockIdentifier(
+async function processCodeBlockIdentifier(
 	ident: RawIdentifier<IdentifierType> & { info: IdentifierInfo },
 	{ fileContents, wasmIdentifierKeys }: ProcessCodeBlockIdentifierOpts,
 	{ nopDistDir, workerJsDir }: ProcessVercelFunctionsOpts,
-): ProcessCodeBlockIdentifierResult {
+): Promise<ProcessCodeBlockIdentifierResult> {
 	const { type, identifier, start, end, info } = ident;
 	let updatedContents = fileContents;
 
 	const codeBlock = updatedContents.slice(start, end);
 
-	let buildPromise: Promise<void> | undefined;
-	let newImport: NewImportInfo | undefined;
+	let identifierKey = identifier;
+	let newCodeBlock = identifier;
+
+	if (type === 'webpack') {
+		identifierKey = `__chunk_${identifier}`;
+		newCodeBlock = identifierKey;
+	} else if (type === 'manifest') {
+		newCodeBlock = `self.${identifier}=${identifier};`;
+	}
+
+	let newFilePath: string | undefined;
 	const wasmImports: string[] = [];
 
 	if (!info.newDest) {
-		const newPath = join(nopDistDir, type, `${identifier}.js`);
-		info.newDest = relative(workerJsDir, newPath);
+		const identTypeDir = join(nopDistDir, type);
+		newFilePath = join(identTypeDir, `${info.groupedPath ?? identifier}.js`);
+		info.newDest = normalizePath(relative(workerJsDir, newFilePath));
 
 		// Record the wasm identifiers used in the code block.
 		wasmIdentifierKeys
 			.filter(key => codeBlock.includes(key))
 			.forEach(key => wasmImports.push(key));
 
-		buildPromise = buildFile(`export default ${codeBlock}`, newPath);
+		await mkdir(identTypeDir, { recursive: true });
+		await appendFile(
+			newFilePath,
+			`export const ${identifierKey} = ${codeBlock}\n`,
+		);
 	}
 
-	if (type === 'webpack') {
-		const newVal = `__chunk_${identifier}`;
-		updatedContents = replaceLastSubstringInstance(
-			updatedContents,
-			codeBlock,
-			newVal,
-		);
-		newImport = { key: newVal, path: info.newDest };
-	} else if (type === 'manifest') {
-		const newVal = `self.${identifier}=${identifier};`;
-		updatedContents = replaceLastSubstringInstance(
-			updatedContents,
-			codeBlock,
-			newVal,
-		);
-		newImport = { key: identifier, path: info.newDest };
-	}
+	const newImport: NewImportInfo = { key: identifierKey, path: info.newDest };
 
-	return { updatedContents, newImport, buildPromise, wasmImports };
+	updatedContents = replaceLastSubstringInstance(
+		updatedContents,
+		codeBlock,
+		newCodeBlock,
+	);
+
+	return { updatedContents, newFilePath, newImport, wasmImports };
 }
 
 type ProcessCodeBlockIdentifierOpts = {
@@ -356,7 +376,7 @@ type ProcessCodeBlockIdentifierOpts = {
 
 type ProcessCodeBlockIdentifierResult = {
 	updatedContents: string;
-	buildPromise?: Promise<void>;
+	newFilePath?: string;
 	newImport?: NewImportInfo;
 	wasmImports: string[];
 };
@@ -394,10 +414,12 @@ async function getFunctionIdentifiers(
 		collectIdentifiers(
 			// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 			{ identifierMaps, programIdentifiers: entrypointsMap.get(entrypoint)! },
-			program,
+			{ program, entrypoint },
 			{ disableChunksDedup },
 		);
 	}
+
+	groupIdentifiers(identifierMaps);
 
 	return { identifierMaps, entrypointsMap };
 }

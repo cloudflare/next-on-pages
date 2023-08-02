@@ -5,6 +5,7 @@ on:
 
 jobs:
   scrape_docs:
+    if: ${{ github.repository_owner == 'cloudflare' }}
     name: Scrape docs and create/update issue if needed
     runs-on: ubuntu-latest
     permissions:
@@ -12,21 +13,21 @@ jobs:
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v3
-      - name: Setup Node.js 16.x
-        uses: actions/setup-node@v3
-        with:
-          node-version: 16.x
-      - name: Install NPM Dependencies
-        run: npm ci
+
+      - name: Setup Node
+        uses: ./.github/actions/node-setup
+
       - name: Run Checker
         id: run-checker
         working-directory: internal-packages/docs-scraper
         run: GH_ACTION=true npm run check-docs
+
       - name: Generate table
         id: generate-table
         if: steps.run-checker.outputs.result == 'out-of-date'
         working-directory: internal-packages/docs-scraper
         run: GH_ACTION=true npm run generate-configs-table
+
       - name: Create or update issue
         if: steps.run-checker.outputs.result == 'out-of-date'
         working-directory: internal-packages/docs-scraper
