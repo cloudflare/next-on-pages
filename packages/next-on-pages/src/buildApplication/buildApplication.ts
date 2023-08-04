@@ -28,6 +28,7 @@ export async function buildApplication({
 	disableWorkerMinification,
 	watch,
 	outdir: outputDir,
+	vercelVersion,
 }: Pick<
 	CliOptions,
 	| 'skipBuild'
@@ -35,13 +36,14 @@ export async function buildApplication({
 	| 'disableWorkerMinification'
 	| 'watch'
 	| 'outdir'
+	| 'vercelVersion'
 >) {
 	const pm = await getCurrentPackageManager();
 
 	let buildSuccess = true;
 	if (!skipBuild) {
 		try {
-			await buildVercelOutput();
+			await buildVercelOutput(vercelVersion);
 		} catch {
 			const execStr = await getExecStr(pm, 'vercel');
 			cliError(

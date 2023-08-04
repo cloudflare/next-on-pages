@@ -26,7 +26,7 @@ import {
  * Bun to install and build the project.
  *
  */
-export async function buildVercelOutput(): Promise<void> {
+export async function buildVercelOutput(vercelVersion?: string): Promise<void> {
 	const pm = await getCurrentPackageManager();
 	cliLog(`Detected Package Manager: ${pm}\n`);
 
@@ -45,7 +45,7 @@ export async function buildVercelOutput(): Promise<void> {
 
 	cliLog('Project is ready');
 
-	await runVercelBuild(pm, tempVercelConfig?.additionalArgs);
+	await runVercelBuild(pm, tempVercelConfig?.additionalArgs, vercelVersion);
 	if (tempVercelConfig) {
 		await rm(tempVercelConfig.tempPath);
 	}
@@ -120,15 +120,16 @@ type TempVercelConfigInfo = { additionalArgs: string[]; tempPath: string };
 async function runVercelBuild(
 	pkgMng: PackageManager,
 	additionalArgs: string[] = [],
+	vercelVersion?: string,
 ): Promise<void> {
 	const { pm, baseCmd } = await getPackageManagerInfo(pkgMng);
 
 	if (pm === 'yarn (classic)') {
 		cliLog(
-			`Installing vercel as dev dependencies with '${baseCmd} add vercel -D'...`,
+			`Installing vercel as dev dependencies with '${baseCmd} add vercel@${vercelVersion} -D'...`,
 		);
 
-		const installVercel = spawn(baseCmd, ['add', 'vercel', '-D']);
+		const installVercel = spawn(baseCmd, ['add', `vercel@${vercelVersion}`, '-D']);
 
 		logVercelProcessOutput(installVercel);
 

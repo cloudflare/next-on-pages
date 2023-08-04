@@ -32,6 +32,7 @@ const cliOptions = z
 		version: flag,
 		noColor: flag,
 		info: flag,
+		vercelVersion: z.string().optional().default('latest'),
 		outdir: z
 			.string()
 			.optional()
@@ -119,6 +120,7 @@ export function parseCliArgs() {
 				c: 'noColor',
 				i: 'info',
 				o: 'outdir',
+				vv: 'vercelVersion',
 			},
 		}).parse(process.argv.slice(2));
 	} catch (error) {
@@ -168,6 +170,8 @@ export function printCliHelpMessage(): void {
 		--info, -i:                         Prints relevant details about the current system which can be used to report bugs
 
 		--outdir, -o:                       The directory to output the worker and static assets to.
+
+		--vercelVersion, -vv:								Set up your chosen version of vercel lib.
 
 		GitHub: https://github.com/cloudflare/next-on-pages
 		Docs: https://developers.cloudflare.com/pages/framework-guides/deploy-a-nextjs-site/
