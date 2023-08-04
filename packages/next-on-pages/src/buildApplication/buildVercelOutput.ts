@@ -26,7 +26,7 @@ import {
  * Bun to install and build the project.
  *
  */
-export async function buildVercelOutput(vercelVersion?: string): Promise<void> {
+export async function buildVercelOutput(vercelVersion: string): Promise<void> {
 	const pm = await getCurrentPackageManager();
 	cliLog(`Detected Package Manager: ${pm}\n`);
 
@@ -120,7 +120,7 @@ type TempVercelConfigInfo = { additionalArgs: string[]; tempPath: string };
 async function runVercelBuild(
 	pkgMng: PackageManager,
 	additionalArgs: string[] = [],
-	vercelVersion?: string,
+	vercelVersion: string,
 ): Promise<void> {
 	const { pm, baseCmd } = await getPackageManagerInfo(pkgMng);
 
