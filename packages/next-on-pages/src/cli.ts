@@ -32,7 +32,13 @@ const cliOptions = z
 		version: flag,
 		noColor: flag,
 		info: flag,
-		vercelVersion: z.string().optional().default('latest'),
+		vercelVersion: z
+			.string()
+			.regex(/^(([3-9]\d|\d{3,})\.\d+\.\d+)|latest$/, {
+				message: 'Vercel version must be higher than 30.0.0.',
+			})
+			.optional()
+			.default('latest'),
 		outdir: z
 			.string()
 			.optional()
