@@ -24,15 +24,15 @@ export const runtime = 'edge';
 import { cookies } from 'next/headers';
 
 export default function NotFound() {
-    // notice the runtime cookie retrieval
-    const cookieStore = cookies();
-    const theme = cookieStore.get('theme');
+	// notice the runtime cookie retrieval
+	const cookieStore = cookies();
+	const theme = cookieStore.get('theme');
 
-    return (
-      <div className={`not-found--${theme}`}>
-        <h2>Not Found</h2>
-      </div>
-    );
+	return (
+		<div className={`not-found--${theme}`}>
+			<h2>Not Found</h2>
+		</div>
+	);
 }
 ```
 
@@ -42,10 +42,10 @@ export default function NotFound() {
 // app/not-found.jsx
 
 export default function NotFound() {
-    return (
-      <div>
-        <h2>Not Found</h2>
-      </div>
-    );
+	return (
+		<div>
+			<h2>Not Found</h2>
+		</div>
+	);
 }
 ```
