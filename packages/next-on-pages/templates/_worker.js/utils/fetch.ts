@@ -1,3 +1,5 @@
+import { handleSuspenseCacheRequest } from './cache';
+
 /**
  * Patches the global fetch in ways necessary for Next.js (/next-on-pages) applications
  * to work
@@ -18,10 +20,11 @@ function applyPatch() {
 	globalThis.fetch = async (...args) => {
 		const request = new Request(...args);
 
-		const response = await handleInlineAssetRequest(request);
-		if (response) {
-			return response;
-		}
+		let response = await handleInlineAssetRequest(request);
+		if (response) return response;
+
+		response = await handleSuspenseCacheRequest(request);
+		if (response) return response;
 
 		setRequestUserAgentIfNeeded(request);
 

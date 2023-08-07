@@ -1,5 +1,6 @@
 import { handleRequest } from './handleRequest';
 import {
+	SUSPENSE_CACHE_URL,
 	adjustRequestForVercel,
 	handleImageResizingRequest,
 	patchFetch,
@@ -25,8 +26,9 @@ export default {
 				{ status: 503 },
 			);
 		}
+
 		return envAsyncLocalStorage.run(
-			{ ...env, NODE_ENV: __NODE_ENV__ },
+			{ ...env, NODE_ENV: __NODE_ENV__, SUSPENSE_CACHE_URL },
 			async () => {
 				const url = new URL(request.url);
 				if (url.pathname.startsWith('/_next/image')) {
