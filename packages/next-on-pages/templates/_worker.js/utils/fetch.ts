@@ -17,13 +17,15 @@ export function patchFetch(): void {
 function applyPatch() {
 	const originalFetch = globalThis.fetch;
 
+	const revalidatedTags = new Set<string>();
+
 	globalThis.fetch = async (...args) => {
 		const request = new Request(...args);
 
 		let response = await handleInlineAssetRequest(request);
 		if (response) return response;
 
-		response = await handleSuspenseCacheRequest(request);
+		response = await handleSuspenseCacheRequest(request, revalidatedTags);
 		if (response) return response;
 
 		setRequestUserAgentIfNeeded(request);

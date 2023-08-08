@@ -10,7 +10,10 @@ import {
  * @param request Incoming request to handle.
  * @returns Response to the request, or null if the request is not for the suspense cache.
  */
-export async function handleSuspenseCacheRequest(request: Request) {
+export async function handleSuspenseCacheRequest(
+	request: Request,
+	revalidatedTags: Set<string>,
+) {
 	const baseUrl = `https://${SUSPENSE_CACHE_URL}/v1/suspense-cache/`;
 	if (!request.url.startsWith(baseUrl)) return null;
 
@@ -22,6 +25,8 @@ export async function handleSuspenseCacheRequest(request: Request) {
 			// Update the revalidated timestamp for the tags in the tags manifest.
 			const tags = url.searchParams.get('tags')?.split(',') ?? [];
 			await cache.setTags(tags, { revalidatedAt: Date.now() });
+
+			tags.forEach(tag => revalidatedTags.add(tag));
 
 			return new Response(null, { status: 200 });
 		}
@@ -37,10 +42,13 @@ export async function handleSuspenseCacheRequest(request: Request) {
 		switch (request.method) {
 			case 'GET':
 				// Retrieve the value from the cache.
-				return handleRetrieveEntry(cache, cacheKey);
+				return handleRetrieveEntry(cache, cacheKey, { revalidatedTags });
 			case 'POST':
 				// Update the value in the cache.
-				return handleUpdateEntry(cache, cacheKey, await request.text());
+				return handleUpdateEntry(cache, cacheKey, {
+					body: await request.text(),
+					revalidatedTags,
+				});
 			default:
 				return new Response(null, { status: 405 });
 		}
@@ -58,7 +66,11 @@ export async function handleSuspenseCacheRequest(request: Request) {
  * @param cacheKey Key of the cached value to retrieve.
  * @returns Response with the cached value.
  */
-async function handleRetrieveEntry(cache: CacheInterface, cacheKey: string) {
+async function handleRetrieveEntry(
+	cache: CacheInterface,
+	cacheKey: string,
+	{ revalidatedTags }: { revalidatedTags: Set<string> },
+) {
 	// Get entry from the cache.
 	const entry = await cache.get(cacheKey);
 	if (!entry) return new Response(null, { status: 404 });
@@ -82,13 +94,24 @@ async function handleRetrieveEntry(cache: CacheInterface, cacheKey: string) {
 		);
 	});
 
+	const cacheAge =
+		(Date.now() - data.lastModified) / 1000 +
+		// If the cache entry is stale, add the revalidate interval to properly force a revalidation.
+		(isStale ? data.value.revalidate : 0);
+
+	if (isStale && tags.some(tag => revalidatedTags.has(tag))) {
+		return new Response('Forced revalidation for server actions', {
+			status: 404,
+		});
+	}
+
 	// Return the value from the cache.
 	return new Response(JSON.stringify(data.value), {
 		status: 200,
 		headers: {
 			'Content-Type': 'application/json',
-			'x-vercel-cache-state': isStale ? 'stale' : 'fresh',
-			age: `${(Date.now() - data.lastModified) / 1000}`,
+			'x-vercel-cache-state': 'fresh',
+			age: `${cacheAge}`,
 		},
 	});
 }
@@ -104,7 +127,7 @@ async function handleRetrieveEntry(cache: CacheInterface, cacheKey: string) {
 async function handleUpdateEntry(
 	cache: CacheInterface,
 	cacheKey: string,
-	body: string,
+	{ body, revalidatedTags }: { body: string; revalidatedTags: Set<string> },
 ) {
 	const newEntry: CacheEntry = {
 		lastModified: Date.now(),
@@ -121,6 +144,8 @@ async function handleUpdateEntry(
 	// Update the tags with the cache key.
 	const tags = newEntry.value.data.tags ?? [];
 	await cache.setTags(tags, { cacheKey });
+
+	getDerivedTags(tags).forEach(tag => revalidatedTags.delete(tag));
 
 	return new Response(null, { status: 200 });
 }
