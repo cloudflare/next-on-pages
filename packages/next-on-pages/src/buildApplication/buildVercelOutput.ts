@@ -124,17 +124,21 @@ async function runVercelBuild(
 	const { pm, baseCmd } = await getPackageManagerInfo(pkgMng);
 
 	if (pm === 'yarn (classic)') {
-		cliLog(
-			`Installing vercel as dev dependencies with '${baseCmd} add vercel -D'...`,
-		);
+		const vercelVersion = await getPackageVersion('vercel', pkgMng);
 
-		const installVercel = spawn(baseCmd, ['add', 'vercel', '-D']);
+		if (!vercelVersion) {
+			cliLog(
+				`vercel dev dependency missing, installing vercel as a dev dependency with '${baseCmd} add vercel -D'...`,
+			);
 
-		logVercelProcessOutput(installVercel);
+			const installVercel = spawn(baseCmd, ['add', 'vercel', '-D']);
 
-		await waitForProcessToClose(installVercel);
+			logVercelProcessOutput(installVercel);
 
-		cliLog('Install completed');
+			await waitForProcessToClose(installVercel);
+
+			cliLog('Install completed');
+		}
 	}
 
 	cliLog('Building project...');
