@@ -32,12 +32,10 @@ export async function handleSuspenseCacheRequest(
 		}
 
 		// Extract the cache key from the URL.
-		const cacheKeyId = url.pathname.replace('/v1/suspense-cache/', '');
-		if (!cacheKeyId.length) {
+		const cacheKey = url.pathname.replace('/v1/suspense-cache/', '');
+		if (!cacheKey.length) {
 			return new Response('Invalid cache key', { status: 400 });
 		}
-
-		const cacheKey = cache.buildCacheKey(cacheKeyId);
 
 		switch (request.method) {
 			case 'GET':

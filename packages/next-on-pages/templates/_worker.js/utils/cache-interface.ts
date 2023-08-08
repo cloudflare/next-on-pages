@@ -3,24 +3,35 @@ export const SUSPENSE_CACHE_URL = 'INTERNAL_SUSPENSE_CACHE_HOSTNAME';
 /**
  * Gets the cache interface to use for the suspense cache.
  *
+ * Prioritises KV > D1 > R2 > Cache API.
+ *
  * @returns Interface for the suspense cache.
  */
 export async function getSuspenseCacheInterface(): Promise<CacheInterface> {
 	if (process.env.KV_SUSPENSE_CACHE) {
-		return new KvCacheInterface(process.env.KV_SUSPENSE_CACHE);
+		return new KVCacheInterface(process.env.KV_SUSPENSE_CACHE);
+	}
+
+	if (process.env.D1_SUSPENSE_CACHE) {
+		return new D1CacheInterface(process.env.D1_SUSPENSE_CACHE);
+	}
+
+	if (process.env.R2_SUSPENSE_CACHE) {
+		return new R2CacheInterface(process.env.R2_SUSPENSE_CACHE);
 	}
 
 	const cacheApi = await caches.open('suspense-cache');
 	return new CacheApiInterface(cacheApi);
 }
 
-export class CacheInterface<T = Cache | KVNamespace> {
-	public tagsManifest: TagsManifest | undefined;
-	public tagsManifestKey: string;
+type Caches = Cache | KVNamespace | D1Database | R2Bucket;
 
-	constructor(protected cache: T) {
-		this.tagsManifestKey = this.buildCacheKey('tags-manifest');
-	}
+/** Generic interface for the Suspense Cache. */
+export class CacheInterface<T = Caches> {
+	public tagsManifest: TagsManifest | undefined;
+	public tagsManifestKey = 'tags-manifest';
+
+	constructor(protected cache: T) {}
 
 	/**
 	 * Puts a new entry in the suspense cache.
@@ -54,16 +65,6 @@ export class CacheInterface<T = Cache | KVNamespace> {
 	 */
 	public async delete(key: string): Promise<void> {
 		throw new Error(`Method not implemented, ${key}`);
-	}
-
-	/**
-	 * Builds the full cache key for the suspense cache.
-	 *
-	 * @param key Key for the item in the suspense cache.
-	 * @returns The fully-formed cache key for the suspense cache.
-	 */
-	public buildCacheKey(key: string) {
-		return `https://${SUSPENSE_CACHE_URL}/entry/${key}`;
 	}
 
 	/**
@@ -128,6 +129,7 @@ export class CacheInterface<T = Cache | KVNamespace> {
 	}
 }
 
+/** Suspense Cache interface for the Cache API. */
 class CacheApiInterface extends CacheInterface<Cache> {
 	constructor(cache: Cache) {
 		super(cache);
@@ -135,20 +137,31 @@ class CacheApiInterface extends CacheInterface<Cache> {
 
 	public override async put(key: string, value: string, init?: RequestInit) {
 		const response = new Response(value, init);
-		await this.cache.put(key, response);
+		await this.cache.put(this.buildCacheKey(key), response);
 	}
 
 	public override async get(key: string) {
-		const response = await this.cache.match(key);
+		const response = await this.cache.match(this.buildCacheKey(key));
 		return response ? response.text() : null;
 	}
 
 	public override async delete(key: string) {
-		await this.cache.delete(key);
+		await this.cache.delete(this.buildCacheKey(key));
+	}
+
+	/**
+	 * Builds the full cache key for the suspense cache.
+	 *
+	 * @param key Key for the item in the suspense cache.
+	 * @returns The fully-formed cache key for the suspense cache.
+	 */
+	public buildCacheKey(key: string) {
+		return `https://${SUSPENSE_CACHE_URL}/entry/${key}`;
 	}
 }
 
-class KvCacheInterface extends CacheInterface<KVNamespace> {
+/** Suspense Cache interface for Workers KV. */
+class KVCacheInterface extends CacheInterface<KVNamespace> {
 	constructor(cache: KVNamespace) {
 		super(cache);
 	}
@@ -166,7 +179,64 @@ class KvCacheInterface extends CacheInterface<KVNamespace> {
 	}
 }
 
-// TODO: D1 Interface
+/**
+ * Suspense Cache interface for D1.
+ *
+ * **Table Creation SQL**
+ * ```sql
+ * CREATE TABLE IF NOT EXISTS suspense_cache (key text PRIMARY KEY, value text NOT NULL);
+ * ```
+ */
+class D1CacheInterface extends CacheInterface<D1Database> {
+	constructor(cache: D1Database) {
+		super(cache);
+	}
+
+	public override async put(key: string, value: string) {
+		const status = await this.cache
+			.prepare(
+				`INSERT OR REPLACE INTO suspense_cache (key, value) VALUES (?, ?)`,
+			)
+			.bind(key, value)
+			.run();
+		if (status.error) throw new Error(status.error);
+	}
+
+	public override async get(key: string) {
+		const value = await this.cache
+			.prepare(`SELECT value FROM suspense_cache WHERE key = ?`)
+			.bind(key)
+			.first('value');
+		return typeof value === 'string' ? value : null;
+	}
+
+	public override async delete(key: string) {
+		await this.cache
+			.prepare(`DELETE FROM suspense_cache WHERE key = ?`)
+			.bind(key)
+			.run();
+	}
+}
+
+/** Suspense Cache interface for R2. */
+class R2CacheInterface extends CacheInterface<R2Bucket> {
+	constructor(cache: R2Bucket) {
+		super(cache);
+	}
+
+	public override async put(key: string, value: string) {
+		await this.cache.put(key, value);
+	}
+
+	public override async get(key: string) {
+		const value = await this.cache.get(key);
+		return value ? value.text() : null;
+	}
+
+	public override async delete(key: string) {
+		await this.cache.delete(key);
+	}
+}
 
 // TODO: DO Interface
 
