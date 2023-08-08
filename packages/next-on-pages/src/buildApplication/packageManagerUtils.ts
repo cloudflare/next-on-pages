@@ -166,7 +166,7 @@ export async function getPackageVersion(
 			const packageInfo =
 				pm === 'pnpm' ? commandOutputJson[0] : commandOutputJson;
 			packageVersion = pm.startsWith('yarn')
-				? packageInfo?.children?.Version
+				? packageInfo?.children?.Version ?? packageInfo?.data?.version
 				: packageInfo?.dependencies?.[packageName]?.version ??
 				  packageInfo?.devDependencies?.[packageName]?.version;
 		}
