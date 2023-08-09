@@ -1,5 +1,6 @@
-import { getAssertVisible } from '@features-utils/getAssertVisible';
 import { describe, test } from 'vitest';
+import { getAssertVisible } from '@features-utils/getAssertVisible';
+import { runWithHardNavigationsChecking } from '@features-utils/runWithHardNavigationsChecking';
 
 describe('App Middleware', () => {
 	test('unmodified api request', async ({ expect }) => {
@@ -186,6 +187,8 @@ describe('App Middleware', () => {
 			const page = await BROWSER.newPage();
 			const assertVisible = getAssertVisible(page);
 
+			// Note: we don't use runWithHardNavigationsChecking here since for some reason
+			//       redirections do appear as hard navigations even if they are not
 			await page.goto(`${DEPLOYMENT_URL}/middleware-test/pageB`);
 
 			await assertVisible('h1', { hasText: 'Page B' });
@@ -202,17 +205,27 @@ describe('App Middleware', () => {
 			const page = await BROWSER.newPage();
 			const assertVisible = getAssertVisible(page);
 
-			await page.goto(`${DEPLOYMENT_URL}/middleware-test/pageB`);
+			await runWithHardNavigationsChecking(
+				page,
+				async () => {
+					await page.goto(`${DEPLOYMENT_URL}/middleware-test/pageB`);
 
-			await assertVisible('h1', { hasText: 'Page B' });
-			await page
-				.locator('a[href="/middleware-test/pageC?rewrite-to-page-a"]')
-				.click();
+					await assertVisible('h1', { hasText: 'Page B' });
+					await page
+						.locator('a[href="/middleware-test/pageC?rewrite-to-page-a"]')
+						.click();
 
-			await assertVisible('h1', { hasText: 'Page A' });
-			// Note: we can't match the full url because with redirects locally instead of 'localhost' we get '127.0.0.1'
-			expect(page.url()).toMatch(
-				/.*\/middleware-test\/pageC\?rewrite-to-page-a$/,
+					await assertVisible('h1', { hasText: 'Page A' });
+					// Note: we can't match the full url because with redirects locally instead of 'localhost' we get '127.0.0.1'
+					expect(page.url()).toMatch(
+						/.*\/middleware-test\/pageC\?rewrite-to-page-a$/,
+					);
+				},
+				async hardNavigations => {
+					expect(hardNavigations.map(({ url }) => url)).toEqual([
+						`${DEPLOYMENT_URL}/middleware-test/pageB`,
+					]);
+				},
 			);
 		});
 
