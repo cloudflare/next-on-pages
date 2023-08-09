@@ -4,7 +4,7 @@ import { processEdgeFunctions } from './edgeFunctions';
 import { processPrerenderFunctions } from './prerenderFunctions';
 import type { CollectedFunctionIdentifiers } from './dedupeEdgeFunctions';
 import { dedupeEdgeFunctions } from './dedupeEdgeFunctions';
-import { checkForInvalidFunctions } from './invalidFunctions';
+import { checkInvalidFunctions } from './invalidFunctions';
 
 /**
  * Processes and dedupes the Vercel build output functions directory.
@@ -23,7 +23,7 @@ export async function processVercelFunctions(
 
 	await processEdgeFunctions(collectedFunctions);
 
-	await checkForInvalidFunctions(collectedFunctions);
+	await checkInvalidFunctions(collectedFunctions);
 
 	const identifiers = await dedupeEdgeFunctions(collectedFunctions, opts);
 
