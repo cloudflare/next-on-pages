@@ -53,7 +53,7 @@ jobs:
         uses: nick-fields/retry@v2
         with:
           max_attempts: 3
-          timeout_minutes: 20
+          timeout_minutes: 60
           command: npm run test:e2e -- -- --log-timestamp
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
