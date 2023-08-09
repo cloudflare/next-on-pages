@@ -1,35 +1,43 @@
 import { describe, it } from 'vitest';
 import { getAssertVisible } from '@features-utils/getAssertVisible';
-import { collectHardNavigationRequests } from '@features-utils/collectHardNavigationRequests';
+import { runWithHardNavigationsChecking } from '@features-utils/runWithHardNavigationsChecking';
 
 describe('Simple Pages SSR routes SPA navigation', () => {
 	it('should soft navigate between static routes', async ({ expect }) => {
 		const page = await BROWSER.newPage();
 		const assertVisible = getAssertVisible(page);
 
-		const hardNavigationRequests = await collectHardNavigationRequests(page);
+		await runWithHardNavigationsChecking(
+			page,
+			async () => {
+				await page.goto(`${DEPLOYMENT_URL}/ssr-navigation`);
 
-		await page.goto(`${DEPLOYMENT_URL}/ssr-navigation`);
+				await assertVisible('h1', { hasText: 'Navigation' });
 
-		await assertVisible('h1', { hasText: 'Navigation' });
+				await assertVisible('h2', { hasText: 'Server Side Rendered Index' });
 
-		await assertVisible('h2', { hasText: 'Server Side Rendered Index' });
+				await page.locator('a', { hasText: 'to page A' }).click();
 
-		await page.locator('a', { hasText: 'to page A' }).click();
+				await assertVisible('h2', { hasText: 'Server Side Rendered Page A' });
 
-		await assertVisible('h2', { hasText: 'Server Side Rendered Page A' });
+				await page.locator('a', { hasText: 'to page B' }).click();
 
-		await page.locator('a', { hasText: 'to page B' }).click();
+				await assertVisible('h2', { hasText: 'Server Side Rendered Page B' });
 
-		await assertVisible('h2', { hasText: 'Server Side Rendered Page B' });
+				await page.goBack();
 
-		await page.goBack();
+				await assertVisible('h2', { hasText: 'Server Side Rendered Page A' });
 
-		await assertVisible('h2', { hasText: 'Server Side Rendered Page A' });
+				await page.goto(`${DEPLOYMENT_URL}/ssr-navigation/pageB`);
 
-		expect(hardNavigationRequests.length).toBe(1);
-		expect(hardNavigationRequests[0].url()).toBe(
-			`${DEPLOYMENT_URL}/ssr-navigation`,
+				await assertVisible('h2', { hasText: 'Server Side Rendered Page B' });
+			},
+			async hardNavigations => {
+				expect(hardNavigations.map(({ url }) => url)).toEqual([
+					`${DEPLOYMENT_URL}/ssr-navigation`,
+					`${DEPLOYMENT_URL}/ssr-navigation/pageB`,
+				]);
+			},
 		);
 	});
 });

@@ -7,7 +7,6 @@ import {
 	dynamicRoutesTestSet,
 	i18nTestSet,
 	infiniteLoopTestSet,
-	middlewareTestSet,
 	trailingSlashTestSet,
 } from './requestTestData';
 import type { TestCase, TestSet } from '../_helpers';
@@ -126,9 +125,12 @@ async function runTestSet({ config, files, testCases }: TestSet) {
 
 vi.mock('esbuild', async () => {
 	return {
-		build: (options: { stdin?: { contents: string }; outfile: string }) => {
+		build: async (options: {
+			stdin?: { contents: string };
+			outfile: string;
+		}) => {
 			const contents = options.stdin?.contents ?? 'built code';
-			writeFile(options.outfile, contents);
+			await writeFile(options.outfile, contents);
 		},
 	};
 });
@@ -142,7 +144,6 @@ suite('router', () => {
 		dynamicRoutesTestSet,
 		i18nTestSet,
 		infiniteLoopTestSet,
-		middlewareTestSet,
 		trailingSlashTestSet,
 	].forEach(testSet => {
 		describe(testSet.name, async () => runTestSet(testSet));
