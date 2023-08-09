@@ -164,7 +164,9 @@ describe('App Middleware', () => {
 		});
 	});
 
-	test('middleware to be invoked once and only once per request', async ({ expect }) => {
+	test('middleware to be invoked once and only once per request', async ({
+		expect,
+	}) => {
 		const response = await fetch(
 			`${DEPLOYMENT_URL}/api/middleware-test/hello`,
 			{
