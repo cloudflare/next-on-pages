@@ -23,7 +23,7 @@ export default function Page({ requestHeaders }) {
 					</li>
 				))}
 			</ul>
-			{process.env.frameworkVersion === '12' && (
+			{process.env.frameworkVersion?.startsWith('12') && (
 				<p>Note: this application runs on Next.js v12</p>
 			)}
 		</div>

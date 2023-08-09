@@ -6,6 +6,6 @@ module.exports = {
 	},
 	swcMinify: false,
 	env: {
-		frameworkVersion: '12',
+		frameworkVersion: '12.3.0',
 	},
 };
