@@ -150,7 +150,7 @@ async function handleUpdateEntry(
 
 type CacheEntry = { lastModified: number; value: NextCachedFetchValue };
 
-// https://github.com/vercel/next.js/blob/canary/packages/next/src/server/response-cache/types.ts
+// https://github.com/vercel/next.js/blob/fda1ecc/packages/next/src/server/response-cache/types.ts#L16
 type NextCachedFetchValue = {
 	kind: 'FETCH';
 	data: {
@@ -166,7 +166,7 @@ type NextCachedFetchValue = {
 /**
  * Derives a list of tags from the given tags. This is taken from the Next.js source code.
  *
- * @see https://github.com/vercel/next.js/blob/canary/packages/next/src/server/lib/incremental-cache/utils.ts
+ * @see https://github.com/vercel/next.js/blob/1286e145/packages/next/src/server/lib/incremental-cache/utils.ts
  *
  * @param tags Array of tags.
  * @returns Derived tags.
