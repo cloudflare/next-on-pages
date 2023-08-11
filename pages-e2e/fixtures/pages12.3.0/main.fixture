@@ -3,7 +3,8 @@
 		"simplePagesApiRoutes",
 		"simplePagesSsrRoutes",
 		"simplePagesStaticRoutesAndAssets",
-		"pagesMiddleware"
+		"pagesMiddleware",
+		"pagesRouting"
 	],
 	"localSetup": "npm install",
 	"buildConfig": {

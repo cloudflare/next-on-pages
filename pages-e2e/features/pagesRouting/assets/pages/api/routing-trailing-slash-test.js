@@ -3,5 +3,5 @@ export const config = {
 };
 
 export default async function handler(req) {
-	return new Response('Hello middleware-test');
+	return new Response('Hello world!');
 }

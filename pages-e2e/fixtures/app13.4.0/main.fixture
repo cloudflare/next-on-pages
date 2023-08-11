@@ -3,7 +3,8 @@
 		"simpleAppApiRoutes",
 		"simpleAppSsrRoutes",
 		"simpleAppStaticRoutesAndAssets",
-		"appMiddleware"
+		"appMiddleware",
+		"appRouting"
 	],
 	"localSetup": "npm install",
 	"buildConfig": {

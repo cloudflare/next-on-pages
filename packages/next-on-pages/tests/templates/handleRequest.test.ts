@@ -1,6 +1,5 @@
 import { afterAll, expect, suite, test, vi } from 'vitest';
 import {
-	basicEdgeAppDirTestSet,
 	basicStaticAppDirTestSet,
 	checkRouteMatchTestSet,
 	configRewritesRedirectsHeadersTestSet,
@@ -137,7 +136,6 @@ vi.mock('esbuild', async () => {
 
 suite('router', () => {
 	[
-		basicEdgeAppDirTestSet,
 		basicStaticAppDirTestSet,
 		checkRouteMatchTestSet,
 		configRewritesRedirectsHeadersTestSet,
