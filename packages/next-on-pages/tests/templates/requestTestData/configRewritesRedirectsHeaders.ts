@@ -165,10 +165,10 @@ export const testSet: TestSet = {
 		},
 		{
 			name: 'rewrites - `fallback`: rewrites on any request that has not been matched',
-			paths: ['/plain'],
+			paths: ['/plain?test=1'],
 			expected: {
 				status: 200,
-				data: 'external test url response',
+				data: 'external test url response: https://external-test-url.com/plain?test=1',
 				headers: {
 					'content-type': 'text/plain;charset=UTF-8',
 				},

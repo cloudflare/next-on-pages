@@ -1,5 +1,10 @@
 import type { MatchedSet } from './utils';
-import { applyHeaders, isUrl, runOrFetchBuildOutputItem } from './utils';
+import {
+	applyHeaders,
+	applySearchParams,
+	isUrl,
+	runOrFetchBuildOutputItem,
+} from './utils';
 import { RoutesMatcher } from './routes-matcher';
 import type { RequestContext } from '../../src/utils/requestContext';
 
@@ -93,7 +98,9 @@ async function generateResponse(
 		resp = new Response(body, { status });
 	} else if (isUrl(path)) {
 		// If the path is an URL from matching, that means it was rewritten to a full URL.
-		resp = await fetch(new URL(path), reqCtx.request);
+		const url = new URL(path);
+		applySearchParams(url.searchParams, searchParams);
+		resp = await fetch(url, reqCtx.request);
 	} else {
 		// Otherwise, we need to serve a file from the Vercel build output.
 		resp = await runOrFetchBuildOutputItem(output[path], reqCtx, {

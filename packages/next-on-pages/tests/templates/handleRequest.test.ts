@@ -99,7 +99,7 @@ async function runTestSet({ config, files, testCases }: TestSet) {
 		const url = new URL(req.url);
 
 		if (url.hostname === 'external-test-url.com') {
-			return new Response('external test url response');
+			return new Response(`external test url response: ${url.href}`);
 		}
 
 		return originalFetch(...args);
