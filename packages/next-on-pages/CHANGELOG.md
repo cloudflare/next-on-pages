@@ -1,5 +1,29 @@
 # @cloudflare/next-on-pages
 
+## 1.5.1
+
+### Patch Changes
+
+- 7da1fd8: fix package version detection not correctly working with yarn v1
+- 5bfbbe1: Add workaround so that people can use standard not-found routes in their app directory applications
+
+  The problem is that:
+
+  - if there's a static not-found route in app dir, that generates a serverless (edge incompatible) function (\_not-found)
+  - if there's a dynamic not-found route in app dir, that generates two serverless (edge incompatible) functions (\_not-found, \_error)
+
+  The workaround being introduced here is:
+
+  - if there's a static not-found route in app dir, we delete the generated \_not-found serverless function
+    (which is not needed as we can just fallback to the static 404 html)
+  - if there's a dynamic not-found route in app dir, we can't actually fix it but provide a warning for the user
+
+  Besides the above the `no-app-not-found-runtime` eslint rule has been introduced to try to help developers avoid
+  the issue
+
+- 7f94fd2: Apply search params to rewritten URLs in matching.
+- 7da1fd8: install vercel yarn dev dependency only when not already present
+
 ## 1.5.0
 
 ### Minor Changes
