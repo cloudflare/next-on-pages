@@ -16,6 +16,13 @@ jobs:
 
       - name: Setup Node
         uses: ./.github/actions/node-setup
+        with:
+          # puppeteer doesn't store browsers in the node modules but in its own directory
+          # (see: https://pptr.dev/troubleshooting#could-not-find-expected-browser-locally)
+          # instead of adding this directory in the node-setup caching (and make all the caches
+          # heavier) let's just skip caching here (since it also doesn't make a different
+          # how long this workflow takes)
+          skip-caching: true
 
       - name: Run Checker
         id: run-checker

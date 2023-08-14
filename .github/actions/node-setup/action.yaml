@@ -1,5 +1,10 @@
 name: Node Setup
 description: Sets up Node with the required node_modules
+inputs:
+  skip-caching:
+    description: whether the node modules caching should be skipped (defaults to false)
+    required: false
+    default: false
 runs:
   using: composite
   steps:
@@ -18,6 +23,7 @@ runs:
       # Attempt to cache all the node_modules directories based on the node version and package lock.
     - name: Cache node_modules
       id: npm-cache
+      if: ${{ inputs.skip-caching != 'true' }}
       uses: actions/cache@v3
       env:
         cache-name: cache-node-modules-${{ steps.node-version.outputs.node_version }}
