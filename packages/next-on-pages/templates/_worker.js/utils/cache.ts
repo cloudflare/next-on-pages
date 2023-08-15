@@ -12,7 +12,7 @@ import {
  */
 export async function handleSuspenseCacheRequest(
 	request: Request,
-	revalidatedTags: Set<string>,
+	revalidatedTags: Set<string>
 ) {
 	const baseUrl = `https://${SUSPENSE_CACHE_URL}/v1/suspense-cache/`;
 	if (!request.url.startsWith(baseUrl)) return null;
@@ -67,7 +67,7 @@ export async function handleSuspenseCacheRequest(
 async function handleRetrieveEntry(
 	cache: CacheInterface,
 	cacheKey: string,
-	{ revalidatedTags }: { revalidatedTags: Set<string> },
+	{ revalidatedTags }: { revalidatedTags: Set<string> }
 ) {
 	// Get entry from the cache.
 	const entry = await cache.get(cacheKey);
@@ -125,7 +125,7 @@ async function handleRetrieveEntry(
 async function handleUpdateEntry(
 	cache: CacheInterface,
 	cacheKey: string,
-	{ body, revalidatedTags }: { body: string; revalidatedTags: Set<string> },
+	{ body, revalidatedTags }: { body: string; revalidatedTags: Set<string> }
 ) {
 	const newEntry: CacheEntry = {
 		lastModified: Date.now(),
@@ -133,7 +133,7 @@ async function handleUpdateEntry(
 	};
 
 	// Update the cache entry.
-	await cache.put(cacheKey, JSON.stringify(newEntry), {
+	await cache.set(cacheKey, JSON.stringify(newEntry), {
 		headers: new Headers({
 			'cache-control': `max-age=${newEntry.value.revalidate}`,
 		}),
@@ -146,54 +146,4 @@ async function handleUpdateEntry(
 	getDerivedTags(tags).forEach(tag => revalidatedTags.delete(tag));
 
 	return new Response(null, { status: 200 });
-}
-
-type CacheEntry = { lastModified: number; value: NextCachedFetchValue };
-
-// https://github.com/vercel/next.js/blob/fda1ecc/packages/next/src/server/response-cache/types.ts#L16
-type NextCachedFetchValue = {
-	kind: 'FETCH';
-	data: {
-		headers: { [k: string]: string };
-		body: string;
-		url: string;
-		status?: number;
-		tags?: string[];
-	};
-	revalidate: number;
-};
-
-/**
- * Derives a list of tags from the given tags. This is taken from the Next.js source code.
- *
- * @see https://github.com/vercel/next.js/blob/1286e145/packages/next/src/server/lib/incremental-cache/utils.ts
- *
- * @param tags Array of tags.
- * @returns Derived tags.
- */
-function getDerivedTags(tags: string[]): string[] {
-	const derivedTags: string[] = ['/'];
-
-	for (const tag of tags || []) {
-		if (tag.startsWith('/')) {
-			const pathnameParts = tag.split('/');
-
-			// we automatically add the current path segments as tags
-			// for revalidatePath handling
-			for (let i = 1; i < pathnameParts.length + 1; i++) {
-				const curPathname = pathnameParts.slice(0, i).join('/');
-
-				if (curPathname) {
-					derivedTags.push(curPathname);
-
-					if (!derivedTags.includes(curPathname)) {
-						derivedTags.push(curPathname);
-					}
-				}
-			}
-		} else if (!derivedTags.includes(tag)) {
-			derivedTags.push(tag);
-		}
-	}
-	return derivedTags;
 }
