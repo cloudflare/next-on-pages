@@ -5,4 +5,3 @@ export * from './pcre';
 export * from './routing';
 export * from './images';
 export * from './fetch';
-export * from './cache-interface';

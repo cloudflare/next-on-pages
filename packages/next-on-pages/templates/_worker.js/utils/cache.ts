@@ -1,19 +1,16 @@
-import type { CacheInterface } from './cache-interface';
 import {
+	CacheInterface,
+	IncrementalCacheValue,
 	SUSPENSE_CACHE_URL,
-	getSuspenseCacheInterface,
-} from './cache-interface';
-
+} from '../../cache';
+import { CacheApiInterface } from '../../cache/cache-api';
 /**
  * Handles an internal request to the suspense cache.
  *
  * @param request Incoming request to handle.
  * @returns Response to the request, or null if the request is not for the suspense cache.
  */
-export async function handleSuspenseCacheRequest(
-	request: Request,
-	revalidatedTags: Set<string>
-) {
+export async function handleSuspenseCacheRequest(request: Request) {
 	const baseUrl = `https://${SUSPENSE_CACHE_URL}/v1/suspense-cache/`;
 	if (!request.url.startsWith(baseUrl)) return null;
 
@@ -24,9 +21,10 @@ export async function handleSuspenseCacheRequest(
 		if (url.pathname === '/v1/suspense-cache/revalidate') {
 			// Update the revalidated timestamp for the tags in the tags manifest.
 			const tags = url.searchParams.get('tags')?.split(',') ?? [];
-			await cache.setTags(tags, { revalidatedAt: Date.now() });
 
-			tags.forEach(tag => revalidatedTags.add(tag));
+			for (const tag of tags) {
+				await cache.revalidateTag(tag);
+			}
 
 			return new Response(null, { status: 200 });
 		}
@@ -38,15 +36,27 @@ export async function handleSuspenseCacheRequest(
 		}
 
 		switch (request.method) {
-			case 'GET':
+			case 'GET': {
 				// Retrieve the value from the cache.
-				return handleRetrieveEntry(cache, cacheKey, { revalidatedTags });
-			case 'POST':
-				// Update the value in the cache.
-				return handleUpdateEntry(cache, cacheKey, {
-					body: await request.text(),
-					revalidatedTags,
+				const data = await cache.get(cacheKey);
+				if (!data) return new Response(null, { status: 404 });
+
+				return new Response(JSON.stringify(data.value), {
+					status: 200,
+					headers: {
+						'Content-Type': 'application/json',
+						'x-vercel-cache-state': 'fresh',
+						age: `${(Date.now() - (data.lastModified ?? Date.now())) / 1000}`,
+					},
 				});
+			}
+			case 'POST': {
+				// Update the value in the cache.
+				const body = await request.json<IncrementalCacheValue>();
+				await cache.set(cacheKey, body);
+
+				return new Response(null, { status: 200 });
+			}
 			default:
 				return new Response(null, { status: 405 });
 		}
@@ -58,92 +68,11 @@ export async function handleSuspenseCacheRequest(
 }
 
 /**
- * Retrieves a value from the suspense cache.
+ * Gets the cache interface to use for the suspense cache.
  *
- * @param cache Interface for the suspense cache.
- * @param cacheKey Key of the cached value to retrieve.
- * @returns Response with the cached value.
+ * @returns Interface for the suspense cache.
  */
-async function handleRetrieveEntry(
-	cache: CacheInterface,
-	cacheKey: string,
-	{ revalidatedTags }: { revalidatedTags: Set<string> }
-) {
-	// Get entry from the cache.
-	const entry = await cache.get(cacheKey);
-	if (!entry) return new Response(null, { status: 404 });
-
-	let data: CacheEntry;
-	try {
-		data = JSON.parse(entry) as CacheEntry;
-	} catch (e) {
-		return new Response('Failed to parse cache entry', { status: 400 });
-	}
-
-	// Load the tags manifest.
-	await cache.loadTagsManifest();
-
-	// Check if the cache entry is stale or fresh based on the tags.
-	const tags = getDerivedTags(data.value.data.tags ?? []);
-	const isStale = tags.some(tag => {
-		const tagEntry = cache.tagsManifest?.items?.[tag];
-		return (
-			tagEntry?.revalidatedAt && tagEntry?.revalidatedAt >= data.lastModified
-		);
-	});
-
-	const cacheAge =
-		(Date.now() - data.lastModified) / 1000 +
-		// If the cache entry is stale, add the revalidate interval to properly force a revalidation.
-		(isStale ? data.value.revalidate : 0);
-
-	if (isStale && tags.some(tag => revalidatedTags.has(tag))) {
-		return new Response('Forced revalidation for server actions', {
-			status: 404,
-		});
-	}
-
-	// Return the value from the cache.
-	return new Response(JSON.stringify(data.value), {
-		status: 200,
-		headers: {
-			'Content-Type': 'application/json',
-			'x-vercel-cache-state': 'fresh',
-			age: `${cacheAge}`,
-		},
-	});
-}
-
-/**
- * Updates an entry in the suspense cache.
- *
- * @param cache Interface for the suspense cache.
- * @param cacheKey Key of the cached value to update.
- * @param body Body of the request to update the cache entry with.
- * @returns Response indicating the success of the operation.
- */
-async function handleUpdateEntry(
-	cache: CacheInterface,
-	cacheKey: string,
-	{ body, revalidatedTags }: { body: string; revalidatedTags: Set<string> }
-) {
-	const newEntry: CacheEntry = {
-		lastModified: Date.now(),
-		value: JSON.parse(body),
-	};
-
-	// Update the cache entry.
-	await cache.set(cacheKey, JSON.stringify(newEntry), {
-		headers: new Headers({
-			'cache-control': `max-age=${newEntry.value.revalidate}`,
-		}),
-	});
-
-	// Update the tags with the cache key.
-	const tags = newEntry.value.data.tags ?? [];
-	await cache.setTags(tags, { cacheKey });
-
-	getDerivedTags(tags).forEach(tag => revalidatedTags.delete(tag));
-
-	return new Response(null, { status: 200 });
+export async function getSuspenseCacheInterface(): Promise<CacheInterface> {
+	// TODO: Try to lazy import the custom cache interface.
+	return new CacheApiInterface();
 }

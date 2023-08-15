@@ -1,6 +1,6 @@
+import { SUSPENSE_CACHE_URL } from '../cache';
 import { handleRequest } from './handleRequest';
 import {
-	SUSPENSE_CACHE_URL,
 	adjustRequestForVercel,
 	handleImageResizingRequest,
 	patchFetch,
