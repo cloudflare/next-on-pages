@@ -1,6 +1,5 @@
 import type { IncrementalCacheValue } from './interface';
 import { CacheInterface, SUSPENSE_CACHE_URL } from './interface';
-import { withMemoryInterfaceInDev } from './memory';
 
 /** Suspense Cache interface for the Cache API. */
 export class CacheApiInterface extends CacheInterface {
@@ -43,5 +42,3 @@ export class CacheApiInterface extends CacheInterface {
 		return `https://${SUSPENSE_CACHE_URL}/entry/${key}`;
 	}
 }
-
-export default withMemoryInterfaceInDev;
