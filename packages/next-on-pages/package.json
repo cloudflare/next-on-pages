@@ -44,7 +44,7 @@
 		"zodcli": "^0.0.4"
 	},
 	"peerDependencies": {
-		"vercel": "^30.0.0",
+		"vercel": "^30.0.0 || ^31.0.0",
 		"wrangler": "^3.0.0"
 	},
 	"devDependencies": {
