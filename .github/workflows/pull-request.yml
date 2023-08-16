@@ -48,6 +48,11 @@ jobs:
 
       - name: Setup Node
         uses: ./.github/actions/node-setup
+        with:
+          # the e2es have continuous issues with node modules, it seems to be
+          # related to caching (probably because the various fixtures run `npm i`
+          # themselves), so for the time being we skip node modules caching here
+          skip-caching: true
 
       - name: Run e2e tests
         uses: nick-fields/retry@v2
