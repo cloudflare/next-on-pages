@@ -1,7 +1,6 @@
 import { afterAll, expect, suite, test, vi } from 'vitest';
 import {
 	checkRouteMatchTestSet,
-	// configRewritesRedirectsHeadersTestSet,
 	dynamicRoutesTestSet,
 	i18nTestSet,
 	infiniteLoopTestSet,
@@ -136,7 +135,6 @@ vi.mock('esbuild', async () => {
 suite('router', () => {
 	[
 		checkRouteMatchTestSet,
-		// configRewritesRedirectsHeadersTestSet,
 		dynamicRoutesTestSet,
 		i18nTestSet,
 		infiniteLoopTestSet,

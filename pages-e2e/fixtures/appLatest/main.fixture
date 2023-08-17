@@ -4,7 +4,8 @@
 		"simpleAppSsrRoutes",
 		"simpleAppStaticRoutesAndAssets",
 		"appMiddleware",
-		"appRouting"
+		"appRouting",
+		"appConfigsRewritesRedirectsHeaders"
 	],
 	"localSetup": "./setup.sh",
 	"buildConfig": {

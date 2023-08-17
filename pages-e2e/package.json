@@ -7,9 +7,11 @@
 		"test:e2e": "npm i ; npx @cfpreview/pages-e2e-test-runner-cli --environment=local"
 	},
 	"dependencies": {
-		"@cfpreview/pages-e2e-test-runner-cli": "^0.0.25"
+		"@cfpreview/pages-e2e-test-runner-cli": "^0.0.25",
+		"recast": "^0.23.4"
 	},
 	"devDependencies": {
-		"playwright": "^1.36.1"
+		"playwright": "^1.36.1",
+		"wrangler": "^3.5.1"
 	}
 }
