@@ -14,6 +14,3 @@ cp -a application/. .
 
 # Delete the no longer needed application directory
 rm -rf application
-
-# Install the local next-on-pages package
-npm i ../../../packages/next-on-pages
