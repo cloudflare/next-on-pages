@@ -4,7 +4,8 @@
 		"simplePagesSsrRoutes",
 		"simplePagesStaticRoutesAndAssets",
 		"pagesMiddleware",
-		"pagesRouting"
+		"pagesRouting",
+		"pagesConfigsRewritesRedirectsHeaders"
 	],
 	"localSetup": "./setup.sh",
 	"buildConfig": {
