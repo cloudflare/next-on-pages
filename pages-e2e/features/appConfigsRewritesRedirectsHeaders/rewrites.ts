@@ -31,13 +31,11 @@ export function rewrites() {
           destination: "/configs-rewrites/some-page",
         },
       ],
-    //   fallback: [
-    //     // These rewrites are checked after both pages/public files
-    //     // and dynamic routes are checked
-    //     {
-    //       source: '/:path*',
-    //       destination: `https://my-old-site.com/:path*`,
-    //     },
-    //   ],
+      fallback: [
+        {
+          source: '/configs-rewrites/:path*',
+          destination: "/configs-rewrites/some-page",
+        },
+      ],
     };
 }

@@ -95,17 +95,19 @@ describe('next.config.js Rewrites', () => {
         });
     });
 
-    // describe('fallbacks', () => {
-    //     // {
-    //     //     name: 'rewrites - `fallback`: rewrites on any request that has not been matched',
-    //     //     paths: ['/plain?test=1'],
-    //     //     expected: {
-    //     //         status: 200,
-    //     //         data: 'external test url response: https://external-test-url.com/plain?test=1',
-    //     //         headers: {
-    //     //             'content-type': 'text/plain;charset=UTF-8',
-    //     //         },
-    //     //     },
-    //     // },
-    // });
+    describe('fallbacks', () => {
+        test('basic fallback rewrite', async ({expect}) => {
+            const page = await BROWSER.newPage();
+            const assertVisible = getAssertVisible(page);
+
+            const pageUrl = `${DEPLOYMENT_URL}/configs-rewrites/some-non-existing-page`;
+
+            await page.goto(pageUrl);
+
+            await assertVisible('h1', { hasText: 'This is the "some-page" page' });
+            await assertVisible('h2', { hasText: 'This page is static' });
+
+            expect(page.url()).toEqual(pageUrl);
+        });
+    });
 });
