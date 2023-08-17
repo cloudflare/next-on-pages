@@ -3,111 +3,116 @@ import { runWithHardNavigationsChecking } from '@features-utils/runWithHardNavig
 import { describe, test } from 'vitest';
 
 describe('next.config.js Rewrites', () => {
+	// Note: in next you can have basic rewrites or rewrites categorized under "beforeFiles", "afterFiles"
+	//       and "fallbacks", since you can have both and categorized rewrites here we choose to test
+	//       categorized ones (if this works it should imply that also t he basic ones do)
+	//       if need be we might add new fixtures+features to also test basic ones
 
-    // Note: in next you can have basic rewrites or rewrites categorized under "beforeFiles", "afterFiles"
-    //       and "fallbacks", since you can have both and categorized rewrites here we choose to test
-    //       categorized ones (if this works it should imply that also t he basic ones do)
-    //       if need be we might add new fixtures+features to also test basic ones
+	describe('beforeFiles', () => {
+		test('no rewrite is applied when not requested', async ({ expect }) => {
+			const page = await BROWSER.newPage();
+			const assertVisible = getAssertVisible(page);
 
-    describe("beforeFiles", () => {
-        test('no rewrite is applied when not requested', async ({expect}) => {
-            const page = await BROWSER.newPage();
-            const assertVisible = getAssertVisible(page);
+			const pageUrl = `${DEPLOYMENT_URL}/configs-rewrites/some-page`;
 
-            const pageUrl = `${DEPLOYMENT_URL}/configs-rewrites/some-page`;
+			await page.goto(pageUrl);
 
-            await page.goto(pageUrl);
-            
-            await assertVisible('h1', { hasText: 'This is the "some-page" page' });
-            
-            expect(page.url()).toEqual(pageUrl);
-        });
+			await assertVisible('h1', { hasText: 'This is the "some-page" page' });
 
-        test('rewrite based wildcard path matching', async ({expect}) => {
-            const page = await BROWSER.newPage();
-            const assertVisible = getAssertVisible(page);
+			expect(page.url()).toEqual(pageUrl);
+		});
 
-            const pageUrl = `${DEPLOYMENT_URL}/configs-rewrites/wildcard/my-page`;
+		test('rewrite based wildcard path matching', async ({ expect }) => {
+			const page = await BROWSER.newPage();
+			const assertVisible = getAssertVisible(page);
 
-            await page.goto(pageUrl);
-            
-            await assertVisible('h1', { hasText: 'This is the "rewritten-wildcard/my-page" page' });
+			const pageUrl = `${DEPLOYMENT_URL}/configs-rewrites/wildcard/my-page`;
 
-            expect(page.url()).toEqual(pageUrl);
-        });
+			await page.goto(pageUrl);
 
-        test('simple rewrite based on query', async ({expect}) => {
-            const page = await BROWSER.newPage();
-            const assertVisible = getAssertVisible(page);
+			await assertVisible('h1', {
+				hasText: 'This is the "rewritten-wildcard/my-page" page',
+			});
 
-            const pageUrl = `${DEPLOYMENT_URL}/configs-rewrites/some-page?overrideMe=true`;
+			expect(page.url()).toEqual(pageUrl);
+		});
 
-            await page.goto(pageUrl);
-            
-            await assertVisible('h1', { hasText: 'This is the "query-somewhere-else" page' });
+		test('simple rewrite based on query', async ({ expect }) => {
+			const page = await BROWSER.newPage();
+			const assertVisible = getAssertVisible(page);
 
-            expect(page.url()).toEqual(pageUrl);
-        });
+			const pageUrl = `${DEPLOYMENT_URL}/configs-rewrites/some-page?overrideMe=true`;
 
-        test('simple rewrite based on header', async ({expect}) => {
-            const page = await BROWSER.newPage();
-            const assertVisible = getAssertVisible(page);
-            
-            await page.setExtraHTTPHeaders({
-                overrideMe: 'true'
-            });
-            const pageUrl = `${DEPLOYMENT_URL}/configs-rewrites/some-page`;
+			await page.goto(pageUrl);
 
-            await page.goto(pageUrl);
-            
-            await assertVisible('h1', { hasText: 'This is the "header-somewhere-else" page' });
+			await assertVisible('h1', {
+				hasText: 'This is the "query-somewhere-else" page',
+			});
 
-            expect(page.url()).toEqual(pageUrl);
-        });
-    });
+			expect(page.url()).toEqual(pageUrl);
+		});
 
-    describe('afterFiles', () => {
-        test('static path rewrites not to apply', async ({expect}) => {
-            const page = await BROWSER.newPage();
-            const assertVisible = getAssertVisible(page);
+		test('simple rewrite based on header', async ({ expect }) => {
+			const page = await BROWSER.newPage();
+			const assertVisible = getAssertVisible(page);
 
-            const pageUrl = `${DEPLOYMENT_URL}/configs-rewrites/some-page`;
+			await page.setExtraHTTPHeaders({
+				overrideMe: 'true',
+			});
+			const pageUrl = `${DEPLOYMENT_URL}/configs-rewrites/some-page`;
 
-            await page.goto(pageUrl);
-            
-            await assertVisible('h1', { hasText: 'This is the "some-page" page' });
+			await page.goto(pageUrl);
 
-            expect(page.url()).toEqual(pageUrl);
-        });
+			await assertVisible('h1', {
+				hasText: 'This is the "header-somewhere-else" page',
+			});
 
-        test('dynamic path rewrite', async ({expect}) => {
-            const page = await BROWSER.newPage();
-            const assertVisible = getAssertVisible(page);
+			expect(page.url()).toEqual(pageUrl);
+		});
+	});
 
-            const pageUrl = `${DEPLOYMENT_URL}/configs-rewrites/dynamic/some-dynamic-page`;
+	describe('afterFiles', () => {
+		test('static path rewrites not to apply', async ({ expect }) => {
+			const page = await BROWSER.newPage();
+			const assertVisible = getAssertVisible(page);
 
-            await page.goto(pageUrl);
+			const pageUrl = `${DEPLOYMENT_URL}/configs-rewrites/some-page`;
 
-            await assertVisible('h1', { hasText: 'This is the "some-page" page' });
-            await assertVisible('h2', { hasText: 'This page is static' });
+			await page.goto(pageUrl);
 
-            expect(page.url()).toEqual(pageUrl);
-        });
-    });
+			await assertVisible('h1', { hasText: 'This is the "some-page" page' });
 
-    describe('fallbacks', () => {
-        test('basic fallback rewrite', async ({expect}) => {
-            const page = await BROWSER.newPage();
-            const assertVisible = getAssertVisible(page);
+			expect(page.url()).toEqual(pageUrl);
+		});
 
-            const pageUrl = `${DEPLOYMENT_URL}/configs-rewrites/some-non-existing-page`;
+		test('dynamic path rewrite', async ({ expect }) => {
+			const page = await BROWSER.newPage();
+			const assertVisible = getAssertVisible(page);
 
-            await page.goto(pageUrl);
+			const pageUrl = `${DEPLOYMENT_URL}/configs-rewrites/dynamic/some-dynamic-page`;
 
-            await assertVisible('h1', { hasText: 'This is the "some-page" page' });
-            await assertVisible('h2', { hasText: 'This page is static' });
+			await page.goto(pageUrl);
 
-            expect(page.url()).toEqual(pageUrl);
-        });
-    });
+			await assertVisible('h1', { hasText: 'This is the "some-page" page' });
+			await assertVisible('h2', { hasText: 'This page is static' });
+
+			expect(page.url()).toEqual(pageUrl);
+		});
+	});
+
+	describe('fallbacks', () => {
+		test('basic fallback rewrite', async ({ expect }) => {
+			const page = await BROWSER.newPage();
+			const assertVisible = getAssertVisible(page);
+
+			const pageUrl = `${DEPLOYMENT_URL}/configs-rewrites/some-non-existing-page`;
+
+			await page.goto(pageUrl);
+
+			await assertVisible('h1', { hasText: 'This is the "some-page" page' });
+			await assertVisible('h2', { hasText: 'This page is static' });
+
+			expect(page.url()).toEqual(pageUrl);
+		});
+	});
 });
