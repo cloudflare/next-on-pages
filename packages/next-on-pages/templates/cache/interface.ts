@@ -1,4 +1,4 @@
-export const SUSPENSE_CACHE_URL = 'INTERNAL_SUSPENSE_CACHE_HOSTNAME';
+export const SUSPENSE_CACHE_URL = 'INTERNAL_SUSPENSE_CACHE_HOSTNAME.local';
 
 // Set to track the revalidated tags in requests.
 const revalidatedTags = new Set<string>();
