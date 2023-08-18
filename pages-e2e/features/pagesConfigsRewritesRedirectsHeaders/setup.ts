@@ -5,6 +5,7 @@ import * as recast from 'recast';
 import { copyWorkspaceAssets } from '../_utils/copyWorkspaceAssets';
 import { redirects } from './redirects';
 import { rewrites } from './rewrites';
+import { headers } from './headers';
 
 await copyWorkspaceAssets();
 
@@ -26,6 +27,7 @@ recast.visit(ast, {
 			nextConfigAst.properties.push(
 				generateProp('redirects'),
 				generateProp('rewrites'),
+				generateProp('headers'),
 			);
 		}
 		this.traverse(path);
@@ -39,13 +41,18 @@ await writeFile(
 
 await writeFile(nextConfigJsPath, recast.print(ast).code);
 
-function generateProp(type: 'redirects' | 'rewrites') {
+function generateProp(type: 'redirects' | 'rewrites' | 'headers') {
 	const { property, identifier, arrowFunctionExpression } =
 		recast.types.builders;
 
-	const functionBody = recast.parse(
-		(type === 'redirects' ? redirects : rewrites).toString(),
-	).program.body[0].body;
+	const targetFunction = {
+		redirects,
+		rewrites,
+		headers,
+	}[type];
+
+	const functionBody = recast.parse(targetFunction.toString()).program.body[0]
+		.body;
 
 	const fn = arrowFunctionExpression([], functionBody);
 	fn.async = true;

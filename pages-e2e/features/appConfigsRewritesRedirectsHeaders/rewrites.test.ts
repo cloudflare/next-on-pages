@@ -1,5 +1,4 @@
 import { getAssertVisible } from '@features-utils/getAssertVisible';
-import { runWithHardNavigationsChecking } from '@features-utils/runWithHardNavigationsChecking';
 import { describe, test } from 'vitest';
 
 describe('next.config.js Rewrites', () => {
