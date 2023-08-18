@@ -132,9 +132,7 @@ export class CacheInterface {
 			// noop
 		}
 
-		if (!this.tagsManifest) {
-			this.tagsManifest = { version: 1, items: {} };
-		}
+		this.tagsManifest ??= { version: 1, items: {} };
 	}
 
 	/**
