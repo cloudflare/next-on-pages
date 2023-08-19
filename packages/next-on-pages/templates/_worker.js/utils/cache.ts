@@ -1,9 +1,10 @@
 import {
-	CacheInterface,
+	CacheAdaptor,
 	IncrementalCacheValue,
 	SUSPENSE_CACHE_URL,
 } from '../../cache';
-import { CacheApiInterface } from '../../cache/cache-api';
+import { CacheApiAdaptor } from '../../cache/cache-api';
+
 /**
  * Handles an internal request to the suspense cache.
  *
@@ -16,7 +17,7 @@ export async function handleSuspenseCacheRequest(request: Request) {
 
 	try {
 		const url = new URL(request.url);
-		const cache = await getSuspenseCacheInterface();
+		const cache = await getSuspenseCacheAdaptor();
 
 		if (url.pathname === '/v1/suspense-cache/revalidate') {
 			// Update the revalidated timestamp for the tags in the tags manifest.
@@ -68,11 +69,11 @@ export async function handleSuspenseCacheRequest(request: Request) {
 }
 
 /**
- * Gets the cache interface to use for the suspense cache.
+ * Gets the cache adaptor to use for the suspense cache.
  *
- * @returns Interface for the suspense cache.
+ * @returns Adaptor for the suspense cache.
  */
-export async function getSuspenseCacheInterface(): Promise<CacheInterface> {
-	// TODO: Try to lazy import the custom cache interface.
-	return new CacheApiInterface();
+export async function getSuspenseCacheAdaptor(): Promise<CacheAdaptor> {
+	// TODO: Try to lazy import the custom cache adaptor.
+	return new CacheApiAdaptor();
 }

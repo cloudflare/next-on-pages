@@ -1,28 +1,26 @@
-import type { IncrementalCacheValue } from './interface';
-import { CacheInterface, SUSPENSE_CACHE_URL } from './interface';
+import { CacheAdaptor, SUSPENSE_CACHE_URL } from './adaptor';
 
-/** Suspense Cache interface for the Cache API. */
-export class CacheApiInterface extends CacheInterface {
+/** Suspense Cache adaptor for the Cache API. */
+export class CacheApiAdaptor extends CacheAdaptor {
+	/** Name of the cache to open in the Cache API. */
+	public cacheName = 'suspense-cache';
+
 	constructor(ctx: Record<string, unknown> = {}) {
 		super(ctx);
 	}
 
 	public override async retrieve(key: string) {
-		const cache = await caches.open('suspense-cache');
+		const cache = await caches.open(this.cacheName);
 
 		const response = await cache.match(this.buildCacheKey(key));
 		return response ? response.text() : null;
 	}
 
 	public override async update(key: string, value: string) {
-		const cache = await caches.open('suspense-cache');
+		const cache = await caches.open(this.cacheName);
 
-		// Figure out the max-age for the cache entry.
-		const entry = JSON.parse(value) as IncrementalCacheValue;
-		const maxAge =
-			key === this.tagsManifestKey || entry.kind !== 'FETCH'
-				? '31536000'
-				: entry.revalidate;
+		// The max-age to use for the cache entry.
+		const maxAge = '31536000'; // 1 year
 
 		const response = new Response(value, {
 			headers: new Headers({

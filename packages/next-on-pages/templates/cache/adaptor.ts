@@ -1,10 +1,11 @@
+// NOTE: This is given the same name that the environment variable has in the Next.js source code.
 export const SUSPENSE_CACHE_URL = 'INTERNAL_SUSPENSE_CACHE_HOSTNAME.local';
 
 // Set to track the revalidated tags in requests.
 const revalidatedTags = new Set<string>();
 
-/** Generic interface for the Suspense Cache. */
-export class CacheInterface {
+/** Generic adaptor for the Suspense Cache. */
+export class CacheAdaptor {
 	/** The tags manifest for fetch calls. */
 	public tagsManifest: TagsManifest | undefined;
 	/** The key used for the tags manifest in the cache. */
