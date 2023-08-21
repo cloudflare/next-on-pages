@@ -1,9 +1,5 @@
-import type {
-	CacheAdaptor,
-	IncrementalCacheValue} from '../../cache';
-import {
-	SUSPENSE_CACHE_URL,
-} from '../../cache';
+import type { CacheAdaptor, IncrementalCacheValue } from '../../cache';
+import { SUSPENSE_CACHE_URL } from '../../cache';
 import { CacheApiAdaptor } from '../../cache/cache-api';
 
 /**
