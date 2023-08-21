@@ -91,7 +91,20 @@ export async function runOrFetchBuildOutputItem(
 			case 'function':
 			case 'middleware': {
 				const edgeFunction: EdgeFunction = await import(item.entrypoint);
-				resp = await edgeFunction.default(req, ctx);
+				try {
+					resp = await edgeFunction.default(req, ctx);
+				} catch (e) {
+					const err = e as Error;
+					if (
+						err.name === 'TypeError' &&
+						err.message.endsWith('default is not a function')
+					) {
+						throw new Error(
+							`An error occurred while evaluating the target edge function (${item.entrypoint})`,
+						);
+					}
+					throw e;
+				}
 				break;
 			}
 			case 'override': {
