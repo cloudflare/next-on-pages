@@ -12,7 +12,7 @@ export class CacheAdaptor {
 	public tagsManifestKey = 'tags-manifest';
 
 	/**
-	 * @param ctx The incremental cache context.
+	 * @param ctx The incremental cache context from Next.js. NOTE: This is not currently utilised in NOP.
 	 */
 	constructor(protected ctx: Record<string, unknown> = {}) {}
 
