@@ -454,6 +454,14 @@ function fixFunctionContents(contents: string): string {
 		'$1null$2null$3null$4',
 	);
 
+	// The workers runtime does not implement `cache` on RequestInit. This is used in Next.js' patched fetch.
+	// Due to this, we remove the `cache` property from those that Next.js adds to RequestInit.
+	// https://github.com/vercel/next.js/blob/269114b5cc583f0c91e687c1aeb61503ef681b91/packages/next/src/server/lib/patch-fetch.ts#L304
+	contents = contents.replace(
+		/"cache",("credentials","headers","integrity","keepalive","method","mode","redirect","referrer")/gm,
+		'$1',
+	);
+
 	return contents;
 }
 

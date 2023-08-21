@@ -1,3 +1,4 @@
+import { SUSPENSE_CACHE_URL } from '../cache';
 import { handleRequest } from './handleRequest';
 import {
 	adjustRequestForVercel,
@@ -25,8 +26,10 @@ export default {
 				{ status: 503 },
 			);
 		}
+
 		return envAsyncLocalStorage.run(
-			{ ...env, NODE_ENV: __NODE_ENV__ },
+			// NOTE: The `SUSPENSE_CACHE_URL` is used to tell the Next.js Fetch Cache where to send requests.
+			{ ...env, NODE_ENV: __NODE_ENV__, SUSPENSE_CACHE_URL },
 			async () => {
 				const url = new URL(request.url);
 				if (url.pathname.startsWith('/_next/image')) {
