@@ -3,7 +3,7 @@
 	"version": "1.5.1",
 	"bin": "./bin/index.js",
 	"scripts": {
-		"lint": "eslint src",
+		"lint": "eslint src templates",
 		"types-check": "tsc --noEmit",
 		"build": "esbuild --bundle --platform=node ./src/index.ts --external:esbuild --external:chokidar --outfile=./dist/index.js",
 		"build:watch": "npm run build -- --watch=forever",

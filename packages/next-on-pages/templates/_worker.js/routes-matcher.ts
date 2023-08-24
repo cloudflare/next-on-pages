@@ -476,7 +476,7 @@ export class RoutesMatcher {
 				// This happens with invalid `/_next/static/...` and `/_next/data/...` requests.
 
 				if (phase !== 'miss') {
-					return await this.checkPhase(getNextPhase(phase));
+					return this.checkPhase(getNextPhase(phase));
 				}
 
 				this.status = 404;
@@ -485,7 +485,7 @@ export class RoutesMatcher {
 				// avoids rewrites in `none` that do the opposite of those in `miss`, and would cause infinite
 				// loops (e.g. i18n). If it is in the build output, remove a potentially applied `404` status.
 				if (!(this.path in this.output)) {
-					return await this.checkPhase('filesystem');
+					return this.checkPhase('filesystem');
 				}
 
 				if (this.status === 404) {
@@ -494,7 +494,7 @@ export class RoutesMatcher {
 			} else {
 				// In all other instances, we need to enter the `none` phase so we can ensure that requests
 				// for the `RSC` variant of pages are served correctly.
-				return await this.checkPhase('none');
+				return this.checkPhase('none');
 			}
 		}
 
@@ -577,7 +577,7 @@ export class RoutesMatcher {
 			nextPhase = getNextPhase(phase);
 		}
 
-		return await this.checkPhase(nextPhase);
+		return this.checkPhase(nextPhase);
 	}
 
 	/**
