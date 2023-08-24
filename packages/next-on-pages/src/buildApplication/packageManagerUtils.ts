@@ -119,7 +119,9 @@ export async function getPackageManagerInfo(
 					pm === 'yarn (berry)'
 						? (useDlx: boolean) => [useDlx ? 'dlx' : 'exec']
 						: undefined,
-				infoArgs: ['info'],
+				infoArgs: ['list', '--pattern'],
+				getPackageVersionRegex: (name: string) =>
+					new RegExp(`"name":"${name}@(.*?)"`, 'i'),
 			};
 		case 'npm':
 		default:
