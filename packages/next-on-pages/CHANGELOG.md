@@ -1,5 +1,36 @@
 # @cloudflare/next-on-pages
 
+## 1.6.0
+
+### Minor Changes
+
+- 291bfde: Support for the internal fetch (suspense) cache, and `next/cache` data revalidation.
+
+### Patch Changes
+
+- cb32baf: avoid the default is not a function unclear error
+
+  if there is some issue evaluating a lazy loaded edge function
+  its default export ends up not being a function and that results
+  in an unhelpful error like the following:
+
+  ```
+   TypeError: u.default is not a function
+  ```
+
+  slightly improve the user experience by catching such error and
+  letting the user know that something went wrong with the edge
+  function's evaluation:
+
+  ```
+   Error: An error occurred while evaluating the target edge function (<edge-function-path>)
+  ```
+
+- 291bfde: Stop the `cache` property in fetch requests causing internal server error.
+- 4570aa6: add vercel@31 as a peer dependency
+- c788def: fix package version detection for yarn
+- fe6ea04: Add vercel@32 as a peer dependency
+
 ## 1.5.1
 
 ### Patch Changes
