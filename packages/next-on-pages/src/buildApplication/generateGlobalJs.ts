@@ -20,6 +20,8 @@ export function generateGlobalJs(): string {
 				env: new Proxy(
 					{},
 					{
+						ownKeys: () => Reflect.ownKeys(envAsyncLocalStorage.getStore()),
+						getOwnPropertyDescriptor: () => ({ enumerable: true, configurable: true }),
 						get: (_, property) => Reflect.get(envAsyncLocalStorage.getStore(), property),
 						set: (_, property, value) => Reflect.set(envAsyncLocalStorage.getStore(), property, value),
 				}),
