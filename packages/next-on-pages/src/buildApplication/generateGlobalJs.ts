@@ -21,7 +21,8 @@ export function generateGlobalJs(): string {
 					{},
 					{
 						ownKeys: () => Reflect.ownKeys(envAsyncLocalStorage.getStore()),
-            getOwnPropertyDescriptor: (_, ...args) => Object.getOwnPropertyDescriptor(als.getStore(), ...args),
+						getOwnPropertyDescriptor: (_, ...args) =>
+							Reflect.getOwnPropertyDescriptor(envAsyncLocalStorage.getStore(), ...args),
 						get: (_, property) => Reflect.get(envAsyncLocalStorage.getStore(), property),
 						set: (_, property, value) => Reflect.set(envAsyncLocalStorage.getStore(), property, value),
 				}),
