@@ -6,13 +6,11 @@
 
 ## Supported Next.js versions
 
-Based on manual testing, it seems like the latest Next.js version (`13.4.2` at the time of writing) is supported.
+`@cloudflare/next-on-pages` supports all minor and patch version of Next.js 13. We regularly run manual and automated tests to ensure such compatibility.
 
-Earlier and Later versions might be only partially supported, we don't fully know.
+Next.js canary versions are not included.
 
-> The team is very soon going to test various different versions and make improvements to the documentation on which Next.js versions are supported and to what degree.
-
-## Supported Features
+> The edge runtime has been introduced as experimental since [Next.js 12.2](https://nextjs.org/blog/next-12-2#edge-server-rendering-experimental) so versions prior that that are inherently not compatible with the Cloudflare Pages runtime. Moreover the Next.js edge runtime has been significantly experimental early on, that's why we don't recommend using any Next.js version earlier than 13.0.0.
 
 ### Node.js
 
@@ -28,11 +26,25 @@ The [Cloudflare workers runtime supports certain Node.js APIs](https://developer
 - `util`
 - `async_hooks`
 
-### External Packages
+## External Packages
 
 You can use any external npm package in your Next.js application, but keep in mind that many packages do rely on Node.js APIs, which, as presented in the previous section could not be supported.
 
+There are also packages which although not requiring node.js APIs don't work with `@cloudflare/next-on-pages` (and/or with Cloudflare's runtime in general) for example those that dynamically evaluate javascript code ([not allowed in the Workers runtime](https://developers.cloudflare.com/workers/runtime-apis/web-standards/#javascript-standards)) or that rely on features not supported by `@cloudflare/next-on-pages`.
+
 If you're application is using a package which relies on unsupported Node.js APIs there is often little to be done, generally the only feasible solutions are to either look for an alternative edge-compatible package or see if the current package could be updated in an edge-compatible manner.
+
+In case a used package is instead incompatible because of other reasons workarounds can or not be possible depending on the incompatibility.
+
+## Supported Features
+
+### Routers
+
+Both the [Pages](https://nextjs.org/docs/pages) and [App](https://nextjs.org/docs/app) routers are supported, however we recommend using the App router as there are a few unsupported features in the Pages one (including [custom error pages](https://github.com/cloudflare/next-on-pages/issues/174)), and since the latter is not the recommended one by the Next.js team, there is a good chance that it won't be improved/worked on to such a degree to allows us to increase our support of it.
+
+The App router should be fully supported, but unfortunately a few of its features aren't currently supported (because of Vercel implementation details that are outside of our control) like for example [custom not-found pages with server side runtime logic](https://github.com/cloudflare/next-on-pages/issues/413).
+
+To check the latest state of the routers and possible missing features you can check our GitHub [app router](https://github.com/cloudflare/next-on-pages/issues?q=is%3Aopen+is%3Aissue+label%3A%22app+router%22) and [pages router](https://github.com/cloudflare/next-on-pages/issues?q=is%3Aopen+is%3Aissue+label%3A%22pages+router%22) issues.
 
 ### Build Output Configuration
 
@@ -182,6 +194,6 @@ export async function getStaticPaths() {
 
 > Note that the `paths` array cannot be empty as that causes Next.js to ignore the provided `fallback` value, so make sure that at build time at least one entry is present in the array
 
-#### Revalidating Data and `next/cache`
+#### Caching and Data Revalidation
 
 Revalidation and `next/cache` are supported on Cloudflare Pages, and can use various bindings. For more information, see our [caching documentation](./caching).
