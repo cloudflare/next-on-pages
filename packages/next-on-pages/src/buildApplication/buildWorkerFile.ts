@@ -5,6 +5,7 @@ import { tmpdir } from 'os';
 import { generateGlobalJs } from './generateGlobalJs';
 import type { ProcessedVercelOutput } from './processVercelOutput';
 import { getNodeEnv } from '../utils/getNodeEnv';
+import { normalizePath } from '../utils';
 
 /**
  * Construct a record for the build output map.
@@ -31,12 +32,10 @@ export function constructBuildOutputRecord(
 
 	return `{
 				type: ${JSON.stringify(item.type)},
-				entrypoint: '${item.entrypoint
-					.replace(outputDir, '')
-					.replace(
-						/^\/_worker\.js\/__next-on-pages-dist__\//,
-						'./__next-on-pages-dist__/',
-					)}'
+				entrypoint: '${normalizePath(item.entrypoint.replace(outputDir, '')).replace(
+					/^\/_worker\.js\/__next-on-pages-dist__\//,
+					'./__next-on-pages-dist__/',
+				)}'
 			}`;
 }
 
