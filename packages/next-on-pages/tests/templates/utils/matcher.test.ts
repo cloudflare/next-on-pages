@@ -10,12 +10,13 @@ type HasFieldTestCase = {
 };
 
 const req = new Request(
-	'https://test.com/index?queryWithValue=value&queryWithoutValue=&name=john',
+	'https://test.com/index?queryWithValue=value&queryWithoutValue=&source=query',
 	{
 		headers: {
+			source: 'header',
 			headerWithValue: 'value',
 			headerWithoutValue: undefined as unknown as string,
-			cookie: 'cookieWithValue=value; cookieWithoutValue=',
+			cookie: 'cookieWithValue=value; cookieWithoutValue=; source=cookie',
 		},
 	},
 );
@@ -91,27 +92,39 @@ describe('hasField', () => {
 		},
 		{
 			name: 'query: has with named capture returns a new dest on match',
-			has: { type: 'query', key: 'name', value: '(?<name>.*)' },
-			dest: '/test/$name',
-			expected: { valid: true, newRouteDest: '/test/john' },
+			has: { type: 'query', key: 'source', value: '(?<source>.*)' },
+			dest: '/source/$source',
+			expected: { valid: true, newRouteDest: '/source/query' },
 		},
 		{
 			name: 'query: has with named capture does not update missing named captures in dest',
-			has: { type: 'query', key: 'name', value: '(?<name>.*)' },
-			dest: '/test/$name/$age',
-			expected: { valid: true, newRouteDest: '/test/john/$age' },
+			has: { type: 'query', key: 'source', value: '(?<source>.*)' },
+			dest: '/source/$source/$age',
+			expected: { valid: true, newRouteDest: '/source/query/$age' },
 		},
 		{
 			name: 'query: has with named capture return valid on match when key is not in dest',
-			has: { type: 'query', key: 'name', value: '(?<name>.*)' },
-			dest: '/test/$age',
-			expected: { valid: true, newRouteDest: '/test/$age' },
+			has: { type: 'query', key: 'source', value: '(?<source>.*)' },
+			dest: '/source/$age',
+			expected: { valid: true, newRouteDest: '/source/$age' },
 		},
 		{
 			name: 'query: has with named capture does not return dest on no matches',
-			has: { type: 'query', key: 'invalidKey', value: '(?<name>.*)' },
-			dest: '/test/$name',
+			has: { type: 'query', key: 'invalidKey', value: '(?<source>.*)' },
+			dest: '/source/$source',
 			expected: { valid: false, newRouteDest: undefined },
+		},
+		{
+			name: 'header: has with named capture returns a new dest on match',
+			has: { type: 'header', key: 'source', value: '(?<source>.*)' },
+			dest: '/source/$source',
+			expected: { valid: true, newRouteDest: '/source/header' },
+		},
+		{
+			name: 'cookie: has with named capture returns a new dest on match',
+			has: { type: 'cookie', key: 'source', value: '(?<source>.*)' },
+			dest: '/source/$source',
+			expected: { valid: true, newRouteDest: '/source/cookie' },
 		},
 	];
 
