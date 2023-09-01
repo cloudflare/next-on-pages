@@ -8,6 +8,7 @@ type TestCase = {
 	name: string;
 	url: string;
 	route: VercelSource;
+	opts?: { namedOnly?: boolean };
 	expected: { match: boolean; captureGroupKeys: string[]; newDest?: string };
 };
 
@@ -50,7 +51,7 @@ describe('matchPCRE', () => {
 			const result = matchPCRE(
 				testCase.route.src,
 				new URL(testCase.url).pathname,
-				testCase.route.caseSensitive,
+				testCase.route.caseSensitive
 			);
 			expect({ ...result, match: !!result.match }).toEqual(testCase.expected);
 		});
@@ -128,6 +129,17 @@ describe('applyPCREMatches', () => {
 			},
 		},
 		{
+			name: 'should only apply matched named capture groups when `namedOnly` is set',
+			url: 'https://example.com/index',
+			route: { src: '^/i(?<name>nde)x(?:/)?', dest: '/new/$name/$dest?id=$id' },
+			opts: { namedOnly: true },
+			expected: {
+				match: true,
+				captureGroupKeys: ['name'],
+				newDest: '/new/nde/$dest?id=$id',
+			},
+		},
+		{
 			name: 'should process dest for a route with named group containing underscore',
 			url: 'https://example.com/index',
 			route: { src: '^/i(?<na_me>nde)x(?:/)?', dest: '/new/$na_me/dest' },
@@ -144,13 +156,14 @@ describe('applyPCREMatches', () => {
 			const { match, captureGroupKeys } = matchPCRE(
 				testCase.route.src,
 				new URL(testCase.url).pathname,
-				testCase.route.caseSensitive,
+				testCase.route.caseSensitive
 			);
 			const result = applyPCREMatches(
 				testCase.route.dest ?? '',
 				// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 				match!,
 				captureGroupKeys,
+				testCase.opts
 			);
 
 			const { newDest: expectedNewDest, ...expected } = testCase.expected;

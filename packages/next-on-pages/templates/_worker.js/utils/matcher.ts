@@ -1,7 +1,10 @@
+import { applyPCREMatches, matchPCRE } from './pcre';
+
 type HasFieldRequestProperties = {
 	url: URL;
 	cookies: Record<string, string>;
 	headers: Headers;
+	routeDest?: string;
 };
 
 /**
@@ -13,34 +16,46 @@ type HasFieldRequestProperties = {
  */
 export function hasField(
 	has: VercelHasField,
-	{ url, cookies, headers }: HasFieldRequestProperties,
-): boolean {
+	{ url, cookies, headers, routeDest }: HasFieldRequestProperties,
+): { valid: boolean; newRouteDest?: string } {
 	switch (has.type) {
 		case 'host': {
-			return url.hostname === has.value;
+			return { valid: url.hostname === has.value };
 		}
 		case 'header': {
 			if (has.value !== undefined) {
-				return !!headers.get(has.key)?.match(has.value);
+				return { valid: !!matchPCRE(has.value, headers.get(has.key)).match };
 			}
 
-			return headers.has(has.key);
+			return { valid: headers.has(has.key) };
 		}
 		case 'cookie': {
 			const cookie = cookies[has.key];
 
-			if (has.value !== undefined) {
-				return !!cookie?.match(has.value);
+			if (cookie && has.value !== undefined) {
+				return { valid: !!matchPCRE(has.value, cookie).match };
 			}
 
-			return cookie !== undefined;
+			return { valid: cookie !== undefined };
 		}
 		case 'query': {
 			if (has.value !== undefined) {
-				return !!url.searchParams.get(has.key)?.match(has.value);
+				const { match, captureGroupKeys } = matchPCRE(
+					has.value,
+					url.searchParams.get(has.key),
+				);
+
+				const newRouteDest =
+					match && captureGroupKeys.length && routeDest
+						? applyPCREMatches(routeDest, match, captureGroupKeys, {
+								namedOnly: true,
+						  })
+						: undefined;
+
+				return { valid: !!match, newRouteDest };
 			}
 
-			return url.searchParams.has(has.key);
+			return { valid: url.searchParams.has(has.key) };
 		}
 	}
 }
