@@ -2,11 +2,27 @@
 	"name": "@cloudflare/next-on-pages",
 	"version": "1.6.3",
 	"bin": "./bin/index.js",
+	"exports": {
+		"./helpers": "./dist/helpers/index.js"
+	},
+	"typesVersions": {
+		"*": {
+			"helpers": [
+				"./dist/helpers/index.d.ts"
+			]
+		}
+	},
 	"scripts": {
 		"lint": "eslint src templates",
 		"types-check": "tsc --noEmit",
-		"build": "esbuild --bundle --platform=node ./src/index.ts --external:esbuild --external:chokidar --outfile=./dist/index.js",
-		"build:watch": "npm run build -- --watch=forever",
+		"build": "concurrently --raw 'npm:build:*(!watch)'",
+		"build:watch": "concurrently --raw 'npm:build:*:watch'",
+		"build:cli": "esbuild --bundle --platform=node ./src/index.ts --external:esbuild --external:chokidar --outfile=./dist/index.js",
+		"build:cli:watch": "npm run build:cli -- --watch=forever",
+		"build:helpers": "npx esbuild --bundle --platform=node --format=esm ./src/helpers/index.ts --external:esbuild --external:chokidar --outfile=./dist/helpers/index.js",
+		"build:helpers-types": "tsc  -p ./src/helpers --emitDeclarationOnly --declaration --outDir ./dist/helpers",
+		"build:helpers:watch": "npm run build:helpers -- --watch=forever",
+		"build:helpers-types:watch": " npm run build:helpers-types -- --watch",
 		"postbuild": "node ./build-no-nodejs-compat-flag-static-error-page.mjs",
 		"prepare": "npm run build",
 		"test:unit": "npx vitest --config vitest.config.ts"
@@ -59,6 +75,7 @@
 		"@types/js-yaml": "^4.0.5",
 		"@types/mock-fs": "^4.13.1",
 		"@types/node": "^20.1.4",
+		"concurrently": "^8.2.1",
 		"dedent-tabs": "^0.10.3",
 		"eslint": "^8.35.0",
 		"mock-fs": "^5.2.0",
