@@ -44,7 +44,7 @@ export function applyPCREMatches(
 	match: RegExpMatchArray,
 	captureGroupKeys: string[],
 ): string {
-	return rawStr.replace(/\$([a-zA-Z0-9]+)/g, (_, key) => {
+	return rawStr.replace(/\$([a-zA-Z0-9_]+)/g, (_, key) => {
 		const index = captureGroupKeys.indexOf(key);
 		// If the extracted key does not exist as a named capture group from the matcher, we can
 		// reasonably assume it's a number and return the matched index. Fallback to an empty string.
