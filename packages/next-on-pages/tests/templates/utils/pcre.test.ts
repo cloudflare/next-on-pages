@@ -127,6 +127,16 @@ describe('applyPCREMatches', () => {
 				newDest: '/new/nde/dest?id=',
 			},
 		},
+		{
+			name: 'should process dest for a route with named group containing underscore',
+			url: 'https://example.com/index',
+			route: { src: '^/i(?<na_me>nde)x(?:/)?', dest: '/new/$na_me/dest' },
+			expected: {
+				match: true,
+				captureGroupKeys: ['na_me'],
+				newDest: '/new/nde/dest',
+			},
+		},
 	];
 
 	testCases.forEach(testCase => {
