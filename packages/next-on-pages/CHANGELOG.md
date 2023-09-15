@@ -1,5 +1,14 @@
 # @cloudflare/next-on-pages
 
+## 1.6.1
+
+### Patch Changes
+
+- 0168496: Fix named capture groups in `has` entries in the build output config not applying to route destination paths.
+- f764fff: Fix `process.env` not being enumerable due to being a proxy.
+- 1e25a97: Fix dynamic parameters with an underscore leading to an incorrect param being provided.
+- c06b437: Normalize the injected function entrypoints for Windows.
+
 ## 1.6.0
 
 ### Minor Changes
