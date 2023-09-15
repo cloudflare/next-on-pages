@@ -20,7 +20,7 @@ export type MatchPCREResult = {
 export function matchPCRE(
 	expr: string,
 	val: string | undefined | null,
-	caseSensitive?: boolean
+	caseSensitive?: boolean,
 ): MatchPCREResult {
 	if (val === null || val === undefined) {
 		return { match: null, captureGroupKeys: [] };
@@ -41,13 +41,14 @@ export function matchPCRE(
  * @param rawStr String to process.
  * @param match Matches from the PCRE matcher.
  * @param captureGroupKeys Named capture group keys from the PCRE matcher.
+ * @param opts Options for applying the PCRE matches.
  * @returns The processed string with replaced parameters.
  */
 export function applyPCREMatches(
 	rawStr: string,
 	match: RegExpMatchArray,
 	captureGroupKeys: string[],
-	{ namedOnly }: { namedOnly?: boolean } = {}
+	{ namedOnly }: { namedOnly?: boolean } = {},
 ): string {
 	return rawStr.replace(/\$([a-zA-Z0-9_]+)/g, (originalValue, key) => {
 		const index = captureGroupKeys.indexOf(key);

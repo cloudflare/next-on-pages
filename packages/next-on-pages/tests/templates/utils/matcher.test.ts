@@ -1,6 +1,6 @@
 import { describe, test, expect } from 'vitest';
 import { parse } from 'cookie';
-import { hasField } from '../../../templates/_worker.js/utils';
+import { checkhasField } from '../../../templates/_worker.js/utils';
 
 type HasFieldTestCase = {
 	name: string;
@@ -23,7 +23,7 @@ const req = new Request(
 const url = new URL(req.url);
 const cookies = parse(req.headers.get('cookie') ?? '');
 
-describe('hasField', () => {
+describe('checkhasField', () => {
 	const testCases: HasFieldTestCase[] = [
 		{
 			name: 'host: valid host returns true',
@@ -130,7 +130,7 @@ describe('hasField', () => {
 
 	testCases.forEach(testCase => {
 		test(testCase.name, () => {
-			const result = hasField(testCase.has, {
+			const result = checkhasField(testCase.has, {
 				url,
 				cookies,
 				headers: req.headers,

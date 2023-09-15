@@ -1,4 +1,3 @@
-import type { MatchPCREResult } from './pcre';
 import { applyPCREMatches, matchPCRE } from './pcre';
 
 type HasFieldRequestProperties = {
@@ -9,13 +8,14 @@ type HasFieldRequestProperties = {
 };
 
 /**
- * Checks if a Vercel source route's `has` record conditions match a request.
+ * Checks if a Vercel source route's `has` record conditions match a request, and whether the request
+ * destination should be updated based on the `has` record.
  *
  * @param has The `has` record conditions to check against the request.
  * @param requestProperties The request properties to check against.
- * @returns Whether the request matches the `has` record conditions.
+ * @returns Whether the request matches the `has` record conditions, and the new destination if it changed.
  */
-export function hasField(
+export function checkhasField(
 	has: VercelHasField,
 	{ url, cookies, headers, routeDest }: HasFieldRequestProperties,
 ): { valid: boolean; newRouteDest?: string } {
@@ -25,11 +25,11 @@ export function hasField(
 		}
 		case 'header': {
 			if (has.value !== undefined) {
-				const match = matchPCRE(has.value, headers.get(has.key));
-				return {
-					valid: !!match.match,
-					newRouteDest: tryApplyMatch(routeDest, match),
-				};
+				return getHasFieldPCREMatchResult(
+					has.value,
+					headers.get(has.key),
+					routeDest,
+				);
 			}
 
 			return { valid: headers.has(has.key) };
@@ -38,22 +38,18 @@ export function hasField(
 			const cookie = cookies[has.key];
 
 			if (cookie && has.value !== undefined) {
-				const match = matchPCRE(has.value, cookie);
-				return {
-					valid: !!match.match,
-					newRouteDest: tryApplyMatch(routeDest, match),
-				};
+				return getHasFieldPCREMatchResult(has.value, cookie, routeDest);
 			}
 
 			return { valid: cookie !== undefined };
 		}
 		case 'query': {
 			if (has.value !== undefined) {
-				const match = matchPCRE(has.value, url.searchParams.get(has.key));
-				return {
-					valid: !!match.match,
-					newRouteDest: tryApplyMatch(routeDest, match),
-				};
+				return getHasFieldPCREMatchResult(
+					has.value,
+					url.searchParams.get(has.key),
+					routeDest,
+				);
 			}
 
 			return { valid: url.searchParams.has(has.key) };
@@ -62,19 +58,29 @@ export function hasField(
 }
 
 /**
- * Try to apply a PCRE match's named capture groups to a destination.
+ * Gets the has field PCRE match results, and tries to apply any named capture groups to a
+ * route destination.
  *
- * @param dest Destination to apply match to.
- * @param match Matched PCRE result.
- * @returns The destination with the match applied, or `undefined` if there was no match.
+ * @param hasValue The has field value to match against.
+ * @param foundValue The value found in the request.
+ * @param routeDest Destination to apply match to.
+ * @returns Whether the match is valid, and the destination with the match applied.
  */
-function tryApplyMatch(
-	dest: string | undefined,
-	{ match, captureGroupKeys }: MatchPCREResult,
-): string | undefined {
-	if (dest && match && captureGroupKeys.length) {
-		return applyPCREMatches(dest, match, captureGroupKeys, { namedOnly: true });
+function getHasFieldPCREMatchResult(
+	hasValue: string,
+	foundValue: string | null,
+	routeDest?: string,
+): { valid: boolean; newRouteDest?: string } {
+	const { match, captureGroupKeys } = matchPCRE(hasValue, foundValue);
+
+	if (routeDest && match && captureGroupKeys.length) {
+		return {
+			valid: !!match,
+			newRouteDest: applyPCREMatches(routeDest, match, captureGroupKeys, {
+				namedOnly: true,
+			}),
+		};
 	}
 
-	return undefined;
+	return { valid: !!match };
 }

@@ -5,7 +5,7 @@ import {
 	applyHeaders,
 	applyPCREMatches,
 	applySearchParams,
-	hasField,
+	checkhasField,
 	getNextPhase,
 	isUrl,
 	matchPCRE,
@@ -115,7 +115,7 @@ export class RoutesMatcher {
 		// All `has` conditions must be met - skip if one is not met.
 		if (
 			route.has?.find(has => {
-				const result = hasField(has, hasFieldProps);
+				const result = checkhasField(has, hasFieldProps);
 				if (result.newRouteDest) {
 					// If the `has` condition had a named capture to update the destination, update it.
 					hasFieldProps.routeDest = result.newRouteDest;
@@ -127,7 +127,7 @@ export class RoutesMatcher {
 		}
 
 		// All `missing` conditions must not be met - skip if one is met.
-		if (route.missing?.find(has => hasField(has, hasFieldProps).valid)) {
+		if (route.missing?.find(has => checkhasField(has, hasFieldProps).valid)) {
 			return;
 		}
 
