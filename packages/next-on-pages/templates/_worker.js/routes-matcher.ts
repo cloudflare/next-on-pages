@@ -5,7 +5,7 @@ import {
 	applyHeaders,
 	applyPCREMatches,
 	applySearchParams,
-	hasField,
+	checkhasField,
 	getNextPhase,
 	isUrl,
 	matchPCRE,
@@ -91,7 +91,7 @@ export class RoutesMatcher {
 	private checkRouteMatch(
 		route: VercelSource,
 		checkStatus?: boolean,
-	): MatchPCREResult | undefined {
+	): { routeMatch: MatchPCREResult; routeDest?: string } | undefined {
 		const srcMatch = matchPCRE(route.src, this.path, route.caseSensitive);
 		if (!srcMatch.match) return;
 
@@ -109,15 +109,25 @@ export class RoutesMatcher {
 			url: this.url,
 			cookies: this.cookies,
 			headers: this.reqCtx.request.headers,
+			routeDest: route.dest,
 		};
 
 		// All `has` conditions must be met - skip if one is not met.
-		if (route.has?.find(has => !hasField(has, hasFieldProps))) {
+		if (
+			route.has?.find(has => {
+				const result = checkhasField(has, hasFieldProps);
+				if (result.newRouteDest) {
+					// If the `has` condition had a named capture to update the destination, update it.
+					hasFieldProps.routeDest = result.newRouteDest;
+				}
+				return !result.valid;
+			})
+		) {
 			return;
 		}
 
 		// All `missing` conditions must not be met - skip if one is met.
-		if (route.missing?.find(has => hasField(has, hasFieldProps))) {
+		if (route.missing?.find(has => checkhasField(has, hasFieldProps).valid)) {
 			return;
 		}
 
@@ -126,7 +136,7 @@ export class RoutesMatcher {
 			return;
 		}
 
-		return srcMatch;
+		return { routeMatch: srcMatch, routeDest: hasFieldProps.routeDest };
 	}
 
 	/**
@@ -428,8 +438,11 @@ export class RoutesMatcher {
 		phase: VercelPhase,
 		rawRoute: VercelSource,
 	): Promise<CheckRouteStatus> {
-		const route = this.getLocaleFriendlyRoute(rawRoute, phase);
-		const routeMatch = this.checkRouteMatch(route, phase === 'error');
+		const localeFriendlyRoute = this.getLocaleFriendlyRoute(rawRoute, phase);
+		const { routeMatch, routeDest } =
+			this.checkRouteMatch(localeFriendlyRoute, phase === 'error') ?? {};
+
+		const route: VercelSource = { ...localeFriendlyRoute, dest: routeDest };
 
 		// If this route doesn't match, continue to the next one.
 		if (!routeMatch?.match) return 'skip';
