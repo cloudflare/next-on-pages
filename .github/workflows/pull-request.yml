@@ -59,7 +59,7 @@ jobs:
         with:
           max_attempts: 5
           timeout_minutes: 20
-          command: npm run test:e2e -- -- --log-timestamp --log-level=debug --fixtures-include=appLatest
+          command: npm run test:e2e -- -- --log-timestamp --log-level=debug --fixtures-include=appLatest  --fixtures-include=pagesLatest
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
