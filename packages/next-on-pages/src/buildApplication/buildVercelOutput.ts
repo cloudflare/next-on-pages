@@ -1,8 +1,8 @@
 import { writeFile, mkdir, rm, rmdir } from 'fs/promises';
 import { spawn, type ChildProcessWithoutNullStreams } from 'child_process';
 import { join, resolve } from 'path';
-import { cliError, cliLog } from '../cli';
-import { validateDir, validateFile } from '../utils';
+import { cliLog } from '../cli';
+import { readJsonFile, validateDir, validateFile } from '../utils';
 import type { PackageManager } from './packageManagerUtils';
 import {
 	getCurrentPackageManager,
@@ -33,21 +33,22 @@ export async function buildVercelOutput(): Promise<void> {
 	cliLog('Preparing project...');
 	await generateProjectJsonFileIfNeeded();
 
+	let tempVercelConfig: TempVercelConfigInfo | undefined;
+	// When using the Bun package manager, we need to ensure the Vercel CLI has a config file that
+	// tells it to use Bun, since Vercel doesn't support auto-detecting Bun yet.
 	if (pm === 'bun') {
-		const vercelVersion = await getPackageVersion('vercel', pm);
-
-		// Vercel introduced proper Bun support in 32.2.1 and 32.2.4 (for monorepos), therefore we require
-		// that at least 32.2.4 is installed and log an error if it isn't, as the build will use the wrong
-		// package manager otherwise.
-		if (vercelVersion && vercelVersion < '32.2.4') {
-			cliError('Vercel version must be 32.2.4 or higher for Bun support.');
-			process.exit(1);
-		}
+		tempVercelConfig = await createTempVercelConfig({
+			buildCommand: 'bun run build',
+			installCommand: 'bun install',
+		});
 	}
 
 	cliLog('Project is ready');
 
-	await runVercelBuild(pm);
+	await runVercelBuild(pm, tempVercelConfig?.additionalArgs);
+	if (tempVercelConfig) {
+		await rm(tempVercelConfig.tempPath);
+	}
 
 	const execStr = await getExecStr(pm, 'vercel');
 	cliLog(`Completed \`${execStr} vercel build\`.`);
@@ -73,6 +74,35 @@ async function generateProjectJsonFileIfNeeded(): Promise<void> {
 	}
 }
 
+/**
+ * Creates a temporary Vercel config file that can be provided to the Vercel CLI to give it
+ * additional configuration when building the project.
+ *
+ * @param config The values to set in the temporary config file.
+ * @returns The path and args for the temporary config file.
+ */
+async function createTempVercelConfig(
+	config: Partial<VercelConfigJson>,
+): Promise<TempVercelConfigInfo> {
+	const oldConfigPath = join('vercel.json');
+	const originalConfig = await readJsonFile<VercelConfigJson>(oldConfigPath);
+
+	const tempConfigPath = join('.vercel', 'temp-nop-config.json');
+	const tempConfig: VercelConfigJson = {
+		framework: 'nextjs',
+		...config,
+		// User-defined config values should override the ones we set.
+		...originalConfig,
+	};
+
+	await writeFile(tempConfigPath, JSON.stringify(tempConfig));
+
+	return {
+		additionalArgs: ['--local-config', tempConfigPath],
+		tempPath: tempConfigPath,
+	};
+}
+
 type VercelConfigJson = {
 	buildCommand?: string;
 	installCommand?: string;
@@ -84,6 +114,8 @@ type VercelProjectJson = {
 	orgId: string;
 	settings: VercelConfigJson;
 };
+
+type TempVercelConfigInfo = { additionalArgs: string[]; tempPath: string };
 
 async function runVercelBuild(
 	pkgMng: PackageManager,
