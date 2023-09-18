@@ -110,6 +110,11 @@ async function tryToFixI18nFunctions(
 		return acc;
 	}, new Set<string>());
 
+	if (!foundI18nKeys.size) {
+		// no i18n keys found in the build output config, so we can't fix anything
+		return;
+	}
+
 	for (const [fullPath, fnInfo] of invalidFunctions.entries()) {
 		for (const i18nKey of foundI18nKeys) {
 			const firstRouteSegment = stripFuncExtension(fnInfo.relativePath)
