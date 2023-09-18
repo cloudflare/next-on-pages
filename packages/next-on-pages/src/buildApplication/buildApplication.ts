@@ -107,6 +107,7 @@ async function prepareAndBuildWorker(
 			workerJsDir,
 			nopDistDir: join(workerJsDir, '__next-on-pages-dist__'),
 			disableChunksDedup,
+			vercelConfig,
 		});
 	}
 
