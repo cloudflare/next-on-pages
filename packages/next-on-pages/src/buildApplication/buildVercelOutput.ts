@@ -1,7 +1,7 @@
 import { writeFile, mkdir, rm, rmdir } from 'fs/promises';
 import { spawn, type ChildProcessWithoutNullStreams } from 'child_process';
 import { join, resolve } from 'path';
-import { cliLog } from '../cli';
+import { cliLog, cliWarn } from '../cli';
 import { readJsonFile, validateDir, validateFile } from '../utils';
 import type { PackageManager } from './packageManagerUtils';
 import {
@@ -34,13 +34,21 @@ export async function buildVercelOutput(): Promise<void> {
 	await generateProjectJsonFileIfNeeded();
 
 	let tempVercelConfig: TempVercelConfigInfo | undefined;
-	// When using the Bun package manager, we need to ensure the Vercel CLI has a config file that
-	// tells it to use Bun, since Vercel doesn't support auto-detecting Bun yet.
+
 	if (pm === 'bun') {
-		tempVercelConfig = await createTempVercelConfig({
-			buildCommand: 'bun run build',
-			installCommand: 'bun install',
-		});
+		// Vercel introduced proper Bun support in 32.2.1 and 32.2.4 (for monorepos), therefore we should
+		// ensure the Vercel CLI has a config file telling it to use Bun for older versions. This is done
+		// to prevent a breaking change for users who are using an older version of the Vercel CLI.
+		const vercelVersion = await getPackageVersion('vercel', pm);
+		if (vercelVersion && vercelVersion < '32.2.4') {
+			cliWarn(
+				'Vercel CLI version is < 32.2.4, creating temporary config for Bun support...',
+			);
+			tempVercelConfig = await createTempVercelConfig({
+				buildCommand: 'bun run build',
+				installCommand: 'bun install',
+			});
+		}
 	}
 
 	cliLog('Project is ready');
