@@ -21,9 +21,11 @@
 		"pretest:e2e": "npm run build -- --scope next-on-pages",
 		"test:e2e": "FORCE_COLOR=1 turbo test:e2e",
 		"publish": "turbo build & changeset publish",
-		"changeset": "npx changeset"
+		"changeset": "npx changeset",
+		"postinstall": "patch-package"
 	},
 	"devDependencies": {
+		"patch-package": "^8.0.0",
 		"prettier": "^3.0.0",
 		"turbo": "^1.10.3"
 	}
