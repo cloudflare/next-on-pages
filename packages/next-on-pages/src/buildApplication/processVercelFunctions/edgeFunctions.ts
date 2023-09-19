@@ -92,7 +92,8 @@ async function checkEntrypoint(
 	relativePath: string,
 	entrypoint: string,
 ): Promise<
-	| { value: 'ignore' | 'invalid'; reason?: string }
+	| { value: 'invalid' }
+	| { value: 'ignore', reason: string }
 	| { value: 'valid'; finalEntrypoint: string }
 > {
 	let finalEntrypoint = entrypoint;
