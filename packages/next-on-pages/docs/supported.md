@@ -26,13 +26,10 @@ The [Cloudflare workers runtime supports certain Node.js APIs](https://developer
 
 ## External Packages
 
-You can use any external npm package in your Next.js application, but keep in mind that many packages do rely on Node.js APIs, which, as presented in the previous section could not be supported.
-
-There are also packages which although not requiring node.js APIs don't work with `@cloudflare/next-on-pages` (and/or with Cloudflare's runtime in general) for example those that dynamically evaluate javascript code ([not allowed in the Workers runtime](https://developers.cloudflare.com/workers/runtime-apis/web-standards/#javascript-standards)) or that rely on features not supported by `@cloudflare/next-on-pages`.
-
-If you're application is using a package which relies on unsupported Node.js APIs there is often little to be done, generally the only feasible solutions are to either look for an alternative edge-compatible package or see if the current package could be updated in an edge-compatible manner.
-
-In case a used package is instead incompatible because of other reasons workarounds can or not be possible depending on the incompatibility.
+You are free to use any external npm package with your Next application as long as it doesn't:
+ - require unsupported Node.js APIs (see above),
+ - use [JavaScript APIs](https://developers.cloudflare.com/workers/runtime-apis/web-standards/#javascript-standards) disabled by Cloudflare due to security concerns,
+ - nor it relies on features not supported by `@cloudflare/next-on-pages` (see below)
 
 ## Supported Features
 
