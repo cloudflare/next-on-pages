@@ -1,7 +1,7 @@
 import { gtr as versionGreaterThan, coerce } from 'semver';
 import { cliError, cliWarn } from '../../cli';
 import { getPackageVersion } from '../packageManagerUtils';
-import { stripFuncExtension } from '../../utils';
+import { formatRoutePath, stripFuncExtension } from '../../utils';
 import type { CollectedFunctions, FunctionInfo } from './configs';
 import { join, resolve } from 'path';
 import type { ProcessVercelFunctionsOpts } from '.';
@@ -102,7 +102,7 @@ async function tryToFixI18nFunctions(
 
 		// Matches the format used in certain source route entries in the build output config.
 		// e.g. "src": "/(?<nextLocale>default|en|ja)(/.*|$)"
-		/\(\??<nextLocale>([^)]+)\)/
+		/\(\?<nextLocale>([^)]+)\)/
 			.exec(route.src)?.[1]
 			?.split('|')
 			?.forEach(locale => acc.add(locale));
@@ -127,12 +127,14 @@ async function tryToFixI18nFunctions(
 					.replace(new RegExp(`^/${i18nKey}/`), '/');
 				const fullPathWithoutI18nKey = join(functionsDir, pathWithoutI18nKey);
 
-				if (edgeFunctions.has(fullPathWithoutI18nKey)) {
+				const edgeFn = edgeFunctions.get(fullPathWithoutI18nKey);
+				if (edgeFn) {
 					invalidFunctions.delete(fullPath);
 					ignoredFunctions.set(fullPath, {
 						reason: 'unnecessary invalid i18n function',
 						...fnInfo,
 					});
+					edgeFn.route?.overrides?.push(formatRoutePath(fnInfo.relativePath));
 				}
 			}
 		}

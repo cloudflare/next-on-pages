@@ -93,7 +93,7 @@ async function checkEntrypoint(
 	entrypoint: string,
 ): Promise<
 	| { value: 'invalid' }
-	| { value: 'ignore', reason: string }
+	| { value: 'ignore'; reason: string }
 	| { value: 'valid'; finalEntrypoint: string }
 > {
 	let finalEntrypoint = entrypoint;

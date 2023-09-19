@@ -34,15 +34,21 @@ describe('checkInvalidFunctions', () => {
 		});
 		restoreFsMock();
 
-		const { edgeFunctions, invalidFunctions } = collectedFunctions;
+		const { edgeFunctions, invalidFunctions, ignoredFunctions } =
+			collectedFunctions;
 
 		expect(edgeFunctions.size).toEqual(1);
 		expect(getRouteInfo(edgeFunctions, 'index.func')).toEqual({
 			path: '/index',
-			overrides: ['/'],
+			overrides: ['/', '/en'],
 		});
 
 		expect(invalidFunctions.size).toEqual(0);
+
+		expect(ignoredFunctions.size).toEqual(1);
+		expect(ignoredFunctions.has(resolve(functionsDir, 'en.func'))).toEqual(
+			true,
+		);
 	});
 
 	test('should ignore i18n nested route with valid alternative', async () => {
@@ -63,15 +69,21 @@ describe('checkInvalidFunctions', () => {
 		});
 		restoreFsMock();
 
-		const { edgeFunctions, invalidFunctions } = collectedFunctions;
+		const { edgeFunctions, invalidFunctions, ignoredFunctions } =
+			collectedFunctions;
 
 		expect(edgeFunctions.size).toEqual(1);
 		expect(getRouteInfo(edgeFunctions, 'test/route.func')).toEqual({
 			path: '/test/route',
-			overrides: [],
+			overrides: ['/en/test/route'],
 		});
 
 		expect(invalidFunctions.size).toEqual(0);
+
+		expect(ignoredFunctions.size).toEqual(1);
+		expect(
+			ignoredFunctions.has(resolve(functionsDir, 'en/test/route.func')),
+		).toEqual(true);
 	});
 
 	test('should not ignore i18n with no valid alternative', async () => {
@@ -96,7 +108,8 @@ describe('checkInvalidFunctions', () => {
 		});
 		restoreFsMock();
 
-		const { edgeFunctions, invalidFunctions } = collectedFunctions;
+		const { edgeFunctions, invalidFunctions, ignoredFunctions } =
+			collectedFunctions;
 
 		expect(edgeFunctions.size).toEqual(0);
 
@@ -104,6 +117,8 @@ describe('checkInvalidFunctions', () => {
 		expect(invalidFunctions.has(resolve(functionsDir, 'en.func'))).toEqual(
 			true,
 		);
+
+		expect(ignoredFunctions.size).toEqual(0);
 
 		expect(processExitMock).toHaveBeenCalledWith(1);
 		mockedConsole.expectCalls([
