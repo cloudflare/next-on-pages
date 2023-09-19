@@ -8,7 +8,7 @@
 
 `@cloudflare/next-on-pages` supports all minor and patch version of Next.js 13. We regularly run manual and automated tests to ensure such compatibility.
 
-Next.js canary versions are not included.
+Next.js canary versions not actively being tested and we don't currently extend support to these versions.
 
 > The edge runtime has been introduced as experimental since [Next.js 12.2](https://nextjs.org/blog/next-12-2#edge-server-rendering-experimental) so versions prior that that are inherently not compatible with the Cloudflare Pages runtime. Moreover the Next.js edge runtime has been significantly experimental early on, that's why we don't recommend using any Next.js version earlier than 13.0.0.
 
