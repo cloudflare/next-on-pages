@@ -26,7 +26,7 @@ The [Cloudflare workers runtime supports certain Node.js APIs](https://developer
 
 ## External Packages
 
-You are free to use any external npm package with your Next application as long as it doesn't use:
+You are free to use any external npm package with your Next.js application as long as it doesn't use:
 
 - unsupported Node.js APIs (see above)
 - [JavaScript APIs](https://developers.cloudflare.com/workers/runtime-apis/web-standards/#javascript-standards) disabled by Cloudflare due to security concerns
