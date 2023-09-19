@@ -1,5 +1,5 @@
 diff --git a/node_modules/@cfpreview/pages-e2e-test-runner-cli/scripts/run-test.ts b/node_modules/@cfpreview/pages-e2e-test-runner-cli/scripts/run-test.ts
-index 1424a14..10d43fa 100644
+index 1424a14..3cec4be 100644
 --- a/node_modules/@cfpreview/pages-e2e-test-runner-cli/scripts/run-test.ts
 +++ b/node_modules/@cfpreview/pages-e2e-test-runner-cli/scripts/run-test.ts
 @@ -119,39 +119,81 @@ This is going to be evaluated on ${environment}, using ${TRIGGER} as the trigger
@@ -81,7 +81,7 @@ index 1424a14..10d43fa 100644
 +			)
 +		);
 +	} else {
-+		console.log('___⚠️⚠️⚠️ Detected local environment so all deployments are going to be performed sequentially ⚠️⚠️⚠️___');
++		console.log('⚠️⚠️⚠️ Detected local environment so all deployments are going to be performed sequentially ⚠️⚠️⚠️');
 +
 +		for(const fixture of fixtures) {
 +			const fixtureLogger = Logger.from({
@@ -117,25 +117,3 @@ index 1424a14..10d43fa 100644
  
  	const testResults = await runTests({
  		logger,
-diff --git a/node_modules/@cfpreview/pages-e2e-test-runner-cli/scripts/src/wranglerPagesDev.ts b/node_modules/@cfpreview/pages-e2e-test-runner-cli/scripts/src/wranglerPagesDev.ts
-index 662230c..05017e0 100644
---- a/node_modules/@cfpreview/pages-e2e-test-runner-cli/scripts/src/wranglerPagesDev.ts
-+++ b/node_modules/@cfpreview/pages-e2e-test-runner-cli/scripts/src/wranglerPagesDev.ts
-@@ -39,7 +39,7 @@ export const wranglerPagesDev = async ({
- 	teardownService.register({
- 		name: `'wrangler pages dev' running in ${rootDirectory}`,
- 		function: () => {
--			wranglerProcess.kill("SIGTERM");
-+			wranglerProcess.kill("SIGKILL");
- 		},
- 	});
- 
-@@ -61,7 +61,7 @@ export const wranglerPagesDev = async ({
- 				logger.error(
- 					"Error: Wrangler failed to start the dev server, aborting!"
- 				);
--				wranglerProcess.kill();
-+				wranglerProcess.kill("SIGKILL");
- 			}
- 		}
- 	});
