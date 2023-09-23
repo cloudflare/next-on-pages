@@ -1,0 +1,32 @@
+name: Master
+
+on:
+  push:
+    branches: ["!release"]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          scope: '@sports-global'
+          registry-url: 'https://npm.pkg.github.com'
+          node-version: 16.x
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Check formatting
+        run: npm run prettier:check
+
+      - name: Check linting
+        run: npm run lint
+
+      - name: Check types
+        run: npm run types-check
+
+      - name: Build
+        run: npm run build
