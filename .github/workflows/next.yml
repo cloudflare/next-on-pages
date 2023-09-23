@@ -2,7 +2,7 @@ name: Master
 
 on:
   push:
-    branches: ['*', '!release']
+    branches: ['next']
 
 jobs:
   build:
@@ -30,3 +30,16 @@ jobs:
 
       - name: Build
         run: npm run build
+
+      - name: Version
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          cd packages/next-on-pages
+          npm version 0.0.${GITHUB_RUN_NUMBER}
+      - name: Publish
+        run: |
+          cd packages/next-on-pages
+          npm publish --tag next
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
