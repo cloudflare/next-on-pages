@@ -2,7 +2,7 @@ name: Master
 
 on:
   push:
-    branches: ["!release"]
+    branches: ['*', "!release"]
 
 jobs:
   build:
