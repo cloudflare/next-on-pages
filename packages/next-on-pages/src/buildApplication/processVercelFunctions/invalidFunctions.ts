@@ -1,6 +1,6 @@
 import { gtr as versionGreaterThan, coerce } from 'semver';
 import { cliError, cliWarn } from '../../cli';
-import { getPackageVersion } from '../packageManagerUtils';
+import { getPackageManager } from 'package-manager-manager';
 import { formatRoutePath, stripFuncExtension } from '../../utils';
 import type { CollectedFunctions, FunctionInfo } from './configs';
 import { join, resolve } from 'path';
@@ -149,7 +149,8 @@ async function tryToFixI18nFunctions(
 async function printInvalidFunctionsErrorMessage(
 	invalidFunctions: Map<string, FunctionInfo>,
 ): Promise<void> {
-	const nextVersion = coerce(await getPackageVersion('next'));
+	const pm = await getPackageManager();
+	const nextVersion = coerce((await pm?.getPackageInfo('next'))?.version);
 
 	const { exportText, exampleCode } =
 		!nextVersion || versionGreaterThan(nextVersion, '13.1.2')

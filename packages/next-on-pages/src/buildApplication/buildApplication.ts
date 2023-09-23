@@ -12,10 +12,10 @@ import {
 	processVercelOutput,
 	processOutputDir,
 } from './processVercelOutput';
-import { getCurrentPackageManager, getExecStr } from './packageManagerUtils';
 import { printBuildSummary, writeBuildInfo } from './buildSummary';
 import type { ProcessedVercelFunctions } from './processVercelFunctions';
 import { processVercelFunctions } from './processVercelFunctions';
+import { getPackageManager } from 'package-manager-manager';
 
 /**
  * Builds the _worker.js with static assets implementing the Next.js application
@@ -36,17 +36,19 @@ export async function buildApplication({
 	| 'watch'
 	| 'outdir'
 >) {
-	const pm = await getCurrentPackageManager();
+	const pm = await getPackageManager();
 
 	let buildSuccess = true;
 	if (!skipBuild) {
 		try {
 			await buildVercelOutput();
 		} catch {
-			const execStr = await getExecStr(pm, 'vercel');
+			const execStr = await pm?.getRunExec('vercel', { args: ['build'] });
 			cliError(
 				`
-					The Vercel build (\`${execStr} vercel build\`) command failed. For more details see the Vercel logs above.
+					The Vercel build ${
+						execStr ? `(${execStr}) ` : ''
+					}command failed. For more details see the Vercel logs above.
 					If you need help solving the issue, refer to the Vercel or Next.js documentation or their repositories.
 				`,
 				{ spaced: true },
