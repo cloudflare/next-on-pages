@@ -1,5 +1,5 @@
 {
-	"name": "@cloudflare/next-on-pages",
+	"name": "@sports-global/next-on-pages",
 	"version": "1.6.1",
 	"bin": "./bin/index.js",
 	"exports": {
@@ -41,7 +41,7 @@
 	},
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/cloudflare/next-on-pages.git"
+		"url": "https://github.com/sports-global/next-on-pages.git"
 	},
 	"dependencies": {
 		"acorn": "^8.8.0",

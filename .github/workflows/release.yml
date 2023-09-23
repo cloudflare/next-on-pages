@@ -35,8 +35,11 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          cd packages/next-on-pages
           npm version 0.0.${GITHUB_RUN_NUMBER}
       - name: Publish
-        run: npm publish --tag latest
+        run: |
+          cd packages/next-on-pages
+          npm publish --tag latest
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
