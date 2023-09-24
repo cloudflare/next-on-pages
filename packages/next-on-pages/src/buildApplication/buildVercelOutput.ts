@@ -23,7 +23,7 @@ import { waitForProcessToClose } from './processUtils';
  */
 export async function buildVercelOutput(): Promise<void> {
 	const pm = await getPackageManager();
-	if(!pm) {
+	if (!pm) {
 		cliError('Error: Could not detect current package manager in use');
 		process.exit(1);
 	}
@@ -57,7 +57,7 @@ export async function buildVercelOutput(): Promise<void> {
 		await rm(tempVercelConfig.tempPath);
 	}
 
-	const execStr = await pm.getRunExec('vercel', { args: ['build']});
+	const execStr = await pm.getRunExec('vercel', { args: ['build'] });
 	cliLog(`Completed \`${execStr}\`.`);
 }
 
@@ -159,15 +159,12 @@ async function getVercelBuildChildProcess(
 	pm: PackageManager,
 	additionalArgs: string[] = [],
 ): Promise<ChildProcessWithoutNullStreams> {
-	const spawnCmd = await pm.getRunExecStruct(
-		'vercel',
-		{
-			args: ['build', ...additionalArgs],
-			download: 'prefer-if-needed'
-		}
-	);
+	const spawnCmd = await pm.getRunExecStruct('vercel', {
+		args: ['build', ...additionalArgs],
+		download: 'prefer-if-needed',
+	});
 
-	if(!spawnCmd) {
+	if (!spawnCmd) {
 		throw new Error('Error: Failed to generate vercel build command');
 	}
 
