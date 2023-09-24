@@ -222,6 +222,7 @@ export async function createRouterTestData(
 		workerJsDir: workerJsDir,
 		nopDistDir: join(workerJsDir, '__next-on-pages-dist__'),
 		disableChunksDedup: true,
+		vercelConfig: { version: 3 },
 	});
 
 	const staticAssets = await getVercelStaticAssets();

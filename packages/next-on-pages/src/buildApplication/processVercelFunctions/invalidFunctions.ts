@@ -1,9 +1,10 @@
 import { gtr as versionGreaterThan, coerce } from 'semver';
 import { cliError, cliWarn } from '../../cli';
 import { getPackageVersion } from '../packageManagerUtils';
-import { stripFuncExtension } from '../../utils';
+import { formatRoutePath, stripFuncExtension } from '../../utils';
 import type { CollectedFunctions, FunctionInfo } from './configs';
 import { join, resolve } from 'path';
+import type { ProcessVercelFunctionsOpts } from '.';
 
 /**
  * Checks if there are any invalid functions from the Vercel build output.
@@ -14,11 +15,15 @@ import { join, resolve } from 'path';
  * If however the build output can't be used, an error message will be printed and the process will exit.
  *
  * @param collectedFunctions Collected functions from the Vercel build output.
+ * @param opts Options for processing Vercel functions.
  */
 export async function checkInvalidFunctions(
 	collectedFunctions: CollectedFunctions,
+	opts: Pick<ProcessVercelFunctionsOpts, 'functionsDir' | 'vercelConfig'>,
 ): Promise<void> {
 	await tryToFixNotFoundRoute(collectedFunctions);
+
+	await tryToFixI18nFunctions(collectedFunctions, opts);
 
 	if (collectedFunctions.invalidFunctions.size > 0) {
 		await printInvalidFunctionsErrorMessage(
@@ -68,6 +73,71 @@ async function tryToFixNotFoundRoute(
 			not supported by @cloudflare/next-on-pages, if that's actually the case please
 			remove the runtime logic from your not-found route
 		`);
+	}
+}
+
+/**
+ * Tries to fix potential unnecessary and invalid i18n functions from the Vercel build output.
+ *
+ * This is a workaround for Vercel creating invalid Node.js i18n functions in the build output, and
+ * is achieved by combing through the Vercel build output config to find i18n keys that match the
+ * invalid functions.
+ *
+ * @param collectedFunctions Collected functions from the Vercel build output.
+ * @param opts Options for processing Vercel functions.
+ */
+async function tryToFixI18nFunctions(
+	{ edgeFunctions, invalidFunctions, ignoredFunctions }: CollectedFunctions,
+	{
+		vercelConfig,
+		functionsDir,
+	}: Pick<ProcessVercelFunctionsOpts, 'functionsDir' | 'vercelConfig'>,
+): Promise<void> {
+	if (!invalidFunctions.size || !vercelConfig.routes?.length) {
+		return;
+	}
+
+	const foundI18nKeys = vercelConfig.routes.reduce((acc, route) => {
+		if ('handle' in route) return acc;
+
+		// Matches the format used in certain source route entries in the build output config.
+		// e.g. "src": "/(?<nextLocale>default|en|ja)(/.*|$)"
+		/\(\?<nextLocale>([^)]+)\)/
+			.exec(route.src)?.[1]
+			?.split('|')
+			?.forEach(locale => acc.add(locale));
+
+		return acc;
+	}, new Set<string>());
+
+	if (!foundI18nKeys.size) {
+		// no i18n keys found in the build output config, so we can't fix anything
+		return;
+	}
+
+	for (const [fullPath, fnInfo] of invalidFunctions.entries()) {
+		for (const i18nKey of foundI18nKeys) {
+			const firstRouteSegment = stripFuncExtension(fnInfo.relativePath)
+				.replace(/^\//, '')
+				.split('/')[0];
+
+			if (firstRouteSegment === i18nKey) {
+				const pathWithoutI18nKey = fnInfo.relativePath
+					.replace(new RegExp(`^/${i18nKey}.func`), '/index.func')
+					.replace(new RegExp(`^/${i18nKey}/`), '/');
+				const fullPathWithoutI18nKey = join(functionsDir, pathWithoutI18nKey);
+
+				const edgeFn = edgeFunctions.get(fullPathWithoutI18nKey);
+				if (edgeFn) {
+					invalidFunctions.delete(fullPath);
+					ignoredFunctions.set(fullPath, {
+						reason: 'unnecessary invalid i18n function',
+						...fnInfo,
+					});
+					edgeFn.route?.overrides?.push(formatRoutePath(fnInfo.relativePath));
+				}
+			}
+		}
 	}
 }
 
