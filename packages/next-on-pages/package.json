@@ -1,7 +1,9 @@
 {
 	"name": "@sports-global/next-on-pages",
 	"version": "1.6.1",
-	"bin": "./bin/index.js",
+	"bin": {
+		"next-on-pages": "./bin/index.js"
+	},
 	"exports": {
 		"./helpers": "./dist/helpers/index.js"
 	},
