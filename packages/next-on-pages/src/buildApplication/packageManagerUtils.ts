@@ -40,24 +40,6 @@ export async function getCurrentPackageManager(): Promise<PackageManager> {
 		await waitForProcessToClose(getYarnV);
 
 		if (!yarnV.startsWith('1.')) {
-			const yarnrc = await readFile('.yarnrc.yml', 'utf-8');
-			const { nodeLinker } = YAML.load(yarnrc) as {
-				nodeLinker: string;
-			};
-			if (nodeLinker !== 'node-modules') {
-				cliError(
-					`
-					Error: Yarn Plug'n'Play not supported
-
-					The vercel cli doesn't currently support Plug'n'Play features from yarn berry.
-					Since @cloudflare/next-on-pages uses the vercel cli to build the target application,
-					if you want to use the adapter with yarn berry, you need to add "nodeLinker: node-modules"
-					to your .yarnrc.yml
-				`,
-					{ spaced: true },
-				);
-				process.exit(1);
-			}
 			return 'yarn (berry)';
 		} else {
 			return 'yarn (classic)';
