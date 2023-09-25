@@ -1,6 +1,4 @@
 import { execFileSync, spawn } from 'child_process';
-import { readFile } from 'fs/promises';
-import YAML from 'js-yaml';
 import { cliError, cliWarn } from '../cli';
 import { isWindows, validateFile } from '../utils';
 
