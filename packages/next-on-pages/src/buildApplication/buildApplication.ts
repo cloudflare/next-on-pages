@@ -54,7 +54,7 @@ export async function buildApplication({
 			cliError(
 				`
 					The Vercel build ${
-						execStr ? `(${execStr}) ` : ''
+						execStr ? `(\`${execStr}\`) ` : ''
 					}command failed. For more details see the Vercel logs above.
 					If you need help solving the issue, refer to the Vercel or Next.js documentation or their repositories.
 				`,
