@@ -1,9 +1,9 @@
 import { writeFile, mkdir, rm, rmdir } from 'fs/promises';
 import { spawn, type ChildProcessWithoutNullStreams } from 'child_process';
 import { join, resolve } from 'path';
+import type { PackageManager } from 'package-manager-manager';
 import { cliLog, cliWarn } from '../cli';
 import { readJsonFile, validateDir, validateFile } from '../utils';
-import type { PackageManager } from 'package-manager-manager';
 import { waitForProcessToClose } from './processUtils';
 
 /**

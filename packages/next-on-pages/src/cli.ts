@@ -5,8 +5,8 @@ import { argumentParser } from 'zodcli';
 import type { ChalkInstance } from 'chalk';
 import chalk from 'chalk';
 import { join, resolve } from 'path';
-import { nextOnPagesVersion, normalizePath } from './utils';
 import { getPackageManager } from 'package-manager-manager';
+import { nextOnPagesVersion, normalizePath } from './utils';
 
 // A helper type to handle command line flags. Defaults to false
 const flag = z

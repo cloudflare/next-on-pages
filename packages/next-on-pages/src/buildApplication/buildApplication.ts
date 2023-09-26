@@ -1,5 +1,6 @@
 import { exit } from 'process';
 import { join, resolve } from 'path';
+import { getPackageManager } from 'package-manager-manager';
 import type { CliOptions } from '../cli';
 import { cliError, cliLog, cliSuccess } from '../cli';
 import { getVercelConfig } from './getVercelConfig';
@@ -15,7 +16,6 @@ import {
 import { printBuildSummary, writeBuildInfo } from './buildSummary';
 import type { ProcessedVercelFunctions } from './processVercelFunctions';
 import { processVercelFunctions } from './processVercelFunctions';
-import { getPackageManager } from 'package-manager-manager';
 
 /**
  * Builds the _worker.js with static assets implementing the Next.js application
