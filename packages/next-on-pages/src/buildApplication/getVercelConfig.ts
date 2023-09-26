@@ -84,7 +84,7 @@ export function processVercelConfig(
 
 	let currentPhase: VercelHandleValue | 'none' = 'none';
 	config.routes?.forEach(route => {
-		// Vercel generated `^/` as the regex instead of `^/$` for their root prefer route.
+		// Vercel generates `^/` as the regex instead of `^/$` for their root prefer route.
 		// This makes the route match everything and not only the actual root requests, so
 		// here we need to fix such erroneous regex.
 		if (route.src === '^/' && route.dest === '/index.prefetch.rsc') {
