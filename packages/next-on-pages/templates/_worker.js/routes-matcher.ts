@@ -320,13 +320,13 @@ export class RoutesMatcher {
 			this.path = prevPath;
 		}
 
-		// NOTE: Special handling for `.rsc` requests. If the Vercel CLI failed to generate an RSC
-		// version of the page and the build output config has a record mapping the request to the
-		// RSC variant, we should strip the `.rsc` extension from the path.
-		const isRsc = /\.rsc$/i.test(this.path);
+		// NOTE: Special handling for `.rsc` and `.prefetch.rsc` requests. If the Vercel CLI failed to
+		// generate an RSC version of the page and the build output config has a record mapping the request
+		// to the RSC variant, we should strip the `.rsc` (or `.prefetch.rsc`) extension from the path.
+		const isRsc = /(\.prefetch)?\.rsc$/i.test(this.path);
 		const pathExistsInOutput = this.path in this.output;
 		if (isRsc && !pathExistsInOutput) {
-			this.path = this.path.replace(/\.rsc/i, '');
+			this.path = this.path.replace(/(\.prefetch)?\.rsc/i, '');
 		}
 
 		// Merge search params for later use when serving a response.
