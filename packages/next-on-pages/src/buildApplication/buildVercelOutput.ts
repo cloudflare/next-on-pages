@@ -1,6 +1,7 @@
 import { writeFile, mkdir, rm, rmdir } from 'fs/promises';
 import { spawn, type ChildProcessWithoutNullStreams } from 'child_process';
 import { join, resolve } from 'path';
+import { ltr as versionLessThan, coerce } from 'semver';
 import type { PackageManager } from 'package-manager-manager';
 import { cliLog, cliWarn } from '../cli';
 import { readJsonFile, validateDir, validateFile } from '../utils';
@@ -34,14 +35,18 @@ export async function buildVercelOutput(pm: PackageManager): Promise<void> {
 		// ensure the Vercel CLI has a config file telling it to use Bun for older versions. This is done
 		// to prevent a breaking change for users who are using an older version of the Vercel CLI.
 		const vercelInfo = await pm.getPackageInfo('vercel');
-		if (vercelInfo && vercelInfo.version < '32.2.4') {
-			cliWarn(
-				'Vercel CLI version is < 32.2.4, creating temporary config for Bun support...',
-			);
-			tempVercelConfig = await createTempVercelConfig({
-				buildCommand: 'bun run build',
-				installCommand: 'bun install',
-			});
+
+		if (vercelInfo) {
+			const vercelVersion = coerce(vercelInfo.version);
+			if (vercelVersion && versionLessThan(vercelVersion, '32.2.4')) {
+				cliWarn(
+					'Vercel CLI version is < 32.2.4, creating temporary config for Bun support...',
+				);
+				tempVercelConfig = await createTempVercelConfig({
+					buildCommand: 'bun run build',
+					installCommand: 'bun install',
+				});
+			}
 		}
 	}
 
