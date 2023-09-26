@@ -38,12 +38,16 @@ export async function buildApplication({
 >) {
 	const pm = await getPackageManager();
 
+	if (!pm) {
+		throw new Error('Error: Could not detect current package manager in use');
+	}
+
 	let buildSuccess = true;
 	if (!skipBuild) {
 		try {
-			await buildVercelOutput();
+			await buildVercelOutput(pm);
 		} catch {
-			const execStr = await pm?.getRunExec('vercel', { args: ['build'] });
+			const execStr = await pm.getRunExec('vercel', { args: ['build'] });
 			cliError(
 				`
 					The Vercel build ${

@@ -1,9 +1,8 @@
 import { writeFile, mkdir, rm, rmdir } from 'fs/promises';
 import { spawn, type ChildProcessWithoutNullStreams } from 'child_process';
 import { join, resolve } from 'path';
-import { cliError, cliLog, cliWarn } from '../cli';
+import { cliLog, cliWarn } from '../cli';
 import { readJsonFile, validateDir, validateFile } from '../utils';
-import { getPackageManager } from 'package-manager-manager';
 import type { PackageManager } from 'package-manager-manager';
 import { waitForProcessToClose } from './processUtils';
 
@@ -20,13 +19,9 @@ import { waitForProcessToClose } from './processUtils';
  * Creates a temporary config file when using the Bun package manager so that Vercel knows to use
  * Bun to install and build the project.
  *
+ * @param pm the package manager currently in use
  */
-export async function buildVercelOutput(): Promise<void> {
-	const pm = await getPackageManager();
-	if (!pm) {
-		cliError('Error: Could not detect current package manager in use');
-		process.exit(1);
-	}
+export async function buildVercelOutput(pm: PackageManager): Promise<void> {
 	cliLog(`Detected Package Manager: ${pm.name} (${pm.version})\n`);
 
 	cliLog('Preparing project...');
