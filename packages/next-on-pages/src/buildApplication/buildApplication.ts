@@ -47,7 +47,10 @@ export async function buildApplication({
 		try {
 			await buildVercelOutput(pm);
 		} catch {
-			const execStr = await pm.getRunExec('vercel', { args: ['build'] });
+			const execStr = await pm.getRunExec('vercel', {
+				args: ['build'],
+				download: 'prefer-if-needed',
+			});
 			cliError(
 				`
 					The Vercel build ${

@@ -57,7 +57,10 @@ export async function buildVercelOutput(pm: PackageManager): Promise<void> {
 		await rm(tempVercelConfig.tempPath);
 	}
 
-	const execStr = await pm.getRunExec('vercel', { args: ['build'] });
+	const execStr = await pm.getRunExec('vercel', {
+		args: ['build'],
+		download: 'prefer-if-needed',
+	});
 	cliLog(`Completed \`${execStr}\`.`);
 }
 
