@@ -70,7 +70,7 @@ export function processVercelConfig(
 	config: VercelConfig,
 ): ProcessedVercelConfig {
 	const processedConfig: ProcessedVercelConfig = {
-		...structuredClone(config),
+		...JSON.parse(JSON.stringify(config)),
 		routes: {
 			none: [],
 			filesystem: [],
