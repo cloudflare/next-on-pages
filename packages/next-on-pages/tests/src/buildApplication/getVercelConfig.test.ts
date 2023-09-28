@@ -20,9 +20,9 @@ describe('processVercelConfig', () => {
 		expect(processVercelConfig(inputtedConfig)).toEqual({
 			version: 3,
 			routes: {
-				none: [{ src: '/test-1$', dest: '/test-2' }],
-				filesystem: [{ src: '/test-3$', dest: '/test-4' }],
-				miss: [{ src: '/test-2$', dest: '/test-6' }],
+				none: [{ src: '^/test-1$', dest: '/test-2' }],
+				filesystem: [{ src: '^/test-3$', dest: '/test-4' }],
+				miss: [{ src: '^/test-2$', dest: '/test-6' }],
 				rewrite: [],
 				resource: [],
 				hit: [],

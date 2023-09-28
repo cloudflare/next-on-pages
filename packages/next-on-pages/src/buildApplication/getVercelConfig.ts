@@ -84,15 +84,18 @@ export function processVercelConfig(
 
 	let currentPhase: VercelHandleValue | 'none' = 'none';
 	config.routes?.forEach(route => {
-		// Vercel output routes sometimes include `$`s and sometimes they do not, but it seems
-		// like in either case Vercel behaves as if they're present, so we need to mimic such behavior
-		if (
-			route.src &&
-			!route.src.endsWith('$') &&
-			route.src !== '/' &&
-			!route.src.endsWith('(.*)')
-		) {
-			route.src += '$';
+		if (route.src) {
+			// Route src should always start with a '^'
+			// see: https://github.com/vercel/vercel/blob/ea5bc88/packages/routing-utils/src/index.ts#L77
+			if (!route.src.startsWith('^')) {
+				route.src = `^${route.src}`;
+			}
+
+			// Route src should always end with a '$'
+			// see: https://github.com/vercel/vercel/blob/ea5bc88/packages/routing-utils/src/index.ts#L82
+			if (!route.src.endsWith('$')) {
+				route.src = `${route.src}$`;
+			}
 		}
 
 		if (isVercelHandler(route)) {
