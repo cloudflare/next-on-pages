@@ -70,7 +70,7 @@ export function processVercelConfig(
 	config: VercelConfig,
 ): ProcessedVercelConfig {
 	const processedConfig: ProcessedVercelConfig = {
-		...config,
+		...structuredClone(config),
 		routes: {
 			none: [],
 			filesystem: [],
@@ -84,11 +84,10 @@ export function processVercelConfig(
 
 	let currentPhase: VercelHandleValue | 'none' = 'none';
 	config.routes?.forEach(route => {
-		// Vercel generates `^/` as the regex instead of `^/$` for their root prefer route.
-		// This makes the route match everything and not only the actual root requests, so
-		// here we need to fix such erroneous regex.
-		if (route.src === '^/' && route.dest === '/index.prefetch.rsc') {
-			route.src = '^/$';
+		// Vercel output routes sometimes include `$`s and sometimes they do not, but it seems
+		// like in either case Vercel behaves as if they're present, so we need to mimic such behavior
+		if(route.src && !route.src.endsWith('$')) {
+			route.src += '$';
 		}
 
 		if (isVercelHandler(route)) {
