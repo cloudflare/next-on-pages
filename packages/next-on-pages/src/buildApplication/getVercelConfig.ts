@@ -86,7 +86,7 @@ export function processVercelConfig(
 	config.routes?.forEach(route => {
 		// Vercel output routes sometimes include `$`s and sometimes they do not, but it seems
 		// like in either case Vercel behaves as if they're present, so we need to mimic such behavior
-		if(route.src && !route.src.endsWith('$')) {
+		if (route.src && !route.src.endsWith('$')) {
 			route.src += '$';
 		}
 
