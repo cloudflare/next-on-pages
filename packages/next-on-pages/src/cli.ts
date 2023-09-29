@@ -5,8 +5,12 @@ import { argumentParser } from 'zodcli';
 import type { ChalkInstance } from 'chalk';
 import chalk from 'chalk';
 import { join, resolve } from 'path';
-import { getPackageManager } from 'package-manager-manager';
 import { nextOnPagesVersion, normalizePath } from './utils';
+import {
+	getBinaryVersion,
+	getPackageVersion,
+} from './buildApplication/packageManagerUtils';
+import { getCurrentPackageManager } from './buildApplication/packageManagerUtils';
 
 // A helper type to handle command line flags. Defaults to false
 const flag = z
@@ -246,14 +250,15 @@ function prepareCliMessage(
 }
 
 export async function printEnvInfo(): Promise<void> {
-	const pm = await getPackageManager();
+	const packageManager = await getCurrentPackageManager();
 
-	const pmInfo = pm ? `${pm.name} (${pm.version})` : '???';
+	const [nodeVersion, bunVersion, pnpmVersion, yarnVersion, npmVersion] =
+		await Promise.all(
+			['node', 'bun', 'pnpm', 'yarn', 'npm'].map(getBinaryVersion),
+		);
 
 	const [vercelVersion, nextVersion] = await Promise.all(
-		['vercel', 'next'].map(
-			async pkg => pm?.getPackageInfo(pkg).then(pkgInfo => pkgInfo?.version),
-		),
+		['vercel', 'next'].map(async pkg => getPackageVersion(pkg, packageManager)),
 	);
 
 	const envInfoMessage = dedent(`
@@ -264,7 +269,13 @@ export async function printEnvInfo(): Promise<void> {
 			CPU: (${os.cpus().length}) ${os.arch()} ${os.cpus()[0]?.model}
 			Memory: ${Math.round(os.totalmem() / 1024 / 1024 / 1024)} GB
 			Shell: ${process.env.SHELL?.toString() ?? 'Unknown'}
-		Package Manager Used: ${pmInfo}
+		Binaries:
+			Node: ${nodeVersion ?? 'N/A'}
+			Bun: ${bunVersion ?? 'N/A'}
+			pnpm: ${pnpmVersion ?? 'N/A'}
+			Yarn: ${yarnVersion ?? 'N/A'}
+			npm: ${npmVersion ?? 'N/A'}
+		Package Manager Used: ${packageManager}
 		Relevant Packages:
 			@cloudflare/next-on-pages: ${nextOnPagesVersion}
 			vercel: ${vercelVersion ?? 'N/A'}
