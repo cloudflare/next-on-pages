@@ -1,11 +1,16 @@
 import { writeFile, mkdir, rm, rmdir } from 'fs/promises';
 import { spawn, type ChildProcessWithoutNullStreams } from 'child_process';
 import { join, resolve } from 'path';
-import { ltr as versionLessThan, coerce } from 'semver';
-import type { PackageManager } from 'package-manager-manager';
 import { cliLog, cliWarn } from '../cli';
 import { readJsonFile, validateDir, validateFile } from '../utils';
-import { waitForProcessToClose } from './processUtils';
+import type { PackageManager } from './packageManagerUtils';
+import {
+	getCurrentPackageManager,
+	getExecStr,
+	getPackageManagerInfo,
+	getPackageVersion,
+	waitForProcessToClose,
+} from './packageManagerUtils';
 
 /**
  * Builds the Next.js output via the Vercel CLI
@@ -20,33 +25,29 @@ import { waitForProcessToClose } from './processUtils';
  * Creates a temporary config file when using the Bun package manager so that Vercel knows to use
  * Bun to install and build the project.
  *
- * @param pm the package manager currently in use
  */
-export async function buildVercelOutput(pm: PackageManager): Promise<void> {
-	cliLog(`Detected Package Manager: ${pm.name} (${pm.version})\n`);
+export async function buildVercelOutput(): Promise<void> {
+	const pm = await getCurrentPackageManager();
+	cliLog(`Detected Package Manager: ${pm}\n`);
 
 	cliLog('Preparing project...');
 	await generateProjectJsonFileIfNeeded();
 
 	let tempVercelConfig: TempVercelConfigInfo | undefined;
 
-	if (pm.name === 'bun') {
+	if (pm === 'bun') {
 		// Vercel introduced proper Bun support in 32.2.1 and 32.2.4 (for monorepos), therefore we should
 		// ensure the Vercel CLI has a config file telling it to use Bun for older versions. This is done
 		// to prevent a breaking change for users who are using an older version of the Vercel CLI.
-		const vercelInfo = await pm.getPackageInfo('vercel');
-
-		if (vercelInfo) {
-			const vercelVersion = coerce(vercelInfo.version);
-			if (vercelVersion && versionLessThan(vercelVersion, '32.2.4')) {
-				cliWarn(
-					'Vercel CLI version is < 32.2.4, creating temporary config for Bun support...',
-				);
-				tempVercelConfig = await createTempVercelConfig({
-					buildCommand: 'bun run build',
-					installCommand: 'bun install',
-				});
-			}
+		const vercelVersion = await getPackageVersion('vercel', pm);
+		if (vercelVersion && vercelVersion < '32.2.4') {
+			cliWarn(
+				'Vercel CLI version is < 32.2.4, creating temporary config for Bun support...',
+			);
+			tempVercelConfig = await createTempVercelConfig({
+				buildCommand: 'bun run build',
+				installCommand: 'bun install',
+			});
 		}
 	}
 
@@ -57,11 +58,8 @@ export async function buildVercelOutput(pm: PackageManager): Promise<void> {
 		await rm(tempVercelConfig.tempPath);
 	}
 
-	const execStr = await pm.getRunExec('vercel', {
-		args: ['build'],
-		download: 'prefer-if-needed',
-	});
-	cliLog(`Completed \`${execStr}\`.`);
+	const execStr = await getExecStr(pm, 'vercel');
+	cliLog(`Completed \`${execStr} vercel build\`.`);
 }
 
 /**
@@ -128,18 +126,20 @@ type VercelProjectJson = {
 type TempVercelConfigInfo = { additionalArgs: string[]; tempPath: string };
 
 async function runVercelBuild(
-	pm: PackageManager,
+	pkgMng: PackageManager,
 	additionalArgs: string[] = [],
 ): Promise<void> {
-	if (pm.name === 'yarn' && pm.version.startsWith('1.')) {
-		const vercelInfo = await pm.getPackageInfo('vercel');
+	const { pm, baseCmd } = await getPackageManagerInfo(pkgMng);
 
-		if (!vercelInfo) {
+	if (pm === 'yarn (classic)') {
+		const vercelVersion = await getPackageVersion('vercel', pkgMng);
+
+		if (!vercelVersion) {
 			cliLog(
-				`vercel dev dependency missing, installing vercel as a dev dependency with '${pm.name} add vercel -D'...`,
+				`vercel dev dependency missing, installing vercel as a dev dependency with '${baseCmd} add vercel -D'...`,
 			);
 
-			const installVercel = spawn(pm.name, ['add', 'vercel', '-D']);
+			const installVercel = spawn(baseCmd, ['add', 'vercel', '-D']);
 
 			logVercelProcessOutput(installVercel);
 
@@ -159,19 +159,26 @@ async function runVercelBuild(
 }
 
 async function getVercelBuildChildProcess(
-	pm: PackageManager,
+	pkgMng: PackageManager,
 	additionalArgs: string[] = [],
 ): Promise<ChildProcessWithoutNullStreams> {
-	const spawnCmd = await pm.getRunExecStruct('vercel', {
-		args: ['build', ...additionalArgs],
-		download: 'prefer-if-needed',
-	});
+	const { pm, baseCmd, execCmd, execArgs, dlxOrExec } =
+		await getPackageManagerInfo(pkgMng);
 
-	if (!spawnCmd) {
-		throw new Error('Error: Failed to generate vercel build command');
+	let dlxArgs: string[] = [];
+
+	if (dlxOrExec) {
+		const vercelPackageIsInstalled = await getPackageVersion('vercel', pm);
+		dlxArgs = dlxOrExec(!vercelPackageIsInstalled);
 	}
 
-	return spawn(spawnCmd.cmd, spawnCmd.cmdArgs);
+	return spawn(execCmd ?? baseCmd, [
+		...dlxArgs,
+		...(execArgs ?? []),
+		'vercel',
+		'build',
+		...additionalArgs,
+	]);
 }
 
 /**

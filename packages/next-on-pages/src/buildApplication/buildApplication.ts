@@ -1,6 +1,5 @@
 import { exit } from 'process';
 import { join, resolve } from 'path';
-import { getPackageManager } from 'package-manager-manager';
 import type { CliOptions } from '../cli';
 import { cliError, cliLog, cliSuccess } from '../cli';
 import { getVercelConfig } from './getVercelConfig';
@@ -13,6 +12,7 @@ import {
 	processVercelOutput,
 	processOutputDir,
 } from './processVercelOutput';
+import { getCurrentPackageManager, getExecStr } from './packageManagerUtils';
 import { printBuildSummary, writeBuildInfo } from './buildSummary';
 import type { ProcessedVercelFunctions } from './processVercelFunctions';
 import { processVercelFunctions } from './processVercelFunctions';
@@ -36,26 +36,17 @@ export async function buildApplication({
 	| 'watch'
 	| 'outdir'
 >) {
-	const pm = await getPackageManager();
-
-	if (!pm) {
-		throw new Error('Error: Could not detect current package manager in use');
-	}
+	const pm = await getCurrentPackageManager();
 
 	let buildSuccess = true;
 	if (!skipBuild) {
 		try {
-			await buildVercelOutput(pm);
+			await buildVercelOutput();
 		} catch {
-			const execStr = await pm.getRunExec('vercel', {
-				args: ['build'],
-				download: 'prefer-if-needed',
-			});
+			const execStr = await getExecStr(pm, 'vercel');
 			cliError(
 				`
-					The Vercel build ${
-						execStr ? `(\`${execStr}\`) ` : ''
-					}command failed. For more details see the Vercel logs above.
+					The Vercel build (\`${execStr} vercel build\`) command failed. For more details see the Vercel logs above.
 					If you need help solving the issue, refer to the Vercel or Next.js documentation or their repositories.
 				`,
 				{ spaced: true },
