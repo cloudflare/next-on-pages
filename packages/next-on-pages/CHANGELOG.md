@@ -1,5 +1,11 @@
 # @cloudflare/next-on-pages
 
+## 1.6.3
+
+### Patch Changes
+
+- 072af87: Temporarily revert the change to package-manager-manager so that the bug fix in the latest release for new next.js versions can still be releases, while a fix for #474 is investigated in the meantime.
+
 ## 1.6.2
 
 ### Patch Changes
