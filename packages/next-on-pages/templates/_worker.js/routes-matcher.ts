@@ -417,7 +417,7 @@ export class RoutesMatcher {
 		const isLocaleIndex =
 			/^\/$/.test(route.src) && route.src.slice(1) in this.locales;
 		if (isLocaleIndex) {
-			return { ...route, src: `^${route.src}$` };
+			return { ...route, src: `${route.src}` };
 		}
 
 		if (isLocaleTrailingSlashRegex(route.src, this.locales)) {
