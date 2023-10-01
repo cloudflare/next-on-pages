@@ -421,7 +421,10 @@ export class RoutesMatcher {
 		}
 
 		if (isLocaleTrailingSlashRegex(route.src, this.locales)) {
-			return { ...route, src: route.src.replace(/\/\(\.\*\)$/, '(?:/(.*))?$') };
+			return {
+				...route,
+				src: route.src.replace(/\/\(\.\*\)\$$/, '(?:/(.*))?$'),
+			};
 		}
 
 		return route;

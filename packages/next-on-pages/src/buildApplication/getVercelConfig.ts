@@ -84,7 +84,15 @@ export function processVercelConfig(
 
 	let currentPhase: VercelHandleValue | 'none' = 'none';
 	config.routes?.forEach(route => {
-		if (route.src) {
+		// The following src tweaks apply only on non-handler routes
+		// see: https://github.com/vercel/vercel/blob/ea5bc88/packages/routing-utils/src/index.ts#L58
+		const isHandler = isVercelHandler(route);
+
+		// routes pointing to '/' with a locale might need not to be tweaked (as suggested by one of our i18n tests)
+		// so just to be on the safe side we also skip those (note that this might actually be unnecessary)
+		const isLocaleIndex = !isHandler && !!(route.locale && route.src === '/');
+
+		if (route.src && !isHandler && !isLocaleIndex) {
 			// Route src should always start with a '^'
 			// see: https://github.com/vercel/vercel/blob/ea5bc88/packages/routing-utils/src/index.ts#L77
 			if (!route.src.startsWith('^')) {
