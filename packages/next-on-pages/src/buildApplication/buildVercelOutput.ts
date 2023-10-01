@@ -34,7 +34,7 @@ export async function buildVercelOutput(pm: PackageManager): Promise<void> {
 		// Vercel introduced proper Bun support in 32.2.1 and 32.2.4 (for monorepos), therefore we should
 		// ensure the Vercel CLI has a config file telling it to use Bun for older versions. This is done
 		// to prevent a breaking change for users who are using an older version of the Vercel CLI.
-		const vercelInfo = await pm.getPackageInfo('vercel');
+		const vercelInfo = await pm.getPackageInfo('vercel').catch(() => null);
 
 		if (vercelInfo) {
 			const vercelVersion = coerce(vercelInfo.version);
@@ -132,7 +132,7 @@ async function runVercelBuild(
 	additionalArgs: string[] = [],
 ): Promise<void> {
 	if (pm.name === 'yarn' && pm.version.startsWith('1.')) {
-		const vercelInfo = await pm.getPackageInfo('vercel');
+		const vercelInfo = await pm.getPackageInfo('vercel').catch(() => null);
 
 		if (!vercelInfo) {
 			cliLog(

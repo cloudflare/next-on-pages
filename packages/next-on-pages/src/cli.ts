@@ -252,7 +252,11 @@ export async function printEnvInfo(): Promise<void> {
 
 	const [vercelVersion, nextVersion] = await Promise.all(
 		['vercel', 'next'].map(
-			async pkg => pm?.getPackageInfo(pkg).then(pkgInfo => pkgInfo?.version),
+			async pkg =>
+				pm
+					?.getPackageInfo(pkg)
+					.then(pkgInfo => pkgInfo?.version)
+					.catch(() => null),
 		),
 	);
 

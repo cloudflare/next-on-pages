@@ -150,7 +150,9 @@ async function printInvalidFunctionsErrorMessage(
 	invalidFunctions: Map<string, FunctionInfo>,
 ): Promise<void> {
 	const pm = await getPackageManager();
-	const nextVersion = coerce((await pm?.getPackageInfo('next'))?.version);
+	const nextVersion = coerce(
+		(await pm?.getPackageInfo('next').catch(() => null))?.version,
+	);
 
 	const { exportText, exampleCode } =
 		!nextVersion || versionGreaterThan(nextVersion, '13.1.2')
