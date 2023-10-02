@@ -1,10 +1,15 @@
 import { writeFile, mkdir, rm, rmdir } from 'fs/promises';
 import { spawn, type ChildProcessWithoutNullStreams } from 'child_process';
 import { join, resolve } from 'path';
-import { ltr as versionLessThan, coerce } from 'semver';
+import { ltr as versionLessThan } from 'semver';
 import type { PackageManager } from 'package-manager-manager';
 import { cliLog, cliWarn } from '../cli';
-import { readJsonFile, validateDir, validateFile } from '../utils';
+import {
+	getPackageVersionOrNull,
+	readJsonFile,
+	validateDir,
+	validateFile,
+} from '../utils';
 import { waitForProcessToClose } from './processUtils';
 
 /**
@@ -34,19 +39,16 @@ export async function buildVercelOutput(pm: PackageManager): Promise<void> {
 		// Vercel introduced proper Bun support in 32.2.1 and 32.2.4 (for monorepos), therefore we should
 		// ensure the Vercel CLI has a config file telling it to use Bun for older versions. This is done
 		// to prevent a breaking change for users who are using an older version of the Vercel CLI.
-		const vercelInfo = await pm.getPackageInfo('vercel').catch(() => null);
+		const vercelVersion = await getPackageVersionOrNull(pm, 'vercel');
 
-		if (vercelInfo) {
-			const vercelVersion = coerce(vercelInfo.version);
-			if (vercelVersion && versionLessThan(vercelVersion, '32.2.4')) {
-				cliWarn(
-					'Vercel CLI version is < 32.2.4, creating temporary config for Bun support...',
-				);
-				tempVercelConfig = await createTempVercelConfig({
-					buildCommand: 'bun run build',
-					installCommand: 'bun install',
-				});
-			}
+		if (vercelVersion && versionLessThan(vercelVersion, '32.2.4')) {
+			cliWarn(
+				'Vercel CLI version is < 32.2.4, creating temporary config for Bun support...',
+			);
+			tempVercelConfig = await createTempVercelConfig({
+				buildCommand: 'bun run build',
+				installCommand: 'bun install',
+			});
 		}
 	}
 
@@ -132,9 +134,9 @@ async function runVercelBuild(
 	additionalArgs: string[] = [],
 ): Promise<void> {
 	if (pm.name === 'yarn' && pm.version.startsWith('1.')) {
-		const vercelInfo = await pm.getPackageInfo('vercel').catch(() => null);
+		const vercelVersion = await getPackageVersionOrNull(pm, 'vercel');
 
-		if (!vercelInfo) {
+		if (!vercelVersion) {
 			cliLog(
 				`vercel dev dependency missing, installing vercel as a dev dependency with '${pm.name} add vercel -D'...`,
 			);

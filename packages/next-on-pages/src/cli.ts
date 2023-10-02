@@ -6,7 +6,11 @@ import type { ChalkInstance } from 'chalk';
 import chalk from 'chalk';
 import { join, resolve } from 'path';
 import { getPackageManager } from 'package-manager-manager';
-import { nextOnPagesVersion, normalizePath } from './utils';
+import {
+	getPackageVersionOrNull,
+	nextOnPagesVersion,
+	normalizePath,
+} from './utils';
 
 // A helper type to handle command line flags. Defaults to false
 const flag = z
@@ -251,13 +255,9 @@ export async function printEnvInfo(): Promise<void> {
 	const pmInfo = pm ? `${pm.name} (${pm.version})` : '???';
 
 	const [vercelVersion, nextVersion] = await Promise.all(
-		['vercel', 'next'].map(
-			async pkg =>
-				pm
-					?.getPackageInfo(pkg)
-					.then(pkgInfo => pkgInfo?.version)
-					.catch(() => null),
-		),
+		['vercel', 'next']
+			.map(async pkg => (pm ? getPackageVersionOrNull(pm, pkg) : null))
+			.filter(Boolean),
 	);
 
 	const envInfoMessage = dedent(`

@@ -1,7 +1,11 @@
-import { gtr as versionGreaterThan, coerce } from 'semver';
+import { gtr as versionGreaterThan } from 'semver';
 import { cliError, cliWarn } from '../../cli';
 import { getPackageManager } from 'package-manager-manager';
-import { formatRoutePath, stripFuncExtension } from '../../utils';
+import {
+	formatRoutePath,
+	getPackageVersionOrNull,
+	stripFuncExtension,
+} from '../../utils';
 import type { CollectedFunctions, FunctionInfo } from './configs';
 import { join, resolve } from 'path';
 import type { ProcessVercelFunctionsOpts } from '.';
@@ -150,9 +154,7 @@ async function printInvalidFunctionsErrorMessage(
 	invalidFunctions: Map<string, FunctionInfo>,
 ): Promise<void> {
 	const pm = await getPackageManager();
-	const nextVersion = coerce(
-		(await pm?.getPackageInfo('next').catch(() => null))?.version,
-	);
+	const nextVersion = pm ? await getPackageVersionOrNull(pm, 'next') : null;
 
 	const { exportText, exampleCode } =
 		!nextVersion || versionGreaterThan(nextVersion, '13.1.2')
