@@ -1,0 +1,11 @@
+{
+	"name": "no-nodejs-compat-flag-static-error-page",
+	"version": "0.0.1",
+	"private": true,
+	"dependencies": {
+		"wrangler": "^3.5.0"
+	},
+	"scripts": {
+		"deploy": "wrangler pages deploy assets"
+	}
+}

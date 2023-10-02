@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Error - no nodejs compatibility flag</title>
+		<style>
+			html {
+				font-family:
+					-apple-system,
+					BlinkMacSystemFont,
+					Segoe UI,
+					Roboto,
+					Oxygen,
+					Ubuntu,
+					Helvetica Neue,
+					Arial,
+					sans-serif;
+				font-size: 62.5%;
+			}
+
+			body {
+				padding: 1rem;
+				display: flex;
+				justify-content: center;
+			}
+
+			body > div,
+			dialog {
+				max-width: 80rem;
+			}
+
+			h1 {
+				font-weight: 300;
+				display: flex;
+				align-items: baseline;
+				flex-wrap: wrap;
+			}
+
+			h2 {
+				font-weight: 400;
+				font-size: 2.3rem;
+			}
+
+			p {
+				font-size: 1.6rem;
+				font-weight: 300;
+			}
+
+			header {
+				margin-block-end: 3.5rem;
+			}
+
+			header .error {
+				font-size: 4rem;
+				margin-inline-end: 1rem;
+			}
+
+			header .error-description {
+				font-size: 2rem;
+			}
+
+			code {
+				color: rgb(59, 59, 59);
+			}
+
+			.what-can-i-do strong {
+				font-weight: 500;
+				display: inline-block;
+				margin-block-end: 0.5rem;
+			}
+
+			main {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 2rem;
+			}
+
+			main > div {
+				flex: 1;
+			}
+
+			@media (width < 30rem) {
+				main {
+					flex-direction: column;
+				}
+			}
+
+			@media (width < 20rem) {
+				html {
+					font-size: 45%;
+				}
+			}
+
+			dialog {
+				width: 90vw;
+				height: 90vh;
+				display: flex;
+				flex-direction: column;
+				gap: 1rem;
+				border: 1px solid black;
+				border-radius: 10px;
+			}
+
+			dialog:not([open]) {
+				display: none;
+			}
+
+			dialog > div {
+				display: flex;
+				flex-direction: column;
+				overflow: auto;
+				padding: 1rem 2rem;
+			}
+
+			dialog > div * {
+				max-width: 100%;
+			}
+
+			dialog img {
+				margin: 1rem;
+				width: 90%;
+				display: block;
+			}
+
+			dialog > form {
+				align-self: flex-end;
+			}
+
+			dialog > form button {
+				font-size: 2.7rem;
+			}
+
+			dialog > form button:hover {
+				scale: 1.2;
+			}
+
+			button {
+				border: none;
+				background: none;
+				cursor: pointer;
+				padding: 0;
+			}
+
+			#more-details-btn {
+				font-style: italic;
+			}
+
+			#more-details-btn:hover {
+				text-decoration: underline;
+			}
+		</style>
+	</head>
+	<body>
+		<div>
+			<header>
+				<h1>
+					<span class="error">NodeJS Compatibility Error</span>
+					<span class="error-description"
+						>no <code>nodejs_compat</code> flag set</span
+					>
+				</h1>
+			</header>
+
+			<main>
+				<div class="what-happened">
+					<h2>What happened?</h2>
+					<p>
+						The page you've requested has been built using
+						<a
+							href="https://github.com/cloudflare/next-on-pages"
+							target="_blank"
+							>@cloudflare/next-on-pages</a
+						>, but hasn't been properly configured.
+					</p>
+				</div>
+
+				<div class="what-can-i-do">
+					<h2>What can I do?</h2>
+					<p>
+						<strong>If you are the owner of this website:</strong>
+						<br />
+						you should go to the Pages Project's
+						<a
+							href="https://dash.cloudflare.com/?to=/:account/pages/view/:pages-project/settings/functions#compatibility_flags_section"
+							target="_blank"
+							>compatibility flags settings section</a
+						>
+						and add the <code>compat_nodejs</code> flag to both your production
+						and preview deployments.
+					</p>
+					<p>
+						<button id="more-details-btn">More details &gt;</button>
+					</p>
+				</div>
+			</main>
+		</div>
+		<dialog>
+			<form method="dialog">
+				<button>&times;</button>
+			</form>
+			<div>
+				<p>
+					Access your Pages project and go to the
+					<a
+						href="https://dash.cloudflare.com/?to=/:account/pages/view/:pages-project/settings/functions"
+						target="_blank"
+						>function settings page</a
+					>.
+				</p>
+
+				<p>
+					Then in the compatibility flags section for both the production and
+					preview deployments type <code> nodejs_compat </code> in the input box
+					and click on save to apply the changes:
+					<img
+						src="https://no-nodejs-compat-flag-static-error-page.pages.dev/img/input.png"
+						alt="how to input flags"
+					/>
+				</p>
+
+				<p>
+					At the end of the operation this is how your compatibility flags
+					section should look like:
+					<img
+						src="https://no-nodejs-compat-flag-static-error-page.pages.dev/img/result.png"
+						alt="result of flags setting"
+					/>
+				</p>
+
+				<p>
+					<strong> Important! </strong>
+					After setting the compatibility flags you need to re-deploy your
+					application in order for them to take effect.
+				</p>
+			</div>
+		</dialog>
+	</body>
+	<script>
+		const dialog = document.querySelector('dialog');
+		const moreDetailsBtn = document.querySelector('#more-details-btn');
+		moreDetailsBtn.addEventListener('click', () => {
+			dialog.showModal();
+		});
+	</script>
+</html>
