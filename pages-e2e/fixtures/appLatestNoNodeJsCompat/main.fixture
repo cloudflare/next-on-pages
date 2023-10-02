@@ -1,0 +1,13 @@
+{
+	"features": [
+		"appNoNodeJsCompatFlag"
+	],
+	"localSetup": "./setup.sh",
+	"buildConfig": {
+		"buildCommand": "npx --force ../../../packages/next-on-pages",
+		"buildOutputDirectory": ".vercel/output/static"
+	},
+	"deploymentConfig": {
+		"compatibilityFlags": [] //note: no "nodejs_compat" included
+	}
+}
