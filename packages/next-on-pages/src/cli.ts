@@ -252,7 +252,7 @@ function prepareCliMessage(
 export async function printEnvInfo(): Promise<void> {
 	const pm = await getPackageManager();
 
-	const pmInfo = pm ? `${pm.name} (${pm.version})` : '???';
+	const pmInfo = pm ? `\n		Package Manager Used: ${pm.name} (${pm.version})\n` : '';
 
 	const [vercelVersion, nextVersion] = await Promise.all(
 		['vercel', 'next']
@@ -267,8 +267,8 @@ export async function printEnvInfo(): Promise<void> {
 			Version: ${os.version()}
 			CPU: (${os.cpus().length}) ${os.arch()} ${os.cpus()[0]?.model}
 			Memory: ${Math.round(os.totalmem() / 1024 / 1024 / 1024)} GB
-			Shell: ${process.env.SHELL?.toString() ?? 'Unknown'}
-		Package Manager Used: ${pmInfo}
+			Shell: ${process.env.SHELL?.toString() ?? 'Unknown'}` +
+		pmInfo + `
 		Relevant Packages:
 			@cloudflare/next-on-pages: ${nextOnPagesVersion}
 			vercel: ${vercelVersion ?? 'N/A'}
