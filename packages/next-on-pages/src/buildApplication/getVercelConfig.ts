@@ -70,7 +70,7 @@ export function processVercelConfig(
 	config: VercelConfig,
 ): ProcessedVercelConfig {
 	const processedConfig: ProcessedVercelConfig = {
-		...config,
+		...JSON.parse(JSON.stringify(config)),
 		routes: {
 			none: [],
 			filesystem: [],
@@ -84,21 +84,46 @@ export function processVercelConfig(
 
 	let currentPhase: VercelHandleValue | 'none' = 'none';
 	config.routes?.forEach(route => {
-		// Vercel generates `^/` as the regex instead of `^/$` for their root prefer route.
-		// This makes the route match everything and not only the actual root requests, so
-		// here we need to fix such erroneous regex.
-		if (route.src === '^/' && route.dest === '/index.prefetch.rsc') {
-			route.src = '^/$';
-		}
-
 		if (isVercelHandler(route)) {
 			currentPhase = route.handle;
 		} else {
+			normalizeRouteSrc(route);
 			processedConfig.routes[currentPhase].push(route);
 		}
 	});
 
 	return processedConfig;
+}
+
+/**
+ * Given a source route it normalizes its src value if needed.
+ *
+ * (In this context normalization means tweaking the src value so that it follows
+ * a format which Vercel expects).
+ *
+ * Note: this function applies the change side-effectfully to the route object.
+ *
+ * @param route Route which src we want to potentially normalize
+ */
+function normalizeRouteSrc(route: VercelSource): void {
+	if (!route.src) return;
+
+	// we rely on locale root routes pointing to '/' to perform runtime checks
+	// so we cannot normalize such src values as that would break things later on
+	// see: https://github.com/cloudflare/next-on-pages/blob/654545/packages/next-on-pages/templates/_worker.js/routes-matcher.ts#L353-L358
+	if (route.locale && route.src === '/') return;
+
+	// Route src should always start with a '^'
+	// see: https://github.com/vercel/vercel/blob/ea5bc88/packages/routing-utils/src/index.ts#L77
+	if (!route.src.startsWith('^')) {
+		route.src = `^${route.src}`;
+	}
+
+	// Route src should always end with a '$'
+	// see: https://github.com/vercel/vercel/blob/ea5bc88/packages/routing-utils/src/index.ts#L82
+	if (!route.src.endsWith('$')) {
+		route.src = `${route.src}$`;
+	}
 }
 
 function isVercelHandler(route: VercelRoute): route is VercelHandler {
