@@ -1,7 +1,11 @@
-import { gtr as versionGreaterThan, coerce } from 'semver';
+import { gtr as versionGreaterThan } from 'semver';
 import { cliError, cliWarn } from '../../cli';
-import { getPackageVersion } from '../packageManagerUtils';
-import { formatRoutePath, stripFuncExtension } from '../../utils';
+import { getPackageManager } from 'package-manager-manager';
+import {
+	formatRoutePath,
+	getPackageVersionOrNull,
+	stripFuncExtension,
+} from '../../utils';
 import type { CollectedFunctions, FunctionInfo } from './configs';
 import { join, resolve } from 'path';
 import type { ProcessVercelFunctionsOpts } from '.';
@@ -149,7 +153,8 @@ async function tryToFixI18nFunctions(
 async function printInvalidFunctionsErrorMessage(
 	invalidFunctions: Map<string, FunctionInfo>,
 ): Promise<void> {
-	const nextVersion = coerce(await getPackageVersion('next'));
+	const pm = await getPackageManager();
+	const nextVersion = pm ? await getPackageVersionOrNull(pm, 'next') : null;
 
 	const { exportText, exampleCode } =
 		!nextVersion || versionGreaterThan(nextVersion, '13.1.2')
