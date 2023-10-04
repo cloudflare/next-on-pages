@@ -4,10 +4,9 @@ import imageToBase64 from 'image-to-base64';
 
 const errorPagePath = './no-nodejs-compat-flag-static-error-page';
 
-let indexHtmlContent = await readFile(
-	`./${errorPagePath}/assets/index.html`,
-	{ encoding: 'utf-8' },
-);
+let indexHtmlContent = await readFile(`./${errorPagePath}/assets/index.html`, {
+	encoding: 'utf-8',
+});
 
 const imgs = await readdir(`./${errorPagePath}/assets/img`);
 
