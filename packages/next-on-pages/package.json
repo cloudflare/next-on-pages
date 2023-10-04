@@ -7,7 +7,7 @@
 		"types-check": "tsc --noEmit",
 		"build": "esbuild --bundle --platform=node ./src/index.ts --external:esbuild --external:chokidar --outfile=./dist/index.js",
 		"build:watch": "npm run build -- --watch=forever",
-		"postbuild": "node ./build-no-nodejs-compat-flag-static-error-page.js",
+		"postbuild": "node ./build-no-nodejs-compat-flag-static-error-page.mjs",
 		"prepare": "npm run build",
 		"test:unit": "npx vitest --config vitest.config.ts"
 	},
