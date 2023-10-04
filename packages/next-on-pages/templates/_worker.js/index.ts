@@ -25,7 +25,9 @@ export default {
 			const noNodeJsCompatStaticPageRequest = await env.ASSETS.fetch(
 				`${reqUrl.protocol}//${reqUrl.host}/no-nodejs-compat-flag-error-page.html`,
 			);
-			return new Response(noNodeJsCompatStaticPageRequest.body, { status: 503 });
+			return new Response(noNodeJsCompatStaticPageRequest.body, {
+				status: 503,
+			});
 		}
 
 		return envAsyncLocalStorage.run(

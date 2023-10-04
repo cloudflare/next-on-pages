@@ -136,7 +136,8 @@ async function prepareAndBuildWorker(
 
 	await buildMetadataFiles(outputDir, { staticAssets });
 
-	const noNodejsStaticErrorPageFileName = await copyNoNodejsCompatStaticErrorPage(outputDir);
+	const noNodejsStaticErrorPageFileName =
+		await copyNoNodejsCompatStaticErrorPage(outputDir);
 	staticAssets.push(`/${noNodejsStaticErrorPageFileName}`);
 
 	printBuildSummary(staticAssets, processedVercelOutput, processedFunctions);
@@ -157,9 +158,20 @@ async function prepareAndBuildWorker(
  * @param outputDir path of the output directory
  * @returns the filename of the html file copied
  */
-async function copyNoNodejsCompatStaticErrorPage(outputDir: string): Promise<string> {
+async function copyNoNodejsCompatStaticErrorPage(
+	outputDir: string,
+): Promise<string> {
 	const htmlFileName = 'no-nodejs-compat-flag-error-page.html';
-	const noNodejsCompatFlagStaticErrorPagePath = join(__dirname, '..', 'no-nodejs-compat-flag-static-error-page', 'dist' ,'index.html');
-	await cp(noNodejsCompatFlagStaticErrorPagePath, join(outputDir, htmlFileName));
+	const noNodejsCompatFlagStaticErrorPagePath = join(
+		__dirname,
+		'..',
+		'no-nodejs-compat-flag-static-error-page',
+		'dist',
+		'index.html',
+	);
+	await cp(
+		noNodejsCompatFlagStaticErrorPagePath,
+		join(outputDir, htmlFileName),
+	);
 	return htmlFileName;
 }
