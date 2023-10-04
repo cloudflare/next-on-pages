@@ -7,13 +7,15 @@
 		"types-check": "tsc --noEmit",
 		"build": "esbuild --bundle --platform=node ./src/index.ts --external:esbuild --external:chokidar --outfile=./dist/index.js",
 		"build:watch": "npm run build -- --watch=forever",
+		"postbuild": "node ./build-no-nodejs-compat-flag-static-error-page.js",
 		"prepare": "npm run build",
 		"test:unit": "npx vitest --config vitest.config.ts"
 	},
 	"files": [
 		"bin",
 		"dist",
-		"templates"
+		"templates",
+		"no-nodejs-compat-flag-static-error-page/dist"
 	],
 	"keywords": [
 		"cloudflare",
@@ -64,6 +66,7 @@
 		"prettier": "^2.8.4",
 		"typescript": "^5.0.4",
 		"vitest": "^0.32.2",
-		"vitest-environment-miniflare": "^2.13.0"
+		"vitest-environment-miniflare": "^2.13.0",
+		"image-to-base64": "^2.2.0"
 	}
 }
