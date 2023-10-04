@@ -2,10 +2,12 @@
 	"name": "no-nodejs-compat-flag-static-error-page",
 	"version": "0.0.1",
 	"private": true,
-	"dependencies": {
+	"devDependencies": {
+		"image-to-base64": "^2.2.0",
 		"wrangler": "^3.5.0"
 	},
 	"scripts": {
-		"deploy": "wrangler pages deploy assets"
+		"build": "node ./build.js",
+		"deploy": "npm run build && wrangler pages deploy dist"
 	}
 }
