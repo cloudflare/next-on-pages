@@ -1,5 +1,5 @@
 {
-	"name": "docs-scraper",
+	"name": "@cloudflare/next-on-pages-docs-scraper",
 	"private": true,
 	"scripts": {
 		"lint": "eslint scripts",

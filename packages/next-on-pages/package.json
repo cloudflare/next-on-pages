@@ -2,13 +2,24 @@
 	"name": "@cloudflare/next-on-pages",
 	"version": "1.7.2",
 	"bin": "./bin/index.js",
+	"exports": {
+		"./dev-bindings": "./dist/dev-bindings/index.cjs"
+	},
+	"typesVersions": {
+		"*": {
+			"dev-bindings": [
+				"./dist/dev-bindings/index.d.ts"
+			]
+		}
+	},
 	"scripts": {
 		"lint": "eslint src templates",
 		"types-check": "tsc --noEmit",
 		"build": "esbuild --bundle --platform=node ./src/index.ts --external:esbuild --external:chokidar --outfile=./dist/index.js",
 		"build:watch": "npm run build -- --watch=forever",
-		"postbuild": "node ./build-no-nodejs-compat-flag-static-error-page.mjs",
-		"prepare": "npm run build",
+		"build:no-nodejs-compat-error-page": "node ./build-no-nodejs-compat-flag-static-error-page.mjs",
+		"build:dev-bindings": "npm run build --workspace @cloudflare/next-on-pages-dev-bindings && rm -rf ./dist/dev-bindings && cp -R ../../internal-packages/dev-bindings/dist ./dist/dev-bindings",
+		"prepare": "npm run build && npm run build:no-nodejs-compat-error-page && npm run build:dev-bindings",
 		"test:unit": "npx vitest --config vitest.config.ts"
 	},
 	"files": [
@@ -43,8 +54,9 @@
 		"package-manager-manager": "^0.2.0",
 		"pcre-to-regexp": "^1.1.0",
 		"semver": "^7.5.2",
-		"zod": "^3.22.3",
-		"zodcli": "^0.0.4"
+		"zod": "^3.22.4",
+		"zodcli": "^0.0.4",
+		"miniflare": "^3.20231002.1"
 	},
 	"peerDependencies": {
 		"vercel": ">=30.0.0",
@@ -53,6 +65,7 @@
 	"devDependencies": {
 		"@changesets/cli": "^2.26.0",
 		"@cloudflare/next-on-pages-tsconfig": "*",
+		"@cloudflare/next-on-pages-dev-bindings": "*",
 		"@cloudflare/workers-types": "^4.20230404.0",
 		"@tsconfig/strictest": "^2.0.0",
 		"@types/cookie": "^0.5.1",
