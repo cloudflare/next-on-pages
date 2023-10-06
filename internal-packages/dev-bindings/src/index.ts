@@ -1,6 +1,14 @@
 import { Miniflare } from 'miniflare';
 
 export async function setupDevBindings(options: DevBindingsOptions) {
+	const mf = instantiateMiniflare(options);
+
+	const bindings = await collectBindings(mf, options);
+
+	monkeyPatchVmModule(bindings);
+}
+
+function instantiateMiniflare(options: DevBindingsOptions) {
 	// we let the user define where to persist the data, we default back
 	// to .wrangler/state/v3 which is the currently used wrangler path
 	// (this is so that when they switch to wrangler pages dev they can
@@ -12,7 +20,7 @@ export async function setupDevBindings(options: DevBindingsOptions) {
 		script: '',
 		...(persist === false
 			? {
-					// no data persistence
+					// the user specifically requested no data persistence
 			  }
 			: {
 					kvPersist: `${persist}/kv`,
@@ -23,17 +31,53 @@ export async function setupDevBindings(options: DevBindingsOptions) {
 		...(options ?? {}),
 	});
 
-	const bindingsCollections = await Promise.all([
-		collectBindings(mf, 'KV', options?.kvNamespaces ?? []),
-		collectBindings(mf, 'DO', options?.durableObjects ?? []),
-		collectBindings(mf, 'R2', options?.r2Buckets ?? []),
-		collectBindings(mf, 'D1', options?.d1Databases ?? []),
-	]);
+	return mf;
+}
 
-	const bindings = bindingsCollections.flat();
+async function collectBindings(
+	mf: Miniflare,
+	options: DevBindingsOptions,
+): Promise<{ name: string; binding: MiniflareBinding }[]> {
+	const bindingGetterFnMap = {
+		KV: mf.getKVNamespace.bind(mf),
+		DO: mf.getDurableObjectNamespace.bind(mf),
+		R2: mf.getR2Bucket.bind(mf),
+		D1: mf.getD1Database.bind(mf),
+	};
+	async function collectBindingsOfType(
+		type: BindingType,
+		bindingsOpts: string[] | Record<string, unknown>,
+	) {
+		const bindingNames = getBindingsNames(bindingsOpts);
+		const bindingGetterFn = bindingGetterFnMap[type];
+		return Promise.all(
+			bindingNames.map(async bindingName => {
+				return {
+					name: bindingName,
+					binding: await bindingGetterFn(bindingName),
+				};
+			}),
+		);
+	}
 
+	const bindings = (
+		await Promise.all([
+			collectBindingsOfType('KV', options?.kvNamespaces ?? []),
+			collectBindingsOfType('DO', options?.durableObjects ?? []),
+			collectBindingsOfType('R2', options?.r2Buckets ?? []),
+			collectBindingsOfType('D1', options?.d1Databases ?? []),
+		])
+	).flat();
+
+	return bindings;
+}
+
+function monkeyPatchVmModule(
+	bindings: { name: string; binding: MiniflareBinding }[],
+) {
 	// eslint-disable-next-line @typescript-eslint/no-var-requires
 	const vmModule = require('vm');
+
 	const originalRunInContext = vmModule.runInContext.bind(vmModule);
 
 	vmModule.runInContext = (
@@ -59,29 +103,6 @@ export async function setupDevBindings(options: DevBindingsOptions) {
 	};
 }
 
-async function collectBindings(
-	mf: Miniflare,
-	type: 'KV' | 'DO' | 'R2' | 'D1',
-	bindingsOpts: string[] | Record<string, unknown>,
-) {
-	const bindingNames = getBindingsNames(bindingsOpts);
-	const bindingGetterFn = {
-		KV: mf.getKVNamespace.bind(mf),
-		DO: mf.getDurableObjectNamespace.bind(mf),
-		R2: mf.getR2Bucket.bind(mf),
-		D1: mf.getD1Database.bind(mf),
-	}[type];
-	return Promise.all(
-		bindingNames.map(async bindingName => {
-			return {
-				name: bindingName,
-				type,
-				binding: await bindingGetterFn(bindingName),
-			};
-		}),
-	);
-}
-
 function getBindingsNames(
 	bindings: string[] | Record<string, unknown>,
 ): string[] {
@@ -104,3 +125,17 @@ export type DevBindingsOptions = {
 	d1Databases?: string[] | Record<string, string>;
 	persist?: false | string;
 };
+
+type BindingType = 'KV' | 'DO' | 'R2' | 'D1';
+
+type KVMiniflareBinding = Awaited<ReturnType<Miniflare['getKVNamespace']>>;
+type DOMiniflareBinding = Awaited<
+	ReturnType<Miniflare['getDurableObjectNamespace']>
+>;
+type R2MiniflareBinding = Awaited<ReturnType<Miniflare['getR2Bucket']>>;
+type D1MiniflareBinding = Awaited<ReturnType<Miniflare['getD1Database']>>;
+type MiniflareBinding =
+	| KVMiniflareBinding
+	| DOMiniflareBinding
+	| R2MiniflareBinding
+	| D1MiniflareBinding;
