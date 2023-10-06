@@ -23,7 +23,7 @@ export default {
 		if (!envAsyncLocalStorage) {
 			const reqUrl = new URL(request.url);
 			const noNodeJsCompatStaticPageRequest = await env.ASSETS.fetch(
-				`${reqUrl.protocol}//${reqUrl.host}/no-nodejs-compat-flag-error-page.html`,
+				`${reqUrl.protocol}//${reqUrl.host}/cdn-cgi/errors/no-nodejs_compat.html`,
 			);
 			const responseBody = noNodeJsCompatStaticPageRequest.ok
 				? noNodeJsCompatStaticPageRequest.body

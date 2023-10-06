@@ -136,9 +136,7 @@ async function prepareAndBuildWorker(
 
 	await buildMetadataFiles(outputDir, { staticAssets });
 
-	const noNodejsStaticErrorPageFileName =
-		await copyNoNodejsCompatStaticErrorPage(outputDir);
-	staticAssets.push(`/${noNodejsStaticErrorPageFileName}`);
+	await copyNoNodejsCompatStaticErrorPage(outputDir);
 
 	printBuildSummary(staticAssets, processedVercelOutput, processedFunctions);
 
@@ -156,12 +154,10 @@ async function prepareAndBuildWorker(
  * Copies the no nodejs_compat static error page to the output directory
  *
  * @param outputDir path of the output directory
- * @returns the filename of the html file copied
  */
 async function copyNoNodejsCompatStaticErrorPage(
 	outputDir: string,
-): Promise<string> {
-	const htmlFileName = 'no-nodejs-compat-flag-error-page.html';
+): Promise<void> {
 	const noNodejsCompatFlagStaticErrorPagePath = join(
 		__dirname,
 		'..',
@@ -171,7 +167,6 @@ async function copyNoNodejsCompatStaticErrorPage(
 	);
 	await cp(
 		noNodejsCompatFlagStaticErrorPagePath,
-		join(outputDir, htmlFileName),
+		join(outputDir, 'cdn-cgi', 'errors', 'no-nodejs_compat.html'),
 	);
-	return htmlFileName;
 }
