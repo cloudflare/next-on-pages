@@ -21,10 +21,14 @@ export default {
 	async fetch(request, env, ctx) {
 		const envAsyncLocalStorage = await __ENV_ALS_PROMISE__;
 		if (!envAsyncLocalStorage) {
-			return new Response(
-				`Error: Could not access built-in Node.js modules. Please make sure that your Cloudflare Pages project has the 'nodejs_compat' compatibility flag set.`,
-				{ status: 503 },
+			const reqUrl = new URL(request.url);
+			const noNodeJsCompatStaticPageRequest = await env.ASSETS.fetch(
+				`${reqUrl.protocol}//${reqUrl.host}/cdn-cgi/errors/no-nodejs_compat.html`,
 			);
+			const responseBody = noNodeJsCompatStaticPageRequest.ok
+				? noNodeJsCompatStaticPageRequest.body
+				: "Error: Could not access built-in Node.js modules. Please make sure that your Cloudflare Pages project has the 'nodejs_compat' compatibility flag set.";
+			return new Response(responseBody, { status: 503 });
 		}
 
 		return envAsyncLocalStorage.run(
