@@ -12,7 +12,7 @@ describe('no nodejs_compatibility flag set', () => {
 
 		await page.goto(pageUrl);
 
-		await assertVisible('.error', { hasText: 'NodeJS Compatibility Error' });
+		await assertVisible('.error', { hasText: 'Node.JS Compatibility Error' });
 
 		await assertVisible('.what-can-i-do > h2', { hasText: 'What can I do?' });
 
@@ -29,7 +29,7 @@ describe('no nodejs_compatibility flag set', () => {
 
 		await page.goto(pageUrl);
 
-		await assertVisible('.error', { hasText: 'NodeJS Compatibility Error' });
+		await assertVisible('.error', { hasText: 'Node.JS Compatibility Error' });
 
 		await assertVisible('.what-can-i-do > h2', { hasText: 'What can I do?' });
 
