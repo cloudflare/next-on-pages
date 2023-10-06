@@ -43,7 +43,7 @@
 		"package-manager-manager": "^0.1.2",
 		"pcre-to-regexp": "^1.1.0",
 		"semver": "^7.5.2",
-		"zod": "^3.21.4",
+		"zod": "^3.22.3",
 		"zodcli": "^0.0.4"
 	},
 	"peerDependencies": {
