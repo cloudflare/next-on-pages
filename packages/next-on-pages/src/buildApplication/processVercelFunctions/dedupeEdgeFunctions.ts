@@ -89,7 +89,7 @@ async function processFunctionIdentifiers(
 
 		// Tracks the imports to prepend to the final code for the function and identifiers.
 		const importsToPrepend: NewImportInfo[] = [];
-		const wasmImportsToPrepend = new Map<string, string[]>();
+		const wasmImportsToPrepend = new Map<string, Set<string>>();
 
 		const newFnLocation = join('functions', `${fnInfo.relativePath}.js`);
 		const newFnPath = join(opts.nopDistDir, newFnLocation);
@@ -122,9 +122,12 @@ async function processFunctionIdentifiers(
 				if (newImport) importsToPrepend.push(newImport);
 				if (wasmImports.length) {
 					const newDest = identifierInfo.newDest as string;
-					const existingWasmImports = wasmImportsToPrepend.get(newDest) ?? [];
-					const newWasmImports = existingWasmImports.concat(wasmImports);
-					wasmImportsToPrepend.set(newDest, newWasmImports);
+					if (!wasmImportsToPrepend.get(newDest)) {
+						wasmImportsToPrepend.set(newDest, new Set());
+					}
+					// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+					const destImports = wasmImportsToPrepend.get(newDest)!;
+					wasmImports.forEach(wasmImport => destImports.add(wasmImport));
 				}
 			}
 		}
@@ -218,7 +221,7 @@ type BuildFunctionFileOpts = {
  * @param opts Options for processing the function.
  */
 async function prependWasmImportsToCodeBlocks(
-	wasmImportsToPrepend: Map<string, string[]>,
+	wasmImportsToPrepend: Map<string, Set<string>>,
 	identifierMaps: Record<IdentifierType, IdentifiersMap>,
 	{ workerJsDir, nopDistDir }: ProcessVercelFunctionsOpts,
 ) {
