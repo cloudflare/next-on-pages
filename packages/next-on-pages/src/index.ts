@@ -72,7 +72,7 @@ function runBuild(options: CliOptions) {
 				`);
 			}
 		}
-	}).catch(error => cliError(`Watch mode unexpected error: ${error}`));
+	}).catch(error => cliError(`Unexpected error: ${error}`));
 }
 
 function setWatchMode(fn: () => void): void {
