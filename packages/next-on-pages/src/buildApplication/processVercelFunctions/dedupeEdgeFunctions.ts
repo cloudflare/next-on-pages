@@ -121,10 +121,10 @@ async function processFunctionIdentifiers(
 				if (newFilePath) identifierPathsToBuild.add(newFilePath);
 				if (newImport) importsToPrepend.push(newImport);
 				if (wasmImports.length) {
-					wasmImportsToPrepend.set(
-						identifierInfo.newDest as string,
-						wasmImports,
-					);
+					const newDest = identifierInfo.newDest as string;
+					const existingWasmImports = wasmImportsToPrepend.get(newDest) ?? [];
+					const newWasmImports = existingWasmImports.concat(wasmImports);
+					wasmImportsToPrepend.set(newDest, newWasmImports);
 				}
 			}
 		}
