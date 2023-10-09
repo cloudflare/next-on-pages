@@ -1,5 +1,20 @@
 # @cloudflare/next-on-pages
 
+## 1.6.3
+
+### Patch Changes
+
+- 072af87: Temporarily revert the change to package-manager-manager so that the bug fix in the latest release for new next.js versions can still be releases, while a fix for #474 is investigated in the meantime.
+
+## 1.6.2
+
+### Patch Changes
+
+- cd2f7ee: correctly handle newly introduced .prefetch.rsc suffixes
+- 5b4a5b7: improve package managers and package handling by using the package-manager-manager third party library
+- b585099: Avoid using the Vercel custom config hack for Bun package manager support when a version of the Vercel CLI that supports Bun is used.
+- 628f6bb: Ignore invalid nodejs i18n functions with valid alternatives.
+
 ## 1.6.1
 
 ### Patch Changes

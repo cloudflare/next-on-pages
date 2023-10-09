@@ -39,6 +39,7 @@ describe('processPrerenderFunctions', () => {
 			outputDir,
 			workerJsDir,
 			nopDistDir,
+			vercelConfig: { version: 3 },
 		});
 		restoreFsMock();
 
@@ -92,6 +93,7 @@ describe('processPrerenderFunctions', () => {
 			outputDir,
 			workerJsDir,
 			nopDistDir,
+			vercelConfig: { version: 3 },
 		});
 		restoreFsMock();
 
@@ -144,6 +146,7 @@ describe('processPrerenderFunctions', () => {
 			outputDir,
 			workerJsDir,
 			nopDistDir,
+			vercelConfig: { version: 3 },
 		});
 		restoreFsMock();
 
@@ -201,6 +204,7 @@ describe('processPrerenderFunctions', () => {
 			outputDir,
 			workerJsDir,
 			nopDistDir,
+			vercelConfig: { version: 3 },
 		});
 		restoreFsMock();
 
@@ -261,6 +265,7 @@ describe('processPrerenderFunctions', () => {
 			outputDir,
 			workerJsDir,
 			nopDistDir,
+			vercelConfig: { version: 3 },
 		});
 		restoreFsMock();
 
@@ -315,6 +320,7 @@ describe('processPrerenderFunctions', () => {
 			outputDir,
 			workerJsDir,
 			nopDistDir,
+			vercelConfig: { version: 3 },
 		});
 		restoreFsMock();
 
@@ -366,6 +372,7 @@ describe('processPrerenderFunctions', () => {
 			outputDir,
 			workerJsDir,
 			nopDistDir,
+			vercelConfig: { version: 3 },
 		});
 		restoreFsMock();
 
@@ -418,6 +425,7 @@ describe('processPrerenderFunctions', () => {
 			outputDir,
 			workerJsDir,
 			nopDistDir,
+			vercelConfig: { version: 3 },
 		});
 		restoreFsMock();
 
@@ -465,6 +473,7 @@ describe('processPrerenderFunctions', () => {
 			outputDir,
 			workerJsDir,
 			nopDistDir,
+			vercelConfig: { version: 3 },
 		});
 		restoreFsMock();
 
@@ -510,6 +519,7 @@ describe('processPrerenderFunctions', () => {
 			outputDir: customOutputDir,
 			workerJsDir: customWorkerJsDir,
 			nopDistDir: join(customWorkerJsDir, '__next-on-pages-dist__'),
+			vercelConfig: { version: 3 },
 		});
 
 		const { edgeFunctions, prerenderedFunctions, invalidFunctions } =
@@ -576,6 +586,7 @@ describe('processPrerenderFunctions', () => {
 			outputDir: resolve('custom'),
 			workerJsDir: customWorkerJsDir,
 			nopDistDir: join(customWorkerJsDir, '__next-on-pages-dist__'),
+			vercelConfig: { version: 3 },
 		});
 
 		const { edgeFunctions, prerenderedFunctions, invalidFunctions } =
