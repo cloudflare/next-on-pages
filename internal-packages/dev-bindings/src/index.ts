@@ -96,17 +96,21 @@ function monkeyPatchVmModule(
 				runtimeContext.process.env[binding.name] = binding.binding;
 			}
 
-			runtimeContext["Request"] = new Proxy(Request, {
+			runtimeContext['Request'] = new Proxy(Request, {
 				construct(target, args, newTarget) {
-					if (args.length >= 2 && typeof args[1] === "object" && args[1].duplex === undefined) {
-						args[1].duplex = "half";
+					if (
+						args.length >= 2 &&
+						typeof args[1] === 'object' &&
+						args[1].duplex === undefined
+					) {
+						args[1].duplex = 'half';
 					}
 					return Reflect.construct(target, args, newTarget);
 				},
 			});
-			runtimeContext["Response"] = Response;
-			runtimeContext["Headers"] = Headers;
-			
+			runtimeContext['Response'] = Response;
+			runtimeContext['Headers'] = Headers;
+
 			runtimeContext.process.env['BINDINGS_PROXY_SET'] = true;
 		}
 
