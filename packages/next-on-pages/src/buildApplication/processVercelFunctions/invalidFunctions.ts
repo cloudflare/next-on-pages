@@ -188,6 +188,9 @@ async function printInvalidFunctionsErrorMessage(
 
 			You can read more about the Edge Runtime on the Next.js documentation:
 			  https://nextjs.org/docs/app/building-your-application/rendering/edge-and-nodejs-runtimes
+
+			If you have no other option you can try ignoring the invalid routes mentioned above, see:
+				https://github.com/cloudflare/next-on-pages/blob/main/packages/next-on-pages/docs/ignoring-invalid-routes.md
 	`,
 		{ spaced: true },
 	);

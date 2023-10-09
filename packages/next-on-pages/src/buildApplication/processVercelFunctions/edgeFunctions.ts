@@ -1,7 +1,7 @@
 import { join } from 'node:path';
 import type { CollectedFunctions } from './configs';
 import { formatRoutePath, stripIndexRoute, validateFile } from '../../utils';
-import { cliWarn } from '../../cli';
+import { cliLog, cliWarn } from '../../cli';
 
 /**
  * Processes the Edge function routes found in the Vercel build output.
@@ -14,6 +14,7 @@ import { cliWarn } from '../../cli';
  */
 export async function processEdgeFunctions(
 	collectedFunctions: CollectedFunctions,
+	invalidRoutesToIgnore: string[] = [],
 ): Promise<void> {
 	const { edgeFunctions, invalidFunctions, ignoredFunctions } =
 		collectedFunctions;
@@ -74,7 +75,11 @@ export async function processEdgeFunctions(
 		});
 	}
 
-	await tryToFixInvalidFunctions(collectedFunctions, tempFunctionsMap);
+	await tryToFixInvalidFunctions(
+		collectedFunctions,
+		tempFunctionsMap,
+		invalidRoutesToIgnore,
+	);
 }
 
 /**
@@ -147,8 +152,13 @@ async function checkEntrypoint(
 async function tryToFixInvalidFunctions(
 	collectedFunctions: CollectedFunctions,
 	tempFunctionsMap: Map<string, string>,
+	invalidRoutesToIgnore: string[],
 ): Promise<void> {
 	const { invalidFunctions } = collectedFunctions;
+
+	const invalidRoutesIgnoreMap = new Map(
+		invalidRoutesToIgnore.map(route => [route, false]),
+	);
 
 	if (invalidFunctions.size === 0) {
 		return;
@@ -162,6 +172,9 @@ async function tryToFixInvalidFunctions(
 			tempFunctionsMap.has(stripIndexRoute(formattedPath))
 		) {
 			invalidFunctions.delete(path);
+		} else if (invalidRoutesIgnoreMap.has(formattedPath)) {
+			invalidFunctions.delete(path);
+			invalidRoutesIgnoreMap.set(formattedPath, true);
 		} else if (formattedPath.endsWith('.rsc')) {
 			replaceRscWithNonRsc(collectedFunctions, tempFunctionsMap, {
 				formattedPath,
@@ -169,6 +182,8 @@ async function tryToFixInvalidFunctions(
 			});
 		}
 	}
+
+	logInvalidRoutesToIgnoreInfo(invalidRoutesToIgnore, invalidRoutesIgnoreMap);
 }
 
 /**
@@ -206,5 +221,43 @@ function replaceRscWithNonRsc(
 				...rscFnInfo,
 			});
 		}
+	}
+}
+
+/**
+ * Logs information about the invalid routes that the user requested to ignore.
+ *
+ * @param invalidRoutesToIgnore array containing the invalid routes
+ * @param invalidRoutesIgnoreMap map mapping each route to a boolean indicating whether it has actually been ignored or not
+ */
+function logInvalidRoutesToIgnoreInfo(
+	invalidRoutesToIgnore: string[],
+	invalidRoutesIgnoreMap: Map<string, boolean>,
+) {
+	const [ignoredRoutes, nonIgnoredRoutes] = invalidRoutesToIgnore.reduce(
+		([ignored, nonIgnored], route) => {
+			const invalidRouteIsGettingIgnored = invalidRoutesIgnoreMap.get(route);
+			const result: [string[], string[]] = invalidRouteIsGettingIgnored
+				? [[...ignored, route], nonIgnored]
+				: [ignored, [...nonIgnored, route]];
+			return result;
+		},
+		[[], []] as [string[], string[]],
+	);
+
+	if (ignoredRoutes.length > 0) {
+		cliLog(`
+			The following invalid routes have been ignored (I hope you know what you're doing!):\n${ignoredRoutes
+				.map(route => `			  - ${route}`)
+				.join('\n')}
+		`);
+	}
+
+	if (nonIgnoredRoutes.length > 0) {
+		cliWarn(`
+			The following invalid routes are set to be ignored but no such invalid routes were found:\n${nonIgnoredRoutes
+				.map(route => `			  - ${route}`)
+				.join('\n')}
+		`);
 	}
 }

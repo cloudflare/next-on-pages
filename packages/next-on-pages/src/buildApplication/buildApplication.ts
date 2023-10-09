@@ -28,6 +28,7 @@ export async function buildApplication({
 	disableWorkerMinification,
 	watch,
 	outdir: outputDir,
+	ignoreInvalidRoutes,
 }: Pick<
 	CliOptions,
 	| 'skipBuild'
@@ -35,6 +36,7 @@ export async function buildApplication({
 	| 'disableWorkerMinification'
 	| 'watch'
 	| 'outdir'
+	| 'ignoreInvalidRoutes'
 >) {
 	const pm = await getPackageManager();
 
@@ -74,6 +76,7 @@ export async function buildApplication({
 	await prepareAndBuildWorker(outputDir, {
 		disableChunksDedup,
 		disableWorkerMinification,
+		ignoreInvalidRoutes,
 	});
 
 	const totalBuildTime = ((Date.now() - buildStartTime) / 1000).toFixed(2);
@@ -85,7 +88,11 @@ async function prepareAndBuildWorker(
 	{
 		disableChunksDedup,
 		disableWorkerMinification,
-	}: Pick<CliOptions, 'disableChunksDedup' | 'disableWorkerMinification'>,
+		ignoreInvalidRoutes,
+	}: Pick<
+		CliOptions,
+		'disableChunksDedup' | 'disableWorkerMinification' | 'ignoreInvalidRoutes'
+	>,
 ): Promise<void> {
 	let vercelConfig: VercelConfig;
 	try {
@@ -117,6 +124,7 @@ async function prepareAndBuildWorker(
 			nopDistDir: join(workerJsDir, '__next-on-pages-dist__'),
 			disableChunksDedup,
 			vercelConfig,
+			invalidRoutesToIgnore: ignoreInvalidRoutes,
 		});
 	}
 

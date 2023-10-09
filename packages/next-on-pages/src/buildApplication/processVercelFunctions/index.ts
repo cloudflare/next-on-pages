@@ -21,7 +21,7 @@ export async function processVercelFunctions(
 
 	await processPrerenderFunctions(collectedFunctions, opts);
 
-	await processEdgeFunctions(collectedFunctions);
+	await processEdgeFunctions(collectedFunctions, opts.invalidRoutesToIgnore);
 
 	await checkInvalidFunctions(collectedFunctions, opts);
 
@@ -37,6 +37,7 @@ export type ProcessVercelFunctionsOpts = {
 	nopDistDir: string;
 	disableChunksDedup?: boolean;
 	vercelConfig: VercelConfig;
+	invalidRoutesToIgnore?: string[];
 };
 
 export type ProcessedVercelFunctions = {
