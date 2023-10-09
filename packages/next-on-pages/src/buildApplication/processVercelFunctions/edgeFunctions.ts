@@ -54,7 +54,10 @@ export async function processEdgeFunctions(
 				break;
 			}
 			case 'ignore': {
-				ignoredFunctions.set(path, fnInfo);
+				ignoredFunctions.set(path, {
+					reason: entrypointStatus.reason,
+					...fnInfo,
+				});
 				edgeFunctions.delete(path);
 				break;
 			}
@@ -89,7 +92,9 @@ async function checkEntrypoint(
 	relativePath: string,
 	entrypoint: string,
 ): Promise<
-	{ value: 'ignore' | 'invalid' } | { value: 'valid'; finalEntrypoint: string }
+	| { value: 'invalid' }
+	| { value: 'ignore'; reason: string }
+	| { value: 'valid'; finalEntrypoint: string }
 > {
 	let finalEntrypoint = entrypoint;
 
@@ -109,7 +114,7 @@ async function checkEntrypoint(
 			cliWarn(
 				`Detected an invalid middleware function for ${relativePath}. Skipping...`,
 			);
-			return { value: 'ignore' };
+			return { value: 'ignore', reason: 'invalid middleware function' };
 		}
 
 		return { value: 'invalid' };
@@ -196,7 +201,10 @@ function replaceRscWithNonRsc(
 			tempFunctionsMap.delete(formattedPath);
 			edgeFunctions.delete(path);
 			invalidFunctions.delete(path);
-			ignoredFunctions.set(path, rscFnInfo);
+			ignoredFunctions.set(path, {
+				reason: 'unnecessary rsc function',
+				...rscFnInfo,
+			});
 		}
 	}
 }

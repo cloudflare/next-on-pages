@@ -23,7 +23,7 @@ export async function processVercelFunctions(
 
 	await processEdgeFunctions(collectedFunctions);
 
-	await checkInvalidFunctions(collectedFunctions);
+	await checkInvalidFunctions(collectedFunctions, opts);
 
 	const identifiers = await dedupeEdgeFunctions(collectedFunctions, opts);
 
@@ -36,6 +36,7 @@ export type ProcessVercelFunctionsOpts = {
 	workerJsDir: string;
 	nopDistDir: string;
 	disableChunksDedup?: boolean;
+	vercelConfig: VercelConfig;
 };
 
 export type ProcessedVercelFunctions = {

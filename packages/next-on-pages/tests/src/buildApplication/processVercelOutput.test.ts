@@ -55,11 +55,11 @@ describe('processVercelOutput', () => {
 				version: 3,
 				routes: {
 					none: [
-						{ src: '/test-1', dest: '/test-2' },
-						{ src: '/use-middleware', middlewarePath: 'middleware' },
+						{ src: '^/test-1$', dest: '/test-2' },
+						{ src: '^/use-middleware$', middlewarePath: 'middleware' },
 					],
-					filesystem: [{ src: '/test-3', dest: '/test-4' }],
-					miss: [{ src: '/test-2', dest: '/test-6' }],
+					filesystem: [{ src: '^/test-3$', dest: '/test-4' }],
+					miss: [{ src: '^/test-2$', dest: '/test-6' }],
 					rewrite: [],
 					resource: [],
 					hit: [],

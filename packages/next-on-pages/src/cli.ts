@@ -5,12 +5,12 @@ import { argumentParser } from 'zodcli';
 import type { ChalkInstance } from 'chalk';
 import chalk from 'chalk';
 import { join, resolve } from 'path';
-import { nextOnPagesVersion, normalizePath } from './utils';
+import { getPackageManager } from 'package-manager-manager';
 import {
-	getBinaryVersion,
-	getPackageVersion,
-} from './buildApplication/packageManagerUtils';
-import { getCurrentPackageManager } from './buildApplication/packageManagerUtils';
+	getPackageVersionOrNull,
+	nextOnPagesVersion,
+	normalizePath,
+} from './utils';
 
 // A helper type to handle command line flags. Defaults to false
 const flag = z
@@ -250,37 +250,35 @@ function prepareCliMessage(
 }
 
 export async function printEnvInfo(): Promise<void> {
-	const packageManager = await getCurrentPackageManager();
+	const pm = await getPackageManager();
 
-	const [nodeVersion, bunVersion, pnpmVersion, yarnVersion, npmVersion] =
-		await Promise.all(
-			['node', 'bun', 'pnpm', 'yarn', 'npm'].map(getBinaryVersion),
-		);
+	const pmInfo = pm
+		? `\n		Package Manager Used: ${pm.name} (${pm.version})\n`
+		: '';
 
 	const [vercelVersion, nextVersion] = await Promise.all(
-		['vercel', 'next'].map(async pkg => getPackageVersion(pkg, packageManager)),
+		['vercel', 'next']
+			.map(async pkg => (pm ? getPackageVersionOrNull(pm, pkg) : null))
+			.filter(Boolean),
 	);
 
-	const envInfoMessage = dedent(`
+	const envInfoMessage = dedent(
+		`
 		System:
 			Platform: ${os.platform()}
 			Arch: ${os.arch()}
 			Version: ${os.version()}
 			CPU: (${os.cpus().length}) ${os.arch()} ${os.cpus()[0]?.model}
 			Memory: ${Math.round(os.totalmem() / 1024 / 1024 / 1024)} GB
-			Shell: ${process.env.SHELL?.toString() ?? 'Unknown'}
-		Binaries:
-			Node: ${nodeVersion ?? 'N/A'}
-			Bun: ${bunVersion ?? 'N/A'}
-			pnpm: ${pnpmVersion ?? 'N/A'}
-			Yarn: ${yarnVersion ?? 'N/A'}
-			npm: ${npmVersion ?? 'N/A'}
-		Package Manager Used: ${packageManager}
+			Shell: ${process.env.SHELL?.toString() ?? 'Unknown'}` +
+			pmInfo +
+			`
 		Relevant Packages:
 			@cloudflare/next-on-pages: ${nextOnPagesVersion}
 			vercel: ${vercelVersion ?? 'N/A'}
 			next: ${nextVersion ?? 'N/A'}
-	`);
+	`,
+	);
 
 	// eslint-disable-next-line no-console
 	console.log(`\n${envInfoMessage}\n`);

@@ -138,7 +138,7 @@ export async function runOrFetchBuildOutputItem(
  * Checks if a source route's matcher uses the regex format for locales with a trailing slash, where
  * the locales specified are known.
  *
- * Determines whether a matcher is in the format of `^//?(?:en|fr|nl)/(.*)`.
+ * Determines whether a matcher is in the format of `^//?(?:en|fr|nl)/(.*)$`.
  *
  * @param src Source route `src` regex value.
  * @param locales Known available locales.
@@ -149,7 +149,7 @@ export function isLocaleTrailingSlashRegex(
 	locales: Record<string, string>,
 ) {
 	const prefix = '^//?(?:';
-	const suffix = ')/(.*)';
+	const suffix = ')/(.*)$';
 
 	if (!src.startsWith(prefix) || !src.endsWith(suffix)) {
 		return false;

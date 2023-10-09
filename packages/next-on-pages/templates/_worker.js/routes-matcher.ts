@@ -320,13 +320,13 @@ export class RoutesMatcher {
 			this.path = prevPath;
 		}
 
-		// NOTE: Special handling for `.rsc` requests. If the Vercel CLI failed to generate an RSC
-		// version of the page and the build output config has a record mapping the request to the
-		// RSC variant, we should strip the `.rsc` extension from the path.
-		const isRsc = /\.rsc$/i.test(this.path);
+		// NOTE: Special handling for `.rsc` and `.prefetch.rsc` requests. If the Vercel CLI failed to
+		// generate an RSC version of the page and the build output config has a record mapping the request
+		// to the RSC variant, we should strip the `.rsc` (or `.prefetch.rsc`) extension from the path.
+		const isRsc = /(\.prefetch)?\.rsc$/i.test(this.path);
 		const pathExistsInOutput = this.path in this.output;
 		if (isRsc && !pathExistsInOutput) {
-			this.path = this.path.replace(/\.rsc/i, '');
+			this.path = this.path.replace(/(\.prefetch)?\.rsc/i, '');
 		}
 
 		// Merge search params for later use when serving a response.
@@ -393,10 +393,6 @@ export class RoutesMatcher {
 	 * Modifies the source route's `src` regex to be friendly with previously found locale's in the
 	 * `miss` phase.
 	 *
-	 * Sometimes, there is a source route with `src: '/{locale}'`, which rewrites all paths containing
-	 * the locale to `/`. This is problematic for matching, and should only do this if the path is
-	 * exactly the locale, i.e. `^/{locale}$`.
-	 *
 	 * There is a source route generated for rewriting `/{locale}/*` to `/*` when no file was found
 	 * for the path. This causes issues when using an SSR function for the index page as the request
 	 * to `/{locale}` will not be caught by the regex. Therefore, the regex needs to be updated to
@@ -414,14 +410,11 @@ export class RoutesMatcher {
 			return route;
 		}
 
-		const isLocaleIndex =
-			/^\//.test(route.src) && route.src.slice(1) in this.locales;
-		if (isLocaleIndex) {
-			return { ...route, src: `^${route.src}$` };
-		}
-
 		if (isLocaleTrailingSlashRegex(route.src, this.locales)) {
-			return { ...route, src: route.src.replace(/\/\(\.\*\)$/, '(?:/(.*))?$') };
+			return {
+				...route,
+				src: route.src.replace(/\/\(\.\*\)\$$/, '(?:/(.*))?$'),
+			};
 		}
 
 		return route;

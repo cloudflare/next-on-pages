@@ -3,11 +3,12 @@
 		"simplePagesApiRoutes",
 		"simplePagesSsrRoutes",
 		"simplePagesStaticRoutesAndAssets",
-		"pagesMiddleware"
+		"pagesMiddleware",
+		"pagesRouting"
 	],
 	"localSetup": "npm install",
 	"buildConfig": {
-		"buildCommand": "npx @cloudflare/next-on-pages",
+		"buildCommand": "npx --force ../../../packages/next-on-pages",
 		"buildOutputDirectory": ".vercel/output/static"
 	},
 	"deploymentConfig": {

@@ -7,30 +7,33 @@
  *
  * @returns the request's execution context
  */
-export const getRequestExecutionContext = (): ExecutionContext => {
+export const getRequestExecutionContext = (): ExecutionContext | undefined => {
 	if (typeof process === 'undefined') {
-		throw new Error(
-			'Error: trying to access the request execution context on the client',
-		);
+		return undefined;
 	}
 
 	const context = process.env.CF_NEXT_ON_PAGES_EXECUTION_CONTEXT;
-	if (context) return context;
+	if (context) {
+		return context;
+	}
+
+	return undefined;
+};
+
+export const getSafeRequestExecutionContext = (): ExecutionContext => {
+	const context = getRequestExecutionContext();
+
+	if (context) {
+		return context;
+	}
 
 	return {
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		waitUntil: (promise: Promise<any>) => {
-			// eslint-disable-next-line no-console
-			console.warn(
-				'The mocked waitUntil function is executed. It may behave differently from the pages environment.',
-			);
 			void promise;
 		},
 		passThroughOnException: () => {
-			// eslint-disable-next-line no-console
-			console.warn(
-				'The mocked passThroughOnException function is executed. It may behave differently from the pages environment.',
-			);
+			// no-op
 		},
 	};
 };
