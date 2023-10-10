@@ -1,14 +1,58 @@
+import type { WorkerOptions } from 'miniflare';
 import { Miniflare, Request, Response, Headers } from 'miniflare';
+import { getDOWorkerOptions } from './do';
 
 export async function setupDevBindings(options: DevBindingsOptions) {
-	const mf = instantiateMiniflare(options);
+	const mf = await instantiateMiniflare(options);
 
 	const bindings = await collectBindings(mf, options);
 
 	monkeyPatchVmModule(bindings);
 }
 
-function instantiateMiniflare(options: DevBindingsOptions) {
+async function instantiateMiniflare(options: DevBindingsOptions) {
+	const workerOptions = await getDOWorkerOptions(options.durableObjects);
+
+	const workers: WorkerOptions[] = [
+		{
+			bindings: {},
+			compatibilityDate: '2023-10-10',
+			compatibilityFlags: [],
+			d1Databases: {},
+			dataBlobBindings: {},
+			durableObjects: {
+				MY_DO: {
+					className: 'do_worker_DurableObjectClass',
+					scriptName: '__WRANGLER_EXTERNAL_DURABLE_OBJECTS_WORKER',
+					unsafeUniqueKey: 'do_worker-DurableObjectClass',
+				},
+			},
+			kvNamespaces: {},
+			modules: true,
+			script: `export default {
+				async fetch(request, env) {
+					const doId = env.MY_DO.idFromName('my-do-name');
+
+					const doObj = env.MY_DO.get(doId);
+			
+					const resp = await doObj.fetch(request.url);
+			
+					const txt = await resp.text();
+			
+					return new Response(\`Response from DO: \n\n\n\${txt}\`);
+				}
+			}`,
+			name: '',
+			queueConsumers: {},
+			queueProducers: {},
+			r2Buckets: {},
+			serviceBindings: {},
+			textBlobBindings: {},
+			wasmBindings: {},
+		},
+		...(workerOptions ? [workerOptions] : []),
+	];
+
 	// we let the user define where to persist the data, we default back
 	// to .wrangler/state/v3 which is the currently used wrangler path
 	// (this is so that when they switch to wrangler pages dev they can
@@ -16,8 +60,7 @@ function instantiateMiniflare(options: DevBindingsOptions) {
 	const persist = options?.persist ?? '.wrangler/state/v3';
 
 	const mf = new Miniflare({
-		modules: true,
-		script: '',
+		workers,
 		...(persist === false
 			? {
 					// the user specifically requested no data persistence
