@@ -1,189 +1,226 @@
-import fetch from 'node-fetch';
 import type { DevBindingsOptions } from './index';
 import type { WorkerOptions } from 'miniflare';
-// import assert from "node:assert";
+import type { WorkerDefinition, WorkerRegistry } from './wrangler';
+import {
+	EXTERNAL_DURABLE_OBJECTS_WORKER_NAME,
+	EXTERNAL_DURABLE_OBJECTS_WORKER_SCRIPT,
+	getIdentifier,
+	getRegisteredWorkers,
+} from './wrangler';
 
-export type WorkerRegistry = Record<string, WorkerDefinition>;
-
-type WorkerDefinition = {
-	port: number | undefined;
-	protocol: 'http' | 'https' | undefined;
-	host: string | undefined;
-	mode: 'local' | 'remote';
-	headers?: Record<string, string>;
-	durableObjects: { name: string; className: string }[];
-	durableObjectsHost?: string;
-	durableObjectsPort?: number;
-};
-
-const DEV_REGISTRY_PORT = '6284';
-const DEV_REGISTRY_HOST = `http://localhost:${DEV_REGISTRY_PORT}`;
-
-// This worker proxies all external Durable Objects to the Wrangler session
-// where they're defined, and receives all requests from other Wrangler sessions
-// for this session's Durable Objects. Note the original request URL may contain
-// non-standard protocols, so we store it in a header to restore later.
-const EXTERNAL_DURABLE_OBJECTS_WORKER_NAME =
-	'__WRANGLER_EXTERNAL_DURABLE_OBJECTS_WORKER';
-// noinspection HttpUrlsUsage
-const EXTERNAL_DURABLE_OBJECTS_WORKER_SCRIPT = `
-const HEADER_URL = "X-Miniflare-Durable-Object-URL";
-const HEADER_NAME = "X-Miniflare-Durable-Object-Name";
-const HEADER_ID = "X-Miniflare-Durable-Object-Id";
-
-function createClass({ className, proxyUrl }) {
-	return class {
-		constructor(state) {
-			this.id = state.id.toString();
-		}
-		fetch(request) {
-			if (proxyUrl === undefined) {
-				return new Response(\`[wrangler] Couldn't find \\\`wrangler dev\\\` session for class "\${className}" to proxy to\`, { status: 503 });
-			}
-			const proxyRequest = new Request(proxyUrl, request);
-			proxyRequest.headers.set(HEADER_URL, request.url);
-			proxyRequest.headers.set(HEADER_NAME, className);
-			proxyRequest.headers.set(HEADER_ID, this.id);
-			return fetch(proxyRequest);
-		}
-	}
-}
-
-export default {
-	async fetch(request, env) {
-		const originalUrl = request.headers.get(HEADER_URL);
-		const className = request.headers.get(HEADER_NAME);
-		const idString = request.headers.get(HEADER_ID);
-		if (originalUrl === null || className === null || idString === null) {
-			return new Response("[wrangler] Received Durable Object proxy request with missing headers", { status: 400 });
-		}
-		request = new Request(originalUrl, request);
-		request.headers.delete(HEADER_URL);
-		request.headers.delete(HEADER_NAME);
-		request.headers.delete(HEADER_ID);
-		const ns = env[className];
-		const id = ns.idFromString(idString);
-		const stub = ns.get(id);
-		return stub.fetch(request);
-	}
-}
-`;
-
-export async function getRegisteredWorkers(): Promise<
-	WorkerRegistry | undefined
-> {
-	try {
-		const response = await fetch(`${DEV_REGISTRY_HOST}/workers`);
-		return (await response.json()) as WorkerRegistry;
-	} catch (e) {
-		if (
-			!['ECONNRESET', 'ECONNREFUSED'].includes(
-				(e as unknown as { cause?: { code?: string } }).cause?.code || '___',
-			)
-		) {
-			return;
-		}
-	}
-
-	return;
-}
-
-export async function getDOWorkerOptions(
+/**
+ * Gets a WorkersOptions object that can be passed to miniflare to access external (locally exposed in the local registry) Durable Object bindings.
+ *
+ * @param durableObjects
+ * @returns the workersOptions or undefined if connecting to the registry and/or creating the options has failed
+ */
+export async function getDOBindingInfo(
 	durableObjects: DevBindingsOptions['durableObjects'],
-): Promise<WorkerOptions | undefined> {
-	if (!durableObjects || Object.keys(durableObjects).length === 0) {
+): Promise<
+	| {
+			workerOptions: WorkerOptions;
+			durableObjects: WorkerOptions['durableObjects'];
+	  }
+	| undefined
+> {
+	const requestedDurableObjectsNames = new Set(
+		Object.keys(durableObjects ?? {}),
+	);
+
+	if (requestedDurableObjectsNames.size === 0) {
 		return;
 	}
 
-	const registeredWorkers = await getRegisteredWorkers();
+	let registeredWorkers: WorkerRegistry | undefined;
+
+	try {
+		registeredWorkers = await getRegisteredWorkers();
+	} catch {
+		/* */
+	}
 
 	if (!registeredWorkers) {
+		warnAboutLocalDurableObjectsNotFound(requestedDurableObjectsNames);
 		return;
 	}
 
-	const registeredWorkersWithDOs: WorkerRegistry[string][] = [];
+	const registeredWorkersWithDOs: RegisteredWorkersWithDOs =
+		getRegisteredWorkersWithDOs(
+			registeredWorkers,
+			requestedDurableObjectsNames,
+		);
+
+	const [foundDurableObjects, missingDurableObjects] = [
+		...requestedDurableObjectsNames.keys(),
+	].reduce(
+		([foundDOs, missingDOs], durableObjectName) => {
+			let found = false;
+			for (const [, worker] of registeredWorkersWithDOs.entries()) {
+				found = !!worker.durableObjects.find(
+					durableObject => durableObject.name === durableObjectName,
+				);
+				if (found) break;
+			}
+			if (found) {
+				foundDOs.add(durableObjectName);
+			} else {
+				missingDOs.add(durableObjectName);
+			}
+			return [foundDOs, missingDOs];
+		},
+		[new Set(), new Set()] as [Set<string>, Set<string>],
+	);
+
+	if (missingDurableObjects.size) {
+		warnAboutLocalDurableObjectsNotFound(missingDurableObjects);
+	}
+
+	const externalDOs = collectExternalDurableObjects(
+		registeredWorkersWithDOs,
+		foundDurableObjects,
+	);
+
+	const script = generateDurableObjectProxyWorkerScript(
+		externalDOs,
+		registeredWorkersWithDOs,
+	);
+
+	// the following is a very simplified version of wrangler's code but tweaked/simplified for our use case
+	// https://github.com/cloudflare/workers-sdk/blob/3077016/packages/wrangler/src/dev/miniflare.ts#L240-L288
+	const externalDurableObjectWorker: WorkerOptions = {
+		name: EXTERNAL_DURABLE_OBJECTS_WORKER_NAME,
+		routes: [`*/${EXTERNAL_DURABLE_OBJECTS_WORKER_NAME}`],
+		unsafeEphemeralDurableObjects: true,
+		modules: true,
+		script,
+	};
+
+	const durableObjectsToUse = externalDOs.reduce(
+		(durrr, externalDO) => {
+			return {
+				...durrr,
+				[externalDO.durableObjectName]: externalDO,
+			};
+		},
+		{} as WorkerOptions['durableObjects'],
+	);
+
+	return {
+		workerOptions: externalDurableObjectWorker,
+		durableObjects: durableObjectsToUse,
+	};
+}
+
+function getRegisteredWorkersWithDOs(
+	registeredWorkers: WorkerRegistry,
+	durableObjectsNames: Set<string>,
+) {
+	const registeredWorkersWithDOs: Map<string, WorkerRegistry[string]> =
+		new Map();
 
 	for (const workerName of Object.keys(registeredWorkers ?? {})) {
 		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 		const worker = registeredWorkers![workerName]!;
-		const containsUsedDO = !!worker.durableObjects.find(
-			durableObject => !!durableObjects?.[durableObject.name],
+		const containsRequestedDO = !!worker.durableObjects.find(({ name }) =>
+			durableObjectsNames.has(name),
 		);
-		if (containsUsedDO) {
-			registeredWorkersWithDOs.push(worker);
+		if (containsRequestedDO) {
+			registeredWorkersWithDOs.set(workerName, worker);
 		}
 	}
-
-	// TODO: the following is just copy pasted we need to actually create this
-	// (as it is done here: https://github.com/cloudflare/workers-sdk/blob/3077016f6112754585c05b7952e456be44b9d8cd/packages/wrangler/src/dev/miniflare.ts#L312-L330)
-	const externalObjects = [
-		{
-			className: 'do_worker_DurableObjectClass',
-			scriptName: '__WRANGLER_EXTERNAL_DURABLE_OBJECTS_WORKER',
-			unsafeUniqueKey: 'do_worker-DurableObjectClass',
-		},
-	];
-
-	// Setup Durable Object bindings and proxy worker
-	const externalDurableObjectWorker: WorkerOptions = {
-		name: EXTERNAL_DURABLE_OBJECTS_WORKER_NAME,
-		// Use this worker instead of the user worker if the pathname is
-		// `/${EXTERNAL_DURABLE_OBJECTS_WORKER_NAME}`
-		routes: [`*/${EXTERNAL_DURABLE_OBJECTS_WORKER_NAME}`],
-		// Use in-memory storage for the stub object classes *declared* by this
-		// script. They don't need to persist anything, and would end up using the
-		// incorrect unsafe unique key.
-		unsafeEphemeralDurableObjects: true,
-		modules: true,
-		script:
-			EXTERNAL_DURABLE_OBJECTS_WORKER_SCRIPT +
-			// Add stub object classes that proxy requests to the correct session
-			externalObjects
-				.map(({ className }) => {
-					// assert(scriptName !== undefined);
-
-					// // const identifier = getIdentifier(`${scriptName}_${className}`);
-					// // const classNameJson = JSON.stringify(className);
-
-					// debugger;
-					// return `export const do_worker_DurableObjectClass = () => {};`
-					// // return `export const ${identifier} = createClass({ className: ${classNameJson} });`;
-					// assert(scriptName !== undefined);
-					// const targetHasClass = durableObjects.some(
-					// 	({ className }) => className === className
-					// );
-
-					// const identifier = getIdentifier(`${scriptName}_${className}`);
-					const classNameJson = JSON.stringify(className);
-					// if (
-					// 	target?.host === undefined ||
-					// 	target.port === undefined ||
-					// 	!targetHasClass
-					// ) {
-					// 	// If we couldn't find the target or the class, create a stub object
-					// 	// that just returns `503 Service Unavailable` responses.
-					// 	return `export const ${identifier} = createClass({ className: ${classNameJson} });`;
-					// } else {
-					// Otherwise, create a stub object that proxies request to the
-					// target session at `${hostname}:${port}`.
-
-					// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-					const targetHost = registeredWorkersWithDOs[0]?.host!;
-					// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-					const targetPort = registeredWorkersWithDOs[0]?.port!;
-					const proxyUrl = `http://${targetHost}:${targetPort}/${EXTERNAL_DURABLE_OBJECTS_WORKER_NAME}`;
-					const proxyUrlJson = JSON.stringify(proxyUrl);
-					// debugger;
-					return `export const ${className} = createClass({ className: ${classNameJson}, proxyUrl: ${proxyUrlJson} });`;
-					// }
-				})
-				.join('\n'),
-	};
-
-	return externalDurableObjectWorker;
+	return registeredWorkersWithDOs;
 }
 
-// const IDENTIFIER_UNSAFE_REGEXP = /[^a-zA-Z0-9_$]/g;
-// function getIdentifier(name: string) {
-// 	return name.replace(IDENTIFIER_UNSAFE_REGEXP, "_");
-// }
+/**
+ * Collects information about durable objects exposed locally by the local registry that we can use to in
+ * miniflare to give access such bindings.
+ *
+ * NOTE: This function contains logic taken from wrangler but customized and updated to our (simpler) use case
+ * see: https://github.com/cloudflare/workers-sdk/blob/3077016/packages/wrangler/src/dev/miniflare.ts#L312-L330
+ *
+ * @param registeredWorkersWithDOs a map containing the registered workers containing Durable Objects we need to proxy to
+ * @param foundDurableObjects durable objects found in the local registry
+ * @returns array of objects containing durable object information (that we can use to generate the local DO proxy worker)
+ */
+function collectExternalDurableObjects(
+	registeredWorkersWithDOs: RegisteredWorkersWithDOs,
+	foundDurableObjects: Set<string>,
+): ExternalDurableObject[] {
+	return [...registeredWorkersWithDOs.entries()]
+		.flatMap(([workerName, worker]) => {
+			const dos = worker.durableObjects;
+			return dos.map(({ name, className }) => {
+				if (!foundDurableObjects.has(name)) return;
+
+				return {
+					workerName,
+					durableObjectName: name,
+					className: getIdentifier(`${workerName}_${className}`),
+					scriptName: EXTERNAL_DURABLE_OBJECTS_WORKER_NAME,
+					unsafeUniqueKey: `${workerName}-${className}`,
+				};
+			});
+		})
+		.filter(Boolean) as ExternalDurableObject[];
+}
+
+/**
+ * Generates the script for a worker that can be used to proxy durable object requests to the appropriate
+ * external (locally exposed in the local registry) bindings.
+ *
+ * NOTE: This function contains logic taken from wrangler but customized and updated to our (simpler) use case
+ * see: https://github.com/cloudflare/workers-sdk/blob/3077016/packages/wrangler/src/dev/miniflare.ts#L259-L284
+ *
+ * @param externalDOs
+ * @param registeredWorkersWithDOs a map containing the registered workers containing Durable Objects we need to proxy to
+ * @returns the worker script
+ */
+function generateDurableObjectProxyWorkerScript(
+	externalDOs: {
+		workerName: string;
+		className: string;
+		scriptName: string;
+		unsafeUniqueKey: string;
+	}[],
+	registeredWorkersWithDOs: RegisteredWorkersWithDOs,
+) {
+	return (
+		EXTERNAL_DURABLE_OBJECTS_WORKER_SCRIPT +
+		externalDOs
+			.map(({ workerName, className }) => {
+				const classNameJson = JSON.stringify(className);
+				const target = registeredWorkersWithDOs.get(workerName);
+				if (!target || !target.host || !target.port) return;
+				const proxyUrl = `http://${target.host}:${target.port}/${EXTERNAL_DURABLE_OBJECTS_WORKER_NAME}`;
+				const proxyUrlJson = JSON.stringify(proxyUrl);
+				return `export const ${className} = createClass({ className: ${classNameJson}, proxyUrl: ${proxyUrlJson} });`;
+			})
+			.filter(Boolean)
+			.join('\n')
+	);
+}
+
+type RegisteredWorkersWithDOs = Map<string, WorkerDefinition>;
+
+type ExternalDurableObject = {
+	workerName: string;
+	durableObjectName: string;
+	className: string;
+	scriptName: string;
+	unsafeUniqueKey: string;
+};
+
+function warnAboutLocalDurableObjectsNotFound(
+	durableObjectsNotFound: Set<string>,
+): void {
+	console.warn(
+		'\n\x1b[33mWarning:\nYou have requested Durable Objects but no local instance of such' +
+			' has been found.\nIn order to access your Durable Objects please start their workers locally\n' +
+			'with `wrangler dev` and then restart the next dev server.\n\n' +
+			`The following Durable Object bindings won't be accessible until then:\n ${[
+				...durableObjectsNotFound,
+			]
+				.map(notFound => ` - ${notFound}`)
+				.join('\n')}\x1b[0m\n\n`,
+	);
+}

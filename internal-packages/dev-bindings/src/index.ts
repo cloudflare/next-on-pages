@@ -1,8 +1,11 @@
 import type { WorkerOptions } from 'miniflare';
 import { Miniflare, Request, Response, Headers } from 'miniflare';
-import { getDOWorkerOptions } from './do';
+import { getDOBindingInfo } from './do';
 
 export async function setupDevBindings(options: DevBindingsOptions) {
+	const continueSetup = shouldSetupContinue();
+	if (!continueSetup) return;
+
 	const mf = await instantiateMiniflare(options);
 
 	const bindings = await collectBindings(mf, options);
@@ -11,47 +14,28 @@ export async function setupDevBindings(options: DevBindingsOptions) {
 }
 
 async function instantiateMiniflare(options: DevBindingsOptions) {
-	const workerOptions = await getDOWorkerOptions(options.durableObjects);
+	const { workerOptions, durableObjects } =
+		(await getDOBindingInfo(options.durableObjects)) ?? {};
 
 	const workers: WorkerOptions[] = [
 		{
-			bindings: {},
-			compatibilityDate: '2023-10-10',
-			compatibilityFlags: [],
-			d1Databases: {},
-			dataBlobBindings: {},
-			durableObjects: {
-				MY_DO: {
-					className: 'do_worker_DurableObjectClass',
-					scriptName: '__WRANGLER_EXTERNAL_DURABLE_OBJECTS_WORKER',
-					unsafeUniqueKey: 'do_worker-DurableObjectClass',
-				},
-			},
-			kvNamespaces: {},
+			durableObjects,
 			modules: true,
-			script: `export default {
-				async fetch(request, env) {
-					const doId = env.MY_DO.idFromName('my-do-name');
-
-					const doObj = env.MY_DO.get(doId);
-			
-					const resp = await doObj.fetch(request.url);
-			
-					const txt = await resp.text();
-			
-					return new Response(\`Response from DO: \n\n\n\${txt}\`);
-				}
-			}`,
-			name: '',
-			queueConsumers: {},
-			queueProducers: {},
-			r2Buckets: {},
-			serviceBindings: {},
-			textBlobBindings: {},
-			wasmBindings: {},
+			script: '',
 		},
 		...(workerOptions ? [workerOptions] : []),
 	];
+
+	options ??= {};
+
+	// we need to delete the user provided durableObjects that we haven't
+	// been able to find
+	Object.keys(options.durableObjects ?? {}).forEach(durableObject => {
+		if (!durableObjects?.[durableObject]) {
+			// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+			delete options.durableObjects![durableObject];
+		}
+	});
 
 	// we let the user define where to persist the data, we default back
 	// to .wrangler/state/v3 which is the currently used wrangler path
@@ -71,7 +55,7 @@ async function instantiateMiniflare(options: DevBindingsOptions) {
 					r2Persist: `${persist}/r2`,
 					d1Persist: `${persist}/d1`,
 			  }),
-		...(options ?? {}),
+		...options,
 	});
 
 	return mf;
@@ -197,3 +181,21 @@ type MiniflareBinding =
 	| DOMiniflareBinding
 	| R2MiniflareBinding
 	| D1MiniflareBinding;
+
+/**
+ * Next dev server imports the config file twice (in two different processes, making it hard to track),
+ * this causes the setup to run twice as well, to keep things clean and not allocate extra resources
+ * (i.e. instantiate two miniflare instances) it would be best to run this function only once, this
+ * function if used to try to run the setup only once, it returns a flag which indicates if the setup
+ * should run in the current process or not.
+ *
+ * @returns boolean indicating if the setup should continue
+ */
+function shouldSetupContinue(): boolean {
+	// Via debugging we've seen that AsyncLocalStorage is only set in one of the
+	// two processes so we're using it as the differentiator between the two
+	const AsyncLocalStorage = (
+		globalThis as unknown as { AsyncLocalStorage?: unknown }
+	)['AsyncLocalStorage'];
+	return !!AsyncLocalStorage;
+}
