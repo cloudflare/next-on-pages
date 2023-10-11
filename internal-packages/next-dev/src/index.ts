@@ -2,7 +2,17 @@ import type { WorkerOptions } from 'miniflare';
 import { Miniflare, Request, Response, Headers } from 'miniflare';
 import { getDOBindingInfo } from './do';
 
-export async function setupDevBindings(options: DevBindingsOptions) {
+/**
+ * Sets up the bindings that need to be available during development time (using
+ * Next.js' standard dev server)
+ *
+ * Note: the function is an async one but it doesn't need to be awaited
+ *
+ * @param options options indicating what bindings need to be available and where/if to persist them
+ */
+export async function setupDevBindings(
+	options: DevBindingsOptions,
+): Promise<void> {
 	const continueSetup = shouldSetupContinue();
 	if (!continueSetup) return;
 
@@ -13,7 +23,53 @@ export async function setupDevBindings(options: DevBindingsOptions) {
 	monkeyPatchVmModule(bindings);
 }
 
-async function instantiateMiniflare(options: DevBindingsOptions) {
+export type DevBindingsOptions = {
+	/**
+	 * Record mapping binding names to KV namespace IDs.
+	 * If a `string[]` of binding names is specified, the binding name and KV namespace ID are assumed to be the same.
+	 */
+	kvNamespaces?: string[] | Record<string, string>;
+	/**
+	 * Record mapping binding name to Durable Object class designators, where the designator is an object with the following fields:
+	 *  - `className`: name of a DurableObject class
+	 *  - `scriptName`: name of the Worker exporting the class
+	 *
+	 * Note: In order to use such bindings you need to locally run the Workers exporting any durable object class used with `wrangler dev`.
+	 */
+	durableObjects?: Record<
+		string,
+		{
+			scriptName: string;
+			className: string;
+		}
+	>;
+	/**
+	 * Record mapping binding names to R2 bucket names to inject as R2Bucket.
+	 * If a `string[]` of binding names is specified, the binding name and bucket name are assumed to be the same.
+	 */
+	r2Buckets?: string[] | Record<string, string>;
+	/**
+	 * Record mapping binding name to D1 database IDs.
+	 * If a `string[]` of binding names is specified, the binding name and database ID are assumed to be the same.
+	 */
+	d1Databases?: string[] | Record<string, string>;
+	/**
+	 * Indicates where to persist the bindings data, it defaults to the same location used by wrangler v3: `.wrangler/state/v3`
+	 * (so that the same data can be easily used by both the next dev server and `wrangler pages dev`).
+	 * If `false` is specified no data is persisted on the filesystem.
+	 */
+	persist?: false | string;
+};
+
+/**
+ * Creates the miniflare instance that we use under the hood to provide access to bindings.
+ *
+ * @param options the user provided options
+ * @returns the new miniflare instance
+ */
+async function instantiateMiniflare(
+	options: DevBindingsOptions,
+): Promise<Miniflare> {
 	const { workerOptions, durableObjects } =
 		(await getDOBindingInfo(options.durableObjects)) ?? {};
 
@@ -61,6 +117,14 @@ async function instantiateMiniflare(options: DevBindingsOptions) {
 	return mf;
 }
 
+/**
+ * Given a miniflare instance and the options containing which bindings the user is requesting
+ * it collects it extracts such bindings from the miniflare instance
+ *
+ * @param mf the miniflare instance created with the correct bindings
+ * @param options the user provided options
+ * @returns array of object, each containing the name of the binding and the miniflare binding proxy for it
+ */
 async function collectBindings(
 	mf: Miniflare,
 	options: DevBindingsOptions,
@@ -99,6 +163,17 @@ async function collectBindings(
 	return bindings;
 }
 
+/**
+ * Next.js uses the Node.js vm module's `runInContext()` function to evaluate the edge functions
+ * in a runtime context that tries to simulate as accurately as possible the actual production runtime
+ * behavior, see: https://github.com/vercel/next.js/blob/ec0a8da/packages/next/src/server/web/sandbox/context.ts#L450-L452
+ *
+ * This function monkey-patches the Node.js vm module to override the `runInContext()` function so that
+ * miniflare binding proxies can be added to the runtime context's `process.env` before the actual edge
+ * functions are evaluated.
+ *
+ * @param bindings array containing the miniflare binding proxies to add to the runtime context's `process.env`
+ */
 function monkeyPatchVmModule(
 	bindings: { name: string; binding: MiniflareBinding }[],
 ) {
@@ -151,22 +226,6 @@ function getBindingsNames(
 	if (Array.isArray(bindings)) return bindings;
 	return Object.keys(bindings);
 }
-
-export type DevBindingsOptions = {
-	kvNamespaces?: string[] | Record<string, string>;
-	durableObjects?: Record<
-		string,
-		| string
-		| {
-				scriptName?: string | undefined;
-				unsafeUniqueKey?: string | undefined;
-				className: string;
-		  }
-	>;
-	r2Buckets?: string[] | Record<string, string>;
-	d1Databases?: string[] | Record<string, string>;
-	persist?: false | string;
-};
 
 type BindingType = 'KV' | 'DO' | 'R2' | 'D1';
 

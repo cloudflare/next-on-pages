@@ -1,5 +1,5 @@
 {
-	"name": "@cloudflare/next-on-pages-dev-bindings",
+	"name": "@cloudflare/next-on-pages-next-dev",
 	"version": "0.0.1",
 	"main": "dist/index.cjs",
 	"scripts": {
