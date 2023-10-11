@@ -39,8 +39,8 @@ export default {
 				SUSPENSE_CACHE_URL,
 				CF_NEXT_ON_PAGES_CONTEXT: {
 					ctx,
-					request
-				}
+					request,
+				},
 			},
 			async () => {
 				const url = new URL(request.url);
