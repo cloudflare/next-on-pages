@@ -4,24 +4,11 @@
 	"bin": {
 		"next-on-pages": "./bin/index.js"
 	},
-	"exports": {
-		"./helpers": "./dist/helpers/index.js"
-	},
-	"typesVersions": {
-		"*": {
-			"helpers": [
-				"./dist/helpers/index.d.ts"
-			]
-		}
-	},
 	"scripts": {
 		"lint": "eslint src templates",
 		"types-check": "tsc --noEmit",
-		"build": "npm run build:cli && npm run build:helpers && npm run postbuild",
-		"build:cli": "esbuild --bundle --platform=node ./src/index.ts --external:esbuild --external:chokidar --outfile=./dist/index.js",
-		"build:cli:watch": "npm run build -- --watch=forever",
-		"build:helpers": "npx esbuild --bundle --platform=node --format=esm ./src/helpers/index.ts --external:esbuild --external:chokidar --outfile=./dist/helpers/index.js",
-		"build:helpers-types": "tsc -p ./src/helpers --emitDeclarationOnly --declaration --outDir ./dist/helpers",
+		"build": "esbuild --bundle --platform=node ./src/index.ts --external:esbuild --external:chokidar --outfile=./dist/index.js",
+		"build:watch": "npm run build -- --watch=forever",
 		"postbuild": "node ./build-no-nodejs-compat-flag-static-error-page.mjs",
 		"prepare": "npm run build",
 		"test:unit": "npx vitest --config vitest.config.ts"

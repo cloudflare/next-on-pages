@@ -37,7 +37,10 @@ export default {
 				...env,
 				NODE_ENV: __NODE_ENV__,
 				SUSPENSE_CACHE_URL,
-				CF_NEXT_ON_PAGES_EXECUTION_CONTEXT: ctx,
+				CF_NEXT_ON_PAGES_CONTEXT: {
+					ctx,
+					request
+				}
 			},
 			async () => {
 				const url = new URL(request.url);

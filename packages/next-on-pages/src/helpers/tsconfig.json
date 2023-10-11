@@ -1,9 +1,0 @@
-{
-	"extends": "../../tsconfig.json",
-	"compilerOptions": {
-		"types": ["node", "@cloudflare/workers-types"],
-		"declaration": true,
-		"declarationMap": true
-	},
-	"include": [".", "../../env.d.ts"]
-}
