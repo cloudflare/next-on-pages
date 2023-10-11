@@ -38,8 +38,8 @@ export default {
 				NODE_ENV: __NODE_ENV__,
 				SUSPENSE_CACHE_URL,
 				CF_NEXT_ON_PAGES_REQUEST_CONTEXT: ctx,
-				//CF_NEXT_ON_PAGES_REQUEST_HEADERS: request.headers,
-				//CF_NEXT_ON_PAGES_REQUEST_PROPERTIES: request.cf,
+				CF_NEXT_ON_PAGES_REQUEST_HEADERS: request.headers,
+				CF_NEXT_ON_PAGES_REQUEST_PROPERTIES: request.cf,
 			},
 			async () => {
 				const url = new URL(request.url);
