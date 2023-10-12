@@ -1,4 +1,4 @@
-# Opt-Out Assets from Invoking the Worker
+# \_routes.json
 
 Cloudflare Pages supports defining a list of patterns that should (or should not) invoke your worker script. This is useful when using a library like `@cloudflare/next-on-pages` as it allows you to exclude certain static assets, like a favicon, from invoking the routing system on each request, saving you money and improving performance.
 
