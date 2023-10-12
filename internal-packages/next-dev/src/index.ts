@@ -16,9 +16,9 @@ export async function setupDevBindings(
 	const continueSetup = shouldSetupContinue();
 	if (!continueSetup) return;
 
-	const mf = await instantiateMiniflare(options);
+	const { mf, bindings: mfBindings } = await instantiateMiniflare(options);
 
-	const bindings = await collectBindings(mf, options);
+	const bindings = await collectBindings(mf, mfBindings);
 
 	monkeyPatchVmModule(bindings);
 }
@@ -65,22 +65,26 @@ export type DevBindingsOptions = {
  * Creates the miniflare instance that we use under the hood to provide access to bindings.
  *
  * @param options the user provided options
- * @returns the new miniflare instance
+ * @returns the new miniflare instance alongside the bindings that is has successfully instantiated.
  */
 async function instantiateMiniflare(
 	options: DevBindingsOptions,
-): Promise<Miniflare> {
+): Promise<{
+	mf: Miniflare;
+	bindings: Pick<
+		DevBindingsOptions,
+		'kvNamespaces' | 'durableObjects' | 'r2Buckets' | 'd1Databases'
+	>;
+}> {
 	const { workerOptions, durableObjects } =
 		(await getDOBindingInfo(options.durableObjects)) ?? {};
 
 	const { kvNamespaces, r2Buckets, d1Databases } = options;
+	const bindings = { kvNamespaces, durableObjects, r2Buckets, d1Databases };
 
 	const workers: WorkerOptions[] = [
 		{
-			kvNamespaces,
-			durableObjects,
-			r2Buckets,
-			d1Databases,
+			...bindings,
 			modules: true,
 			script: '',
 		},
@@ -107,7 +111,7 @@ async function instantiateMiniflare(
 			  }),
 	});
 
-	return mf;
+	return { mf, bindings };
 }
 
 /**

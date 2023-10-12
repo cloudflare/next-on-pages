@@ -19,7 +19,7 @@ export async function getDOBindingInfo(
 ): Promise<
 	| {
 			workerOptions: WorkerOptions;
-			durableObjects: WorkerOptions['durableObjects'];
+			durableObjects: DevBindingsOptions['durableObjects'];
 	  }
 	| undefined
 > {
@@ -96,13 +96,13 @@ export async function getDOBindingInfo(
 	};
 
 	const durableObjectsToUse = externalDOs.reduce(
-		(durrr, externalDO) => {
+		(all, externalDO) => {
 			return {
-				...durrr,
+				...all,
 				[externalDO.durableObjectName]: externalDO,
 			};
 		},
-		{} as WorkerOptions['durableObjects'],
+		{} as DevBindingsOptions['durableObjects'],
 	);
 
 	return {
