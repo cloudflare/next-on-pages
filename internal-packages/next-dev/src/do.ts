@@ -9,10 +9,10 @@ import {
 } from './wrangler';
 
 /**
- * Gets a WorkersOptions object that can be passed to miniflare to access external (locally exposed in the local registry) Durable Object bindings.
+ * Gets information regarding DurableObject bindings that can be passed to miniflare to access external (locally exposed in the local registry) Durable Object bindings.
  *
  * @param durableObjects
- * @returns the workersOptions or undefined if connecting to the registry and/or creating the options has failed
+ * @returns the durableObjects and WorkersOptions objects to use or undefined if connecting to the registry and/or creating the options has failed
  */
 export async function getDOBindingInfo(
 	durableObjects: DevBindingsOptions['durableObjects'],

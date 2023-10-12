@@ -73,25 +73,19 @@ async function instantiateMiniflare(
 	const { workerOptions, durableObjects } =
 		(await getDOBindingInfo(options.durableObjects)) ?? {};
 
+	const { kvNamespaces, r2Buckets, d1Databases } = options;
+
 	const workers: WorkerOptions[] = [
 		{
+			kvNamespaces,
 			durableObjects,
+			r2Buckets,
+			d1Databases,
 			modules: true,
 			script: '',
 		},
 		...(workerOptions ? [workerOptions] : []),
 	];
-
-	options ??= {};
-
-	// we need to delete the user provided durableObjects that we haven't
-	// been able to find
-	Object.keys(options.durableObjects ?? {}).forEach(durableObject => {
-		if (!durableObjects?.[durableObject]) {
-			// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-			delete options.durableObjects![durableObject];
-		}
-	});
 
 	// we let the user define where to persist the data, we default back
 	// to .wrangler/state/v3 which is the currently used wrangler path
@@ -111,7 +105,6 @@ async function instantiateMiniflare(
 					r2Persist: `${persist}/r2`,
 					d1Persist: `${persist}/d1`,
 			  }),
-		...options,
 	});
 
 	return mf;
