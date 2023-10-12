@@ -13,6 +13,10 @@ You can see the packages contents (with their documentation) in their respective
 - [`@cloudflare/next-on-pages`](https://github.com/cloudflare/next-on-pages/tree/main/packages/next-on-pages#cloudflarenext-on-pages)
 - [`eslint-plugin-next-on-pages`](https://github.com/cloudflare/next-on-pages/tree/main/packages/eslint-plugin-next-on-pages#eslint-plugin-next-on-pages)
 
+Additionally there is also the `next-dev` submodule which is implemented as a separate package in this repository but included as a submodule of the main `@cloudflare/next-on-pages` package, you can see the submodule's content here:
+
+- [`@cloudflare/next-on-pages/next-dev`](https://github.com/cloudflare/next-on-pages/tree/main/internal-packages/next-dev)
+
 ## Contributing
 
 If you want to contribute to this project (both to the main package and the eslint one) please refer to the [Contributing document](./docs/contributing.md).
