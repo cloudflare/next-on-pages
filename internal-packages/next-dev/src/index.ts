@@ -67,9 +67,7 @@ export type DevBindingsOptions = {
  * @param options the user provided options
  * @returns the new miniflare instance alongside the bindings that is has successfully instantiated.
  */
-async function instantiateMiniflare(
-	options: DevBindingsOptions,
-): Promise<{
+async function instantiateMiniflare(options: DevBindingsOptions): Promise<{
 	mf: Miniflare;
 	bindings: Pick<
 		DevBindingsOptions,
