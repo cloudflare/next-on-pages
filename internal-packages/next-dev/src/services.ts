@@ -6,6 +6,13 @@ import { getRegisteredWorkers, type WorkerRegistry } from './wrangler';
 import fetch from 'node-fetch';
 import { warnAboutExternalBindingsNotFound } from './utils';
 
+/**
+ * Gets service bindings that proxy requests to external workers running locally, so that they
+ * can be passed to miniflare and used to fetch from such workers by the next app.
+ *
+ * @param services the services requested by the user
+ * @returns the service bindings ready to be passed to miniflare
+ */
 export async function getServiceBindings(
 	services: Record<string, string> | undefined,
 ): Promise<ServiceBindings | undefined> {
@@ -69,6 +76,13 @@ type AvailableBindingInfo = {
 	workerDefinition: WorkerDefinition;
 };
 
+/**
+ * Given all the relevant information about a service binding and its relative worker definition this
+ * function generated a proxy fetch that takes requests targeted to the service and proxies them to it
+ *
+ * @param availableBindingInfo the binding information to be used to create a proxy to an external service
+ * @returns the binding proxy (in the form of a nodejs fetch method)
+ */
 function getServiceBindingProxyFetch({
 	workerDefinition,
 	bindingName,
