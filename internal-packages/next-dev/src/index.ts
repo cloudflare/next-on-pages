@@ -1,6 +1,6 @@
 import type { WorkerOptions } from 'miniflare';
 import { Miniflare, Request, Response, Headers } from 'miniflare';
-import { getDOBindingInfo } from './do';
+import { getDOBindingInfo } from './durableObjects';
 import { getServiceBindings } from './services';
 
 /**
