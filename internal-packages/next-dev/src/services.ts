@@ -33,12 +33,15 @@ export async function getServiceBindings(
 			// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 			const service = registeredWorkers![serviceName];
 			return service
-				? [[...found, { bindingName, workerDefinition: service }], missing]
+				? [
+						[...found, { bindingName, serviceName, workerDefinition: service }],
+						missing,
+				  ]
 				: [found, [...missing, { bindingName }]];
 		},
 		[[], []] as [
-			{ bindingName: string; workerDefinition: WorkerDefinition }[],
-			{ bindingName: string }[],
+			AvailableBindingInfo[],
+			Pick<AvailableBindingInfo, 'bindingName'>[],
 		],
 	);
 
@@ -48,22 +51,29 @@ export async function getServiceBindings(
 		);
 	}
 
-	const serviceBindings = foundServices.reduce(
-		(acc, { bindingName, workerDefinition }) => {
-			return {
-				...acc,
-				[bindingName]: getServiceBindingProxyFetch(workerDefinition),
-			};
-		},
-		{} as ServiceBindings,
-	);
+	const serviceBindings = foundServices.reduce((acc, bindingInfo) => {
+		return {
+			...acc,
+			[bindingInfo.bindingName]: getServiceBindingProxyFetch(bindingInfo),
+		};
+	}, {} as ServiceBindings);
 
 	return serviceBindings;
 }
 
 type ServiceBindings = Record<string, (req: Request) => Promise<Response>>;
 
-function getServiceBindingProxyFetch(workerDefinition: WorkerDefinition) {
+type AvailableBindingInfo = {
+	bindingName: string;
+	serviceName: string;
+	workerDefinition: WorkerDefinition;
+};
+
+function getServiceBindingProxyFetch({
+	workerDefinition,
+	bindingName,
+	serviceName,
+}: AvailableBindingInfo) {
 	const { protocol, host, port } = workerDefinition;
 
 	const getExternalUrl = (request: Request) => {
@@ -80,9 +90,16 @@ function getServiceBindingProxyFetch(workerDefinition: WorkerDefinition) {
 			newUrl,
 			request as unknown as NodeFetchRequest,
 		);
-		const resp = await fetch(newRequest);
-		const respBody = await resp.arrayBuffer();
-		return new Response(respBody, resp as unknown as Response);
+		try {
+			const resp = await fetch(newRequest);
+			const respBody = await resp.arrayBuffer();
+			return new Response(respBody, resp as unknown as Response);
+		} catch {
+			return new Response(
+				`Error: Unable to fetch from external service (${serviceName} bound with ${bindingName} binding), please make sure that the service is still running with \`wrangler dev\``,
+				{ status: 500 },
+			);
+		}
 	};
 }
 
