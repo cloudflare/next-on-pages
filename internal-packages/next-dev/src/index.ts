@@ -25,6 +25,11 @@ export async function setupDevBindings(
 }
 
 export type DevBindingsOptions = {
+	/**
+	 * Record mapping binding names to Worker/Service names.
+	 *
+	 * Note: In order to use such bindings you need to locally run the Workers you want to bind to with `wrangler dev`.
+	 */
 	services?: Record<string, string>;
 	/**
 	 * Record mapping binding names to KV namespace IDs.
