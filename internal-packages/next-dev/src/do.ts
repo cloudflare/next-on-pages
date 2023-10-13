@@ -7,6 +7,7 @@ import {
 	getIdentifier,
 	getRegisteredWorkers,
 } from './wrangler';
+import { warnAboutExternalBindingsNotFound } from './utils';
 
 /**
  * Gets information regarding DurableObject bindings that can be passed to miniflare to access external (locally exposed in the local registry) Durable Object bindings.
@@ -213,14 +214,5 @@ type ExternalDurableObject = {
 function warnAboutLocalDurableObjectsNotFound(
 	durableObjectsNotFound: Set<string>,
 ): void {
-	console.warn(
-		'\n\x1b[33mWarning:\nYou have requested Durable Objects but no local instance of such' +
-			' has been found.\nIn order to access your Durable Objects please start their workers locally\n' +
-			'with `wrangler dev` and then restart the next dev server.\n\n' +
-			`The following Durable Object bindings won't be accessible until then:\n ${[
-				...durableObjectsNotFound,
-			]
-				.map(notFound => ` - ${notFound}`)
-				.join('\n')}\x1b[0m\n\n`,
-	);
+	warnAboutExternalBindingsNotFound(durableObjectsNotFound, 'Durable Objects');
 }
