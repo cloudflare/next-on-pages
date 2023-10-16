@@ -26,6 +26,10 @@ export async function setupDevBindings(
 
 export type DevBindingsOptions = {
 	/**
+	 * Record mapping binding names to text bindings.
+	 */
+	textBindings?: Record<string, string>;
+	/**
 	 * Record mapping binding names to Worker/Service names.
 	 *
 	 * Note: In order to use such bindings you need to locally run the Workers you want to bind to with `wrangler dev`.
@@ -80,8 +84,10 @@ async function instantiateMiniflare(
 	const { workerOptions, durableObjects } =
 		(await getDOBindingInfo(options.durableObjects)) ?? {};
 
-	const { kvNamespaces, r2Buckets, d1Databases, services } = options;
+	const { kvNamespaces, r2Buckets, d1Databases, services, textBindings } =
+		options;
 	const bindings = {
+		bindings: textBindings,
 		kvNamespaces,
 		durableObjects,
 		r2Buckets,
