@@ -8,17 +8,17 @@ export function adjustRequestForVercel(request: Request): Request {
 	const adjustedHeaders = new Headers(request.headers);
 
 	if (request.cf) {
-		adjustedHeaders.append('x-vercel-ip-city', request.cf.city as string);
-		adjustedHeaders.append('x-vercel-ip-country', request.cf.country as string);
-		adjustedHeaders.append(
+		adjustedHeaders.set('x-vercel-ip-city', request.cf.city as string);
+		adjustedHeaders.set('x-vercel-ip-country', request.cf.country as string);
+		adjustedHeaders.set(
 			'x-vercel-ip-country-region',
 			request.cf.region as string,
 		);
-		adjustedHeaders.append(
+		adjustedHeaders.set(
 			'x-vercel-ip-latitude',
 			request.cf.latitude as string,
 		);
-		adjustedHeaders.append(
+		adjustedHeaders.set(
 			'x-vercel-ip-longitude',
 			request.cf.longitude as string,
 		);
