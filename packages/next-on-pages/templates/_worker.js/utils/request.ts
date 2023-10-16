@@ -14,10 +14,7 @@ export function adjustRequestForVercel(request: Request): Request {
 			'x-vercel-ip-country-region',
 			request.cf.region as string,
 		);
-		adjustedHeaders.set(
-			'x-vercel-ip-latitude',
-			request.cf.latitude as string,
-		);
+		adjustedHeaders.set('x-vercel-ip-latitude', request.cf.latitude as string);
 		adjustedHeaders.set(
 			'x-vercel-ip-longitude',
 			request.cf.longitude as string,
