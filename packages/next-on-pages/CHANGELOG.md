@@ -1,5 +1,11 @@
 # @cloudflare/next-on-pages
 
+## 1.7.1
+
+### Patch Changes
+
+- 5b44784: bump package-manager-manager to 0.1.3
+
 ## 1.7.0
 
 ### Minor Changes
