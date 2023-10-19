@@ -133,7 +133,7 @@ async function runVercelBuild(
 	pm: PackageManager,
 	additionalArgs: string[] = [],
 ): Promise<void> {
-	if (pm.name === 'yarn' && pm.version.startsWith('1.')) {
+	if (pm.name === 'yarn' && pm.version?.startsWith('1.')) {
 		const vercelVersion = await getPackageVersionOrNull(pm, 'vercel');
 
 		if (!vercelVersion) {
