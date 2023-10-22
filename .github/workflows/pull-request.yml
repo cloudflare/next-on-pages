@@ -57,7 +57,7 @@ jobs:
       - name: Run e2e tests
         uses: nick-fields/retry@v2
         with:
-          max_attempts: 2
+          max_attempts: 3
           timeout_minutes: 20
           command: npm run test:e2e -- -- --log-timestamp --install-wrangler=3.8.0
         env:
