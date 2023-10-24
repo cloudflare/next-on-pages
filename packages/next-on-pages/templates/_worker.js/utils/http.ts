@@ -90,7 +90,8 @@ export function createRouteRequest(req: Request, path: string) {
 
 	newUrl.pathname = newUrl.pathname
 		.replace(/^\/index.html$/, '/')
-		.replace(/\.html$/, '');
+		.replace(/\.html$/, '')
+		.replace(/(.+)\/index$/, '$1/');
 
 	return new Request(newUrl, req);
 }

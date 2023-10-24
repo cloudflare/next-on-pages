@@ -7,8 +7,10 @@ import {
 	stripFuncExtension,
 } from '../../utils';
 import type { CollectedFunctions, FunctionInfo } from './configs';
-import { join, resolve } from 'path';
+import { join } from 'path';
 import type { ProcessVercelFunctionsOpts } from '.';
+
+type Opts = Pick<ProcessVercelFunctionsOpts, 'functionsDir' | 'vercelConfig'>;
 
 /**
  * Checks if there are any invalid functions from the Vercel build output.
@@ -23,11 +25,13 @@ import type { ProcessVercelFunctionsOpts } from '.';
  */
 export async function checkInvalidFunctions(
 	collectedFunctions: CollectedFunctions,
-	opts: Pick<ProcessVercelFunctionsOpts, 'functionsDir' | 'vercelConfig'>,
+	opts: Opts,
 ): Promise<void> {
 	await tryToFixNotFoundRoute(collectedFunctions);
 
 	await tryToFixI18nFunctions(collectedFunctions, opts);
+
+	await tryToFixInvalidFuncsWithValidIndexAlternative(collectedFunctions);
 
 	if (collectedFunctions.invalidFunctions.size > 0) {
 		await printInvalidFunctionsErrorMessage(
@@ -55,28 +59,48 @@ export async function checkInvalidFunctions(
  *
  * @param collectedFunctions Collected functions from the Vercel build output.
  */
-async function tryToFixNotFoundRoute(
-	collectedFunctions: CollectedFunctions,
-): Promise<void> {
-	const functionsDir = resolve('.vercel', 'output', 'functions');
-	const notFoundDir = join(functionsDir, '_not-found.func');
-	const errorDir = join(functionsDir, '_error.func');
+async function tryToFixNotFoundRoute({
+	invalidFunctions,
+	ignoredFunctions,
+}: CollectedFunctions): Promise<void> {
+	for (const [fullPath, fnInfo] of invalidFunctions.entries()) {
+		const notFoundFuncName = '/_not-found.func';
+		const errorFuncName = '/_error.func';
 
-	const invalidNotFound = collectedFunctions.invalidFunctions.get(notFoundDir);
-	const invalidError = collectedFunctions.invalidFunctions.get(errorDir);
+		const invalidNotFound = fullPath.endsWith(notFoundFuncName);
+		const invalidError = invalidFunctions.get(
+			fullPath.replace(notFoundFuncName, errorFuncName),
+		);
 
-	if (invalidNotFound && !invalidError) {
-		collectedFunctions.invalidFunctions.delete(notFoundDir);
-		const notFoundRscDir = join(functionsDir, '_not-found.rsc.func');
-		collectedFunctions.invalidFunctions.delete(notFoundRscDir);
-	}
+		if (invalidNotFound && !invalidError) {
+			ignoredFunctions.set(fullPath, {
+				reason: 'invalid unnecessary not-found function',
+				...fnInfo,
+			});
+			invalidFunctions.delete(fullPath);
 
-	if (invalidNotFound && invalidError) {
-		cliWarn(`
-			Warning: your app/not-found route might contain runtime logic, this is currently
-			not supported by @cloudflare/next-on-pages, if that's actually the case please
-			remove the runtime logic from your not-found route
-		`);
+			const notFoundRscDir = fullPath.replace(/\.func$/, '.rsc.func');
+			const rscVersionFnInfo = invalidFunctions.get(notFoundRscDir);
+			if (rscVersionFnInfo) {
+				ignoredFunctions.set(notFoundRscDir, {
+					reason: 'invalid unnecessary not-found function',
+					...rscVersionFnInfo,
+				});
+				invalidFunctions.delete(notFoundRscDir);
+			}
+		}
+
+		if (invalidNotFound && invalidError) {
+			cliWarn(`
+				Warning: your app/not-found route might contain runtime logic, this is currently
+				not supported by @cloudflare/next-on-pages, if that's actually the case please
+				remove the runtime logic from your not-found route
+			`);
+		}
+
+		if (invalidNotFound) {
+			break;
+		}
 	}
 }
 
@@ -191,4 +215,38 @@ async function printInvalidFunctionsErrorMessage(
 	`,
 		{ spaced: true },
 	);
+}
+
+/**
+ * Tries to fix potential invalid functions with a valid /index alternative from the Vercel build
+ * output.
+ *
+ * This deals with an edge case when using `basePath` and it creates an invalid function for the
+ * `/` route, but has a valid alternative at `/index`.
+ *
+ * @param collectedFunctions Collected functions from the Vercel build output.
+ */
+async function tryToFixInvalidFuncsWithValidIndexAlternative({
+	edgeFunctions,
+	prerenderedFunctions,
+	invalidFunctions,
+	ignoredFunctions,
+}: CollectedFunctions) {
+	for (const [fullPath, fnInfo] of invalidFunctions.entries()) {
+		const withoutFuncExt = stripFuncExtension(fullPath);
+		const fullPathForIndex = withoutFuncExt.endsWith('.rsc')
+			? withoutFuncExt.replace(/\.rsc$/, '/index.rsc.func')
+			: `${withoutFuncExt}/index.func`;
+
+		if (
+			edgeFunctions.has(fullPathForIndex) ||
+			prerenderedFunctions.has(fullPathForIndex)
+		) {
+			ignoredFunctions.set(fullPath, {
+				reason: 'invalid function with valid /index alternative',
+				...fnInfo,
+			});
+			invalidFunctions.delete(fullPath);
+		}
+	}
 }

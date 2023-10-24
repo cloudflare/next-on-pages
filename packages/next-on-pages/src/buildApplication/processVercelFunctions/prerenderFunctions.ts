@@ -13,6 +13,8 @@ import {
 } from '../../utils';
 import { cliWarn } from '../../cli';
 
+type Opts = Pick<ProcessVercelFunctionsOpts, 'functionsDir' | 'outputDir'>;
+
 /**
  * Processes the prerendered routes found in the Vercel build output.
  *
@@ -26,7 +28,7 @@ import { cliWarn } from '../../cli';
  */
 export async function processPrerenderFunctions(
 	{ invalidFunctions, prerenderedFunctions }: CollectedFunctions,
-	opts: ProcessVercelFunctionsOpts,
+	opts: Opts,
 ): Promise<void> {
 	for (const [path, fnInfo] of prerenderedFunctions) {
 		const routeInfo = await validateRoute(path, fnInfo.relativePath, opts);
@@ -59,7 +61,7 @@ export async function processPrerenderFunctions(
 async function validateRoute(
 	fullPath: string,
 	relativePath: string,
-	opts: ProcessVercelFunctionsOpts,
+	opts: Opts,
 ): Promise<ValidatedRouteInfo | null> {
 	const config = await getRouteConfig(fullPath, relativePath);
 	if (!config) return null;
@@ -117,7 +119,7 @@ async function getRouteConfig(
 async function getRoutePath(
 	{ fallback }: VercelPrerenderConfig,
 	relativePath: string,
-	{ functionsDir }: ProcessVercelFunctionsOpts,
+	{ functionsDir }: Opts,
 ): Promise<string | null> {
 	const prerenderRoute = join(dirname(relativePath), fallback.fsPath);
 	const prerenderFile = join(functionsDir, prerenderRoute);
@@ -151,7 +153,7 @@ async function getRoutePath(
 async function getRouteDest(
 	{ fallback }: VercelPrerenderConfig,
 	relativePath: string,
-	{ outputDir }: ProcessVercelFunctionsOpts,
+	{ outputDir }: Opts,
 ): Promise<{ destFile: string; destRoute: string }> {
 	const fixedFileName = fallback.fsPath.replace(
 		/\.prerender-fallback(?:\.(?:rsc|body|json))?/gi,
