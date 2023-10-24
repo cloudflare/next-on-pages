@@ -8,14 +8,12 @@ import {
 	prerenderFuncDir,
 	getRouteInfo,
 } from '../../../_helpers';
-import { join, resolve } from 'path';
+import { resolve } from 'path';
 import { readdirSync } from 'node:fs';
 import { processPrerenderFunctions } from '../../../../src/buildApplication/processVercelFunctions/prerenderFunctions';
 
 const functionsDir = resolve('.vercel/output/functions');
 const outputDir = resolve('.vercel/output/static');
-const workerJsDir = join(outputDir, '_worker.js');
-const nopDistDir = join(workerJsDir, '__next-on-pages-dist__');
 
 describe('processPrerenderFunctions', () => {
 	afterEach(() => mockFs.restore());
@@ -37,9 +35,6 @@ describe('processPrerenderFunctions', () => {
 		await processPrerenderFunctions(collectedFunctions, {
 			functionsDir,
 			outputDir,
-			workerJsDir,
-			nopDistDir,
-			vercelConfig: { version: 3 },
 		});
 		restoreFsMock();
 
@@ -91,9 +86,6 @@ describe('processPrerenderFunctions', () => {
 		await processPrerenderFunctions(collectedFunctions, {
 			functionsDir,
 			outputDir,
-			workerJsDir,
-			nopDistDir,
-			vercelConfig: { version: 3 },
 		});
 		restoreFsMock();
 
@@ -144,9 +136,6 @@ describe('processPrerenderFunctions', () => {
 		await processPrerenderFunctions(collectedFunctions, {
 			functionsDir,
 			outputDir,
-			workerJsDir,
-			nopDistDir,
-			vercelConfig: { version: 3 },
 		});
 		restoreFsMock();
 
@@ -202,9 +191,6 @@ describe('processPrerenderFunctions', () => {
 		await processPrerenderFunctions(collectedFunctions, {
 			functionsDir,
 			outputDir,
-			workerJsDir,
-			nopDistDir,
-			vercelConfig: { version: 3 },
 		});
 		restoreFsMock();
 
@@ -263,9 +249,6 @@ describe('processPrerenderFunctions', () => {
 		await processPrerenderFunctions(collectedFunctions, {
 			functionsDir,
 			outputDir,
-			workerJsDir,
-			nopDistDir,
-			vercelConfig: { version: 3 },
 		});
 		restoreFsMock();
 
@@ -318,9 +301,6 @@ describe('processPrerenderFunctions', () => {
 		await processPrerenderFunctions(collectedFunctions, {
 			functionsDir,
 			outputDir,
-			workerJsDir,
-			nopDistDir,
-			vercelConfig: { version: 3 },
 		});
 		restoreFsMock();
 
@@ -370,9 +350,6 @@ describe('processPrerenderFunctions', () => {
 		await processPrerenderFunctions(collectedFunctions, {
 			functionsDir,
 			outputDir,
-			workerJsDir,
-			nopDistDir,
-			vercelConfig: { version: 3 },
 		});
 		restoreFsMock();
 
@@ -423,9 +400,6 @@ describe('processPrerenderFunctions', () => {
 		await processPrerenderFunctions(collectedFunctions, {
 			functionsDir,
 			outputDir,
-			workerJsDir,
-			nopDistDir,
-			vercelConfig: { version: 3 },
 		});
 		restoreFsMock();
 
@@ -471,9 +445,6 @@ describe('processPrerenderFunctions', () => {
 		await processPrerenderFunctions(collectedFunctions, {
 			functionsDir,
 			outputDir,
-			workerJsDir,
-			nopDistDir,
-			vercelConfig: { version: 3 },
 		});
 		restoreFsMock();
 
@@ -512,14 +483,9 @@ describe('processPrerenderFunctions', () => {
 			{ outputDir: resolve('custom') },
 		);
 
-		const customOutputDir = resolve('custom');
-		const customWorkerJsDir = join(customOutputDir, '_worker.js');
 		await processPrerenderFunctions(collectedFunctions, {
 			functionsDir,
-			outputDir: customOutputDir,
-			workerJsDir: customWorkerJsDir,
-			nopDistDir: join(customWorkerJsDir, '__next-on-pages-dist__'),
-			vercelConfig: { version: 3 },
+			outputDir: resolve('custom'),
 		});
 
 		const { edgeFunctions, prerenderedFunctions, invalidFunctions } =
@@ -579,14 +545,9 @@ describe('processPrerenderFunctions', () => {
 			{ outputDir: resolve('custom') },
 		);
 
-		const customOutputDir = resolve('custom');
-		const customWorkerJsDir = join(customOutputDir, '_worker.js');
 		await processPrerenderFunctions(collectedFunctions, {
 			functionsDir,
 			outputDir: resolve('custom'),
-			workerJsDir: customWorkerJsDir,
-			nopDistDir: join(customWorkerJsDir, '__next-on-pages-dist__'),
-			vercelConfig: { version: 3 },
 		});
 
 		const { edgeFunctions, prerenderedFunctions, invalidFunctions } =
