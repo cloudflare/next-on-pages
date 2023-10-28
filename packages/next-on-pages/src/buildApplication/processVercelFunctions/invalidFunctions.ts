@@ -221,8 +221,8 @@ async function printInvalidFunctionsErrorMessage(
  * Tries to fix potential invalid functions with a valid /index alternative from the Vercel build
  * output.
  *
- * This deals with an edge case when using `basePath` and it creates an invalid function for the
- * `/` route, but has a valid alternative at `/index`.
+ * This deals with an edge case when using `basePath` creates an invalid function for the
+ * `/` route, but a valid alternative is created at `/index`.
  *
  * @param collectedFunctions Collected functions from the Vercel build output.
  */
