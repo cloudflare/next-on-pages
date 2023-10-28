@@ -10,7 +10,10 @@ import type { CollectedFunctions, FunctionInfo } from './configs';
 import { join } from 'path';
 import type { ProcessVercelFunctionsOpts } from '.';
 
-type Opts = Pick<ProcessVercelFunctionsOpts, 'functionsDir' | 'vercelConfig'>;
+type InvalidFunctionsOpts = Pick<
+	ProcessVercelFunctionsOpts,
+	'functionsDir' | 'vercelConfig'
+>;
 
 /**
  * Checks if there are any invalid functions from the Vercel build output.
@@ -25,7 +28,7 @@ type Opts = Pick<ProcessVercelFunctionsOpts, 'functionsDir' | 'vercelConfig'>;
  */
 export async function checkInvalidFunctions(
 	collectedFunctions: CollectedFunctions,
-	opts: Opts,
+	opts: InvalidFunctionsOpts,
 ): Promise<void> {
 	await tryToFixNotFoundRoute(collectedFunctions);
 
@@ -116,10 +119,7 @@ async function tryToFixNotFoundRoute({
  */
 async function tryToFixI18nFunctions(
 	{ edgeFunctions, invalidFunctions, ignoredFunctions }: CollectedFunctions,
-	{
-		vercelConfig,
-		functionsDir,
-	}: Pick<ProcessVercelFunctionsOpts, 'functionsDir' | 'vercelConfig'>,
+	{ vercelConfig, functionsDir }: InvalidFunctionsOpts,
 ): Promise<void> {
 	if (!invalidFunctions.size || !vercelConfig.routes?.length) {
 		return;
