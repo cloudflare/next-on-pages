@@ -82,13 +82,13 @@ export function printBuildSummary(
 /**
  * Writes information about the build to a json log file.
  *
- * @param outputDir Output directory.
+ * @param directories Vercel functions and output directories.
  * @param staticAssets List of static assets collected during the build.
  * @param processedVercelOutput Results of processing the Vercel output directory.
  * @param directoryProcessingResults Results of processing the output directory.
  */
 export async function writeBuildInfo(
-	outputDir: string,
+	{ outputDir, functionsDir }: { outputDir: string; functionsDir: string },
 	staticAssets: string[],
 	{ vercelOutput }: ProcessedVercelOutput,
 	{
@@ -128,9 +128,18 @@ export async function writeBuildInfo(
 			},
 			staticAssets: staticAssets.filter(path => !prerenderedPaths.has(path)),
 			identifiers: {
-				wasm: formatIdentifiersMap(identifiers.identifierMaps.wasm),
-				manifest: formatIdentifiersMap(identifiers.identifierMaps.manifest),
-				webpack: formatIdentifiersMap(identifiers.identifierMaps.webpack),
+				wasm: formatIdentifiersMap(
+					identifiers.identifierMaps.wasm,
+					functionsDir,
+				),
+				manifest: formatIdentifiersMap(
+					identifiers.identifierMaps.manifest,
+					functionsDir,
+				),
+				webpack: formatIdentifiersMap(
+					identifiers.identifierMaps.webpack,
+					functionsDir,
+				),
 			},
 		},
 	};
@@ -146,15 +155,21 @@ export async function writeBuildInfo(
  * Formats a map of identifiers into an object with the consumers length added.
  *
  * @param identifiersMap Map of identifiers to process.
+ * @param functionsDir Path to the Vercel functions directory.
  * @returns A new map with the formatted identifiers.
  */
 function formatIdentifiersMap(
 	identifiersMap: IdentifiersMap,
+	functionsDir: string,
 ): Record<string, IdentifierInfoWithConsumersLength> {
 	return Object.fromEntries(
 		[...identifiersMap].map(([identifier, info]) => [
 			identifier,
-			{ ...info, consumers: info.consumers.length },
+			{
+				...info,
+				consumers: info.consumers.length,
+				consumersList: info.consumers.map(c => c.replace(functionsDir, '')),
+			},
 		]),
 	);
 }

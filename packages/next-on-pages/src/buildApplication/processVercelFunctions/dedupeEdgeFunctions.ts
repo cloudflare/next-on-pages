@@ -1,6 +1,6 @@
 import { parse } from 'acorn';
 import type * as AST from 'ast-types/gen/kinds';
-import { appendFile, mkdir, readFile, writeFile } from 'node:fs/promises';
+import { appendFile, mkdir, readFile, stat, writeFile } from 'node:fs/promises';
 import { dirname, join, relative } from 'node:path';
 import type { ProcessVercelFunctionsOpts } from '.';
 import type { CollectedFunctions, FunctionInfo } from './configs';
@@ -129,6 +129,15 @@ async function processFunctionIdentifiers(
 					const destImports = wasmImportsToPrepend.get(newDest)!;
 					wasmImports.forEach(wasmImport => destImports.add(wasmImport));
 				}
+			} else if (identifierInfo.consumers.length === 1) {
+				// If there is only one consumer, we can leave the code block inlined.
+
+				identifierInfo.inlined = true;
+
+				if (!identifierInfo.byteLength) {
+					const buffer = Buffer.from(fileContents.slice(start, end));
+					identifierInfo.byteLength = buffer.byteLength;
+				}
 			}
 		}
 
@@ -201,6 +210,9 @@ async function buildFunctionFile(
 	const finalFileContents = `${functionImports}${fileContents}`;
 	const buildPromise = buildFile(finalFileContents, newFnPath, {
 		relativeTo: nopDistDir,
+	}).then(async () => {
+		const { size } = await stat(newFnPath);
+		fnInfo.outputByteSize = size;
 	});
 
 	return { buildPromise };
@@ -285,6 +297,9 @@ async function processImportIdentifier(
 		info.newDest = normalizePath(relative(workerJsDir, newPath));
 
 		await copyFileWithDir(oldPath, newPath);
+
+		const { size } = await stat(newPath);
+		info.byteLength = size;
 	}
 
 	const relativeImportPath = getRelativePathToAncestor({
@@ -354,11 +369,15 @@ async function processCodeBlockIdentifier(
 			.filter(key => codeBlock.includes(key))
 			.forEach(key => wasmImports.push(key));
 
-		await mkdir(identTypeDir, { recursive: true });
-		await appendFile(
-			newFilePath,
+		const buffer = Buffer.from(
 			`export const ${identifierKey} = ${codeBlock}\n`,
+			'utf8',
 		);
+
+		info.byteLength = buffer.byteLength;
+
+		await mkdir(identTypeDir, { recursive: true });
+		await appendFile(newFilePath, buffer);
 	}
 
 	const newImport: NewImportInfo = { key: identifierKey, path: info.newDest };
