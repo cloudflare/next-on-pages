@@ -70,7 +70,7 @@ export type FunctionInfo = {
 	relativePath: string;
 	config: VercelFunctionConfig;
 	outputPath?: string;
-	outputSize?: number;
+	outputByteSize?: number;
 	route?: {
 		path: string;
 		headers?: Record<string, string>;

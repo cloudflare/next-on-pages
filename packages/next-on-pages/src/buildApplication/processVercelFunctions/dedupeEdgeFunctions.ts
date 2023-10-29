@@ -212,7 +212,7 @@ async function buildFunctionFile(
 		relativeTo: nopDistDir,
 	}).then(async () => {
 		const { size } = await stat(newFnPath);
-		fnInfo.outputSize = size;
+		fnInfo.outputByteSize = size;
 	});
 
 	return { buildPromise };
