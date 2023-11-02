@@ -147,17 +147,22 @@ function monkeyPatchVmModule(bindings: Record<string, unknown>) {
 
 	const originalRunInContext = vmModule.runInContext.bind(vmModule);
 
+	const bindingsProxyHasBeenSetSymbol = Symbol('BINDINGS_PROXY_HAS_BEEN_SET');
+
 	vmModule.runInContext = (
 		...args: [
 			string,
-			Record<string, unknown> & { process?: { env?: Record<string, unknown> } },
+			Record<string, unknown> & {
+				process?: { env?: Record<string | symbol, unknown> };
+			},
 			...[unknown],
 		]
 	) => {
 		const runtimeContext = args[1];
+
 		if (
 			runtimeContext.process?.env &&
-			!runtimeContext.process?.env?.['BINDINGS_PROXY_SET']
+			!runtimeContext.process.env[bindingsProxyHasBeenSetSymbol]
 		) {
 			for (const [name, binding] of Object.entries(bindings)) {
 				runtimeContext.process.env[name] = binding;
@@ -178,7 +183,7 @@ function monkeyPatchVmModule(bindings: Record<string, unknown>) {
 			runtimeContext['Response'] = Response;
 			runtimeContext['Headers'] = Headers;
 
-			runtimeContext.process.env['BINDINGS_PROXY_SET'] = true;
+			runtimeContext.process.env[bindingsProxyHasBeenSetSymbol] = true;
 		}
 
 		return originalRunInContext(...args);
