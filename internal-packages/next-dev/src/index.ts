@@ -189,7 +189,7 @@ function monkeyPatchVmModule(bindings: Record<string, unknown>) {
  * Next dev server imports the config file twice (in two different processes, making it hard to track),
  * this causes the setup to run twice as well, to keep things clean and not allocate extra resources
  * (i.e. instantiate two miniflare instances) it would be best to run this function only once, this
- * function if used to try to run the setup only once, it returns a flag which indicates if the setup
+ * function is used to try to run the setup only once, it returns a flag which indicates if the setup
  * should run in the current process or not.
  *
  * @returns boolean indicating if the setup should continue

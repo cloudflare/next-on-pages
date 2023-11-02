@@ -78,7 +78,7 @@ type AvailableBindingInfo = {
 
 /**
  * Given all the relevant information about a service binding and its relative worker definition this
- * function generated a proxy fetch that takes requests targeted to the service and proxies them to it
+ * function generates a proxy fetch that takes requests targeted to the service and proxies them to it
  *
  * @param availableBindingInfo the binding information to be used to create a proxy to an external service
  * @returns the binding proxy (in the form of a nodejs fetch method)
