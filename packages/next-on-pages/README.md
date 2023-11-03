@@ -67,10 +67,21 @@ Next, in the [Cloudflare Dashboard](https://dash.cloudflare.com/?to=/:account/pa
 
 ## Local development
 
-To run the CLI locally, simply run:
+### Standard Next.js development
+
+You can develop your application locally by simply using the [standard Next.js development server](https://nextjs.org/docs/app/api-reference/next-cli#development) you'd normally use.
+
+If your application uses Cloudflare bindings to make them available in the standard dev server use the [`@cloudflare/next-on-pages/next-dev`](https://github.com/cloudflare/next-on-pages/tree/main/internal-packages/next-dev) submodule.
+
+> **Warning**
+> Please note however that the standard Next.js dev server does not work with a Cloudflare Pages compatible application/output, so it does not provide any reassurance that your application once built with `@cloudflare/next-on-pages` will actually correctly run, in order to make sure it does the only option (besides simply deploying it and hoping for the best) is to locally preview the application as described below.
+
+### Local preview
+
+To preview locally your Cloudflare Pages application, simply run:
 
 ```sh
-npx @cloudflare/next-on-pages
+npx @cloudflare/next-on-pages [--watch]
 ```
 
 This command will build your Next.js application and produce a `.vercel/output/static` directory which you can then use with Wrangler:
@@ -80,20 +91,6 @@ npx wrangler pages dev .vercel/output/static --compatibility-flag=nodejs_compat
 ```
 
 Running `npx @cloudflare/next-on-pages --help` will display a useful help message which will detail the various additional options the CLI offers.
-
-### Local development in watch mode
-
-If you want to work on your Next.js application while using `@cloudflare/next-on-pages`, run the CLI in watch mode with:
-
-```sh
-npx @cloudflare/next-on-pages --watch
-```
-
-Then in a separate terminal run:
-
-```sh
-npx wrangler pages dev .vercel/output/static --compatibility-flag=nodejs_compat
-```
 
 ## Examples
 

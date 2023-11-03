@@ -1,0 +1,4 @@
+{
+	"extends": "@cloudflare/next-on-pages-tsconfig/tsconfig.json",
+	"include": [".eslintrc.js", "src", "dev-init.cjs", "devBindingsOptions.ts"]
+}

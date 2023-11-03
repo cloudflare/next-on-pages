@@ -2,12 +2,24 @@
 	"name": "@cloudflare/next-on-pages",
 	"version": "1.7.2",
 	"bin": "./bin/index.js",
+	"exports": {
+		"./next-dev": "./dist/next-dev/index.cjs"
+	},
+	"typesVersions": {
+		"*": {
+			"next-dev": [
+				"./dist/next-dev/index.d.ts"
+			]
+		}
+	},
 	"scripts": {
 		"lint": "eslint src templates",
 		"types-check": "tsc --noEmit",
 		"build": "esbuild --bundle --platform=node ./src/index.ts --external:esbuild --external:chokidar --outfile=./dist/index.js",
 		"build:watch": "npm run build -- --watch=forever",
-		"postbuild": "node ./build-no-nodejs-compat-flag-static-error-page.mjs",
+		"build:no-nodejs-compat-error-page": "node ./build-no-nodejs-compat-flag-static-error-page.mjs",
+		"build:next-dev": "npm run build --workspace @cloudflare/next-on-pages-next-dev && rm -rf ./dist/next-dev && cp -R ../../internal-packages/next-dev/dist ./dist/next-dev",
+		"postbuild": "npm run build:no-nodejs-compat-error-page && npm run build:next-dev",
 		"prepare": "npm run build",
 		"test:unit": "npx vitest --config vitest.config.ts"
 	},
@@ -43,8 +55,9 @@
 		"package-manager-manager": "^0.2.0",
 		"pcre-to-regexp": "^1.1.0",
 		"semver": "^7.5.2",
-		"zod": "^3.22.3",
-		"zodcli": "^0.0.4"
+		"zod": "^3.22.4",
+		"zodcli": "^0.0.4",
+		"miniflare": "^3.20231002.1"
 	},
 	"peerDependencies": {
 		"vercel": ">=30.0.0",
@@ -53,6 +66,7 @@
 	"devDependencies": {
 		"@changesets/cli": "^2.26.0",
 		"@cloudflare/next-on-pages-tsconfig": "*",
+		"@cloudflare/next-on-pages-next-dev": "*",
 		"@cloudflare/workers-types": "^4.20230404.0",
 		"@tsconfig/strictest": "^2.0.0",
 		"@types/cookie": "^0.5.1",

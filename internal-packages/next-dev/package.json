@@ -1,0 +1,35 @@
+{
+	"name": "@cloudflare/next-on-pages-next-dev",
+	"version": "0.0.1",
+	"main": "dist/index.cjs",
+	"scripts": {
+		"lint": "eslint src",
+		"types-check": "tsc --noEmit",
+		"build:js": "esbuild --bundle --format=cjs ./src/index.ts --external:miniflare --outfile=./dist/index.cjs --platform=node",
+		"build:types": "tsc --emitDeclarationOnly --declaration --outDir ./dist",
+		"build:js:watch": "npm run build:js -- --watch=forever",
+		"build:types:watch": "npm run build:types -- --watch",
+		"build": "npm run build:js && npm run build:types",
+		"build:watch": "npm run build:js:watch & npm run build:types:watch",
+		"test": "npx vitest --config vitest.config.ts"
+	},
+	"files": [
+		"dist",
+		"dev-init.cjs",
+		"dev-init.d.ts",
+		"devBindingsOptions.ts"
+	],
+	"dependencies": {
+		"miniflare": "^3.20231002.0",
+		"node-fetch": "^3.3.2"
+	},
+	"devDependencies": {
+		"@cloudflare/workers-types": "4.20231002.0",
+		"@tsconfig/strictest": "^2.0.0",
+		"esbuild": "^0.15.3",
+		"eslint": "^8.35.0",
+		"tsconfig": "*",
+		"typescript": "^5.0.4",
+		"vitest": "^0.32.2"
+	}
+}
