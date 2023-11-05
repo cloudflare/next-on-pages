@@ -78,9 +78,18 @@ export function formatRoutePath(path: string) {
 export function getRouteOverrides(routePath: string): string[] {
 	const formattedPathName = formatRoutePath(routePath);
 	const withoutHtmlExt = formattedPathName.replace(/\.html$/, '');
+	const withoutIndexRsc = formattedPathName.replace(
+		/(.+)\/index\.rsc$/,
+		'$1.rsc',
+	);
 	const strippedIndexRoute = stripIndexRoute(withoutHtmlExt);
 
 	return [
-		...new Set([formattedPathName, withoutHtmlExt, strippedIndexRoute]),
+		...new Set([
+			formattedPathName,
+			withoutIndexRsc,
+			withoutHtmlExt,
+			strippedIndexRoute,
+		]),
 	].filter(route => route !== routePath);
 }

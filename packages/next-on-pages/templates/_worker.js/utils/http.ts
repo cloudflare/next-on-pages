@@ -89,7 +89,7 @@ export function createRouteRequest(req: Request, path: string) {
 	applySearchParams(newUrl.searchParams, new URL(req.url).searchParams);
 
 	newUrl.pathname = newUrl.pathname
-		.replace(/^\/index.html$/, '/')
+		.replace(/\/index.html$/, '/')
 		.replace(/\.html$/, '');
 
 	return new Request(newUrl, req);
