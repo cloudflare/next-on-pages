@@ -484,6 +484,14 @@ function fixFunctionContents(contents: string): string {
 		'$1',
 	);
 
+	// TODO: Remove once `vercel/next.js#58265` is fixed.
+	// This resolves a critical issue in Next.js 14.0.2 that breaks edge runtime rendering due to the assumption
+	// that the the passed internal request is of type `NodeNextRequest` and never `WebNextRequest`.
+	contents = contents.replace(
+		/;let{originalRequest:(\w+)}=(\w+);/gm,
+		';let{originalRequest:$1=$2}=$2;',
+	);
+
 	return contents;
 }
 
