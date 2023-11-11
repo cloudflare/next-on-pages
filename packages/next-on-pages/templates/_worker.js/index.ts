@@ -15,10 +15,10 @@ declare const __BUILD_OUTPUT__: VercelBuildOutput;
 
 declare const __ENV_ALS_PROMISE__: Promise<null | AsyncLocalStorage<unknown>>;
 
-patchFetch();
-
 export default {
 	async fetch(request, env, ctx) {
+		patchFetch();
+
 		const envAsyncLocalStorage = await __ENV_ALS_PROMISE__;
 		if (!envAsyncLocalStorage) {
 			const reqUrl = new URL(request.url);
