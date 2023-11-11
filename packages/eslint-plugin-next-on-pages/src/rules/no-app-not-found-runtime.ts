@@ -3,7 +3,7 @@ import type { Rule } from 'eslint';
 const rule: Rule.RuleModule = {
 	create: context => {
 		const isAppNotFoundRoute = new RegExp(
-			`${context.cwd}/app/not-found\\.(tsx|jsx)`,
+			`${context.cwd}/app/not-found\\.(tsx|jsx)$`
 		).test(context.filename);
 		return {
 			ExportNamedDeclaration: node => {
@@ -22,7 +22,7 @@ const rule: Rule.RuleModule = {
 				) {
 					context.report({
 						message:
-							'Only static not-found pages are currently supported, please remove the runtime export.' +
+							'Only static not-found pages are currently supported, please remove the runtime export in ' +
 							context.filename,
 						node,
 						fix: fixer => fixer.remove(node),
