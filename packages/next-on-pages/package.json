@@ -7,7 +7,7 @@
 	},
 	"typesVersions": {
 		"*": {
-			"next-dev": [
+			"__experimental__next-dev": [
 				"./dist/next-dev/index.d.ts"
 			]
 		}
