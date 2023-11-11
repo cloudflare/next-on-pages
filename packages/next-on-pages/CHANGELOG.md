@@ -1,5 +1,17 @@
 # @cloudflare/next-on-pages
 
+## 1.7.3
+
+### Patch Changes
+
+- c83d125: Temporary hotfix for `vercel/next.js#58265` so that rendering in Next.js >= 14.0.2 works.
+- bf57ec9: Fix prerendered `next.config.js` `basePath` root infinite redirect due to Cloudflare Pages handling of `/{path}/index`.
+- bf57ec9: Fix nested `index.rsc` routes not generating a non-index override.
+- 9b290cb: Output more information about the sizes of identifiers and functions, as well as all of the consumers of each identifier.
+- bf57ec9: Fix the `/_not-found` invalid function hack to work with `next.config.js` `basePath`.
+- ee237f3: Patch the fetch function inside the fetch handler, instead of in the global scope.
+- bf57ec9: Fix unncessary invalid function at the root not being discarded when using `next.config.js` `basePath` option.
+
 ## 1.7.2
 
 ### Patch Changes
