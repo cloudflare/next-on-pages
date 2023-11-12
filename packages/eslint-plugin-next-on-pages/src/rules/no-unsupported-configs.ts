@@ -93,7 +93,7 @@ const ruleSchema = {
 const rule: Rule.RuleModule = {
 	create: context => {
 		const code = context.sourceCode;
-		const exportedConfigName = context.filename.match(/next\.config\.js$/)
+		const exportedConfigName = context.filename.match(/next\.config\.m?js$/)
 			? getConfigVariableName(code)
 			: null;
 
@@ -217,6 +217,10 @@ function getConfigVariableName(code: SourceCode): string | null {
 		if (exportedValue?.type === 'Identifier') {
 			return exportedValue.name;
 		}
+		const esmExportedValue = extractESMExportValue(node);
+		if (esmExportedValue?.type === 'Identifier') {
+			return esmExportedValue.name;
+		}
 	}
 
 	const nodeAfterNextConfigComment = getNodeAfterNextConfigTypeComment(code);
@@ -269,6 +273,18 @@ function extractModuleExportValue(node: Node): Node | null {
 		node.expression.left.property.name === 'exports'
 	) {
 		return node.expression.right;
+	}
+
+	return null;
+}
+
+/**
+ * Gets the value of a node potentially representing: `export default ...`
+ * Returns the node of the value, or null if the input node doesn't represent the code
+ */
+function extractESMExportValue(node: Node): Node | null {
+	if (node.type === 'ExportDefaultDeclaration') {
+		return node.declaration;
 	}
 
 	return null;
