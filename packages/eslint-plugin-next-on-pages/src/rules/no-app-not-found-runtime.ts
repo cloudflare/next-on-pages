@@ -3,7 +3,7 @@ import type { Rule } from 'eslint';
 const rule: Rule.RuleModule = {
 	create: context => {
 		const isAppNotFoundRoute = new RegExp(
-			`${context.cwd}/app/not-found\\.(tsx|jsx)$`
+			`${context.cwd}(/src)?/app/not-found\\.(tsx|jsx)$`,
 		).test(context.filename);
 		return {
 			ExportNamedDeclaration: node => {
