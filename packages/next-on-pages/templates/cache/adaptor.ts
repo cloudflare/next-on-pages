@@ -177,6 +177,16 @@ export class CacheAdaptor {
 
 		await this.saveTagsManifest();
 	}
+
+	/**
+	 * Builds the full cache key for the suspense cache.
+	 *
+	 * @param key Key for the item in the suspense cache.
+	 * @returns The fully-formed cache key for the suspense cache.
+	 */
+	public buildCacheKey(key: string) {
+		return `https://${SUSPENSE_CACHE_URL}/entry/${key}`;
+	}
 }
 
 // https://github.com/vercel/next.js/blob/261db49/packages/next/src/server/lib/incremental-cache/file-system-cache.ts#L17

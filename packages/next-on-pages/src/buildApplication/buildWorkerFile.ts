@@ -1,4 +1,4 @@
-import { writeFile } from 'fs/promises';
+import { readFile, writeFile } from 'fs/promises';
 import { join, relative } from 'path';
 import { build } from 'esbuild';
 import { tmpdir } from 'os';
@@ -41,7 +41,7 @@ export function constructBuildOutputRecord(
 
 export async function buildWorkerFile(
 	{ vercelConfig, vercelOutput }: ProcessedVercelOutput,
-	outputDir: string,
+	{ outputDir, workerJsDir, nopDistDir, templatesDir }: BuildWorkerFileOpts,
 	minify: boolean,
 ): Promise<string> {
 	const functionsFile = join(
@@ -59,10 +59,10 @@ export async function buildWorkerFile(
 			.join(',')}};`,
 	);
 
-	const outputFile = join(outputDir, '_worker.js', 'index.js');
+	const outputFile = join(workerJsDir, 'index.js');
 
 	await build({
-		entryPoints: [join(__dirname, '..', 'templates', '_worker.js')],
+		entryPoints: [join(templatesDir, '_worker.js')],
 		banner: {
 			js: generateGlobalJs(),
 		},
@@ -79,5 +79,38 @@ export async function buildWorkerFile(
 		minify,
 	});
 
+	await build({
+		entryPoints: ['adaptor.ts', 'cache-api.ts', 'kv.ts'].map(fileName =>
+			join(templatesDir, 'cache', fileName),
+		),
+		bundle: false,
+		target: 'es2022',
+		platform: 'neutral',
+		outdir: join(nopDistDir, 'cache'),
+		minify,
+		plugins: [
+			{
+				name: 'fix-import-extension-for-unbundled-adaptors',
+				setup(build) {
+					build.onLoad({ filter: /.*/ }, async args => {
+						const contents = await readFile(args.path, 'utf8');
+						const newContents = contents.replace(
+							"from './adaptor';",
+							"from './adaptor.js';",
+						);
+						return { contents: newContents, loader: 'default' };
+					});
+				},
+			},
+		],
+	});
+
 	return relative('.', outputFile);
 }
+
+type BuildWorkerFileOpts = {
+	outputDir: string;
+	workerJsDir: string;
+	nopDistDir: string;
+	templatesDir: string;
+};

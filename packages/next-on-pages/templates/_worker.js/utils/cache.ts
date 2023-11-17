@@ -1,6 +1,7 @@
 import type { CacheAdaptor, IncrementalCacheValue } from '../../cache';
 import { SUSPENSE_CACHE_URL } from '../../cache';
-import { CacheApiAdaptor } from '../../cache/cache-api';
+import type CacheApiAdaptor from '../../cache/cache-api';
+import type KVAdaptor from '../../cache/kv';
 
 /**
  * Handles an internal request to the suspense cache.
@@ -71,6 +72,29 @@ export async function handleSuspenseCacheRequest(request: Request) {
  * @returns Adaptor for the suspense cache.
  */
 export async function getSuspenseCacheAdaptor(): Promise<CacheAdaptor> {
-	// TODO: Try to lazy import the custom cache adaptor.
-	return new CacheApiAdaptor();
+	if (process.env.KV_SUSPENSE_CACHE) {
+		return getInternalCacheAdaptor('kv');
+	}
+
+	return getInternalCacheAdaptor('cache-api');
+}
+
+type InternalAdaptors = 'kv' | 'cache-api';
+type DeriveAdaptorType<T extends InternalAdaptors> = T extends 'kv'
+	? KVAdaptor
+	: T extends 'cache-api'
+	? CacheApiAdaptor
+	: never;
+
+/**
+ * Gets an internal cache adaptor.
+ *
+ * @param type The type of adaptor to get.
+ * @returns A new instance of the adaptor.
+ */
+async function getInternalCacheAdaptor<T extends InternalAdaptors>(
+	type: T,
+): Promise<DeriveAdaptorType<T>> {
+	const adaptor = await import(`./__next-on-pages-dist__/cache/${type}.js`);
+	return new adaptor.default();
 }
