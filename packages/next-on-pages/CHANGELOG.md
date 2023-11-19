@@ -1,5 +1,11 @@
 # @cloudflare/next-on-pages
 
+## 1.7.4
+
+### Patch Changes
+
+- 9d5db04: Fix broken `/__index.prefetch.rsc` rewrites that were being rewritten to `/__index` (and 404ing) due to to rsc suffix stripping that we do.
+
 ## 1.7.3
 
 ### Patch Changes
