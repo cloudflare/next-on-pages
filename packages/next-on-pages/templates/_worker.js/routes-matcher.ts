@@ -315,18 +315,26 @@ export class RoutesMatcher {
 
 		// NOTE: Special handling for `/index` RSC routes. Sometimes the Vercel build output config
 		// has a record to rewrite `^/` to `/index.rsc`, however, this will hit requests to pages
-		// that aren't `/`. In this case, we should check that the previous path is `/`.
-		if (/\/index\.rsc$/i.test(this.path) && !/^\/(?:index)?$/i.test(prevPath)) {
+		// that aren't `/`. In this case, we should check that the previous path is `/`. This should
+		// not match requests to `/__index.prefetch.rsc` as Vercel handles those requests missing in
+		// later phases.
+		// https://github.com/vercel/vercel/blob/31daff/packages/next/src/utils.ts#L3321
+		const isRscIndex = /\/index\.rsc$/i.test(this.path);
+		const isPrevAbsoluteIndex = /^\/(?:index)?$/i.test(prevPath);
+		const isPrevPrefetchRscIndex = /^\/__index\.prefetch\.rsc$/i.test(prevPath);
+		if (isRscIndex && !isPrevAbsoluteIndex && !isPrevPrefetchRscIndex) {
 			this.path = prevPath;
 		}
 
-		// NOTE: Special handling for `.rsc` and `.prefetch.rsc` requests. If the Vercel CLI failed to
-		// generate an RSC version of the page and the build output config has a record mapping the request
-		// to the RSC variant, we should strip the `.rsc` (or `.prefetch.rsc`) extension from the path.
-		const isRsc = /(\.prefetch)?\.rsc$/i.test(this.path);
+		// NOTE: Special handling for `.rsc` requests. If the Vercel CLI failed to generate an RSC version
+		// of the page and the build output config has a record mapping the request to the RSC variant, we
+		// should strip the `.rsc` extension from the path. We do not strip the extension if the request is
+		// to a `.prefetch.rsc` file as Vercel handles those requests missing in later phases.
+		const isRsc = /\.rsc$/i.test(this.path);
+		const isPrefetchRsc = /\.prefetch\.rsc$/i.test(this.path);
 		const pathExistsInOutput = this.path in this.output;
-		if (isRsc && !pathExistsInOutput) {
-			this.path = this.path.replace(/(\.prefetch)?\.rsc/i, '');
+		if (isRsc && !isPrefetchRsc && !pathExistsInOutput) {
+			this.path = this.path.replace(/\.rsc/i, '');
 		}
 
 		// Merge search params for later use when serving a response.
