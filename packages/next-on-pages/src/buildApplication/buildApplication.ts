@@ -43,7 +43,7 @@ export async function buildApplication({
 		throw new Error('Error: Could not detect current package manager in use');
 	}
 
-	if (pm.name !== pm.projectPackageManager) {
+	if (pm.projectPackageManager && pm.name !== pm.projectPackageManager) {
 		cliWarn(
 			`The project is set up for ${pm.projectPackageManager} but it is currently being run` +
 				` via ${pm.name} this might lead to build errors, please be sure to use the same package manager` +
