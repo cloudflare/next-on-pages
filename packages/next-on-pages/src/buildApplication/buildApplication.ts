@@ -3,7 +3,7 @@ import { join, resolve } from 'path';
 import { cp } from 'fs/promises';
 import { getPackageManager } from 'package-manager-manager';
 import type { CliOptions } from '../cli';
-import { cliError, cliLog, cliSuccess } from '../cli';
+import { cliError, cliLog, cliSuccess, cliWarn } from '../cli';
 import { getVercelConfig } from './getVercelConfig';
 import { buildWorkerFile } from './buildWorkerFile';
 import { buildVercelOutput } from './buildVercelOutput';
@@ -41,6 +41,15 @@ export async function buildApplication({
 
 	if (!pm) {
 		throw new Error('Error: Could not detect current package manager in use');
+	}
+
+	if (pm.name !== pm.projectPackageManager) {
+		cliWarn(
+			`The project is set up for ${pm.projectPackageManager} but it is currently being run` +
+				` via ${pm.name} this might lead to build errors, please be sure to use the same package manager` +
+				` your project uses when running @cloudflare/next-on-pages`,
+			{ spaced: true },
+		);
 	}
 
 	let buildSuccess = true;
