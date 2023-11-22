@@ -2,6 +2,9 @@ import type { CacheAdaptor, IncrementalCacheValue } from '../../cache';
 import { SUSPENSE_CACHE_URL } from '../../cache';
 import { CacheApiAdaptor } from '../../cache/cache-api';
 
+// https://github.com/vercel/next.js/blob/48a566bc4fcfc48d8489f096a87e792912c4989f/packages/next/src/server/lib/incremental-cache/fetch-cache.ts#L19
+const CACHE_TAGS_HEADER = 'x-vercel-cache-tags';
+
 /**
  * Handles an internal request to the suspense cache.
  *
@@ -51,6 +54,9 @@ export async function handleSuspenseCacheRequest(request: Request) {
 			case 'POST': {
 				// Update the value in the cache.
 				const body = await request.json<IncrementalCacheValue>();
+				// Falling back to the cache tags header for Next.js 13.5+
+				body.tags = body.tags ?? body.data.tags ?? request.headers.get(CACHE_TAGS_HEADER)?.split(',') ?? [];
+
 				await cache.set(cacheKey, body);
 
 				return new Response(null, { status: 200 });

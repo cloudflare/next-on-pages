@@ -54,7 +54,7 @@ export class CacheAdaptor {
 		switch (newEntry.value?.kind) {
 			case 'FETCH': {
 				// Update the tags with the cache key.
-				const tags = newEntry.value.data.tags ?? [];
+				const tags = newEntry.value.tags ?? [];
 				await this.setTags(tags, { cacheKey: key });
 
 				getDerivedTags(tags).forEach(tag => revalidatedTags.delete(tag));
@@ -87,7 +87,7 @@ export class CacheAdaptor {
 				await this.loadTagsManifest();
 
 				// Check if the cache entry is stale or fresh based on the tags.
-				const tags = getDerivedTags(data.value.data.tags ?? []);
+				const tags = getDerivedTags(data.value.tags ?? []);
 				const isStale = tags.some(tag => {
 					// If a revalidation has been triggered, the current entry is stale.
 					if (revalidatedTags.has(tag)) return true;
@@ -186,7 +186,7 @@ export type TagsManifest = {
 };
 export type TagsManifestItem = { keys: string[]; revalidatedAt?: number };
 
-// https://github.com/vercel/next.js/blob/fda1ecc/packages/next/src/server/response-cache/types.ts#L16
+// https://github.com/vercel/next.js/blob/df4c2aa8ecf25737356d9bf7aaa8a9e5122c0b72/packages/next/src/server/response-cache/types.ts#L24
 export type CachedFetchValue = {
 	kind: 'FETCH';
 	data: {
@@ -194,8 +194,12 @@ export type CachedFetchValue = {
 		body: string;
 		url: string;
 		status?: number;
+		// old version; https://github.com/vercel/next.js/blob/fda1ecc/packages/next/src/server/response-cache/types.ts#L16
 		tags?: string[];
 	};
+	// tags are only present with file-system-cache
+	// fetch cache stores tags outside of cache entry
+	tags?: string[];
 	revalidate: number;
 };
 
