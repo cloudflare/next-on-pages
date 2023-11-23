@@ -1,4 +1,4 @@
-import { CacheAdaptor } from './adaptor';
+import { CacheAdaptor } from './adaptor.js';
 
 /** Suspense Cache adaptor for Workers KV. */
 export default class KVAdaptor extends CacheAdaptor {
@@ -7,7 +7,7 @@ export default class KVAdaptor extends CacheAdaptor {
 	}
 
 	public override async retrieve(key: string) {
-		const value = await process.env.KV_SUSPENSE_CACHE?.get(
+		const value = await process.env.__NEXT_ON_PAGES__KV_SUSPENSE_CACHE?.get(
 			this.buildCacheKey(key),
 		);
 
@@ -15,6 +15,9 @@ export default class KVAdaptor extends CacheAdaptor {
 	}
 
 	public override async update(key: string, value: string) {
-		await process.env.KV_SUSPENSE_CACHE?.put(this.buildCacheKey(key), value);
+		await process.env.__NEXT_ON_PAGES__KV_SUSPENSE_CACHE?.put(
+			this.buildCacheKey(key),
+			value,
+		);
 	}
 }

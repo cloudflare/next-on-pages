@@ -18,4 +18,4 @@ Due to how the Cache API works, you need to be using a domain for your deploymen
 
 [Workers KV](https://developers.cloudflare.com/kv/) is a low-latency key-value store that is ideal for storing data that should be globally distributed. KV is eventually consistent, which means that it will take up to 60 seconds for updates to be reflected globally.
 
-To use Workers KV for caching, you need to add a binding to your Pages project with the name `KV_SUSPENSE_CACHE`, and map it to a KV namespace.
+To use Workers KV for caching, you need to add a binding to your Pages project with the name `__NEXT_ON_PAGES__KV_SUSPENSE_CACHE`, and map it to a KV namespace.

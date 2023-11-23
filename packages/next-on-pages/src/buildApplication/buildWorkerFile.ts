@@ -1,4 +1,4 @@
-import { readFile, writeFile } from 'fs/promises';
+import { writeFile } from 'fs/promises';
 import { join, relative } from 'path';
 import { build } from 'esbuild';
 import { tmpdir } from 'os';
@@ -88,21 +88,6 @@ export async function buildWorkerFile(
 		platform: 'neutral',
 		outdir: join(nopDistDir, 'cache'),
 		minify,
-		plugins: [
-			{
-				name: 'fix-import-extension-for-unbundled-adaptors',
-				setup(build) {
-					build.onLoad({ filter: /.*/ }, async args => {
-						const contents = await readFile(args.path, 'utf8');
-						const newContents = contents.replace(
-							"from './adaptor';",
-							"from './adaptor.js';",
-						);
-						return { contents: newContents, loader: 'default' };
-					});
-				},
-			},
-		],
 	});
 
 	return relative('.', outputFile);

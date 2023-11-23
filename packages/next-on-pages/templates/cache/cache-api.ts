@@ -1,4 +1,4 @@
-import { CacheAdaptor } from './adaptor';
+import { CacheAdaptor } from './adaptor.js';
 
 /** Suspense Cache adaptor for the Cache API. */
 export default class CacheApiAdaptor extends CacheAdaptor {
