@@ -2,7 +2,7 @@ import type { CacheAdaptor, IncrementalCacheValue } from '../../cache';
 import { SUSPENSE_CACHE_URL } from '../../cache';
 import { CacheApiAdaptor } from '../../cache/cache-api';
 
-// https://github.com/vercel/next.js/blob/48a566bc4fcfc48d8489f096a87e792912c4989f/packages/next/src/server/lib/incremental-cache/fetch-cache.ts#L19
+// https://github.com/vercel/next.js/blob/48a566bc/packages/next/src/server/lib/incremental-cache/fetch-cache.ts#L19
 const CACHE_TAGS_HEADER = 'x-vercel-cache-tags';
 
 /**
