@@ -488,7 +488,7 @@ function fixFunctionContents(contents: string): string {
 	// This resolves a critical issue in Next.js 14.0.2 that breaks edge runtime rendering due to the assumption
 	// that the the passed internal request is of type `NodeNextRequest` and never `WebNextRequest`.
 	contents = contents.replace(
-		/;let{originalRequest:(\w+)}=(\w+);/gm,
+		/;let{originalRequest:(\S+)}=(\S+);/gm,
 		';let{originalRequest:$1=$2}=$2;',
 	);
 
