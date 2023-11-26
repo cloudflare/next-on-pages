@@ -88,7 +88,7 @@ export class CacheAdaptor {
 
 				// Check if the cache entry is stale or fresh based on the tags.
 				const tags = getDerivedTags(
-					data.value.tags ?? data.value.data.tags ?? []
+					data.value.tags ?? data.value.data.tags ?? [],
 				);
 				const isStale = tags.some(tag => {
 					// If a revalidation has been triggered, the current entry is stale.
