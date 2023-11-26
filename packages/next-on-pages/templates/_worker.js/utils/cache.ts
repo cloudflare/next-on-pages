@@ -56,7 +56,7 @@ export async function handleSuspenseCacheRequest(request: Request) {
 				const body = await request.json<IncrementalCacheValue>();
 				// Falling back to the cache tags header for Next.js 13.5+
 				if (body.data.tags === undefined) {
-					body.tags = body.tags ?? request.headers.get(CACHE_TAGS_HEADER)?.split(',')?.filter(Boolean) ?? [];
+					body.tags ??= request.headers.get(CACHE_TAGS_HEADER)?.split(',')?.filter(Boolean) ?? [];
 				} else {
 					body.tags = body.data.tags;
 					delete body.data.tags;

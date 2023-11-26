@@ -196,7 +196,7 @@ export type CachedFetchValue = {
 		body: string;
 		url: string;
 		status?: number;
-		// old version; https://github.com/vercel/next.js/blob/fda1ecc/packages/next/src/server/response-cache/types.ts#L16
+		// field used by older versions of Next.js (see: https://github.com/vercel/next.js/blob/fda1ecc/packages/next/src/server/response-cache/types.ts#L23)
 		tags?: string[];
 	};
 	// tags are only present with file-system-cache
