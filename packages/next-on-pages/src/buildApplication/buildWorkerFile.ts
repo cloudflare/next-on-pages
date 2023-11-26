@@ -41,7 +41,7 @@ export function constructBuildOutputRecord(
 
 export async function buildWorkerFile(
 	{ vercelConfig, vercelOutput }: ProcessedVercelOutput,
-	outputDir: string,
+	{ outputDir, workerJsDir, nopDistDir, templatesDir }: BuildWorkerFileOpts,
 	minify: boolean,
 ): Promise<string> {
 	const functionsFile = join(
@@ -59,10 +59,10 @@ export async function buildWorkerFile(
 			.join(',')}};`,
 	);
 
-	const outputFile = join(outputDir, '_worker.js', 'index.js');
+	const outputFile = join(workerJsDir, 'index.js');
 
 	await build({
-		entryPoints: [join(__dirname, '..', 'templates', '_worker.js')],
+		entryPoints: [join(templatesDir, '_worker.js')],
 		banner: {
 			js: generateGlobalJs(),
 		},
@@ -79,5 +79,23 @@ export async function buildWorkerFile(
 		minify,
 	});
 
+	await build({
+		entryPoints: ['adaptor.ts', 'cache-api.ts', 'kv.ts'].map(fileName =>
+			join(templatesDir, 'cache', fileName),
+		),
+		bundle: false,
+		target: 'es2022',
+		platform: 'neutral',
+		outdir: join(nopDistDir, 'cache'),
+		minify,
+	});
+
 	return relative('.', outputFile);
 }
+
+type BuildWorkerFileOpts = {
+	outputDir: string;
+	workerJsDir: string;
+	nopDistDir: string;
+	templatesDir: string;
+};
