@@ -139,17 +139,16 @@ export class RoutesMatcher {
 			return;
 		}
 
-		// If the new destination is an intercept route, only allow it if the current path is also an
-		// intercept route. The build output config correctly maps relevant request paths to be
-		// intercepts in the `none` phase, while the `rewrite` phase can contain entries that rewrite
-		// to an intercept that matches requests that are not actually intercepts, causing a 404.
-		if (
-			checkIntercept &&
-			route.dest &&
-			/\/(\(\.+\))+/.test(route.dest) &&
-			!/\/(\(\.+\))+/.test(this.path)
-		) {
-			return;
+		if (checkIntercept && route.dest) {
+			const interceptRouteRegex = /\/(\(\.+\))+/;
+			const destIsIntercept = interceptRouteRegex.test(route.dest);
+			const pathIsIntercept = interceptRouteRegex.test(this.path);
+
+			// If the new destination is an intercept route, only allow it if the current path is also
+			// an intercept route.
+			if (destIsIntercept && !pathIsIntercept) {
+				return;
+			}
 		}
 
 		return { routeMatch: srcMatch, routeDest: hasFieldProps.routeDest };
@@ -459,6 +458,9 @@ export class RoutesMatcher {
 		const { routeMatch, routeDest } =
 			this.checkRouteMatch(localeFriendlyRoute, {
 				checkStatus: phase === 'error',
+				// The build output config correctly maps relevant request paths to be intercepts in the
+				// `none` phase, while the `rewrite` phase can contain entries that rewrite to an intercept
+				// that matches requests that are not actually intercepts, causing a 404.
 				checkIntercept: phase === 'rewrite',
 			}) ?? {};
 
