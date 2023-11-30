@@ -90,7 +90,10 @@ export class RoutesMatcher {
 	 */
 	private checkRouteMatch(
 		route: VercelSource,
-		checkStatus?: boolean,
+		{
+			checkStatus,
+			checkIntercept,
+		}: { checkStatus: boolean; checkIntercept: boolean },
 	): { routeMatch: MatchPCREResult; routeDest?: string } | undefined {
 		const srcMatch = matchPCRE(route.src, this.path, route.caseSensitive);
 		if (!srcMatch.match) return;
@@ -134,6 +137,18 @@ export class RoutesMatcher {
 		// Required status code must match (i.e. for error routes) - skip if not met.
 		if (checkStatus && route.status !== this.status) {
 			return;
+		}
+
+		if (checkIntercept && route.dest) {
+			const interceptRouteRegex = /\/(\(\.+\))+/;
+			const destIsIntercept = interceptRouteRegex.test(route.dest);
+			const pathIsIntercept = interceptRouteRegex.test(this.path);
+
+			// If the new destination is an intercept route, only allow it if the current path is also
+			// an intercept route.
+			if (destIsIntercept && !pathIsIntercept) {
+				return;
+			}
 		}
 
 		return { routeMatch: srcMatch, routeDest: hasFieldProps.routeDest };
@@ -441,7 +456,13 @@ export class RoutesMatcher {
 	): Promise<CheckRouteStatus> {
 		const localeFriendlyRoute = this.getLocaleFriendlyRoute(rawRoute, phase);
 		const { routeMatch, routeDest } =
-			this.checkRouteMatch(localeFriendlyRoute, phase === 'error') ?? {};
+			this.checkRouteMatch(localeFriendlyRoute, {
+				checkStatus: phase === 'error',
+				// The build output config correctly maps relevant request paths to be intercepts in the
+				// `none` phase, while the `rewrite` phase can contain entries that rewrite to an intercept
+				// that matches requests that are not actually intercepts, causing a 404.
+				checkIntercept: phase === 'rewrite',
+			}) ?? {};
 
 		const route: VercelSource = { ...localeFriendlyRoute, dest: routeDest };
 
