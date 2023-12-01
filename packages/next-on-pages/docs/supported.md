@@ -6,7 +6,7 @@
 
 ## Supported Next.js versions
 
-`@cloudflare/next-on-pages` supports all minor and patch version of Next.js 13. We regularly run manual and automated tests to ensure such compatibility.
+`@cloudflare/next-on-pages` supports all minor and patch version of Next.js 13 and 14. We regularly run manual and automated tests to ensure such compatibility.
 
 Next.js canary versions not actively being tested and we don't currently extend support to these versions.
 

@@ -1,0 +1,18 @@
+{
+	"features": [
+		"simpleAppApiRoutes",
+		"simpleAppSsrRoutes",
+		"simpleAppStaticRoutesAndAssets",
+		"appMiddleware",
+		"appRouting",
+		"appConfigsRewritesRedirectsHeaders"
+	],
+	"localSetup": "npm install",
+	"buildConfig": {
+		"buildCommand": "npx --force ../../../packages/next-on-pages",
+		"buildOutputDirectory": ".vercel/output/static"
+	},
+	"deploymentConfig": {
+		"compatibilityFlags": ["nodejs_compat"]
+	}
+}
