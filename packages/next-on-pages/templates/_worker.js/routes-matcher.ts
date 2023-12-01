@@ -161,7 +161,7 @@ export class RoutesMatcher {
 	 *
 	 * @param resp Middleware response object.
 	 */
-	private processMiddlewareResp(resp: Response): void {
+	private async processMiddlewareResp(resp: Response): Promise<void> {
 		const overrideKey = 'x-middleware-override-headers';
 		const overrideHeader = resp.headers.get(overrideKey);
 		if (overrideHeader) {
@@ -189,8 +189,25 @@ export class RoutesMatcher {
 
 		const rewriteKey = 'x-middleware-rewrite';
 		const rewriteHeader = resp.headers.get(rewriteKey);
+
 		if (rewriteHeader) {
 			const newUrl = new URL(rewriteHeader, this.url);
+
+			const thisHost = this.url.hostname;
+			const rewriteHost = newUrl.hostname;
+
+			const rewriteIsExternal = thisHost !== rewriteHost;
+
+			if (rewriteIsExternal) {
+				const externalResp = await fetch(newUrl, this.reqCtx.request);
+				// The rewrite is external so we do not want to continue and we just
+				// set the final response body and status here.
+				this.body = externalResp.body;
+				this.status = externalResp.status;
+				applyHeaders(this.headers.important, externalResp.headers);
+				return;
+			}
+
 			this.path = newUrl.pathname;
 			applySearchParams(this.searchParams, newUrl.searchParams);
 
@@ -243,7 +260,7 @@ export class RoutesMatcher {
 			return false;
 		}
 
-		this.processMiddlewareResp(resp);
+		await this.processMiddlewareResp(resp);
 		return true;
 	}
 
