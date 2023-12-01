@@ -1,7 +1,6 @@
 import { afterAll, expect, suite, test, vi } from 'vitest';
 import {
 	i18nTestSet,
-	infiniteLoopTestSet,
 	trailingSlashTestSet,
 } from './requestTestData';
 import type { TestCase, TestSet } from '../_helpers';
