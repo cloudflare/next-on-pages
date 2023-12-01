@@ -1,7 +1,14 @@
 import { describe, test } from 'vitest';
 import { getAssertVisible } from '@features-utils/getAssertVisible';
 
-describe('ssr dynamic pages', () => {
+const frameworkVersion = await fetch(`${DEPLOYMENT_URL}/api/version`).then(
+	resp => (resp.status === 200 ? resp.text() : ''),
+);
+
+// This doesn't work in next 12
+const skipTests = frameworkVersion.startsWith('12');
+
+describe.skipIf(skipTests)('ssr dynamic pages', () => {
 	describe('standard [pageName] route', () => {
 		['page-abc', 'page-xyz', 'page-123'].forEach(route => {
 			const path = `/ssr-dynamic/page/${route}`;

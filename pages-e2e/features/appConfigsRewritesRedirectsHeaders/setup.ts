@@ -34,7 +34,6 @@ recast.visit(ast, {
 	},
 });
 
-
 await writeFile(nextConfigJsPath, recast.print(ast).code);
 
 function generateProp(type: 'redirects' | 'rewrites' | 'headers') {

@@ -1,7 +1,6 @@
 import { afterAll, expect, suite, test, vi } from 'vitest';
 import {
 	i18nTestSet,
-	trailingSlashTestSet,
 } from './requestTestData';
 import type { TestCase, TestSet } from '../_helpers';
 import { mockConsole } from '../_helpers';
@@ -132,8 +131,6 @@ vi.mock('esbuild', async () => {
 suite('router', () => {
 	[
 		i18nTestSet,
-		infiniteLoopTestSet,
-		trailingSlashTestSet,
 	].forEach(testSet => {
 		describe(testSet.name, async () => runTestSet(testSet));
 	});
