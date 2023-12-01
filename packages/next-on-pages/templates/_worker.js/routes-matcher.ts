@@ -204,7 +204,6 @@ export class RoutesMatcher {
 				this.body = externalResp.body;
 				this.status = externalResp.status;
 				applyHeaders(this.headers.normal, externalResp.headers);
-				return;
 			}
 
 			this.path = newUrl.pathname;
