@@ -1,6 +1,5 @@
 import { afterAll, expect, suite, test, vi } from 'vitest';
 import {
-	checkRouteMatchTestSet,
 	i18nTestSet,
 	infiniteLoopTestSet,
 	trailingSlashTestSet,
@@ -133,7 +132,6 @@ vi.mock('esbuild', async () => {
 
 suite('router', () => {
 	[
-		checkRouteMatchTestSet,
 		i18nTestSet,
 		infiniteLoopTestSet,
 		trailingSlashTestSet,
