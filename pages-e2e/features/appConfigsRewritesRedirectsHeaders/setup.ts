@@ -34,10 +34,6 @@ recast.visit(ast, {
 	},
 });
 
-await writeFile(
-	join(WORKSPACE_DIR, 'test-log-config.js'),
-	recast.print(ast).code,
-);
 
 await writeFile(nextConfigJsPath, recast.print(ast).code);
 
