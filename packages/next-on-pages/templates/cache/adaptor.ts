@@ -76,6 +76,7 @@ export class CacheAdaptor {
 	 * Retrieves an entry from the suspense cache.
 	 *
 	 * @param key Key for the item in the suspense cache.
+	 * @param opts Soft cache tags used when checking if an entry is stale.
 	 * @returns The cached value, or null if no entry exists.
 	 */
 	public async get(
