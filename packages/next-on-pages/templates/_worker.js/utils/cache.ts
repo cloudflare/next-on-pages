@@ -3,6 +3,8 @@ import { SUSPENSE_CACHE_URL } from '../../cache';
 
 // https://github.com/vercel/next.js/blob/48a566bc/packages/next/src/server/lib/incremental-cache/fetch-cache.ts#L19
 const CACHE_TAGS_HEADER = 'x-vercel-cache-tags';
+// https://github.com/vercel/next.js/blob/ba23d986/packages/next/src/lib/constants.ts#L18
+const NEXT_CACHE_SOFT_TAGS_HEADER = 'x-next-cache-soft-tags';
 
 /**
  * Handles an internal request to the suspense cache.
@@ -37,8 +39,13 @@ export async function handleSuspenseCacheRequest(request: Request) {
 
 		switch (request.method) {
 			case 'GET': {
+				const softTags = getTagsFromHeader(
+					request,
+					NEXT_CACHE_SOFT_TAGS_HEADER,
+				);
+
 				// Retrieve the value from the cache.
-				const data = await cache.get(cacheKey);
+				const data = await cache.get(cacheKey, { softTags });
 				if (!data) return new Response(null, { status: 404 });
 
 				return new Response(JSON.stringify(data.value), {
@@ -55,14 +62,7 @@ export async function handleSuspenseCacheRequest(request: Request) {
 				const body = await request.json<IncrementalCacheValue>();
 				// Falling back to the cache tags header for Next.js 13.5+
 				if (body.data.tags === undefined) {
-					body.tags ??=
-						request.headers
-							.get(CACHE_TAGS_HEADER)
-							?.split(',')
-							?.filter(Boolean) ?? [];
-				} else {
-					body.tags = body.data.tags;
-					delete body.data.tags;
+					body.tags ??= getTagsFromHeader(request, CACHE_TAGS_HEADER) ?? [];
 				}
 
 				await cache.set(cacheKey, body);
@@ -103,4 +103,8 @@ async function getInternalCacheAdaptor(
 ): Promise<CacheAdaptor> {
 	const adaptor = await import(`./__next-on-pages-dist__/cache/${type}.js`);
 	return new adaptor.default();
+}
+
+function getTagsFromHeader(req: Request, key: string): string[] | undefined {
+	return req.headers.get(key)?.split(',')?.filter(Boolean);
 }
