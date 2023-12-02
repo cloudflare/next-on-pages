@@ -161,7 +161,7 @@ export class RoutesMatcher {
 	 *
 	 * @param resp Middleware response object.
 	 */
-	private async processMiddlewareResp(resp: Response): Promise<void> {
+	private processMiddlewareResp(resp: Response): void {
 		const overrideKey = 'x-middleware-override-headers';
 		const overrideHeader = resp.headers.get(overrideKey);
 		if (overrideHeader) {
@@ -193,11 +193,10 @@ export class RoutesMatcher {
 		if (rewriteHeader) {
 			const newUrl = new URL(rewriteHeader, this.url);
 
-			const thisHost = this.url.hostname;
-			const rewriteHost = newUrl.hostname;
-			const rewriteIsExternal = thisHost !== rewriteHost;
+			const rewriteIsExternal = this.url.hostname !== newUrl.hostname;
 
-			this.path = rewriteIsExternal ? newUrl.toString() : newUrl.pathname;
+			this.path = rewriteIsExternal ? `${newUrl}` : newUrl.pathname;
+
 			applySearchParams(this.searchParams, newUrl.searchParams);
 
 			resp.headers.delete(rewriteKey);
@@ -249,7 +248,7 @@ export class RoutesMatcher {
 			return false;
 		}
 
-		await this.processMiddlewareResp(resp);
+		this.processMiddlewareResp(resp);
 		return true;
 	}
 
