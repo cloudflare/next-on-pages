@@ -197,16 +197,7 @@ export class RoutesMatcher {
 			const rewriteHost = newUrl.hostname;
 			const rewriteIsExternal = thisHost !== rewriteHost;
 
-			if (rewriteIsExternal) {
-				const externalResp = await fetch(newUrl, this.reqCtx.request);
-				// The rewrite is external so we do not want to continue and we just
-				// set the final response body, status and headers here.
-				this.body = externalResp.body;
-				this.status = externalResp.status;
-				applyHeaders(this.headers.normal, externalResp.headers);
-			}
-
-			this.path = newUrl.pathname;
+			this.path = rewriteIsExternal ? newUrl.toString() : newUrl.pathname;
 			applySearchParams(this.searchParams, newUrl.searchParams);
 
 			resp.headers.delete(rewriteKey);
