@@ -1,6 +1,9 @@
 // NOTE: This is given the same name that the environment variable has in the Next.js source code.
 export const SUSPENSE_CACHE_URL = 'INTERNAL_SUSPENSE_CACHE_HOSTNAME.local';
 
+// https://github.com/vercel/next.js/blob/f6babb4/packages/next/src/lib/constants.ts#23
+const NEXT_CACHE_IMPLICIT_TAG_ID = '_N_T_';
+
 // Set to track the revalidated tags in requests.
 const revalidatedTags = new Set<string>();
 
@@ -54,10 +57,17 @@ export class CacheAdaptor {
 		switch (newEntry.value?.kind) {
 			case 'FETCH': {
 				// Update the tags with the cache key.
-				const tags = newEntry.value.tags ?? [];
+				const tags = getTagsFromEntry(newEntry);
 				await this.setTags(tags, { cacheKey: key });
 
-				getDerivedTags(tags).forEach(tag => revalidatedTags.delete(tag));
+				const derivedTags = getDerivedTags(tags);
+				const implicitTags = derivedTags.map(
+					tag => `${NEXT_CACHE_IMPLICIT_TAG_ID}${tag}`,
+				);
+
+				[...derivedTags, ...implicitTags].forEach(tag =>
+					revalidatedTags.delete(tag),
+				);
 			}
 		}
 	}
@@ -68,7 +78,10 @@ export class CacheAdaptor {
 	 * @param key Key for the item in the suspense cache.
 	 * @returns The cached value, or null if no entry exists.
 	 */
-	public async get(key: string): Promise<CacheHandlerValue | null> {
+	public async get(
+		key: string,
+		{ softTags }: { softTags?: string[] },
+	): Promise<CacheHandlerValue | null> {
 		// Get entry from the cache.
 		const entry = await this.retrieve(key);
 		if (!entry) return null;
@@ -87,10 +100,12 @@ export class CacheAdaptor {
 				await this.loadTagsManifest();
 
 				// Check if the cache entry is stale or fresh based on the tags.
-				const tags = getDerivedTags(
-					data.value.tags ?? data.value.data.tags ?? [],
-				);
-				const isStale = tags.some(tag => {
+				const tags = getTagsFromEntry(data);
+				const combinedTags = softTags
+					? [...tags, ...softTags]
+					: getDerivedTags(tags);
+
+				const isStale = combinedTags.some(tag => {
 					// If a revalidation has been triggered, the current entry is stale.
 					if (revalidatedTags.has(tag)) return true;
 
@@ -256,4 +271,8 @@ export function getDerivedTags(tags: string[]): string[] {
 		}
 	}
 	return derivedTags;
+}
+
+export function getTagsFromEntry(entry: CacheHandlerValue): string[] {
+	return entry.value?.tags ?? entry.value?.data?.tags ?? [];
 }
