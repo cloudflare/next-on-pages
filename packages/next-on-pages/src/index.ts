@@ -1,8 +1,7 @@
 import { watch } from 'chokidar';
 import pLimit from 'p-limit';
 import type { CliOptions } from './cli';
-import { cliWarn, cliError } from './cli';
-import { cliLog, parseCliArgs, printCliHelpMessage, printEnvInfo } from './cli';
+import { parseCliArgs, cliLog, cliWarn, cliError, printEnvInfo } from './cli';
 import { buildApplication } from './buildApplication';
 import { isWindows, nextOnPagesVersion } from './utils';
 
@@ -13,22 +12,12 @@ void runNextOnPages();
 async function runNextOnPages(): Promise<void> {
 	const args = parseCliArgs();
 
-	if (args.version) {
-		// eslint-disable-next-line no-console -- for the version lets simply print it plainly
-		console.log(nextOnPagesVersion);
-		return;
-	}
 	if (args.info) {
 		await printEnvInfo();
 		return;
 	}
 
 	cliLog(`@cloudflare/next-on-pages CLI v.${nextOnPagesVersion}`);
-
-	if (args.help) {
-		printCliHelpMessage();
-		return;
-	}
 
 	if (isWindows()) {
 		cliWarn(

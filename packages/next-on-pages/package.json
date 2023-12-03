@@ -49,15 +49,16 @@
 		"ast-types": "^0.14.2",
 		"chalk": "^5.2.0",
 		"chokidar": "^3.5.3",
+		"commander": "^11.1.0",
 		"cookie": "^0.5.0",
 		"esbuild": "^0.15.3",
 		"js-yaml": "^4.1.0",
+		"miniflare": "^3.20231002.1",
 		"package-manager-manager": "^0.2.0",
 		"pcre-to-regexp": "^1.1.0",
 		"semver": "^7.5.2",
 		"zod": "^3.22.4",
-		"zodcli": "^0.0.4",
-		"miniflare": "^3.20231002.1"
+		"zodcli": "^0.0.4"
 	},
 	"peerDependencies": {
 		"vercel": ">=30.0.0",
@@ -65,8 +66,8 @@
 	},
 	"devDependencies": {
 		"@changesets/cli": "^2.26.0",
-		"@cloudflare/next-on-pages-tsconfig": "*",
 		"@cloudflare/next-on-pages-next-dev": "*",
+		"@cloudflare/next-on-pages-tsconfig": "*",
 		"@cloudflare/workers-types": "^4.20230404.0",
 		"@tsconfig/strictest": "^2.0.0",
 		"@types/cookie": "^0.5.1",
