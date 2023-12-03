@@ -56,7 +56,6 @@ program
 	.option(
 		'-o, --outdir <path>',
 		'Sets the directory to output the worker and static assets to',
-		path => normalizePath(resolve(path)),
 		join('.vercel', 'output', 'static'),
 	)
 	.enablePositionalOptions(false)
@@ -79,7 +78,9 @@ export type CliOptions = {
 
 export function parseCliArgs(): CliOptions {
 	program.parse();
-	return program.opts<CliOptions>();
+	const args = program.opts<CliOptions>();
+	args.outdir = normalizePath(resolve(args.outdir));
+	return args;
 }
 
 type LogOptions = {
