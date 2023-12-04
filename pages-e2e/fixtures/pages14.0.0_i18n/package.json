@@ -1,33 +1,33 @@
 {
-  "name": "pages14.0.0_i18n",
-  "version": "0.1.0",
-  "private": true,
-  "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint",
-    "clearnpx": "npx clear-npx-cache",
-    "next-on-pages": "pnpm exec next-on-pages",
-    "nop": "pnpm next-on-pages",
-    "nopw": "pnpm next-on-pages -- --watch",
-    "nopm": "pnpm next-on-pages -- --experimental-minify",
-    "nopmw": "pnpm next-on-pages -- --experimental-minify --watch",
-    "pages:dev": "npx wrangler pages dev .vercel/output/static --compatibility-flag=nodejs_compat",
-    "pages:dep": "npx wrangler pages deploy .vercel/output/static"
-  },
-  "dependencies": {
-    "@types/node": "18.15.3",
-    "@types/react": "18.0.28",
-    "@types/react-dom": "18.0.11",
-    "eslint": "8.36.0",
-    "eslint-config-next": "13.4.1",
-    "next": "14.0.0",
-    "react": "18.2.0",
-    "react-dom": "18.2.0",
-    "typescript": "5.0.2"
-  },
-  "devDependencies": {
-    "@cloudflare/next-on-pages": "*"
-  }
+	"name": "pages14.0.0_i18n",
+	"version": "0.1.0",
+	"private": true,
+	"scripts": {
+		"dev": "next dev",
+		"build": "next build",
+		"start": "next start",
+		"lint": "next lint",
+		"clearnpx": "npx clear-npx-cache",
+		"next-on-pages": "pnpm exec next-on-pages",
+		"nop": "pnpm next-on-pages",
+		"nopw": "pnpm next-on-pages -- --watch",
+		"nopm": "pnpm next-on-pages -- --experimental-minify",
+		"nopmw": "pnpm next-on-pages -- --experimental-minify --watch",
+		"pages:dev": "npx wrangler pages dev .vercel/output/static --compatibility-flag=nodejs_compat",
+		"pages:dep": "npx wrangler pages deploy .vercel/output/static"
+	},
+	"dependencies": {
+		"@types/node": "18.15.3",
+		"@types/react": "18.0.28",
+		"@types/react-dom": "18.0.11",
+		"eslint": "8.36.0",
+		"eslint-config-next": "13.4.1",
+		"next": "14.0.0",
+		"react": "18.2.0",
+		"react-dom": "18.2.0",
+		"typescript": "5.0.2"
+	},
+	"devDependencies": {
+		"@cloudflare/next-on-pages": "*"
+	}
 }

@@ -1,9 +1,9 @@
-export const runtime = "edge";
+export const runtime = 'edge';
 
 export default function SSRDynamicPageWithName({ params }) {
-  return (
-    <div>
-      <p>This Page's name is: {params.pageName}</p>
-    </div>
-  );
+	return (
+		<div>
+			<p>This Page's name is: {params.pageName}</p>
+		</div>
+	);
 }

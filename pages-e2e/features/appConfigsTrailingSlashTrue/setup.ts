@@ -16,23 +16,23 @@ const ast = recast.parse(nextConfigJsSource);
 
 recast.visit(ast, {
 	visitVariableDeclaration: function (path) {
-	  if (
-		path?.value?.declarations.length === 1 &&
-		path.value.declarations[0].id.name === 'nextConfig'
-	  ) {
-		const nextConfigAst = path.value.declarations[0].init;
-  
-		const { property, identifier, booleanLiteral } = recast.types.builders;
-  
-		var trailingSlashProp = property.from({
-		  kind: 'init',
-		  key: identifier('trailingSlash'),
-		  value: booleanLiteral(true),
-		});
-  
-		nextConfigAst.properties.push(trailingSlashProp);
-	  }
-	  this.traverse(path);
+		if (
+			path?.value?.declarations.length === 1 &&
+			path.value.declarations[0].id.name === 'nextConfig'
+		) {
+			const nextConfigAst = path.value.declarations[0].init;
+
+			const { property, identifier, booleanLiteral } = recast.types.builders;
+
+			var trailingSlashProp = property.from({
+				kind: 'init',
+				key: identifier('trailingSlash'),
+				value: booleanLiteral(true),
+			});
+
+			nextConfigAst.properties.push(trailingSlashProp);
+		}
+		this.traverse(path);
 	},
 });
 

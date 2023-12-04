@@ -20,7 +20,7 @@ async function assertVisible(
 	...[selector, options]: Parameters<Page['locator']>
 ): Promise<void> {
 	let isVisible = false;
-	for(const _attempt of [0, 1, 2, 3]) {
+	for (const _attempt of [0, 1, 2, 3]) {
 		const locator = page.locator(selector, options);
 		try {
 			await locator.waitFor({
@@ -28,7 +28,7 @@ async function assertVisible(
 			});
 		} catch {}
 		isVisible = await locator.isVisible();
-		if(isVisible) {
+		if (isVisible) {
 			break;
 		} else {
 			await new Promise(resolve => setTimeout(resolve, 200));

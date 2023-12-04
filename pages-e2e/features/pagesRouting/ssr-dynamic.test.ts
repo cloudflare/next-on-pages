@@ -15,33 +15,33 @@ describe.skipIf(skipTests)('ssr dynamic pages', () => {
 			test(`visiting ${path}`, async () => {
 				const page = await BROWSER.newPage();
 				const assertVisible = getAssertVisible(page);
-	
+
 				await page.goto(`${DEPLOYMENT_URL}${path}`);
-	
+
 				await assertVisible('p', {
 					hasText: `This Page's name is: ${route}`,
 				});
 			});
 		});
-	})
+	});
 
 	describe('catch-all [...pets] route', () => {
 		test('visiting /dog/cat/iguana', async () => {
 			const path = '/ssr-dynamic/catch-all/dog/cat/iguana';
-	
+
 			const page = await BROWSER.newPage();
 			const assertVisible = getAssertVisible(page);
-	
+
 			await page.goto(`${DEPLOYMENT_URL}${path}`);
-	
+
 			await assertVisible('p', {
-				hasText: 'The provided pets are:'
+				hasText: 'The provided pets are:',
 			});
 
 			// This is how slugs currently work with next-on-pages
 			// see: https://github.com/cloudflare/next-on-pages/issues/515
 			await assertVisible('li', {
-				hasText: '0 - dog/cat/iguana'
+				hasText: '0 - dog/cat/iguana',
 			});
 
 			// the following checks indicate how it should work instead
@@ -61,14 +61,14 @@ describe.skipIf(skipTests)('ssr dynamic pages', () => {
 
 		test('visiting / (without providing the required pets)', async () => {
 			const path = '/ssr-dynamic/catch-all/';
-	
+
 			const page = await BROWSER.newPage();
 			const assertVisible = getAssertVisible(page);
-	
+
 			await page.goto(`${DEPLOYMENT_URL}${path}`);
-	
+
 			await assertVisible('h1', {
-				hasText: '404'
+				hasText: '404',
 			});
 		});
 	});
@@ -76,20 +76,20 @@ describe.skipIf(skipTests)('ssr dynamic pages', () => {
 	describe('optional catch-all [[...pets]] route', () => {
 		test('visiting /red/green/blue', async () => {
 			const path = '/ssr-dynamic/optional-catch-all/red/green/blue';
-	
+
 			const page = await BROWSER.newPage();
 			const assertVisible = getAssertVisible(page);
-	
+
 			await page.goto(`${DEPLOYMENT_URL}${path}`);
-	
+
 			await assertVisible('p', {
-				hasText: 'The provided colors are:'
+				hasText: 'The provided colors are:',
 			});
 
 			// This is how slugs currently work with next-on-pages
 			// see: https://github.com/cloudflare/next-on-pages/issues/515
 			await assertVisible('li', {
-				hasText: '0 - red/green/blue'
+				hasText: '0 - red/green/blue',
 			});
 
 			// the following checks indicate how it should work instead
@@ -109,12 +109,12 @@ describe.skipIf(skipTests)('ssr dynamic pages', () => {
 
 		test('visiting / (without providing the colors)', async () => {
 			const path = '/ssr-dynamic/optional-catch-all';
-	
+
 			const page = await BROWSER.newPage();
 			const assertVisible = getAssertVisible(page);
-	
+
 			await page.goto(`${DEPLOYMENT_URL}${path}`);
-	
+
 			await assertVisible('p', {
 				hasText: 'No color provided',
 			});

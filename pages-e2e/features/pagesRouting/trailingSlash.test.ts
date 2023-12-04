@@ -10,6 +10,8 @@ describe('default trailing slashes redirection', () => {
 
 		expect(response.redirected).toBe(true);
 		expect(response.status).toBe(200);
-		expect(response.url).toEqual(`${DEPLOYMENT_URL}/api/routing-trailing-slash-test`);
+		expect(response.url).toEqual(
+			`${DEPLOYMENT_URL}/api/routing-trailing-slash-test`,
+		);
 	});
 });
