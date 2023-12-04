@@ -1,5 +1,35 @@
 # @cloudflare/next-on-pages
 
+## 1.8.1
+
+### Patch Changes
+
+- 61d0a2f: print warning in case developers are using a different package manager to run @cloudflare/next-on-pages
+- 1e73555: Fix route intercepts causing 404s for the non-intercepted route.
+- 1e73555: Fix route intercept modals not getting all the parameters for a route.
+- b7f9225: improve unhelpful error message (so that instead of `[object Object]` it prints the actual error message)
+- bc216b4: Improved support for newer version of Next.js with the suspense cache through trying to handle soft/implicit tags properly
+- 8ece962: fix external middleware rewrites
+
+  Currently Middleware rewrites (`NextResponse.rewrite()`) assume that the rewrite destination
+  is on the same host as the application, meaning that the following operations would work as intended:
+
+  ```ts
+  NextResponse.rewrite(new URL('/rewrite-dest', request.url));
+  ```
+
+  while something like this would not:
+
+  ```ts
+  return NextResponse.rewrite(
+    new URL('https://my-customer-rewrite-site.come/rewrite-dest', request.url),
+  );
+  ```
+
+  Remove such assumption and allow such external rewrites to take place (as they do on Vercel)
+
+- bc216b4: Fix old version of Next.js not updating a cache entry properly due to not receving the correct shape they expected.
+
 ## 1.8.0
 
 ### Minor Changes
