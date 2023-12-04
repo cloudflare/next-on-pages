@@ -189,9 +189,14 @@ export class RoutesMatcher {
 
 		const rewriteKey = 'x-middleware-rewrite';
 		const rewriteHeader = resp.headers.get(rewriteKey);
+
 		if (rewriteHeader) {
 			const newUrl = new URL(rewriteHeader, this.url);
-			this.path = newUrl.pathname;
+
+			const rewriteIsExternal = this.url.hostname !== newUrl.hostname;
+
+			this.path = rewriteIsExternal ? `${newUrl}` : newUrl.pathname;
+
 			applySearchParams(this.searchParams, newUrl.searchParams);
 
 			resp.headers.delete(rewriteKey);
