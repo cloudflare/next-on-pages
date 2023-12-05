@@ -31,7 +31,7 @@ export async function checkInvalidFunctions(
 	collectedFunctions: CollectedFunctions,
 	opts: InvalidFunctionsOpts,
 ): Promise<void> {
-	if(isUsingAppRouter(opts.vercelConfig)) {
+	if (isUsingAppRouter(opts.vercelConfig)) {
 		await tryToFixAppRouterNotFoundRoute(collectedFunctions);
 	}
 
