@@ -54,6 +54,10 @@ program
 		'Prints relevant details about the current system which can be used to report bugs',
 	)
 	.option(
+		'-u, --build-dev-vars',
+		'Builds a .dev.vars file (used by wrangler pages dev to access local variables) based on the local .env.local file as part of the build process',
+	)
+	.option(
 		'-o, --outdir <path>',
 		'Sets the directory to output the worker and static assets to',
 		join('.vercel', 'output', 'static'),
@@ -73,6 +77,7 @@ export type CliOptions = {
 	watch?: boolean;
 	noColor?: boolean;
 	info?: boolean;
+	buildDevVars?: boolean;
 	outdir: string;
 };
 

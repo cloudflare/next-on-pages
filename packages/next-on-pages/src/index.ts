@@ -4,6 +4,7 @@ import type { CliOptions } from './cli';
 import { parseCliArgs, cliLog, cliWarn, cliError, printEnvInfo } from './cli';
 import { buildApplication } from './buildApplication';
 import { isWindows, nextOnPagesVersion } from './utils';
+import { buildDevVarsFile } from './additional';
 
 const limit = pLimit(1);
 
@@ -59,6 +60,10 @@ function runBuild(options: CliOptions) {
 				cliLog(`
 					Running in '--watch' mode. Awaiting changes... (Ctrl+C to exit.)"
 				`);
+			}
+
+			if (options.buildDevVars) {
+				await buildDevVarsFile();
 			}
 		}
 	}).catch(error => {
