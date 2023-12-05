@@ -38,14 +38,14 @@ export async function getVercelConfig(): Promise<VercelConfig> {
 export function getPhaseRoutes(
 	routes: VercelRoute[],
 	phase: VercelPhase,
-): VercelRoute[] {
+): VercelSource[] {
 	if (!routes.length) {
 		return [];
 	}
 
 	const phaseStart = getPhaseStart(routes, phase);
 	const phaseEnd = getPhaseEnd(routes, phaseStart);
-	return routes.slice(phaseStart, phaseEnd);
+	return routes.slice(phaseStart, phaseEnd) as VercelSource[];
 }
 
 function getPhaseStart(routes: VercelRoute[], phase: VercelPhase): number {
@@ -126,6 +126,49 @@ function normalizeRouteSrc(route: VercelSource): void {
 	}
 }
 
-function isVercelHandler(route: VercelRoute): route is VercelHandler {
+export function isVercelHandler(route: VercelRoute): route is VercelHandler {
 	return 'handle' in route;
+}
+
+/**
+ * Discerns whether the target application is using the App Router or not based
+ * on its Vercel config
+ *
+ * This is done by checking the presence of two specific entries of the "none" phase that
+ * the Vercel build command adds to the config
+ * (source: https://github.com/vercel/vercel/blob/f12477/packages/next/src/server-build.ts#L1751-L1780)
+ *
+ * @param vercelConfig the Vercel config to analyze
+ * @returns true if the application is using the App Router, false otherwise
+ */
+export function isUsingAppRouter(vercelConfig: VercelConfig): boolean {
+	const isRscRoute = (
+		source: VercelSource | undefined,
+	): source is VercelSource => {
+		if (!source) return false;
+		if (!source.has?.some(h => h.type === 'header' && h.key === 'rsc'))
+			return false;
+		if (
+			source.headers?.['vary'] !==
+			'RSC, Next-Router-State-Tree, Next-Router-Prefetch, Next-Url'
+		)
+			return false;
+		if (!source.continue) return false;
+		if (!source.override) return false;
+		return true;
+	};
+
+	const noneRoutes = getPhaseRoutes(vercelConfig.routes ?? [], 'none');
+	return noneRoutes.some((route, i) => {
+		const nextRoute = noneRoutes[i + 1];
+
+		if (!isRscRoute(route) || !isRscRoute(nextRoute)) return false;
+
+		if (!route.src.endsWith('/')) return false;
+		if (!route.dest?.endsWith('/index.rsc')) return false;
+		if (!nextRoute.src.endsWith('/((?!.+\\.rsc).+?)(?:/)?$')) return false;
+		if (!nextRoute.dest?.endsWith('/$1.rsc')) return false;
+
+		return true;
+	});
 }
