@@ -6,15 +6,7 @@
 		"dev": "next dev",
 		"build": "next build",
 		"start": "next start",
-		"lint": "next lint",
-		"clearnpx": "npx clear-npx-cache",
-		"next-on-pages": "pnpm exec next-on-pages",
-		"nop": "pnpm next-on-pages",
-		"nopw": "pnpm next-on-pages -- --watch",
-		"nopm": "pnpm next-on-pages -- --experimental-minify",
-		"nopmw": "pnpm next-on-pages -- --experimental-minify --watch",
-		"pages:dev": "npx wrangler pages dev .vercel/output/static --compatibility-flag=nodejs_compat",
-		"pages:dep": "npx wrangler pages deploy .vercel/output/static"
+		"lint": "next lint"
 	},
 	"dependencies": {
 		"@types/node": "18.15.3",
