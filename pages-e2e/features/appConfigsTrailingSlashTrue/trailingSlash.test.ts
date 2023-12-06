@@ -1,7 +1,7 @@
 import { describe, test } from 'vitest';
 
 describe('default trailing slashes redirection', () => {
-	test(`fetching without an added trailing slashed results in a redirected response`, async ({
+	test(`fetching without an added trailing slash results in a redirected response`, async ({
 		expect,
 	}) => {
 		const response = await fetch(
