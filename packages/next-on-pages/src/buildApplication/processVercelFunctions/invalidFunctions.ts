@@ -9,6 +9,7 @@ import {
 import type { CollectedFunctions, FunctionInfo } from './configs';
 import { join } from 'path';
 import type { ProcessVercelFunctionsOpts } from '.';
+import { isUsingAppRouter } from '../getVercelConfig';
 
 type InvalidFunctionsOpts = Pick<
 	ProcessVercelFunctionsOpts,
@@ -30,7 +31,9 @@ export async function checkInvalidFunctions(
 	collectedFunctions: CollectedFunctions,
 	opts: InvalidFunctionsOpts,
 ): Promise<void> {
-	await tryToFixNotFoundRoute(collectedFunctions);
+	if (isUsingAppRouter(opts.vercelConfig)) {
+		await tryToFixAppRouterNotFoundRoute(collectedFunctions);
+	}
 
 	await tryToFixI18nFunctions(collectedFunctions, opts);
 
@@ -62,7 +65,7 @@ export async function checkInvalidFunctions(
  *
  * @param collectedFunctions Collected functions from the Vercel build output.
  */
-async function tryToFixNotFoundRoute({
+async function tryToFixAppRouterNotFoundRoute({
 	invalidFunctions,
 	ignoredFunctions,
 }: CollectedFunctions): Promise<void> {
