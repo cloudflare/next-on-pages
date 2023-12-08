@@ -19,14 +19,19 @@ async function assertVisible(
 	page: Page,
 	...[selector, options]: Parameters<Page['locator']>
 ): Promise<void> {
-	const locator = page.locator(selector, options);
 	let isVisible = false;
-	try {
-		await locator.waitFor({
-			timeout: 500,
-		});
-	} catch {}
-	isVisible = await locator.isVisible();
+	for (const _attempt of [0, 1, 2, 3, 4, 5]) {
+		const locator = page.locator(selector, options);
+		try {
+			await locator.waitFor({
+				timeout: 200,
+			});
+		} catch {}
+		isVisible = await locator.isVisible();
+		if (isVisible) {
+			break;
+		}
+	}
 	const elementStr = `${selector}${
 		Object.keys(options ?? {}).length > 0
 			? `[${JSON.stringify({ options })}]`

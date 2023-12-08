@@ -1,12 +1,8 @@
 {
 	"features": [
 		"simpleAppApiRoutes",
-		"simpleAppSsrRoutes",
-		"simpleAppStaticRoutesAndAssets",
-		"appMiddleware",
 		"appRouting",
-		"appConfigsTrailingSlashFalse",
-		"appConfigsRewritesRedirectsHeaders"
+		"appConfigsTrailingSlashTrue"
 	],
 	"localSetup": "npm install",
 	"buildConfig": {
