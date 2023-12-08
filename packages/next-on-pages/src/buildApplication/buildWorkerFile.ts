@@ -104,13 +104,13 @@ type BuildWorkerFileOpts = {
 };
 
 /**
- * Collects all the locales present in the Vercel routes
+ * Collects all the locales present in the processed Vercel routes
  *
  * @param routes The Vercel routes to collect the locales from
- * @returns the set of all the found locales
+ * @returns an array containing all the found locales (without duplicates)
  */
 function collectLocales(routes: ProcessedVercelRoutes): string[] {
-	return Object.values(routes)
+	const locales = Object.values(routes)
 		.flat()
 		.flatMap(source => {
 			if (source.locale?.redirect) {
@@ -119,4 +119,5 @@ function collectLocales(routes: ProcessedVercelRoutes): string[] {
 			return [];
 		})
 		.filter(Boolean);
+	return [...new Set(locales)];
 }
