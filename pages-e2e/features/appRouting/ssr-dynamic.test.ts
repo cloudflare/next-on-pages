@@ -31,25 +31,17 @@ describe('ssr dynamic pages', () => {
 				hasText: 'The provided pets are:',
 			});
 
-			// This is how slugs currently work with next-on-pages
-			// see: https://github.com/cloudflare/next-on-pages/issues/515
 			await assertVisible('li', {
-				hasText: '0 - dog%2Fcat%2Figuana',
+				hasText: '0 - dog'
 			});
 
-			// the following checks indicate how it should work instead
+			await assertVisible('li', {
+				hasText: '1 - cat'
+			});
 
-			// await assertVisible('li', {
-			// 	hasText: '0 - dog'
-			// });
-
-			// await assertVisible('li', {
-			// 	hasText: '1 - cat'
-			// });
-
-			// await assertVisible('li', {
-			// 	hasText: '2 - iguana'
-			// });
+			await assertVisible('li', {
+				hasText: '2 - iguana'
+			});
 		});
 
 		test('visiting / (without providing the required pets)', async () => {
@@ -79,25 +71,17 @@ describe('ssr dynamic pages', () => {
 				hasText: 'The provided pets are:',
 			});
 
-			// This is how slugs currently work with next-on-pages
-			// see: https://github.com/cloudflare/next-on-pages/issues/515
 			await assertVisible('li', {
-				hasText: '0 - dog%2Fcat%2Figuana',
+				hasText: '0 - dog'
 			});
 
-			// the following checks indicate how it should work instead
+			await assertVisible('li', {
+				hasText: '1 - cat'
+			});
 
-			// await assertVisible('li', {
-			// 	hasText: '0 - dog'
-			// });
-
-			// await assertVisible('li', {
-			// 	hasText: '1 - cat'
-			// });
-
-			// await assertVisible('li', {
-			// 	hasText: '2 - iguana'
-			// });
+			await assertVisible('li', {
+				hasText: '2 - iguana'
+			});
 		});
 
 		test('visiting / (without providing the required pets)', async () => {
@@ -127,25 +111,17 @@ describe('ssr dynamic pages', () => {
 				hasText: 'The provided colors are:',
 			});
 
-			// This is how slugs currently work with next-on-pages
-			// see: https://github.com/cloudflare/next-on-pages/issues/515
 			await assertVisible('li', {
-				hasText: '0 - red%2Fgreen%2Fblue',
+				hasText: '0 - red'
 			});
 
-			// the following checks indicate how it should work instead
+			await assertVisible('li', {
+				hasText: '1 - green'
+			});
 
-			// await assertVisible('li', {
-			// 	hasText: '0 - red'
-			// });
-
-			// await assertVisible('li', {
-			// 	hasText: '1 - green'
-			// });
-
-			// await assertVisible('li', {
-			// 	hasText: '2 - blue'
-			// });
+			await assertVisible('li', {
+				hasText: '2 - blue'
+			});
 		});
 
 		test('visiting / (without providing the colors)', async () => {
