@@ -5,6 +5,7 @@
 		"simplePagesStaticRoutesAndAssets",
 		"pagesMiddleware",
 		"pagesRouting",
+		"pagesRoutingSsrDynamicCatchAll",
 		"pagesConfigsRewritesRedirectsHeaders"
 	],
 	"localSetup": "./setup.sh",
