@@ -39,15 +39,15 @@ describe.skipIf(skipTests)('ssr dynamic pages', () => {
 			});
 
 			await assertVisible('li', {
-				hasText: '0 - dog'
+				hasText: '0 - dog',
 			});
 
 			await assertVisible('li', {
-				hasText: '1 - cat'
+				hasText: '1 - cat',
 			});
 
 			await assertVisible('li', {
-				hasText: '2 - iguana'
+				hasText: '2 - iguana',
 			});
 		});
 
@@ -79,15 +79,15 @@ describe.skipIf(skipTests)('ssr dynamic pages', () => {
 			});
 
 			await assertVisible('li', {
-				hasText: '0 - red'
+				hasText: '0 - red',
 			});
 
 			await assertVisible('li', {
-				hasText: '1 - green'
+				hasText: '1 - green',
 			});
 
 			await assertVisible('li', {
-				hasText: '2 - blue'
+				hasText: '2 - blue',
 			});
 		});
 
