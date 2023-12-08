@@ -144,10 +144,7 @@ export async function runOrFetchBuildOutputItem(
  * @param locales Known available locales.
  * @returns Whether the source route matches the regex for a locale with a trailing slash.
  */
-export function isLocaleTrailingSlashRegex(
-	src: string,
-	locales: Record<string, string>,
-) {
+export function isLocaleTrailingSlashRegex(src: string, locales: Set<string>) {
 	const prefix = '^//?(?:';
 	const suffix = ')/(.*)$';
 
@@ -156,5 +153,5 @@ export function isLocaleTrailingSlashRegex(
 	}
 
 	const foundLocales = src.slice(prefix.length, -suffix.length).split('|');
-	return foundLocales.every(locale => locale in locales);
+	return foundLocales.every(locale => locales.has(locale));
 }

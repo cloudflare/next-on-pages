@@ -5,6 +5,7 @@
 		"templates",
 		"tests",
 		"vercel.types.d.ts",
+		"build-metadata.d.ts",
 		"env.d.ts",
 		".eslintrc.js",
 		"build-no-nodejs-compat-flag-static-error-page.mjs"

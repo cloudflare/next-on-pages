@@ -74,6 +74,9 @@ export async function buildWorkerFile(
 		define: {
 			__CONFIG__: JSON.stringify(vercelConfig),
 			__NODE_ENV__: JSON.stringify(getNodeEnv()),
+			__BUILD_METADATA__: JSON.stringify({
+				collectedLocales: collectLocales(vercelConfig.routes),
+			}),
 		},
 		outfile: outputFile,
 		minify,
@@ -99,3 +102,22 @@ type BuildWorkerFileOpts = {
 	nopDistDir: string;
 	templatesDir: string;
 };
+
+/**
+ * Collects all the locales present in the processed Vercel routes
+ *
+ * @param routes The Vercel routes to collect the locales from
+ * @returns an array containing all the found locales (without duplicates)
+ */
+function collectLocales(routes: ProcessedVercelRoutes): string[] {
+	const locales = Object.values(routes)
+		.flat()
+		.flatMap(source => {
+			if (source.locale?.redirect) {
+				return Object.keys(source.locale.redirect);
+			}
+			return [];
+		})
+		.filter(Boolean);
+	return [...new Set(locales)];
+}
