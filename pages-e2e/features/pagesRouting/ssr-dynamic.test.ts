@@ -25,7 +25,7 @@ describe.skipIf(skipTests)('ssr dynamic pages', () => {
 		});
 	});
 
-	describe('catch-all [...pets] route', () => {
+	describe('catch-all [...pets] route (basic functionality)', () => {
 		test('visiting /dog/cat/iguana', async () => {
 			const path = '/ssr-dynamic/catch-all/dog/cat/iguana';
 
@@ -38,25 +38,10 @@ describe.skipIf(skipTests)('ssr dynamic pages', () => {
 				hasText: 'The provided pets are:',
 			});
 
-			// This is how slugs currently work with next-on-pages
-			// see: https://github.com/cloudflare/next-on-pages/issues/515
-			await assertVisible('li', {
-				hasText: '0 - dog/cat/iguana',
-			});
-
-			// the following checks indicate how it should work instead
-
-			// await assertVisible('li', {
-			// 	hasText: '0 - dog'
-			// });
-
-			// await assertVisible('li', {
-			// 	hasText: '1 - cat'
-			// });
-
-			// await assertVisible('li', {
-			// 	hasText: '2 - iguana'
-			// });
+			// Note: the slugs rendering is not tested here as it has not been
+			//       working properly in next-on-pages until Next.js v14.0.4
+			//       (for later versions of Next.js we do test the slugs in
+			//       the pagesRoutingSsrDynamicCatchAll feature)
 		});
 
 		test('visiting / (without providing the required pets)', async () => {
@@ -73,7 +58,7 @@ describe.skipIf(skipTests)('ssr dynamic pages', () => {
 		});
 	});
 
-	describe('optional catch-all [[...pets]] route', () => {
+	describe('optional catch-all [[...pets]] route (basic functionality)', () => {
 		test('visiting /red/green/blue', async () => {
 			const path = '/ssr-dynamic/optional-catch-all/red/green/blue';
 
@@ -86,25 +71,10 @@ describe.skipIf(skipTests)('ssr dynamic pages', () => {
 				hasText: 'The provided colors are:',
 			});
 
-			// This is how slugs currently work with next-on-pages
-			// see: https://github.com/cloudflare/next-on-pages/issues/515
-			await assertVisible('li', {
-				hasText: '0 - red/green/blue',
-			});
-
-			// the following checks indicate how it should work instead
-
-			// await assertVisible('li', {
-			// 	hasText: '0 - red'
-			// });
-
-			// await assertVisible('li', {
-			// 	hasText: '1 - green'
-			// });
-
-			// await assertVisible('li', {
-			// 	hasText: '2 - blue'
-			// });
+			// Note: the slugs rendering is not tested here as it has not been
+			//       working properly in next-on-pages until Next.js v14.0.4
+			//       (for later versions of Next.js we do test the slugs in
+			//       the pagesRoutingSsrDynamicCatchAll feature)
 		});
 
 		test('visiting / (without providing the colors)', async () => {
