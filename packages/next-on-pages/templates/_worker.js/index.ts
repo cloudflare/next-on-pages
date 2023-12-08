@@ -13,6 +13,8 @@ declare const __CONFIG__: ProcessedVercelConfig;
 
 declare const __BUILD_OUTPUT__: VercelBuildOutput;
 
+declare const __BUILD_METADATA__: NextOnPagesBuildMetadata;
+
 declare const __ENV_ALS_PROMISE__: Promise<null | AsyncLocalStorage<unknown>>;
 
 export default {
@@ -54,6 +56,7 @@ export default {
 					},
 					__CONFIG__,
 					__BUILD_OUTPUT__,
+					__BUILD_METADATA__,
 				);
 			},
 		);
