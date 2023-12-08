@@ -1,5 +1,37 @@
 # @cloudflare/next-on-pages
 
+## 1.8.2
+
+### Patch Changes
+
+- 8fe72f1: make CLI arguments parsing more flexible
+
+  prior to this change the CLI arguments parsing was not too flexible and forced a specific style
+
+  For instance the only way to provide an argument for the `outdir` option was to pass it using `=` as in:
+
+  ```
+  -o=./my-dir
+  ```
+
+  or
+
+  ```
+  --outdir=./my-dir
+  ```
+
+  these changes make the CLI arguments parsing more flexible and don't enforce a specific style
+  (`--outdir ./my-dir` now also works as you'd expect it to)
+
+- 20d0e0d: Fix `_not-found` functions only for applications using the App Router
+
+  In https://github.com/cloudflare/next-on-pages/pull/418 we introduced a workaround
+  that would delete invalid (nodejs) `_not-found` functions during the build process
+
+  Although the workaround is valid for applications using the App Router it is not
+  for applications only using the Pages Router, so make sure that it is only applied
+  when the former is used
+
 ## 1.8.1
 
 ### Patch Changes
