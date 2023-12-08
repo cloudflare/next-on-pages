@@ -43,7 +43,7 @@ export class RoutesMatcher {
 	/** Tracker for the middleware that have been invoked in a phase */
 	private middlewareInvoked: string[];
 	/** Locales found during routing */
-	public locales: Record<string, string> | undefined;
+	public locales: Set<string>;
 
 	/**
 	 * Creates a new instance of a request matcher.
@@ -79,6 +79,8 @@ export class RoutesMatcher {
 		this.wildcardMatch = wildcardConfig?.find(
 			w => w.domain === this.url.hostname,
 		);
+
+		this.locales = collectLocales(routes);
 	}
 
 	/**
@@ -375,9 +377,6 @@ export class RoutesMatcher {
 	private applyLocaleRedirects(route: VercelSource): void {
 		if (!route.locale?.redirect) return;
 
-		if (!this.locales) this.locales = {};
-		Object.assign(this.locales, route.locale.redirect);
-
 		// Automatic locale detection is only supposed to occur at the root. However, the build output
 		// sometimes uses `/` as the regex instead of `^/$`. So, we should check if the `route.src` is
 		// equal to the path if it is not a regular expression, to determine if we are at the root.
@@ -589,6 +588,22 @@ export class RoutesMatcher {
 			return 'done';
 		}
 
+		if (phase === 'none') {
+			// applications using the Pages router with i18n plus a catch-all root route
+			// redirect all requests (including /api/ ones) to the catch-all route, the only
+			// way to prevent this erroneous behavior is to remove the locale here if the
+			// path without the locale exists in the vercel build output
+			for (const locale of this.locales) {
+				const localeRegExp = new RegExp(`/${locale}(/.*)`);
+				const match = this.path.match(localeRegExp);
+				const pathWithoutLocale = match?.[1];
+				if (pathWithoutLocale && pathWithoutLocale in this.output) {
+					this.path = pathWithoutLocale;
+					break;
+				}
+			}
+		}
+
 		let pathExistsInOutput = this.path in this.output;
 
 		// If a path with a trailing slash entered the `rewrite` phase and didn't find a match, it might
@@ -643,4 +658,24 @@ export class RoutesMatcher {
 
 		return result;
 	}
+}
+
+/**
+ * Collects all the locales present in the Vercel routes
+ *
+ * @param routes The Vercel routes to collect the locales from
+ * @returns the set of all the found locales
+ */
+function collectLocales(routes: ProcessedVercelRoutes): Set<string> {
+	return new Set(
+		Object.values(routes)
+			.flat()
+			.map(source => {
+				if (source.locale?.redirect) {
+					return Object.keys(source.locale.redirect);
+				}
+				return null;
+			})
+			.find(Boolean) ?? [],
+	);
 }
