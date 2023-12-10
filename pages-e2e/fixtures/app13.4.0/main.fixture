@@ -6,7 +6,8 @@
 		"appMiddleware",
 		"appRouting",
 		"appConfigsTrailingSlashFalse",
-		"appConfigsRewritesRedirectsHeaders"
+		"appConfigsRewritesRedirectsHeaders",
+		"appWasm"
 	],
 	"localSetup": "npm install",
 	"buildConfig": {

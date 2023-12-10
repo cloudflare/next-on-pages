@@ -2,7 +2,8 @@
 	"features": [
 		"simpleAppApiRoutes",
 		"appRouting",
-		"appConfigsTrailingSlashTrue"
+		"appConfigsTrailingSlashTrue",
+		"appWasm"
 	],
 	"localSetup": "npm install",
 	"buildConfig": {
