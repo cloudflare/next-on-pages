@@ -1,4 +1,4 @@
-import type { Page } from 'playwright';
+import type { Locator, Page } from 'playwright';
 import assert from 'node:assert';
 
 /**
@@ -18,10 +18,11 @@ export function getAssertVisible(page: Page) {
 async function assertVisible(
 	page: Page,
 	...[selector, options]: Parameters<Page['locator']>
-): Promise<void> {
+): Promise<Locator | never> {
 	let isVisible = false;
+	let locator: Locator;
 	for (const _attempt of [0, 1, 2, 3, 4, 5]) {
-		const locator = page.locator(selector, options);
+		locator = page.locator(selector, options);
 		try {
 			await locator.waitFor({
 				timeout: 200,
@@ -38,4 +39,5 @@ async function assertVisible(
 			: ''
 	}`;
 	assert(isVisible, `expected ${elementStr} to be visible but it isn't`);
+	return locator;
 }

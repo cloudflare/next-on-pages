@@ -33,6 +33,7 @@ export async function checkInvalidFunctions(
 ): Promise<void> {
 	if (isUsingAppRouter(opts.vercelConfig)) {
 		await tryToFixAppRouterNotFoundRoute(collectedFunctions);
+		await fixAppRouterInvalidErrorRoutes(collectedFunctions);
 	}
 
 	await tryToFixI18nFunctions(collectedFunctions, opts);
@@ -106,6 +107,35 @@ async function tryToFixAppRouterNotFoundRoute({
 
 		if (invalidNotFound) {
 			break;
+		}
+	}
+}
+
+/**
+ * In the App router, error boundaries are implemented as client components
+ * (see: https://nextjs.org/docs/app/api-reference/file-conventions/error), meaning that they
+ * should not produce server side logic.
+ *
+ * The Vercel build process can however generate _error.func lambdas (as they are useful in the
+ * Vercel network I'd assume), through experimentation we've seen that those does not seem to be
+ * necessary when building the application with next-on-pages so they should be safe to ignore.
+ *
+ * This function make such invalid _error.func lambdas (if present) ignored (as they would otherwise
+ * cause the next-on-pages build process to fail).
+ *
+ * @param collectedFunctions Collected functions from the Vercel build output.
+ */
+async function fixAppRouterInvalidErrorRoutes({
+	invalidFunctions,
+	ignoredFunctions,
+}: CollectedFunctions): Promise<void> {
+	for (const [fullPath, fnInfo] of invalidFunctions.entries()) {
+		if (fullPath.endsWith('/_error.func')) {
+			ignoredFunctions.set(fullPath, {
+				reason: 'invalid _error functions in app directory are ignored',
+				...fnInfo,
+			});
+			invalidFunctions.delete(fullPath);
 		}
 	}
 }
