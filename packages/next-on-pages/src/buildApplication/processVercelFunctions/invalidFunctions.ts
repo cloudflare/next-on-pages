@@ -9,7 +9,7 @@ import {
 import type { CollectedFunctions, FunctionInfo } from './configs';
 import { join } from 'path';
 import type { ProcessVercelFunctionsOpts } from '.';
-import { isUsingAppRouter } from '../getVercelConfig';
+import { isUsingAppRouter, isUsingPagesRouter } from '../getVercelConfig';
 
 type InvalidFunctionsOpts = Pick<
 	ProcessVercelFunctionsOpts,
@@ -31,12 +31,17 @@ export async function checkInvalidFunctions(
 	collectedFunctions: CollectedFunctions,
 	opts: InvalidFunctionsOpts,
 ): Promise<void> {
-	if (isUsingAppRouter(opts.vercelConfig)) {
+	const usingAppRouter = isUsingAppRouter(opts.vercelConfig);
+	const usingPagesRouter = isUsingPagesRouter(opts.vercelConfig);
+
+	if (usingAppRouter && !usingPagesRouter) {
 		await tryToFixAppRouterNotFoundFunction(collectedFunctions);
 		await fixAppRouterInvalidErrorFunctions(collectedFunctions);
 	}
 
-	await tryToFixI18nFunctions(collectedFunctions, opts);
+	if (usingPagesRouter) {
+		await tryToFixI18nFunctions(collectedFunctions, opts);
+	}
 
 	await tryToFixInvalidFuncsWithValidIndexAlternative(collectedFunctions);
 
