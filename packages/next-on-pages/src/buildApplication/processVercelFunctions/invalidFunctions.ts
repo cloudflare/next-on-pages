@@ -39,9 +39,7 @@ export async function checkInvalidFunctions(
 		await fixAppRouterInvalidErrorFunctions(collectedFunctions);
 	}
 
-	if (usingPagesRouter) {
-		await tryToFixI18nFunctions(collectedFunctions, opts);
-	}
+	await tryToFixI18nFunctions(collectedFunctions, opts);
 
 	await tryToFixInvalidFuncsWithValidIndexAlternative(collectedFunctions);
 
