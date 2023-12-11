@@ -31,6 +31,7 @@ const configs: Config[] = [
 	{ name: 'onDemandEntries', support: 'N/A' },
 	{ name: 'output', support: 'N/A' },
 	{ name: 'pageExtensions', support: '✅' },
+	{ name: 'experimental/ppr', support: '❌' },
 	{ name: 'poweredByHeader', support: '🔄' },
 	{ name: 'productionBrowserSourceMaps', support: '🔄' },
 	{ name: 'reactStrictMode', support: '❌' },
