@@ -120,7 +120,7 @@ function generateMdList(listDescription: string, items: string[]): string {
 function generateRememberToUpdateSection(): string {
 	let rememberToUpdateSection = '';
 
-	rememberToUpdateSection += '\n> **Warning**\n';
+	rememberToUpdateSection += '\n> [!WARNING]\n';
 	rememberToUpdateSection += '> Remember to update:\n';
 	rememberToUpdateSection +=
 		'> - [The supported documentation](https://github.com/cloudflare/next-on-pages/blob/main/packages/next-on-pages/docs/supported.md#nextconfigjs-properties)\n';
