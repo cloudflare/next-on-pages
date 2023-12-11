@@ -32,6 +32,12 @@ describe('checkInvalidFunctions', () => {
 			vercelConfig: {
 				version: 3,
 				routes: [{ src: '/(?<nextLocale>fr|en|nl)(/.*|$)' }],
+				overrides: {
+					"index.html": {
+						"path": "index",
+						"contentType": "text/html; charset=utf-8"
+					}
+				}
 			},
 		});
 		restoreFsMock();
@@ -67,6 +73,12 @@ describe('checkInvalidFunctions', () => {
 			vercelConfig: {
 				version: 3,
 				routes: [{ src: '/(?<nextLocale>fr|en|nl)(/.*|$)' }],
+				overrides: {
+					"index.html": {
+						"path": "index",
+						"contentType": "text/html; charset=utf-8"
+					}
+				}
 			},
 		});
 		restoreFsMock();
