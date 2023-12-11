@@ -32,8 +32,8 @@ export async function checkInvalidFunctions(
 	opts: InvalidFunctionsOpts,
 ): Promise<void> {
 	if (isUsingAppRouter(opts.vercelConfig)) {
-		await tryToFixAppRouterNotFoundRoute(collectedFunctions);
-		await fixAppRouterInvalidErrorRoutes(collectedFunctions);
+		await tryToFixAppRouterNotFoundFunction(collectedFunctions);
+		await fixAppRouterInvalidErrorFunctions(collectedFunctions);
 	}
 
 	await tryToFixI18nFunctions(collectedFunctions, opts);
@@ -66,7 +66,7 @@ export async function checkInvalidFunctions(
  *
  * @param collectedFunctions Collected functions from the Vercel build output.
  */
-async function tryToFixAppRouterNotFoundRoute({
+async function tryToFixAppRouterNotFoundFunction({
 	invalidFunctions,
 	ignoredFunctions,
 }: CollectedFunctions): Promise<void> {
@@ -125,7 +125,7 @@ async function tryToFixAppRouterNotFoundRoute({
  *
  * @param collectedFunctions Collected functions from the Vercel build output.
  */
-async function fixAppRouterInvalidErrorRoutes({
+async function fixAppRouterInvalidErrorFunctions({
 	invalidFunctions,
 	ignoredFunctions,
 }: CollectedFunctions): Promise<void> {
