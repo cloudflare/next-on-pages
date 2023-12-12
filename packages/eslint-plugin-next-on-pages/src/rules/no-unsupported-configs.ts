@@ -40,6 +40,7 @@ const configs: Config[] = [
 	// Runtime Config
 	{ name: 'serverRuntimeConfig', support: '❌' },
 	{ name: 'publicRuntimeConfig', support: '❌' },
+	{ name: 'experimental/serverActions', support: '✅' },
 	{ name: 'serverComponentsExternalPackages', support: 'N/A' },
 	{ name: 'trailingSlash', support: '✅' },
 	{ name: 'transpilePackages', support: '✅' },
