@@ -460,6 +460,8 @@ export type CollectedFunctionIdentifiers = {
  * @returns the updated/fixed contents
  */
 function fixFunctionContents(contents: string): string {
+	contents = fixFunctionContentsForLocalhostServerActions(contents);
+
 	contents = contents.replace(
 		// TODO: This hack is not good. We should replace this with something less brittle ASAP
 		// https://github.com/vercel/next.js/blob/2e7dfca362931be99e34eccec36074ab4a46ffba/packages/next/src/server/web/adapter.ts#L276-L282
@@ -492,6 +494,24 @@ function fixFunctionContents(contents: string): string {
 		';let{originalRequest:$1=$2}=$2;',
 	);
 
+	return contents;
+}
+
+function fixFunctionContentsForLocalhostServerActions(contents: string) {
+	const headerOriginRegex =
+		/"string"==typeof (\w+)\.headers\.origin\?(new URL\(\1\.headers\.origin\)\.host):void 0,/;
+	if (contents.match(headerOriginRegex)) {
+		contents = contents.replace(headerOriginRegex, (fullMatch, _i, origin) => {
+			const originWithCheck = `(/^localhost:\\d{4}$/.test(${origin})?null:${origin})`;
+			const updatedFullMatch = fullMatch.replace(origin, originWithCheck);
+			return `${updatedFullMatch} wranglerPagesDevLocalhostFixApplied = true,`;
+		});
+
+		contents = contents.replace(
+			'console.warn("Missing `origin` header from a forwarded Server Actions request.");',
+			'try { !wranglerPagesDevLocalhostFixApplied && console.warn("Missing `origin` header from a forwarded Server Actions request."); } catch {}',
+		);
+	}
 	return contents;
 }
 
