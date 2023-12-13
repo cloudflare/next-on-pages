@@ -29,6 +29,7 @@ const configs: Config[] = [
 	{ name: 'logging', support: 'N/A' },
 	{ name: 'experimental/mdxRs', support: '✅' },
 	{ name: 'onDemandEntries', support: 'N/A' },
+	{ name: 'experimental/optimizePackageImports', support: 'N/A' },
 	{ name: 'output', support: 'N/A' },
 	{ name: 'pageExtensions', support: '✅' },
 	{ name: 'experimental/ppr', support: '❌' },
