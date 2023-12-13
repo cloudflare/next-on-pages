@@ -526,6 +526,10 @@ function fixFunctionContentsForLocalhostServerActions(contents: string) {
 
 		contents = contents.replace(
 			'console.warn("Missing `origin` header from a forwarded Server Actions request.");',
+			// Note: this is a pretty brittle change and we even introduce a new variable named `wranglerPagesDevLocalhostFixApplied`,
+			//       just in case the source code changes making the variable get out of scope, let's add a try catch here so that in
+			//       the worst case scenario if the variable is not recognized the user code still runs fine (and the only broken thing
+			//       would be that the console.warn would not get called)
 			'try { !wranglerPagesDevLocalhostFixApplied && console.warn("Missing `origin` header from a forwarded Server Actions request."); } catch {}',
 		);
 	}
