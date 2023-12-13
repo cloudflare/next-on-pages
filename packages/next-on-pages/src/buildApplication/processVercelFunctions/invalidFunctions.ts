@@ -120,10 +120,10 @@ async function tryToFixAppRouterNotFoundFunction({
  * should not produce server side logic.
  *
  * The Vercel build process can however generate _error.func lambdas (as they are useful in the
- * Vercel network I'd assume), through experimentation we've seen that those does not seem to be
+ * Vercel network I'd assume), through experimentation we've seen that those do not seem to be
  * necessary when building the application with next-on-pages so they should be safe to ignore.
  *
- * This function make such invalid _error.func lambdas (if present) ignored (as they would otherwise
+ * This function makes such invalid _error.func lambdas (if present) ignored (as they would otherwise
  * cause the next-on-pages build process to fail).
  *
  * @param collectedFunctions Collected functions from the Vercel build output.
