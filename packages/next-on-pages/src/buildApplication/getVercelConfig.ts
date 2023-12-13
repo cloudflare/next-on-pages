@@ -134,41 +134,26 @@ export function isVercelHandler(route: VercelRoute): route is VercelHandler {
  * Discerns whether the target application is using the App Router or not based
  * on its Vercel config
  *
- * This is done by checking the presence of two specific entries of the "none" phase that
- * the Vercel build command adds to the config
- * (source: https://github.com/vercel/vercel/blob/f12477/packages/next/src/server-build.ts#L1751-L1780)
+ * This is done by checking the presence of the "_app.rsc.json" override which is only
+ * applied if the application is using the App router
  *
  * @param vercelConfig the Vercel config to analyze
  * @returns true if the application is using the App Router, false otherwise
  */
 export function isUsingAppRouter(vercelConfig: VercelConfig): boolean {
-	const isRscRoute = (
-		source: VercelSource | undefined,
-	): source is VercelSource => {
-		if (!source) return false;
-		if (!source.has?.some(h => h.type === 'header' && h.key === 'rsc'))
-			return false;
-		if (
-			source.headers?.['vary'] !==
-			'RSC, Next-Router-State-Tree, Next-Router-Prefetch, Next-Url'
-		)
-			return false;
-		if (!source.continue) return false;
-		if (!source.override) return false;
-		return true;
-	};
+	return !!vercelConfig.overrides?.['_app.rsc.json'];
+}
 
-	const noneRoutes = getPhaseRoutes(vercelConfig.routes ?? [], 'none');
-	return noneRoutes.some((route, i) => {
-		const nextRoute = noneRoutes[i + 1];
-
-		if (!isRscRoute(route) || !isRscRoute(nextRoute)) return false;
-
-		if (!route.src.endsWith('/')) return false;
-		if (!route.dest?.endsWith('/index.rsc')) return false;
-		if (!nextRoute.src.endsWith('/((?!.+\\.rsc).+?)(?:/)?$')) return false;
-		if (!nextRoute.dest?.endsWith('/$1.rsc')) return false;
-
-		return true;
-	});
+/**
+ * Discerns whether the target application is using the Pages Router or not based
+ * on its Vercel config
+ *
+ * This is done by checking the presence of the "index.html" override which is only
+ * applied if the application is using the Pages router
+ *
+ * @param vercelConfig the Vercel config to analyze
+ * @returns true if the application is using the Pages Router, false otherwise
+ */
+export function isUsingPagesRouter(vercelConfig: VercelConfig): boolean {
+	return !!vercelConfig.overrides?.['index.html'];
 }

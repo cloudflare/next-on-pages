@@ -9,7 +9,7 @@ import {
 import type { CollectedFunctions, FunctionInfo } from './configs';
 import { join } from 'path';
 import type { ProcessVercelFunctionsOpts } from '.';
-import { isUsingAppRouter } from '../getVercelConfig';
+import { isUsingAppRouter, isUsingPagesRouter } from '../getVercelConfig';
 
 type InvalidFunctionsOpts = Pick<
 	ProcessVercelFunctionsOpts,
@@ -31,8 +31,12 @@ export async function checkInvalidFunctions(
 	collectedFunctions: CollectedFunctions,
 	opts: InvalidFunctionsOpts,
 ): Promise<void> {
-	if (isUsingAppRouter(opts.vercelConfig)) {
-		await tryToFixAppRouterNotFoundRoute(collectedFunctions);
+	const usingAppRouter = isUsingAppRouter(opts.vercelConfig);
+	const usingPagesRouter = isUsingPagesRouter(opts.vercelConfig);
+
+	if (usingAppRouter && !usingPagesRouter) {
+		await tryToFixAppRouterNotFoundFunction(collectedFunctions);
+		await fixAppRouterInvalidErrorFunctions(collectedFunctions);
 	}
 
 	await tryToFixI18nFunctions(collectedFunctions, opts);
@@ -65,7 +69,7 @@ export async function checkInvalidFunctions(
  *
  * @param collectedFunctions Collected functions from the Vercel build output.
  */
-async function tryToFixAppRouterNotFoundRoute({
+async function tryToFixAppRouterNotFoundFunction({
 	invalidFunctions,
 	ignoredFunctions,
 }: CollectedFunctions): Promise<void> {
@@ -106,6 +110,35 @@ async function tryToFixAppRouterNotFoundRoute({
 
 		if (invalidNotFound) {
 			break;
+		}
+	}
+}
+
+/**
+ * In the App router, error boundaries are implemented as client components
+ * (see: https://nextjs.org/docs/app/api-reference/file-conventions/error), meaning that they
+ * should not produce server side logic.
+ *
+ * The Vercel build process can however generate _error.func lambdas (as they are useful in the
+ * Vercel network I'd assume), through experimentation we've seen that those do not seem to be
+ * necessary when building the application with next-on-pages so they should be safe to ignore.
+ *
+ * This function makes such invalid _error.func lambdas (if present) ignored (as they would otherwise
+ * cause the next-on-pages build process to fail).
+ *
+ * @param collectedFunctions Collected functions from the Vercel build output.
+ */
+async function fixAppRouterInvalidErrorFunctions({
+	invalidFunctions,
+	ignoredFunctions,
+}: CollectedFunctions): Promise<void> {
+	for (const [fullPath, fnInfo] of invalidFunctions.entries()) {
+		if (fullPath.endsWith('/_error.func')) {
+			ignoredFunctions.set(fullPath, {
+				reason: 'invalid _error functions in app directory are ignored',
+				...fnInfo,
+			});
+			invalidFunctions.delete(fullPath);
 		}
 	}
 }
