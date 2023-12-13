@@ -497,6 +497,23 @@ function fixFunctionContents(contents: string): string {
 	return contents;
 }
 
+/**
+ * Server actions check the request headers.origin url host and try to make sure that that is
+ * the same as that of other Next.js-specific headers (this is a measure against CSRF attacks)
+ *
+ * This resulted problematic when trying to run the application with `wrangler pages dev` as the
+ * two hosts can get misaligned (one being `localhost:<port>` while the other `127.0.0.1:<port>`)
+ *
+ * This function updates contents of a function file by tweaking the line creating the host variable
+ * that is used for checking with `null` in the case the header.origin's host is `localhost` thus solving
+ * this issue (while preserving the same functionality in production)
+ *
+ * Additionally the function also removes a console.warn that appears when the above value is falsy
+ * (but again the production behavior should remain unaltered)
+ *
+ * @param contents the function file contents to update/fix
+ * @returns the updated function file contents
+ */
 function fixFunctionContentsForLocalhostServerActions(contents: string) {
 	const headerOriginRegex =
 		/"string"==typeof (\w+)\.headers\.origin\?(new URL\(\1\.headers\.origin\)\.host):void 0,/;
