@@ -57,9 +57,10 @@ jobs:
       - name: Run e2e tests
         uses: nick-fields/retry@v2
         with:
-          max_attempts: 2
-          timeout_minutes: 20
-          command: npm run test:e2e -- -- --log-timestamp --install-wrangler=3.8.0
+          max_attempts: 3
+          timeout_minutes: 10
+          # Note: the latest wrangler version compatible with pages-e2e is 3.17.0
+          command: npm run test:e2e -- -- --log-timestamp --install-wrangler=3.17.0
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}

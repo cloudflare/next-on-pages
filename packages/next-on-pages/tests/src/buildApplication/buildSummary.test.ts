@@ -171,7 +171,7 @@ describe('buildSummary', () => {
 		};
 
 		await writeBuildInfo(
-			'dist',
+			{ outputDir: 'dist', functionsDir: '' },
 			staticAssets,
 			processedVercelOutput,
 			procesedVercelFunctions,
@@ -205,9 +205,14 @@ describe('buildSummary', () => {
 			},
 			staticAssets: ['/static-one', '/static-two'],
 			identifiers: {
-				manifest: { __BUILD_MANIFEST: { consumers: 2 } },
-				wasm: { 'wasm-one': { consumers: 1 } },
-				webpack: { '872': { consumers: 1 } },
+				manifest: {
+					__BUILD_MANIFEST: {
+						consumers: 2,
+						consumersList: ['/home', '/nested/home'],
+					},
+				},
+				wasm: { 'wasm-one': { consumers: 1, consumersList: ['/middleware'] } },
+				webpack: { '872': { consumers: 1, consumersList: ['/home'] } },
 			},
 		});
 

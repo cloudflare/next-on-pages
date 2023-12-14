@@ -38,14 +38,14 @@ export async function getVercelConfig(): Promise<VercelConfig> {
 export function getPhaseRoutes(
 	routes: VercelRoute[],
 	phase: VercelPhase,
-): VercelRoute[] {
+): VercelSource[] {
 	if (!routes.length) {
 		return [];
 	}
 
 	const phaseStart = getPhaseStart(routes, phase);
 	const phaseEnd = getPhaseEnd(routes, phaseStart);
-	return routes.slice(phaseStart, phaseEnd);
+	return routes.slice(phaseStart, phaseEnd) as VercelSource[];
 }
 
 function getPhaseStart(routes: VercelRoute[], phase: VercelPhase): number {
@@ -126,6 +126,34 @@ function normalizeRouteSrc(route: VercelSource): void {
 	}
 }
 
-function isVercelHandler(route: VercelRoute): route is VercelHandler {
+export function isVercelHandler(route: VercelRoute): route is VercelHandler {
 	return 'handle' in route;
+}
+
+/**
+ * Discerns whether the target application is using the App Router or not based
+ * on its Vercel config
+ *
+ * This is done by checking the presence of the "_app.rsc.json" override which is only
+ * applied if the application is using the App router
+ *
+ * @param vercelConfig the Vercel config to analyze
+ * @returns true if the application is using the App Router, false otherwise
+ */
+export function isUsingAppRouter(vercelConfig: VercelConfig): boolean {
+	return !!vercelConfig.overrides?.['_app.rsc.json'];
+}
+
+/**
+ * Discerns whether the target application is using the Pages Router or not based
+ * on its Vercel config
+ *
+ * This is done by checking the presence of the "index.html" override which is only
+ * applied if the application is using the Pages router
+ *
+ * @param vercelConfig the Vercel config to analyze
+ * @returns true if the application is using the Pages Router, false otherwise
+ */
+export function isUsingPagesRouter(vercelConfig: VercelConfig): boolean {
+	return !!vercelConfig.overrides?.['index.html'];
 }

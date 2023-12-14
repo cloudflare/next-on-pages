@@ -1,5 +1,139 @@
 # @cloudflare/next-on-pages
 
+## 1.8.2
+
+### Patch Changes
+
+- 8fe72f1: make CLI arguments parsing more flexible
+
+  prior to this change the CLI arguments parsing was not too flexible and forced a specific style
+
+  For instance the only way to provide an argument for the `outdir` option was to pass it using `=` as in:
+
+  ```
+  -o=./my-dir
+  ```
+
+  or
+
+  ```
+  --outdir=./my-dir
+  ```
+
+  these changes make the CLI arguments parsing more flexible and don't enforce a specific style
+  (`--outdir ./my-dir` now also works as you'd expect it to)
+
+- 20d0e0d: Fix `_not-found` functions only for applications using the App Router
+
+  In https://github.com/cloudflare/next-on-pages/pull/418 we introduced a workaround
+  that would delete invalid (nodejs) `_not-found` functions during the build process
+
+  Although the workaround is valid for applications using the App Router it is not
+  for applications only using the Pages Router, so make sure that it is only applied
+  when the former is used
+
+## 1.8.1
+
+### Patch Changes
+
+- 61d0a2f: print warning in case developers are using a different package manager to run @cloudflare/next-on-pages
+- 1e73555: Fix route intercepts causing 404s for the non-intercepted route.
+- 1e73555: Fix route intercept modals not getting all the parameters for a route.
+- b7f9225: improve unhelpful error message (so that instead of `[object Object]` it prints the actual error message)
+- bc216b4: Improved support for newer version of Next.js with the suspense cache through trying to handle soft/implicit tags properly
+- 8ece962: fix external middleware rewrites
+
+  Currently Middleware rewrites (`NextResponse.rewrite()`) assume that the rewrite destination
+  is on the same host as the application, meaning that the following operations would work as intended:
+
+  ```ts
+  NextResponse.rewrite(new URL('/rewrite-dest', request.url));
+  ```
+
+  while something like this would not:
+
+  ```ts
+  return NextResponse.rewrite(
+    new URL('https://my-customer-rewrite-site.come/rewrite-dest', request.url),
+  );
+  ```
+
+  Remove such assumption and allow such external rewrites to take place (as they do on Vercel)
+
+- bc216b4: Fix old version of Next.js not updating a cache entry properly due to not receving the correct shape they expected.
+
+## 1.8.0
+
+### Minor Changes
+
+- 888ae85: Add support for using a KV to implement the Suspense Cache via naming convention
+
+  With this change users can have their suspense cache implemented via a KV binding, in order to
+  opt-in to such implementation they simply need to make sure that their application has a KV binding
+  named `__NEXT_ON_PAGES__KV_SUSPENSE_CACHE` (the next-on-pages worker will pick up such
+  binding and use it to implement the suspense cache instead of using the default workers cache API).
+
+### Patch Changes
+
+- f364224: Set `x-vercel-sc-host` request header for older versions of Next.js for the suspense cache.
+- d7b34cc: Falling back to header if cache tags are not given from fetched CachedFetchValue object. The change was introduced from Next.js 13.5+.
+- dbe2c78: Update the matcher for the temp fix for a Next.js bug to match more chars.
+
+## 1.7.4
+
+### Patch Changes
+
+- 9d5db04: Fix broken `/__index.prefetch.rsc` rewrites that were being rewritten to `/__index` (and 404ing) due to to rsc suffix stripping that we do.
+
+## 1.7.3
+
+### Patch Changes
+
+- c83d125: Temporary hotfix for `vercel/next.js#58265` so that rendering in Next.js >= 14.0.2 works.
+- bf57ec9: Fix prerendered `next.config.js` `basePath` root infinite redirect due to Cloudflare Pages handling of `/{path}/index`.
+- bf57ec9: Fix nested `index.rsc` routes not generating a non-index override.
+- 9b290cb: Output more information about the sizes of identifiers and functions, as well as all of the consumers of each identifier.
+- bf57ec9: Fix the `/_not-found` invalid function hack to work with `next.config.js` `basePath`.
+- ee237f3: Patch the fetch function inside the fetch handler, instead of in the global scope.
+- bf57ec9: Fix unncessary invalid function at the root not being discarded when using `next.config.js` `basePath` option.
+
+## 1.7.2
+
+### Patch Changes
+
+- a1091b1: bump package-manager-manager to 0.2.0
+
+## 1.7.1
+
+### Patch Changes
+
+- 5b44784: bump package-manager-manager to 0.1.3
+
+## 1.7.0
+
+### Minor Changes
+
+- 2423529: Add new static error page that informs users when they forgot to set the `nodejs_compat` flag.
+  This should be clearer that the simple text message we've been providing previously (which is
+  still being used as a fallback in case the new page is not available for some reason).
+
+### Patch Changes
+
+- 29d3041: improve routing by following more closely Vercel's routes matching logic
+- 69efaa5: Reinstate the use of the package-manager-manager package introduced in #474 and temporarily removed in #475,
+  this fixes the bug that was caused by the package by bumping the package itself (where the bug has been fixed)
+  and adding appropriate catches when the package methods can throw (in case other unexpected issues arise in the
+  future)
+- ab83858: Changes to the x-vercel-ip headers to bring their structure in line with deployments to Vercel.
+- 6600d2a: fix wasms not always getting imported when necessary
+
+  Details:
+  when dealing with wasms that have more than 1 consumer, when we collect
+  the wasm imports to prepend for a specific edge funcion we're always
+  re-setting the array of wasm imports instead of appending them, this
+  causes edge functions to always only consider the last wasm
+  import, the changes here fix such behavior
+
 ## 1.6.3
 
 ### Patch Changes

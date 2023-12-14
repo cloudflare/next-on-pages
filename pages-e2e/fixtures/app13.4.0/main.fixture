@@ -5,6 +5,7 @@
 		"simpleAppStaticRoutesAndAssets",
 		"appMiddleware",
 		"appRouting",
+		"appConfigsTrailingSlashFalse",
 		"appConfigsRewritesRedirectsHeaders"
 	],
 	"localSetup": "npm install",

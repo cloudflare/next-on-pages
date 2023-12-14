@@ -13,12 +13,14 @@ declare const __CONFIG__: ProcessedVercelConfig;
 
 declare const __BUILD_OUTPUT__: VercelBuildOutput;
 
-declare const __ENV_ALS_PROMISE__: Promise<null | AsyncLocalStorage<unknown>>;
+declare const __BUILD_METADATA__: NextOnPagesBuildMetadata;
 
-patchFetch();
+declare const __ENV_ALS_PROMISE__: Promise<null | AsyncLocalStorage<unknown>>;
 
 export default {
 	async fetch(request, env, ctx) {
+		patchFetch();
+
 		const envAsyncLocalStorage = await __ENV_ALS_PROMISE__;
 		if (!envAsyncLocalStorage) {
 			const reqUrl = new URL(request.url);
@@ -61,6 +63,7 @@ export default {
 					},
 					__CONFIG__,
 					__BUILD_OUTPUT__,
+					__BUILD_METADATA__,
 				);
 			},
 		);

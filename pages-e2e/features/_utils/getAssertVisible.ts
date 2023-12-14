@@ -1,5 +1,5 @@
-import type { Page } from 'playwright';
-import assert from 'node:assert';
+import type { Locator, Page } from 'playwright';
+import { AssertionError } from 'node:assert';
 
 /**
  * returns a function that asserts that an element is visible on the page
@@ -18,19 +18,25 @@ export function getAssertVisible(page: Page) {
 async function assertVisible(
 	page: Page,
 	...[selector, options]: Parameters<Page['locator']>
-): Promise<void> {
-	const locator = page.locator(selector, options);
+): Promise<Locator | never> {
 	let isVisible = false;
-	try {
-		await locator.waitFor({
-			timeout: 500,
-		});
-	} catch {}
-	isVisible = await locator.isVisible();
+	for (const _attempt of [0, 1, 2, 3, 4, 5]) {
+		const locator = page.locator(selector, options);
+		try {
+			await locator.waitFor({
+				timeout: 200,
+			});
+		} catch {}
+		if (await locator.isVisible()) {
+			return locator;
+		}
+	}
 	const elementStr = `${selector}${
 		Object.keys(options ?? {}).length > 0
 			? `[${JSON.stringify({ options })}]`
 			: ''
 	}`;
-	assert(isVisible, `expected ${elementStr} to be visible but it isn't`);
+	throw new AssertionError({
+		message: `expected ${elementStr} to be visible but it isn't`,
+	});
 }

@@ -6,10 +6,12 @@ import {
 	edgeFuncDir,
 	nodejsFuncDir,
 	getRouteInfo,
+	createPrerenderedRoute,
 } from '../../../_helpers';
 import { resolve } from 'path';
 import { processEdgeFunctions } from '../../../../src/buildApplication/processVercelFunctions/edgeFunctions';
 import { checkInvalidFunctions } from '../../../../src/buildApplication/processVercelFunctions/invalidFunctions';
+import { processPrerenderFunctions } from '../../../../src/buildApplication/processVercelFunctions/prerenderFunctions';
 
 const functionsDir = resolve('.vercel/output/functions');
 
@@ -127,5 +129,52 @@ describe('checkInvalidFunctions', () => {
 
 		processExitMock.mockRestore();
 		mockedConsole.restore();
+	});
+
+	test('should ignore base path index with valid alternative', async () => {
+		const { collectedFunctions, restoreFsMock } = await collectFunctionsFrom({
+			functions: {
+				foo: createPrerenderedRoute('index', 'foo'),
+				'foo.func': nodejsFuncDir,
+			},
+		});
+
+		const opts = {
+			functionsDir,
+			outputDir: resolve('.vercel/output/static'),
+			vercelConfig: { version: 3 as const },
+		};
+
+		await processEdgeFunctions(collectedFunctions);
+		await processPrerenderFunctions(collectedFunctions, opts);
+		await checkInvalidFunctions(collectedFunctions, opts);
+		restoreFsMock();
+
+		const { prerenderedFunctions, invalidFunctions, ignoredFunctions } =
+			collectedFunctions;
+
+		expect(prerenderedFunctions.size).toEqual(2);
+		expect(getRouteInfo(prerenderedFunctions, 'foo/index.func')).toEqual({
+			path: '/foo/index.html',
+			overrides: ['/foo/index', '/foo'],
+			headers: {
+				vary: 'RSC, Next-Router-State-Tree, Next-Router-Prefetch',
+			},
+		});
+		expect(getRouteInfo(prerenderedFunctions, 'foo/index.rsc.func')).toEqual({
+			path: '/foo/index.rsc',
+			overrides: ['/foo.rsc'],
+			headers: {
+				'content-type': 'text/x-component',
+				vary: 'RSC, Next-Router-State-Tree, Next-Router-Prefetch',
+			},
+		});
+
+		expect(invalidFunctions.size).toEqual(0);
+
+		expect(ignoredFunctions.size).toEqual(1);
+		expect(ignoredFunctions.has(resolve(functionsDir, 'foo.func'))).toEqual(
+			true,
+		);
 	});
 });

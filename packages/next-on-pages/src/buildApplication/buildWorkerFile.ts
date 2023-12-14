@@ -41,7 +41,7 @@ export function constructBuildOutputRecord(
 
 export async function buildWorkerFile(
 	{ vercelConfig, vercelOutput }: ProcessedVercelOutput,
-	outputDir: string,
+	{ outputDir, workerJsDir, nopDistDir, templatesDir }: BuildWorkerFileOpts,
 	minify: boolean,
 ): Promise<string> {
 	const functionsFile = join(
@@ -59,10 +59,10 @@ export async function buildWorkerFile(
 			.join(',')}};`,
 	);
 
-	const outputFile = join(outputDir, '_worker.js', 'index.js');
+	const outputFile = join(workerJsDir, 'index.js');
 
 	await build({
-		entryPoints: [join(__dirname, '..', 'templates', '_worker.js')],
+		entryPoints: [join(templatesDir, '_worker.js')],
 		banner: {
 			js: generateGlobalJs(),
 		},
@@ -74,10 +74,50 @@ export async function buildWorkerFile(
 		define: {
 			__CONFIG__: JSON.stringify(vercelConfig),
 			__NODE_ENV__: JSON.stringify(getNodeEnv()),
+			__BUILD_METADATA__: JSON.stringify({
+				collectedLocales: collectLocales(vercelConfig.routes),
+			}),
 		},
 		outfile: outputFile,
 		minify,
 	});
 
+	await build({
+		entryPoints: ['adaptor.ts', 'cache-api.ts', 'kv.ts'].map(fileName =>
+			join(templatesDir, 'cache', fileName),
+		),
+		bundle: false,
+		target: 'es2022',
+		platform: 'neutral',
+		outdir: join(nopDistDir, 'cache'),
+		minify,
+	});
+
 	return relative('.', outputFile);
+}
+
+type BuildWorkerFileOpts = {
+	outputDir: string;
+	workerJsDir: string;
+	nopDistDir: string;
+	templatesDir: string;
+};
+
+/**
+ * Collects all the locales present in the processed Vercel routes
+ *
+ * @param routes The Vercel routes to collect the locales from
+ * @returns an array containing all the found locales (without duplicates)
+ */
+function collectLocales(routes: ProcessedVercelRoutes): string[] {
+	const locales = Object.values(routes)
+		.flat()
+		.flatMap(source => {
+			if (source.locale?.redirect) {
+				return Object.keys(source.locale.redirect);
+			}
+			return [];
+		})
+		.filter(Boolean);
+	return [...new Set(locales)];
 }

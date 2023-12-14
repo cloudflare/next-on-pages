@@ -136,12 +136,12 @@ describe('no-unsupported-configs', () => {
 
 						/**
 						 *
-						 * @type {import(    "next"   )   .     
+						 * @type {import(    "next"   )   .
 						 *  NextConfig}
-						 * 
+						 *
 						 * The following is my config object
 						 * */
-						
+
 						/* this is another comment, surprisingly it doesn't break the type import! */
 						const nextConfig = {
 							experimental: {
@@ -457,6 +457,40 @@ describe('no-unsupported-configs', () => {
 						{
 							message:
 								'The "invalidNested" configuration is not recognized by next-on-pages (it might or might not be supported).',
+						},
+					],
+				},
+			],
+		});
+	});
+
+	test('should work with .mjs config file extension', () => {
+		tester.run('', rule, {
+			valid: [
+				{
+					filename: 'next.config.mjs',
+					code: `
+						const nextConfig = {
+						}
+
+						export default nextConfig;
+					`,
+				},
+			],
+			invalid: [
+				{
+					filename: 'next.config.mjs',
+					code: `
+						const nextConfig = {
+							compress: true,
+						}
+
+						export default nextConfig;
+					`,
+					errors: [
+						{
+							message:
+								'The "compress" configuration is not supported by next-on-pages (and is unlikely to be supported in the future).',
 						},
 					],
 				},

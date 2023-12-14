@@ -1,6 +1,9 @@
 // NOTE: This is given the same name that the environment variable has in the Next.js source code.
 export const SUSPENSE_CACHE_URL = 'INTERNAL_SUSPENSE_CACHE_HOSTNAME.local';
 
+// https://github.com/vercel/next.js/blob/f6babb4/packages/next/src/lib/constants.ts#23
+const NEXT_CACHE_IMPLICIT_TAG_ID = '_N_T_';
+
 // Set to track the revalidated tags in requests.
 const revalidatedTags = new Set<string>();
 
@@ -54,10 +57,17 @@ export class CacheAdaptor {
 		switch (newEntry.value?.kind) {
 			case 'FETCH': {
 				// Update the tags with the cache key.
-				const tags = newEntry.value.data.tags ?? [];
+				const tags = getTagsFromEntry(newEntry);
 				await this.setTags(tags, { cacheKey: key });
 
-				getDerivedTags(tags).forEach(tag => revalidatedTags.delete(tag));
+				const derivedTags = getDerivedTags(tags);
+				const implicitTags = derivedTags.map(
+					tag => `${NEXT_CACHE_IMPLICIT_TAG_ID}${tag}`,
+				);
+
+				[...derivedTags, ...implicitTags].forEach(tag =>
+					revalidatedTags.delete(tag),
+				);
 			}
 		}
 	}
@@ -66,9 +76,13 @@ export class CacheAdaptor {
 	 * Retrieves an entry from the suspense cache.
 	 *
 	 * @param key Key for the item in the suspense cache.
+	 * @param opts Soft cache tags used when checking if an entry is stale.
 	 * @returns The cached value, or null if no entry exists.
 	 */
-	public async get(key: string): Promise<CacheHandlerValue | null> {
+	public async get(
+		key: string,
+		{ softTags }: { softTags?: string[] },
+	): Promise<CacheHandlerValue | null> {
 		// Get entry from the cache.
 		const entry = await this.retrieve(key);
 		if (!entry) return null;
@@ -87,8 +101,12 @@ export class CacheAdaptor {
 				await this.loadTagsManifest();
 
 				// Check if the cache entry is stale or fresh based on the tags.
-				const tags = getDerivedTags(data.value.data.tags ?? []);
-				const isStale = tags.some(tag => {
+				const tags = getTagsFromEntry(data);
+				const combinedTags = softTags
+					? [...tags, ...softTags]
+					: getDerivedTags(tags);
+
+				const isStale = combinedTags.some(tag => {
 					// If a revalidation has been triggered, the current entry is stale.
 					if (revalidatedTags.has(tag)) return true;
 
@@ -177,6 +195,16 @@ export class CacheAdaptor {
 
 		await this.saveTagsManifest();
 	}
+
+	/**
+	 * Builds the full cache key for the suspense cache.
+	 *
+	 * @param key Key for the item in the suspense cache.
+	 * @returns The fully-formed cache key for the suspense cache.
+	 */
+	public buildCacheKey(key: string) {
+		return `https://${SUSPENSE_CACHE_URL}/entry/${key}`;
+	}
 }
 
 // https://github.com/vercel/next.js/blob/261db49/packages/next/src/server/lib/incremental-cache/file-system-cache.ts#L17
@@ -186,7 +214,7 @@ export type TagsManifest = {
 };
 export type TagsManifestItem = { keys: string[]; revalidatedAt?: number };
 
-// https://github.com/vercel/next.js/blob/fda1ecc/packages/next/src/server/response-cache/types.ts#L16
+// https://github.com/vercel/next.js/blob/df4c2aa8/packages/next/src/server/response-cache/types.ts#L24
 export type CachedFetchValue = {
 	kind: 'FETCH';
 	data: {
@@ -194,8 +222,12 @@ export type CachedFetchValue = {
 		body: string;
 		url: string;
 		status?: number;
+		// field used by older versions of Next.js (see: https://github.com/vercel/next.js/blob/fda1ecc/packages/next/src/server/response-cache/types.ts#L23)
 		tags?: string[];
 	};
+	// tags are only present with file-system-cache
+	// fetch cache stores tags outside of cache entry
+	tags?: string[];
 	revalidate: number;
 };
 
@@ -240,4 +272,8 @@ export function getDerivedTags(tags: string[]): string[] {
 		}
 	}
 	return derivedTags;
+}
+
+export function getTagsFromEntry(entry: CacheHandlerValue): string[] {
+	return entry.value?.tags ?? entry.value?.data?.tags ?? [];
 }

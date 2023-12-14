@@ -1,5 +1,27 @@
 # eslint-plugin-next-on-pages
 
+## 1.8.2
+
+## 1.8.1
+
+## 1.8.0
+
+## 1.7.4
+
+### Patch Changes
+
+- 48796ca: Support for using src folder with no-app-not-found-runtime lint rule
+- 48796ca: Use correct name for export of no-app-not-found-runtime lint rule
+- c9167ea: Support for file extensions .mjs in no-unsupported-configs ESLint rule
+
+## 1.7.3
+
+## 1.7.2
+
+## 1.7.1
+
+## 1.7.0
+
 ## 1.6.3
 
 ## 1.6.2

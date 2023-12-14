@@ -15,7 +15,7 @@ const configs: Config[] = [
 	{ name: 'assetPrefix', support: '🔄' },
 	{ name: 'basePath', support: '✅' },
 	{ name: 'compress', support: 'N/A' },
-	{ name: 'devIndicators', support: '❌' },
+	{ name: 'devIndicators', support: 'N/A' },
 	{ name: 'distDir', support: 'N/A' },
 	{ name: 'env', support: '✅' },
 	{ name: 'eslint', support: '✅' },
@@ -26,10 +26,13 @@ const configs: Config[] = [
 	{ name: 'httpAgentOptions', support: 'N/A' },
 	{ name: 'images', support: '✅' },
 	{ name: 'incrementalCacheHandlerPath', support: '🔄' },
+	{ name: 'logging', support: 'N/A' },
 	{ name: 'experimental/mdxRs', support: '✅' },
 	{ name: 'onDemandEntries', support: 'N/A' },
+	{ name: 'experimental/optimizePackageImports', support: 'N/A' },
 	{ name: 'output', support: 'N/A' },
 	{ name: 'pageExtensions', support: '✅' },
+	{ name: 'experimental/ppr', support: '❌' },
 	{ name: 'poweredByHeader', support: '🔄' },
 	{ name: 'productionBrowserSourceMaps', support: '🔄' },
 	{ name: 'reactStrictMode', support: '❌' },
@@ -38,6 +41,7 @@ const configs: Config[] = [
 	// Runtime Config
 	{ name: 'serverRuntimeConfig', support: '❌' },
 	{ name: 'publicRuntimeConfig', support: '❌' },
+	{ name: 'experimental/serverActions', support: '✅' },
 	{ name: 'serverComponentsExternalPackages', support: 'N/A' },
 	{ name: 'trailingSlash', support: '✅' },
 	{ name: 'transpilePackages', support: '✅' },
@@ -93,7 +97,7 @@ const ruleSchema = {
 const rule: Rule.RuleModule = {
 	create: context => {
 		const code = context.sourceCode;
-		const exportedConfigName = context.filename.match(/next\.config\.js$/)
+		const exportedConfigName = context.filename.match(/next\.config\.m?js$/)
 			? getConfigVariableName(code)
 			: null;
 
@@ -217,6 +221,10 @@ function getConfigVariableName(code: SourceCode): string | null {
 		if (exportedValue?.type === 'Identifier') {
 			return exportedValue.name;
 		}
+		const esmExportedValue = extractESMExportValue(node);
+		if (esmExportedValue?.type === 'Identifier') {
+			return esmExportedValue.name;
+		}
 	}
 
 	const nodeAfterNextConfigComment = getNodeAfterNextConfigTypeComment(code);
@@ -269,6 +277,18 @@ function extractModuleExportValue(node: Node): Node | null {
 		node.expression.left.property.name === 'exports'
 	) {
 		return node.expression.right;
+	}
+
+	return null;
+}
+
+/**
+ * Gets the value of a node potentially representing: `export default ...`
+ * Returns the node of the value, or null if the input node doesn't represent the code
+ */
+function extractESMExportValue(node: Node): Node | null {
+	if (node.type === 'ExportDefaultDeclaration') {
+		return node.declaration;
 	}
 
 	return null;

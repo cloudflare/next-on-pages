@@ -1,6 +1,10 @@
 import type { CacheAdaptor, IncrementalCacheValue } from '../../cache';
 import { SUSPENSE_CACHE_URL } from '../../cache';
-import { CacheApiAdaptor } from '../../cache/cache-api';
+
+// https://github.com/vercel/next.js/blob/48a566bc/packages/next/src/server/lib/incremental-cache/fetch-cache.ts#L19
+const CACHE_TAGS_HEADER = 'x-vercel-cache-tags';
+// https://github.com/vercel/next.js/blob/ba23d986/packages/next/src/lib/constants.ts#L18
+const NEXT_CACHE_SOFT_TAGS_HEADER = 'x-next-cache-soft-tags';
 
 /**
  * Handles an internal request to the suspense cache.
@@ -35,8 +39,13 @@ export async function handleSuspenseCacheRequest(request: Request) {
 
 		switch (request.method) {
 			case 'GET': {
+				const softTags = getTagsFromHeader(
+					request,
+					NEXT_CACHE_SOFT_TAGS_HEADER,
+				);
+
 				// Retrieve the value from the cache.
-				const data = await cache.get(cacheKey);
+				const data = await cache.get(cacheKey, { softTags });
 				if (!data) return new Response(null, { status: 404 });
 
 				return new Response(JSON.stringify(data.value), {
@@ -51,6 +60,11 @@ export async function handleSuspenseCacheRequest(request: Request) {
 			case 'POST': {
 				// Update the value in the cache.
 				const body = await request.json<IncrementalCacheValue>();
+				// Falling back to the cache tags header for Next.js 13.5+
+				if (body.data.tags === undefined) {
+					body.tags ??= getTagsFromHeader(request, CACHE_TAGS_HEADER) ?? [];
+				}
+
 				await cache.set(cacheKey, body);
 
 				return new Response(null, { status: 200 });
@@ -71,6 +85,26 @@ export async function handleSuspenseCacheRequest(request: Request) {
  * @returns Adaptor for the suspense cache.
  */
 export async function getSuspenseCacheAdaptor(): Promise<CacheAdaptor> {
-	// TODO: Try to lazy import the custom cache adaptor.
-	return new CacheApiAdaptor();
+	if (process.env.__NEXT_ON_PAGES__KV_SUSPENSE_CACHE) {
+		return getInternalCacheAdaptor('kv');
+	}
+
+	return getInternalCacheAdaptor('cache-api');
+}
+
+/**
+ * Gets an internal cache adaptor.
+ *
+ * @param type The type of adaptor to get.
+ * @returns A new instance of the adaptor.
+ */
+async function getInternalCacheAdaptor(
+	type: 'kv' | 'cache-api',
+): Promise<CacheAdaptor> {
+	const adaptor = await import(`./__next-on-pages-dist__/cache/${type}.js`);
+	return new adaptor.default();
+}
+
+function getTagsFromHeader(req: Request, key: string): string[] | undefined {
+	return req.headers.get(key)?.split(',')?.filter(Boolean);
 }

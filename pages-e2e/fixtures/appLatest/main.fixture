@@ -5,6 +5,8 @@
 		"simpleAppStaticRoutesAndAssets",
 		"appMiddleware",
 		"appRouting",
+		"appRoutingSsrDynamicCatchAll",
+		"appConfigsTrailingSlashFalse",
 		"appConfigsRewritesRedirectsHeaders"
 	],
 	"localSetup": "./setup.sh",

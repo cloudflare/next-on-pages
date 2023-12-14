@@ -1,0 +1,22 @@
+.main {
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+	align-items: center;
+	padding: 6rem;
+	min-height: 100vh;
+}
+
+.center {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	position: relative;
+	padding: 4rem 0;
+}
+
+@media (prefers-color-scheme: dark) {
+	.logo {
+		filter: invert(1) drop-shadow(0 0 0.3rem #ffffff70);
+	}
+}

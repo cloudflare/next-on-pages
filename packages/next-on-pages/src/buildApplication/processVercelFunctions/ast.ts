@@ -162,6 +162,8 @@ export type IdentifierInfo = {
 	consumers: string[];
 	newDest?: string;
 	groupedPath?: string;
+	byteLength?: number;
+	inlined?: boolean;
 };
 export type IdentifiersMap = Map<string, IdentifierInfo>;
 export type ProgramIdentifiers = RawIdentifier<IdentifierType>[];
