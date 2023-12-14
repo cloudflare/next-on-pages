@@ -1,0 +1,12 @@
+{
+	"features": [
+		"issue593"
+	],
+	"buildConfig": {
+		"buildCommand": "npx --force ../../../packages/next-on-pages",
+		"buildOutputDirectory": ".vercel/output/static"
+	},
+	"deploymentConfig": {
+		"compatibilityFlags": ["nodejs_compat"]
+	}
+}
