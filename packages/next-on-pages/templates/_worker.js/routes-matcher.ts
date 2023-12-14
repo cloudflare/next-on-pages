@@ -609,7 +609,7 @@ export class RoutesMatcher {
 		let pathExistsInOutput = this.path in this.output;
 
 		// paths could incorrectly not be detected as existing in the output due to the `trailingSlash` setting
-		// in `next.config.js`, so let's check for that case here and update the path in such case
+		// in `next.config.js`, so let's check for that here and update the path in such case
 		if (!pathExistsInOutput && this.path.endsWith('/')) {
 			const newPath = this.path.replace(/\/$/, '');
 			pathExistsInOutput = newPath in this.output;
