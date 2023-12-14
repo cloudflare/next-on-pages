@@ -1,7 +1,7 @@
 import { getAssertVisible } from '@features-utils/getAssertVisible';
 import { describe, test } from 'vitest';
 
-describe('issue-593 (pages)', () => {
+describe('issue-593', () => {
 	test('navigating to /api/hello should return a Hello world response', async ({
 		expect,
 	}) => {
