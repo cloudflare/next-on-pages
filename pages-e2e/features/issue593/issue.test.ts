@@ -7,7 +7,7 @@ describe('issue-593 (pages)', () => {
 	}) => {
 		const response = await fetch(`${DEPLOYMENT_URL}/api/hello`);
 		expect(await response.json()).toEqual({
-			text: 'Hello world!'
+			text: 'Hello world!',
 		});
 	});
 
