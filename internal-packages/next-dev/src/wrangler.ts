@@ -97,3 +97,14 @@ const IDENTIFIER_UNSAFE_REGEXP = /[^a-zA-Z0-9_$]/g;
 export function getIdentifier(name: string) {
 	return name.replace(IDENTIFIER_UNSAFE_REGEXP, '_');
 }
+
+// https://github.com/cloudflare/workers-sdk/blob/912bfe/packages/wrangler/src/cfetch/internal.ts#L119
+export function cloneHeaders(
+	headers: HeadersInit | undefined,
+): Record<string, string> {
+	return headers instanceof Headers
+		? Object.fromEntries(headers.entries())
+		: Array.isArray(headers)
+		? Object.fromEntries(headers)
+		: { ...headers };
+}

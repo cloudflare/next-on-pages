@@ -2,6 +2,7 @@ import type { WorkerOptions } from 'miniflare';
 import { Miniflare, Request, Response, Headers } from 'miniflare';
 import { getDOBindingInfo } from './durableObjects';
 import { getServiceBindings } from './services';
+import { getAIFetcher } from './ai';
 
 /**
  * Sets up the bindings that need to be available during development time (using
@@ -54,6 +55,11 @@ export type DevBindingsOptions = {
 			className: string;
 		}
 	>;
+	ai?: {
+		bindingName: string;
+		accountId: string;
+		apiToken: string;
+	};
 	/**
 	 * Record mapping binding names to R2 bucket names to inject as R2Bucket.
 	 * If a `string[]` of binding names is specified, the binding name and bucket name are assumed to be the same.
@@ -84,6 +90,12 @@ async function instantiateMiniflare(
 	const { workerOptions, durableObjects } =
 		(await getDOBindingInfo(options.durableObjects)) ?? {};
 
+	const aiBindingObj = options.ai
+		? {
+				[options.ai.bindingName]: getAIFetcher(options.ai),
+		  }
+		: {};
+
 	const { kvNamespaces, r2Buckets, d1Databases, services, textBindings } =
 		options;
 	const bindings = {
@@ -102,7 +114,10 @@ async function instantiateMiniflare(
 			...bindings,
 			modules: true,
 			script: '',
-			serviceBindings,
+			serviceBindings: {
+				...serviceBindings,
+				...aiBindingObj,
+			},
 		},
 		...(workerOptions ? [workerOptions] : []),
 	];
