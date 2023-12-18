@@ -168,8 +168,9 @@ In case the Vercel build process generates predendered pages for your applicatio
 `@cloudflare/next-on-pages` supports standard statically generated routes, it does however not support dynamic on-demand handling of such routes. Such behavior is not supported because Next.js implements it via Node.js serverless functions, which, as mentioned above are fundamentally incompatible with the Cloudflare network.
 
 For more details see:
- - [`generateStaticParams` gotcha](./gotchas.md#generatestaticparams)
- - [`getStaticPaths` gotcha](./gotchas.md#getstaticpaths)
+
+- [`generateStaticParams` gotcha](./gotchas.md#generatestaticparams)
+- [`getStaticPaths` gotcha](./gotchas.md#getstaticpaths)
 
 #### Caching and Data Revalidation
 
