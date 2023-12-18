@@ -2,6 +2,23 @@
 
 ## App router
 
+### Not found
+
+Next.js generates a not-found route for your application under the hood during the build process. In some circumstances Next.js can detect that the route requires server side logic (particularly if computation is being performed in the root layout component) and it might create a node.js serverless function (which, as such, is incompatible with `@cloudflare/next-on-pages`).
+
+To prevent such problem we recommend to always provide a custom not found route which explicitly opts-in the edge runtime:
+```ts
+// file: (src/)app/not-found.(jsx|tsx)
+export const runtime = 'edge';
+
+export default async function NotFound() {
+    // ...
+    return (
+        // ...
+    );
+}
+```
+
 ### `generateStaticParams`
 
 When doing static site generation (SSG) in the app directory and using the [`generateStaticParams`](https://nextjs.org/docs/app/api-reference/functions/generate-static-params) utility, Next.js by default tries to handle requests for non statically generated routes on-demand. It does so by creating a Next.js serverless function (which, as such, is incompatible with `@cloudflare/next-on-pages`).
