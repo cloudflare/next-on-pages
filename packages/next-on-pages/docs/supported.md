@@ -200,4 +200,4 @@ export async function getStaticPaths() {
 
 #### Caching and Data Revalidation
 
-Revalidation and `next/cache` are supported on Cloudflare Pages, and can use various bindings. For more information, see our [caching documentation](./caching).
+Revalidation and `next/cache` are supported on Cloudflare Pages, and can use various bindings. For more information, see our [caching documentation](./caching.md).
