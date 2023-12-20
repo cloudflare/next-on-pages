@@ -1,11 +1,11 @@
-import { CacheAdaptor } from './adaptor.js';
+import { BuiltInCacheHandler } from './builtInCacheHandler.js';
+import type { CacheHandlerContext } from './incrementalCache.js';
 
-/** Suspense Cache adaptor for the Cache API. */
-export default class CacheApiAdaptor extends CacheAdaptor {
+export default class WorkersCacheAPICacheHandler extends BuiltInCacheHandler {
 	/** Name of the cache to open in the Cache API. */
 	public cacheName = 'suspense-cache';
 
-	constructor(ctx: Record<string, unknown> = {}) {
+	constructor(ctx: CacheHandlerContext) {
 		super(ctx);
 	}
 

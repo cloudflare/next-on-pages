@@ -1,23 +1,33 @@
+import type {
+	CacheHandler,
+	CacheHandlerContext,
+	CacheHandlerValue,
+	IncrementalCache,
+	TagsManifest,
+} from './incrementalCache';
+
 // NOTE: This is given the same name that the environment variable has in the Next.js source code.
 export const SUSPENSE_CACHE_URL = 'INTERNAL_SUSPENSE_CACHE_HOSTNAME.local';
 
 // https://github.com/vercel/next.js/blob/f6babb4/packages/next/src/lib/constants.ts#23
 const NEXT_CACHE_IMPLICIT_TAG_ID = '_N_T_';
 
-// Set to track the revalidated tags in requests.
-const revalidatedTags = new Set<string>();
-
-/** Generic adaptor for the Suspense Cache. */
-export class CacheAdaptor {
+/** A Shared base for built-in cache handlers. */
+export class BuiltInCacheHandler implements CacheHandler {
 	/** The tags manifest for fetch calls. */
 	public tagsManifest: TagsManifest | undefined;
 	/** The key used for the tags manifest in the cache. */
 	public tagsManifestKey = 'tags-manifest';
 
+	// Set to track the revalidated tags in requests.
+	private revalidatedTags: Set<string>;
+
 	/**
-	 * @param ctx The incremental cache context from Next.js. NOTE: This is not currently utilised in NOP.
+	 * @param ctx The incremental cache context.
 	 */
-	constructor(protected ctx: Record<string, unknown> = {}) {}
+	constructor(protected ctx: CacheHandlerContext) {
+		this.revalidatedTags = new Set(ctx.revalidatedTags);
+	}
 
 	/**
 	 * Retrieves an entry from the storage mechanism.
@@ -42,23 +52,26 @@ export class CacheAdaptor {
 	/**
 	 * Puts a new entry in the suspense cache.
 	 *
-	 * @param key Key for the item in the suspense cache.
+	 * @param cacheKey Key for the item in the suspense cache.
 	 * @param value The cached value to add to the suspense cache.
+	 * @param ctx The cache handler context.
 	 */
-	public async set(key: string, value: IncrementalCacheValue): Promise<void> {
+	public async set(
+		...[cacheKey, value, ctx]: Parameters<IncrementalCache['set']>
+	): Promise<void> {
 		const newEntry: CacheHandlerValue = {
 			lastModified: Date.now(),
 			value,
 		};
 
 		// Update the cache entry.
-		await this.update(key, JSON.stringify(newEntry));
+		await this.update(cacheKey, JSON.stringify(newEntry));
 
 		switch (newEntry.value?.kind) {
 			case 'FETCH': {
 				// Update the tags with the cache key.
-				const tags = getTagsFromEntry(newEntry);
-				await this.setTags(tags, { cacheKey: key });
+				const tags = getTagsFromEntry(newEntry) ?? ctx.tags ?? [];
+				await this.setTags(tags, { cacheKey: cacheKey });
 
 				const derivedTags = getDerivedTags(tags);
 				const implicitTags = derivedTags.map(
@@ -66,7 +79,7 @@ export class CacheAdaptor {
 				);
 
 				[...derivedTags, ...implicitTags].forEach(tag =>
-					revalidatedTags.delete(tag),
+					this.revalidatedTags.delete(tag),
 				);
 			}
 		}
@@ -76,15 +89,14 @@ export class CacheAdaptor {
 	 * Retrieves an entry from the suspense cache.
 	 *
 	 * @param key Key for the item in the suspense cache.
-	 * @param opts Soft cache tags used when checking if an entry is stale.
+	 * @param ctx The cache handler context.
 	 * @returns The cached value, or null if no entry exists.
 	 */
 	public async get(
-		key: string,
-		{ softTags }: { softTags?: string[] },
+		...[cacheKey, ctx]: Parameters<IncrementalCache['get']>
 	): Promise<CacheHandlerValue | null> {
 		// Get entry from the cache.
-		const entry = await this.retrieve(key);
+		const entry = await this.retrieve(cacheKey);
 		if (!entry) return null;
 
 		let data: CacheHandlerValue;
@@ -102,13 +114,13 @@ export class CacheAdaptor {
 
 				// Check if the cache entry is stale or fresh based on the tags.
 				const tags = getTagsFromEntry(data);
-				const combinedTags = softTags
-					? [...tags, ...softTags]
-					: getDerivedTags(tags);
+				const combinedTags = ctx?.softTags
+					? [...(tags ?? []), ...ctx.softTags]
+					: getDerivedTags(tags ?? []);
 
 				const isStale = combinedTags.some(tag => {
 					// If a revalidation has been triggered, the current entry is stale.
-					if (revalidatedTags.has(tag)) return true;
+					if (this.revalidatedTags.has(tag)) return true;
 
 					const tagEntry = this.tagsManifest?.items?.[tag];
 					return (
@@ -135,7 +147,7 @@ export class CacheAdaptor {
 		// Update the revalidated timestamp for the tags in the tags manifest.
 		await this.setTags([tag], { revalidatedAt: Date.now() });
 
-		revalidatedTags.add(tag);
+		this.revalidatedTags.add(tag);
 	}
 
 	/**
@@ -155,7 +167,7 @@ export class CacheAdaptor {
 	}
 
 	/**
-	 * Saves the local tags manifest in the suspence cache.
+	 * Saves the local tags manifest in the suspense cache.
 	 */
 	public async saveTagsManifest(): Promise<void> {
 		if (this.tagsManifest) {
@@ -207,38 +219,6 @@ export class CacheAdaptor {
 	}
 }
 
-// https://github.com/vercel/next.js/blob/261db49/packages/next/src/server/lib/incremental-cache/file-system-cache.ts#L17
-export type TagsManifest = {
-	version: 1;
-	items: { [tag: string]: TagsManifestItem };
-};
-export type TagsManifestItem = { keys: string[]; revalidatedAt?: number };
-
-// https://github.com/vercel/next.js/blob/df4c2aa8/packages/next/src/server/response-cache/types.ts#L24
-export type CachedFetchValue = {
-	kind: 'FETCH';
-	data: {
-		headers: { [k: string]: string };
-		body: string;
-		url: string;
-		status?: number;
-		// field used by older versions of Next.js (see: https://github.com/vercel/next.js/blob/fda1ecc/packages/next/src/server/response-cache/types.ts#L23)
-		tags?: string[];
-	};
-	// tags are only present with file-system-cache
-	// fetch cache stores tags outside of cache entry
-	tags?: string[];
-	revalidate: number;
-};
-
-export type CacheHandlerValue = {
-	lastModified?: number;
-	age?: number;
-	cacheState?: string;
-	value: IncrementalCacheValue | null;
-};
-export type IncrementalCacheValue = CachedFetchValue;
-
 /**
  * Derives a list of tags from the given tags. This is taken from the Next.js source code.
  *
@@ -274,6 +254,8 @@ export function getDerivedTags(tags: string[]): string[] {
 	return derivedTags;
 }
 
-export function getTagsFromEntry(entry: CacheHandlerValue): string[] {
-	return entry.value?.tags ?? entry.value?.data?.tags ?? [];
+export function getTagsFromEntry(
+	entry: CacheHandlerValue,
+): string[] | undefined {
+	return entry.value?.tags ?? entry.value?.data?.tags;
 }

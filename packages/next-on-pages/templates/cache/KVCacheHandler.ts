@@ -1,8 +1,8 @@
-import { CacheAdaptor } from './adaptor.js';
+import { BuiltInCacheHandler } from './builtInCacheHandler.js';
+import type { CacheHandlerContext } from './incrementalCache.js';
 
-/** Suspense Cache adaptor for Workers KV. */
-export default class KVAdaptor extends CacheAdaptor {
-	constructor(ctx: Record<string, unknown> = {}) {
+export default class KVCacheHandler extends BuiltInCacheHandler {
+	constructor(ctx: CacheHandlerContext) {
 		super(ctx);
 	}
 
