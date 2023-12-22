@@ -96,6 +96,10 @@ Running `npx @cloudflare/next-on-pages --help` will display a useful help messag
 
 To see some examples on how to use Next.js features with `@cloudflare/next-on-pages`, see the [Examples document](https://github.com/cloudflare/next-on-pages/blob/main/packages/next-on-pages/docs/examples.md).
 
+## Gotchas
+
+There are a few gotchas that might trip developers over, please familiarize yourself with the [Gotchas document](https://github.com/cloudflare/next-on-pages/blob/main/packages/next-on-pages/docs/gotchas.md) in order to avoid such pitfalls.
+
 ## More Information
 
 For more information on the project please check out the [README](https://github.com/cloudflare/next-on-pages/blob/main/README.md) in the next-on-pages github repository.
