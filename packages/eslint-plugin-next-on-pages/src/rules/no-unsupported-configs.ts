@@ -25,7 +25,7 @@ const configs: Config[] = [
 	{ name: 'headers', support: '✅' },
 	{ name: 'httpAgentOptions', support: 'N/A' },
 	{ name: 'images', support: '✅' },
-	{ name: 'incrementalCacheHandlerPath', support: '🔄' },
+	{ name: 'incrementalCacheHandlerPath', support: '✅' },
 	{ name: 'logging', support: 'N/A' },
 	{ name: 'experimental/mdxRs', support: '✅' },
 	{ name: 'onDemandEntries', support: 'N/A' },

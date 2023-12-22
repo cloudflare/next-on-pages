@@ -200,7 +200,7 @@ describe('no-unsupported-configs', () => {
     /** @type {import('next').NextConfig} */
     const nextConfig = {
       assetPrefix: 'test',
-      incrementalCacheHandlerPath: true,
+      generateEtags: true,
     }
 
     module.exports = nextConfig
@@ -225,7 +225,7 @@ describe('no-unsupported-configs', () => {
 						},
 						{
 							message:
-								'The "incrementalCacheHandlerPath" configuration is not currently supported by next-on-pages.',
+								'The "generateEtags" configuration is not currently supported by next-on-pages.',
 						},
 					],
 				},
