@@ -1,5 +1,8 @@
 import { vi, describe, test, expect } from 'vitest';
-import { getNextConfig } from '../../../src/buildApplication/nextConfig';
+import {
+	extractBuildMetadataConfig,
+	getNextConfig,
+} from '../../../src/buildApplication/nextConfig';
 
 const mocks = vi.hoisted(() => ({
 	nextConfigJsFileExists: true,
@@ -83,6 +86,47 @@ describe('getNextConfigJs', () => {
 
 		expect(config).toEqual({
 			distDir: 'default___.next',
+		});
+	});
+});
+
+describe('extractBuildMetadataConfig', () => {
+	test('handles an empty object correctly', async () => {
+		expect(extractBuildMetadataConfig({})).toEqual({});
+	});
+
+	test('extracts the desired metadata', async () => {
+		expect(
+			extractBuildMetadataConfig({
+				experimental: {
+					allowedRevalidateHeaderKeys: ['a', 'b', 'c'],
+					fetchCacheKeyPrefix: 'my-prefix',
+				},
+			}),
+		).toEqual({
+			experimental: {
+				allowedRevalidateHeaderKeys: ['a', 'b', 'c'],
+				fetchCacheKeyPrefix: 'my-prefix',
+			},
+		});
+	});
+
+	test('extract only the desired data', async () => {
+		expect(
+			extractBuildMetadataConfig({
+				experimental: {
+					allowedRevalidateHeaderKeys: ['123'],
+					incrementalCacheHandlerPath: '../../../test',
+				},
+				trailingSlash: true,
+				eslint: {
+					ignoreDuringBuilds: true,
+				},
+			}),
+		).toEqual({
+			experimental: {
+				allowedRevalidateHeaderKeys: ['123'],
+			},
 		});
 	});
 });
