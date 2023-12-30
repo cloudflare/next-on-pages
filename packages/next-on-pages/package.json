@@ -1,6 +1,6 @@
 {
 	"name": "@cloudflare/next-on-pages",
-	"version": "1.8.2",
+	"version": "1.8.3",
 	"bin": "./bin/index.js",
 	"exports": {
 		"./__experimental__next-dev": "./dist/next-dev/index.cjs"
