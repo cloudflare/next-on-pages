@@ -1,4 +1,4 @@
-import type { DevBindingsOptions } from './index';
+import type { Binding } from './index';
 import type { WorkerOptions } from 'miniflare';
 import type { WorkerDefinition, WorkerRegistry } from './wrangler';
 import {
@@ -9,6 +9,11 @@ import {
 } from './wrangler';
 import { warnAboutExternalBindingsNotFound } from './utils';
 
+export type DevBindingsDurableObjectOptions = Record<
+	string,
+	Extract<Binding, { type: 'durable-object' }>
+>;
+
 /**
  * Gets information regarding DurableObject bindings that can be passed to miniflare to access external (locally exposed in the local registry) Durable Object bindings.
  *
@@ -16,19 +21,19 @@ import { warnAboutExternalBindingsNotFound } from './utils';
  * @returns the durableObjects and WorkersOptions objects to use or undefined if connecting to the registry and/or creating the options has failed
  */
 export async function getDOBindingInfo(
-	durableObjects: DevBindingsOptions['durableObjects'],
+	durableObjects: DevBindingsDurableObjectOptions,
 ): Promise<
 	| {
 			workerOptions: WorkerOptions;
-			durableObjects: DevBindingsOptions['durableObjects'];
+			durableObjects: WorkerOptions['durableObjects'];
 	  }
 	| undefined
 > {
-	const requestedDurableObjectsNames = new Set(
+	const requestedDurableObjectBindingNames = new Set(
 		Object.keys(durableObjects ?? {}),
 	);
 
-	if (requestedDurableObjectsNames.size === 0) {
+	if (requestedDurableObjectBindingNames.size === 0) {
 		return;
 	}
 
@@ -41,31 +46,33 @@ export async function getDOBindingInfo(
 	}
 
 	if (!registeredWorkers) {
-		warnAboutLocalDurableObjectsNotFound(requestedDurableObjectsNames);
+		warnAboutLocalDurableObjectsNotFound(requestedDurableObjectBindingNames);
 		return;
 	}
 
 	const registeredWorkersWithDOs: RegisteredWorkersWithDOs =
-		getRegisteredWorkersWithDOs(
-			registeredWorkers,
-			requestedDurableObjectsNames,
-		);
+		getRegisteredWorkersWithDOs(registeredWorkers);
 
 	const [foundDurableObjects, missingDurableObjects] = [
-		...requestedDurableObjectsNames.keys(),
+		...requestedDurableObjectBindingNames.keys(),
 	].reduce(
-		([foundDOs, missingDOs], durableObjectName) => {
+		([foundDOs, missingDOs], durableObjectBindingName) => {
 			let found = false;
-			for (const [, worker] of registeredWorkersWithDOs.entries()) {
-				found = !!worker.durableObjects.find(
-					durableObject => durableObject.name === durableObjectName,
-				);
+			for (const [workerName, worker] of registeredWorkersWithDOs.entries()) {
+				// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+				const durableObject = durableObjects[durableObjectBindingName]!;
+				if (workerName === durableObject.service.name) {
+					found = !!worker.durableObjects.find(
+						durableObject =>
+							durableObject.className === durableObject.className,
+					);
+				}
 				if (found) break;
 			}
 			if (found) {
-				foundDOs.add(durableObjectName);
+				foundDOs.add(durableObjectBindingName);
 			} else {
-				missingDOs.add(durableObjectName);
+				missingDOs.add(durableObjectBindingName);
 			}
 			return [foundDOs, missingDOs];
 		},
@@ -103,7 +110,7 @@ export async function getDOBindingInfo(
 				[externalDO.durableObjectName]: externalDO,
 			};
 		},
-		{} as DevBindingsOptions['durableObjects'],
+		{} as WorkerOptions['durableObjects'],
 	);
 
 	return {
@@ -112,20 +119,15 @@ export async function getDOBindingInfo(
 	};
 }
 
-function getRegisteredWorkersWithDOs(
-	registeredWorkers: WorkerRegistry,
-	durableObjectsNames: Set<string>,
-) {
+function getRegisteredWorkersWithDOs(registeredWorkers: WorkerRegistry) {
 	const registeredWorkersWithDOs: Map<string, WorkerRegistry[string]> =
 		new Map();
 
 	for (const workerName of Object.keys(registeredWorkers ?? {})) {
 		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 		const worker = registeredWorkers![workerName]!;
-		const containsRequestedDO = !!worker.durableObjects.find(({ name }) =>
-			durableObjectsNames.has(name),
-		);
-		if (containsRequestedDO) {
+		const containsDOs = !!worker.durableObjects.length;
+		if (containsDOs) {
 			registeredWorkersWithDOs.set(workerName, worker);
 		}
 	}

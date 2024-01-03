@@ -1,5 +1,6 @@
 import type { WorkerOptions } from 'miniflare';
-import { Miniflare, Request, Response, Headers } from 'miniflare';
+import { Miniflare, Request, Response, Headers, type Json } from 'miniflare';
+import type { DevBindingsDurableObjectOptions } from './durableObjects';
 import { getDOBindingInfo } from './durableObjects';
 import { getServiceBindings } from './services';
 
@@ -24,53 +25,39 @@ export async function setupDevBindings(
 	monkeyPatchVmModule(bindings);
 }
 
+/**
+ * Options for the next-dev bindings setup.
+ */
 export type DevBindingsOptions = {
 	/**
-	 * Record mapping binding names to text bindings.
-	 */
-	textBindings?: Record<string, string>;
-	/**
-	 * Record mapping binding names to Worker/Service names.
-	 *
-	 * Note: In order to use such bindings you need to locally run the Workers you want to bind to with `wrangler dev`.
-	 */
-	services?: Record<string, string>;
-	/**
-	 * Record mapping binding names to KV namespace IDs.
-	 * If a `string[]` of binding names is specified, the binding name and KV namespace ID are assumed to be the same.
-	 */
-	kvNamespaces?: string[] | Record<string, string>;
-	/**
-	 * Record mapping binding name to Durable Object class designators, where the designator is an object with the following fields:
-	 *  - `className`: name of a DurableObject class
-	 *  - `scriptName`: name of the Worker exporting the class
-	 *
-	 * Note: In order to use such bindings you need to locally run the Workers exporting any durable object class used with `wrangler dev`.
-	 */
-	durableObjects?: Record<
-		string,
-		{
-			scriptName: string;
-			className: string;
-		}
-	>;
-	/**
-	 * Record mapping binding names to R2 bucket names to inject as R2Bucket.
-	 * If a `string[]` of binding names is specified, the binding name and bucket name are assumed to be the same.
-	 */
-	r2Buckets?: string[] | Record<string, string>;
-	/**
-	 * Record mapping binding name to D1 database IDs.
-	 * If a `string[]` of binding names is specified, the binding name and database ID are assumed to be the same.
-	 */
-	d1Databases?: string[] | Record<string, string>;
-	/**
-	 * Indicates where to persist the bindings data, it defaults to the same location used by wrangler v3: `.wrangler/state/v3`
-	 * (so that the same data can be easily used by both the next dev server and `wrangler pages dev`).
+	 * Indicates if and where to persist the bindings data, if not present or `true` it defaults to the same location
+	 * used by wrangler v3: `.wrangler/state/v3` (so that the same data can be easily used by both the next dev server
+	 * and `wrangler pages dev`).
 	 * If `false` is specified no data is persisted on the filesystem.
 	 */
-	persist?: false | string;
+	localStoragePersistance?: boolean | { path: string };
+	/**
+	 * Record declaring the bindings that the application should get access to.
+	 *
+	 * The keys of this record are to represent the binding names (the same that will be used to access the resource from
+	 * withing the Next.js application) and their values are objects containing a type property (describing what type of
+	 * binding the object represents) alongside other properties (which depend on the specified type).
+	 *
+	 */
+	bindings: Record<string, Binding>;
 };
+
+export type Binding =
+	| { type: 'kv'; id: string }
+	| { type: 'r2'; bucketName: string }
+	| { type: 'd1'; databaseName: string }
+	| { type: 'durable-object'; className: string; service: ServiceDesignator }
+	| { type: 'service'; service: ServiceDesignator }
+	| { type: 'var'; value: string | Json };
+
+export interface ServiceDesignator {
+	name: string;
+}
 
 /**
  * Creates the miniflare instance that we use under the hood to provide access to bindings.
@@ -81,41 +68,38 @@ export type DevBindingsOptions = {
 async function instantiateMiniflare(
 	options: DevBindingsOptions,
 ): Promise<Miniflare> {
-	const { workerOptions, durableObjects } =
-		(await getDOBindingInfo(options.durableObjects)) ?? {};
-
-	const { kvNamespaces, r2Buckets, d1Databases, services, textBindings } =
-		options;
-	const bindings = {
-		bindings: textBindings,
-		kvNamespaces,
-		durableObjects,
-		r2Buckets,
-		d1Databases,
-		services,
+	options ??= {
+		bindings: {},
 	};
 
-	const serviceBindings = await getServiceBindings(services);
+	const devBindingsDurableObjectOptions = Object.fromEntries(
+		Object.entries(options.bindings).filter(
+			([, binding]) => binding.type === 'durable-object',
+		),
+	);
+
+	const { workerOptions, durableObjects } =
+		(await getDOBindingInfo(
+			devBindingsDurableObjectOptions as DevBindingsDurableObjectOptions,
+		)) ?? {};
+
+	const bindings = await getMiniflareBindingOptions(options.bindings ?? {});
 
 	const workers: WorkerOptions[] = [
 		{
 			...bindings,
+			durableObjects,
 			modules: true,
 			script: '',
-			serviceBindings,
 		},
 		...(workerOptions ? [workerOptions] : []),
 	];
 
-	// we let the user define where to persist the data, we default back
-	// to .wrangler/state/v3 which is the currently used wrangler path
-	// (this is so that when they switch to wrangler pages dev they can
-	// still interact with the same data)
-	const persist = options?.persist ?? '.wrangler/state/v3';
+	const persist = getPersistOption(options.localStoragePersistance);
 
 	const mf = new Miniflare({
 		workers,
-		...(persist === false
+		...(!persist
 			? {
 					// the user specifically requested no data persistence
 			  }
@@ -128,6 +112,30 @@ async function instantiateMiniflare(
 	});
 
 	return mf;
+}
+
+/**
+ * Get the persist option that we can then use to generate the Miniflare persist option properties
+ *
+ * @param localStoragePersistance The user provided persistence option
+ * @returns false if no persistance should be applied, the path to where to store the data otherwise
+ */
+function getPersistOption(
+	localStoragePersistance: DevBindingsOptions['localStoragePersistance'],
+): string | false {
+	if (localStoragePersistance === false) {
+		// the user explicitly asked for no persistance
+		return false;
+	}
+
+	if (typeof localStoragePersistance === 'object') {
+		return localStoragePersistance.path;
+	}
+
+	// we default back to .wrangler/state/v3 which is the currently used
+	// wrangler path (this is so that when they switch to wrangler pages dev
+	// they can still interact with the same data)
+	return '.wrangler/state/v3';
 }
 
 /**
@@ -206,4 +214,95 @@ function shouldSetupContinue(): boolean {
 		globalThis as unknown as { AsyncLocalStorage?: unknown }
 	)['AsyncLocalStorage'];
 	return !!AsyncLocalStorage;
+}
+
+type MiniflareBindingOptions = Pick<
+	WorkerOptions,
+	| 'bindings'
+	| 'kvNamespaces'
+	| 'durableObjects'
+	| 'r2Buckets'
+	| 'd1Databases'
+	| 'serviceBindings'
+>;
+
+async function getMiniflareBindingOptions(
+	bindings: DevBindingsOptions['bindings'],
+): Promise<MiniflareBindingOptions> {
+	const bindingsEntries = Object.entries(bindings);
+	const { varBindings, kvNamespaces, d1Databases, r2Buckets, services } =
+		bindingsEntries.reduce(
+			(allBindings, [bindingName, bindingDetails]) => {
+				if (bindingDetails.type === 'var') {
+					return {
+						...allBindings,
+						bindings: {
+							...allBindings.varBindings,
+							[bindingName]: JSON.stringify(bindingDetails.value),
+						},
+					};
+				}
+				if (bindingDetails.type === 'service') {
+					return {
+						...allBindings,
+						services: {
+							...allBindings.services,
+							[bindingName]: bindingDetails.service.name,
+						},
+					};
+				}
+				if (bindingDetails.type === 'kv') {
+					return {
+						...allBindings,
+						kvNamespaces: {
+							...allBindings.kvNamespaces,
+							[bindingName]: bindingDetails.id,
+						},
+					};
+				}
+				if (bindingDetails.type === 'd1') {
+					return {
+						...allBindings,
+						d1Databases: {
+							...allBindings.d1Databases,
+							[bindingName]: bindingDetails.databaseName,
+						},
+					};
+				}
+				if (bindingDetails.type === 'r2') {
+					return {
+						...allBindings,
+						r2Buckets: {
+							...allBindings.r2Buckets,
+							[bindingName]: bindingDetails.bucketName,
+						},
+					};
+				}
+				return allBindings;
+			},
+			{
+				kvNamespaces: {},
+				varBindings: {},
+				d1Databases: {},
+				r2Buckets: {},
+				services: {},
+			} as Record<
+				| 'kvNamespaces'
+				| 'varBindings'
+				| 'd1Databases'
+				| 'r2Buckets'
+				| 'services',
+				Record<string, string>
+			>,
+		);
+
+	const serviceBindings = await getServiceBindings(services);
+
+	return {
+		kvNamespaces,
+		r2Buckets,
+		d1Databases,
+		bindings: varBindings,
+		serviceBindings,
+	};
 }

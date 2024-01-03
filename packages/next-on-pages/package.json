@@ -3,11 +3,11 @@
 	"version": "1.8.3",
 	"bin": "./bin/index.js",
 	"exports": {
-		"./__experimental__next-dev": "./dist/next-dev/index.cjs"
+		"./next-dev": "./dist/next-dev/index.cjs"
 	},
 	"typesVersions": {
 		"*": {
-			"__experimental__next-dev": [
+			"next-dev": [
 				"./dist/next-dev/index.d.ts"
 			]
 		}

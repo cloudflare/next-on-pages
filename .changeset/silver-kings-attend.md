@@ -1,0 +1,6 @@
+---
+'@cloudflare/next-on-pages-next-dev': patch
+'@cloudflare/next-on-pages': patch
+---
+
+Update the `next-dev`'s `setupDevBindings` API and remove the module's `__experiemtnal__` prefix
