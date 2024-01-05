@@ -116,7 +116,7 @@ function getRegisteredWorkersWithDOs(registeredWorkers: WorkerRegistry) {
 
 	for (const workerName of Object.keys(registeredWorkers ?? {})) {
 		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-		const worker = registeredWorkers![workerName]!;
+		const worker = registeredWorkers[workerName]!;
 		const containsDOs = !!worker.durableObjects.length;
 		if (containsDOs) {
 			registeredWorkersWithDOs.set(workerName, worker);
