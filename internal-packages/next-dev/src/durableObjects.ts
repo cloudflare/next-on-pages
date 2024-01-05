@@ -29,11 +29,11 @@ export async function getDOBindingInfo(
 	  }
 	| undefined
 > {
-	const requestedDurableObjectBindingNames = new Set(
-		Object.keys(durableObjects ?? {}),
+	const requestedDurableObjectBindings = new Map(
+		Object.entries(durableObjects ?? {}),
 	);
 
-	if (requestedDurableObjectBindingNames.size === 0) {
+	if (requestedDurableObjectBindings.size === 0) {
 		return;
 	}
 
@@ -46,37 +46,29 @@ export async function getDOBindingInfo(
 	}
 
 	if (!registeredWorkers) {
-		warnAboutLocalDurableObjectsNotFound(requestedDurableObjectBindingNames);
+		warnAboutLocalDurableObjectsNotFound(
+			new Set(requestedDurableObjectBindings.keys()));
 		return;
 	}
 
 	const registeredWorkersWithDOs: RegisteredWorkersWithDOs =
 		getRegisteredWorkersWithDOs(registeredWorkers);
 
-	const [foundDurableObjects, missingDurableObjects] = [
-		...requestedDurableObjectBindingNames.keys(),
-	].reduce(
-		([foundDOs, missingDOs], durableObjectBindingName) => {
-			let found = false;
-			for (const [workerName, worker] of registeredWorkersWithDOs.entries()) {
-				// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-				const durableObject = durableObjects[durableObjectBindingName]!;
-				if (workerName === durableObject.service.name) {
-					found = !!worker.durableObjects.find(
-						({ className }) => className === durableObject.className,
-					);
-				}
-				if (found) break;
-			}
-			if (found) {
-				foundDOs.add(durableObjectBindingName);
-			} else {
-				missingDOs.add(durableObjectBindingName);
-			}
-			return [foundDOs, missingDOs];
-		},
-		[new Set(), new Set()] as [Set<string>, Set<string>],
-	);
+	const foundDurableObjects = new Set<string>();
+	const missingDurableObjects = new Set<string>();
+
+	for (const [bindingName, binding] of requestedDurableObjectBindings) {
+		const worker = registeredWorkersWithDOs.get(binding.service.name);
+		if (
+			worker?.durableObjects.some(
+				durableObject => durableObject.className === binding.className,
+			)
+		) {
+			foundDurableObjects.add(bindingName);
+		} else {
+			missingDurableObjects.add(bindingName);
+		}
+	}
 
 	if (missingDurableObjects.size) {
 		warnAboutLocalDurableObjectsNotFound(missingDurableObjects);
