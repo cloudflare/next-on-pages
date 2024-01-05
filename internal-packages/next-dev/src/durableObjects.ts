@@ -63,8 +63,7 @@ export async function getDOBindingInfo(
 				const durableObject = durableObjects[durableObjectBindingName]!;
 				if (workerName === durableObject.service.name) {
 					found = !!worker.durableObjects.find(
-						durableObject =>
-							durableObject.className === durableObject.className,
+						({ className }) => className === durableObject.className,
 					);
 				}
 				if (found) break;
