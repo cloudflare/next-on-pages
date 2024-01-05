@@ -47,7 +47,8 @@ export async function getDOBindingInfo(
 
 	if (!registeredWorkers) {
 		warnAboutLocalDurableObjectsNotFound(
-			new Set(requestedDurableObjectBindings.keys()));
+			new Set(requestedDurableObjectBindings.keys()),
+		);
 		return;
 	}
 
