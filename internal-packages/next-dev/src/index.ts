@@ -236,7 +236,7 @@ async function getMiniflareBindingOptions(
 				if (bindingDetails.type === 'var') {
 					return {
 						...allBindings,
-						bindings: {
+						varBindings: {
 							...allBindings.varBindings,
 							[bindingName]: JSON.stringify(bindingDetails.value),
 						},
