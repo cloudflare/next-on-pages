@@ -35,7 +35,7 @@ export type DevBindingsOptions = {
 	 * and `wrangler pages dev`).
 	 * If `false` is specified no data is persisted on the filesystem.
 	 */
-	localStoragePersistance?: boolean | { path: string };
+	persist?: boolean | { path: string };
 	/**
 	 * Record declaring the bindings that the application should get access to.
 	 *
@@ -95,7 +95,7 @@ async function instantiateMiniflare(
 		...(workerOptions ? [workerOptions] : []),
 	];
 
-	const persist = getPersistOption(options.localStoragePersistance);
+	const persist = getPersistOption(options.persist);
 
 	const mf = new Miniflare({
 		workers,
@@ -117,19 +117,19 @@ async function instantiateMiniflare(
 /**
  * Get the persist option that we can then use to generate the Miniflare persist option properties
  *
- * @param localStoragePersistance The user provided persistence option
+ * @param persist The user provided persistence option
  * @returns false if no persistance should be applied, the path to where to store the data otherwise
  */
 function getPersistOption(
-	localStoragePersistance: DevBindingsOptions['localStoragePersistance'],
+	persist: DevBindingsOptions['persist'],
 ): string | false {
-	if (localStoragePersistance === false) {
+	if (persist === false) {
 		// the user explicitly asked for no persistance
 		return false;
 	}
 
-	if (typeof localStoragePersistance === 'object') {
-		return localStoragePersistance.path;
+	if (typeof persist === 'object') {
+		return persist.path;
 	}
 
 	// we default back to .wrangler/state/v3 which is the currently used
