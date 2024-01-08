@@ -1,11 +1,8 @@
 # Next-on-pages Next-Dev
 
-> **Warning**
-> The submodule API needs to be finalized, in the meantime the submodule is being exported as `__experimental__next-dev`, the `__experimental__` prefix will be removed in a future release
-
 The `next-dev` submodule of the `@cloudflare/next-on-pages` package implements a utility that allows you to run the [standard Next.js development server](https://nextjs.org/docs/app/api-reference/next-cli#development) (with hot-code reloading, error reporting, HMR and everything it has to offer) with also adding local Cloudflare bindings simulations (implemented via [Miniflare](https://github.com/cloudflare/miniflare)).
 
-IMPORTANT: As mentioned above the module allows you to run the standard Next.js dev server as is and it only makes sure that Cloudflare bindings are accessible, it does not generate a worker nor faithfully represent the final application that will be deployed to Cloudflare Pages, so please use this only as a development tool and make sure to properly test your application with `wrangler pages dev` before actually deploying it to.
+IMPORTANT: As mentioned above the module allows you to run the standard Next.js dev server as is and it only makes sure that Cloudflare bindings are accessible, it does not generate a worker nor faithfully represent the final application that will be deployed to Cloudflare Pages, so please use this only as a development tool and make sure to properly test your application with `wrangler pages dev` before actually deploying it to Cloudflare.
 
 ## How to use the module
 

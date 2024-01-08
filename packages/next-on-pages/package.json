@@ -3,11 +3,11 @@
 	"version": "1.8.3",
 	"bin": "./bin/index.js",
 	"exports": {
-		"./__experimental__next-dev": "./dist/next-dev/index.cjs"
+		"./next-dev": "./dist/next-dev/index.cjs"
 	},
 	"typesVersions": {
 		"*": {
-			"__experimental__next-dev": [
+			"next-dev": [
 				"./dist/next-dev/index.d.ts"
 			]
 		}
@@ -53,7 +53,7 @@
 		"cookie": "^0.5.0",
 		"esbuild": "^0.15.3",
 		"js-yaml": "^4.1.0",
-		"miniflare": "^3.20231030.2",
+		"miniflare": "3.20231002.0",
 		"package-manager-manager": "^0.2.0",
 		"pcre-to-regexp": "^1.1.0",
 		"semver": "^7.5.2"
