@@ -32,13 +32,24 @@ if (process.env.NODE_ENV === 'development') {
 
 	// we call the utility with the bindings we want to have access to
 	setupDevBindings({
-		kvNamespaces: ['MY_KV_1', 'MY_KV_2'],
-		r2Buckets: ['MY_R2'],
-		durableObjects: {
-			MY_DO: {
-				scriptName: 'do-worker',
-				className: 'DurableObjectClass',
+		MY_KV_1: {
+			type: 'kv',
+			id: 'MY_KV_1',
+		},
+		MY_KV_2: {
+			type: 'kv',
+			id: 'MY_KV_2',
+		},
+		MY_DO: {
+			type: 'durable-object',
+			service: {
+				name: 'do-worker',
 			},
+			className: 'DurableObjectClass',
+		},
+		MY_R2: {
+			type: 'r2',
+			bucketName: 'MY_R2',
 		},
 		// ...
 	});
@@ -53,7 +64,6 @@ Next (optional but highly recommended) we create a [TypeScript declaration file]
 declare global {
 	namespace NodeJS {
 		interface ProcessEnv {
-			[key: string]: string | undefined;
 			MY_KV_1: KVNamespace;
 			MY_KV_2: KVNamespace;
 			MY_R2: R2Bucket;
@@ -74,7 +84,7 @@ Then we can simply use any of our bindings inside our next application, for exam
 export const runtime = 'edge';
 
 export async function GET(request: NextRequest) {
-	const myKv = process.env.MY_KV;
+	const myKv = process.env.MY_KV_1;
 
 	const valueA = await myKv.get('key-a');
 
