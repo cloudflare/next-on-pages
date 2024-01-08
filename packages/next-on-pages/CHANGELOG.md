@@ -1,5 +1,11 @@
 # @cloudflare/next-on-pages
 
+## 1.8.4
+
+### Patch Changes
+
+- f07ea9b: Update the `next-dev`'s `setupDevBindings` API and remove the module's `__experimental__` prefix
+
 ## 1.8.3
 
 ### Patch Changes
