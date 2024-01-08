@@ -20,7 +20,7 @@
 		"devBindingsOptions.ts"
 	],
 	"dependencies": {
-		"miniflare": "3.20231002.0",
+		"miniflare": "3.20231030.2",
 		"node-fetch": "^3.3.2"
 	},
 	"devDependencies": {
