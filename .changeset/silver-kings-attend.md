@@ -1,5 +1,4 @@
 ---
-'@cloudflare/next-on-pages-next-dev': patch
 '@cloudflare/next-on-pages': patch
 ---
 
