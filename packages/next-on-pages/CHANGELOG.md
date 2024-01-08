@@ -1,5 +1,11 @@
 # @cloudflare/next-on-pages
 
+## 1.8.5
+
+### Patch Changes
+
+- ea73acc: fix variables not getting recorded correctly in `next-dev`
+
 ## 1.8.4
 
 ### Patch Changes
