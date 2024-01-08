@@ -40,7 +40,7 @@ export type DevBindingsOptions = {
 	 * Record declaring the bindings that the application should get access to.
 	 *
 	 * The keys of this record are to represent the binding names (the same that will be used to access the resource from
-	 * withing the Next.js application) and their values are objects containing a type property (describing what type of
+	 * within the Next.js application) and their values are objects containing a type property (describing what type of
 	 * binding the object represents) alongside other properties (which depend on the specified type).
 	 *
 	 */
