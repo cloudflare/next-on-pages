@@ -32,26 +32,28 @@ if (process.env.NODE_ENV === 'development') {
 
 	// we call the utility with the bindings we want to have access to
 	setupDevBindings({
-		MY_KV_1: {
-			type: 'kv',
-			id: 'MY_KV_1',
-		},
-		MY_KV_2: {
-			type: 'kv',
-			id: 'MY_KV_2',
-		},
-		MY_DO: {
-			type: 'durable-object',
-			service: {
-				name: 'do-worker',
+		bindings: {
+			MY_KV_1: {
+				type: 'kv',
+				id: 'MY_KV_1',
 			},
-			className: 'DurableObjectClass',
+			MY_KV_2: {
+				type: 'kv',
+				id: 'MY_KV_2',
+			},
+			MY_DO: {
+				type: 'durable-object',
+				service: {
+					name: 'do-worker',
+				},
+				className: 'DurableObjectClass',
+			},
+			MY_R2: {
+				type: 'r2',
+				bucketName: 'MY_R2',
+			},
+			// ...
 		},
-		MY_R2: {
-			type: 'r2',
-			bucketName: 'MY_R2',
-		},
-		// ...
 	});
 }
 ```
