@@ -99,7 +99,11 @@ export async function getDOBindingInfo(
 		(all, externalDO) => {
 			return {
 				...all,
-				[externalDO.durableObjectName]: externalDO,
+				[externalDO.durableObjectName]: {
+					className: externalDO.identifier,
+					scriptName: externalDO.scriptName,
+					unsafeUniqueKey: externalDO.unsafeUniqueKey,
+				},
 			};
 		},
 		{} as WorkerOptions['durableObjects'],
@@ -150,7 +154,8 @@ function collectExternalDurableObjects(
 				return {
 					workerName,
 					durableObjectName: name,
-					className: getIdentifier(`${workerName}_${className}`),
+					className: className,
+					identifier: getIdentifier(`${workerName}_${className}`),
 					scriptName: EXTERNAL_DURABLE_OBJECTS_WORKER_NAME,
 					unsafeUniqueKey: `${workerName}-${className}`,
 				};
@@ -171,24 +176,19 @@ function collectExternalDurableObjects(
  * @returns the worker script
  */
 function generateDurableObjectProxyWorkerScript(
-	externalDOs: {
-		workerName: string;
-		className: string;
-		scriptName: string;
-		unsafeUniqueKey: string;
-	}[],
+	externalDOs: ExternalDurableObject[],
 	registeredWorkersWithDOs: RegisteredWorkersWithDOs,
 ) {
 	return (
 		EXTERNAL_DURABLE_OBJECTS_WORKER_SCRIPT +
 		externalDOs
-			.map(({ workerName, className }) => {
+			.map(({ workerName, className, identifier }) => {
 				const classNameJson = JSON.stringify(className);
 				const target = registeredWorkersWithDOs.get(workerName);
 				if (!target || !target.host || !target.port) return;
 				const proxyUrl = `http://${target.host}:${target.port}/${EXTERNAL_DURABLE_OBJECTS_WORKER_NAME}`;
 				const proxyUrlJson = JSON.stringify(proxyUrl);
-				return `export const ${className} = createClass({ className: ${classNameJson}, proxyUrl: ${proxyUrlJson} });`;
+				return `export const ${identifier} = createClass({ className: ${classNameJson}, proxyUrl: ${proxyUrlJson} });`;
 			})
 			.filter(Boolean)
 			.join('\n')
@@ -198,10 +198,17 @@ function generateDurableObjectProxyWorkerScript(
 type RegisteredWorkersWithDOs = Map<string, WorkerDefinition>;
 
 type ExternalDurableObject = {
+	/** Name of the proxied-to worker containing this Durable Object */
 	workerName: string;
+	/** Binding name of this Durable Object in the user worker */
 	durableObjectName: string;
+	/** Class name of this Durable Object in the worker containing the object */
 	className: string;
+	/** Class name of the Durable Object in the `scriptName` worker proxying to the worker containing the object */
+	identifier: string;
+	/** Name of the worker that proxies to workers containing objects */
 	scriptName: string;
+	/** Unique key to use for this Durable Object in the `scriptName` worker */
 	unsafeUniqueKey: string;
 };
 
