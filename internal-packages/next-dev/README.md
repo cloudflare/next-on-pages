@@ -14,7 +14,7 @@ After having added the `setupDevBindings` call to the `next.config.js` you can s
 
 Let's see an example of how to use the utility, in a Next.js application built in TypeScript using the App router.
 
-Firstly we need to update the `next.config.js` file:
+First, we need to update the `next.config.js` file:
 
 ```js
 // file: next.config.js
@@ -57,6 +57,9 @@ if (process.env.NODE_ENV === 'development') {
 	});
 }
 ```
+
+
+> View [this file](https://github.com/cloudflare/next-on-pages/blob/main/internal-packages/next-dev/src/index.ts#L31-L60) for a list of available binding types.
 
 Next (optional but highly recommended) we create a [TypeScript declaration file](https://www.typescriptlang.org/docs/handbook/2/type-declarations.html) so that we can make sure that TypeScript is aware of the bindings added to `process.env`:
 
