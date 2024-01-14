@@ -478,7 +478,6 @@ describe('processOutputDir', () => {
 		const outputDir = vercelDir;
 
 		expect(readdirSync(outputDir)).toEqual(['index.js', 'nested']);
-		expect(existsSync(outputDir)).toEqual(true);
 		await processOutputDir(outputDir, staticAssets);
 		expect(readdirSync(outputDir)).toEqual(['index.js', 'nested']);
 	});
