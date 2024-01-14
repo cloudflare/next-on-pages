@@ -1,6 +1,6 @@
 {
 	"name": "@cloudflare/next-on-pages-next-dev",
-	"version": "0.0.1",
+	"private": true,
 	"main": "dist/index.cjs",
 	"scripts": {
 		"lint": "eslint src",
