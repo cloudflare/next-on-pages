@@ -18,6 +18,14 @@ export async function setupDevBindings(
 	const continueSetup = shouldSetupContinue();
 	if (!continueSetup) return;
 
+	if (!options) {
+		throwError('No options provided to setupDevBindings');
+	}
+
+	if (!options.bindings) {
+		throwError("The provided options object doesn't include a bindings field");
+	}
+
 	const mf = await instantiateMiniflare(options);
 
 	const bindings = await mf.getBindings();
@@ -69,12 +77,8 @@ export interface ServiceDesignator {
 async function instantiateMiniflare(
 	options: DevBindingsOptions,
 ): Promise<Miniflare> {
-	options ??= {
-		bindings: {},
-	};
-
 	const devBindingsDurableObjectOptions = Object.fromEntries(
-		Object.entries(options.bindings ?? {}).filter(
+		Object.entries(options.bindings).filter(
 			([, binding]) => binding.type === 'durable-object',
 		),
 	);
@@ -84,7 +88,7 @@ async function instantiateMiniflare(
 			devBindingsDurableObjectOptions as DevBindingsDurableObjectOptions,
 		)) ?? {};
 
-	const bindings = await getMiniflareBindingOptions(options.bindings ?? {});
+	const bindings = await getMiniflareBindingOptions(options.bindings);
 
 	const workers: WorkerOptions[] = [
 		{
@@ -330,4 +334,8 @@ export function warnAboutD1Names(d1DatabaseNamesUsed: string[]): void {
 				.map(dbName => `   - ${dbName}`)
 				.join('\n')}\x1b[0m\n\n`,
 	);
+}
+
+function throwError(message: string): never {
+	throw new Error(`⚠️ [setupDevBindings Error]: ${message}`);
 }
