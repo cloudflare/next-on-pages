@@ -74,7 +74,7 @@ async function instantiateMiniflare(
 	};
 
 	const devBindingsDurableObjectOptions = Object.fromEntries(
-		Object.entries(options.bindings).filter(
+		Object.entries(options.bindings ?? {}).filter(
 			([, binding]) => binding.type === 'durable-object',
 		),
 	);
