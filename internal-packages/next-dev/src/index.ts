@@ -288,10 +288,11 @@ async function getMiniflareBindingOptions(
 				services: {},
 			} as {
 				varBindings: Record<string, Json>;
-			} & Record<
-				'kvNamespaces' | 'd1Databases' | 'r2Buckets' | 'services',
-				Record<string, string>
-			>,
+				kvNamespaces: Record<string, string>;
+				d1Databases: Record<string, string>;
+				r2Buckets: Record<string, string>;
+				services: Record<string, string>;
+			},
 		);
 
 	const serviceBindings = await getServiceBindings(services);
