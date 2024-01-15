@@ -238,7 +238,7 @@ async function getMiniflareBindingOptions(
 						...allBindings,
 						varBindings: {
 							...allBindings.varBindings,
-							[bindingName]: JSON.stringify(bindingDetails.value),
+							[bindingName]: bindingDetails.value,
 						},
 					};
 				}
@@ -286,14 +286,13 @@ async function getMiniflareBindingOptions(
 				d1Databases: {},
 				r2Buckets: {},
 				services: {},
-			} as Record<
-				| 'kvNamespaces'
-				| 'varBindings'
-				| 'd1Databases'
-				| 'r2Buckets'
-				| 'services',
-				Record<string, string>
-			>,
+			} as {
+				varBindings: Record<string, Json>;
+				kvNamespaces: Record<string, string>;
+				d1Databases: Record<string, string>;
+				r2Buckets: Record<string, string>;
+				services: Record<string, string>;
+			},
 		);
 
 	const serviceBindings = await getServiceBindings(services);
