@@ -202,11 +202,11 @@ export function extractBuildMetadataConfig(
 	const config: NonNullable<NextOnPagesBuildMetadata['config']> = {};
 
 	if (nextConfig.experimental) {
-		config.experimental = {};
-		config.experimental.allowedRevalidateHeaderKeys =
-			nextConfig.experimental.allowedRevalidateHeaderKeys;
-		config.experimental.fetchCacheKeyPrefix =
-			nextConfig.experimental.fetchCacheKeyPrefix;
+		config.experimental = {
+			allowedRevalidateHeaderKeys:
+				nextConfig.experimental.allowedRevalidateHeaderKeys,
+			fetchCacheKeyPrefix: nextConfig.experimental.fetchCacheKeyPrefix,
+		};
 	}
 
 	return config;
