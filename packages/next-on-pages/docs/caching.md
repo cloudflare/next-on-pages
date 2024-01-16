@@ -18,7 +18,7 @@ Besides the above requirement, no other action is needed to use this option.
 
 [Workers KV](https://developers.cloudflare.com/kv/) is a low-latency key-value store that is ideal for storing data that should be globally distributed. KV is eventually consistent, which means that it can take up to 60 seconds for updates to be reflected globally.
 
-To use this option all you need to add a binding to your Pages project with the name `__NEXT_ON_PAGES__KV_SUSPENSE_CACHE`, and map it to a KV namespace.
+To use this option all you need to to is to add a binding to your Pages project with the name `__NEXT_ON_PAGES__KV_SUSPENSE_CACHE`, and map it to a KV namespace.
 
 ## Custom Cache Handler
 
