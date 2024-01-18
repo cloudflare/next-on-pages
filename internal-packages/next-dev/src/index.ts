@@ -51,6 +51,7 @@ export type Binding =
 	| { type: 'kv'; id: string }
 	| { type: 'r2'; bucketName: string }
 	| { type: 'd1'; databaseName: string }
+	| { type: 'd1'; databaseId: string }
 	| { type: 'durable-object'; className: string; service: ServiceDesignator }
 	| { type: 'service'; service: ServiceDesignator }
 	| { type: 'var'; value: string | Json };
@@ -230,6 +231,7 @@ async function getMiniflareBindingOptions(
 	bindings: DevBindingsOptions['bindings'],
 ): Promise<MiniflareBindingOptions> {
 	const bindingsEntries = Object.entries(bindings);
+	const d1DatabaseNamesUsedSet = new Set<string>();
 	const { varBindings, kvNamespaces, d1Databases, r2Buckets, services } =
 		bindingsEntries.reduce(
 			(allBindings, [bindingName, bindingDetails]) => {
@@ -261,11 +263,18 @@ async function getMiniflareBindingOptions(
 					};
 				}
 				if (bindingDetails.type === 'd1') {
+					let databaseId: string;
+					if ('databaseId' in bindingDetails) {
+						databaseId = bindingDetails.databaseId;
+					} else {
+						databaseId = bindingDetails.databaseName;
+						d1DatabaseNamesUsedSet.add(bindingDetails.databaseName);
+					}
 					return {
 						...allBindings,
 						d1Databases: {
 							...allBindings.d1Databases,
-							[bindingName]: bindingDetails.databaseName,
+							[bindingName]: databaseId,
 						},
 					};
 				}
@@ -297,6 +306,10 @@ async function getMiniflareBindingOptions(
 
 	const serviceBindings = await getServiceBindings(services);
 
+	if (d1DatabaseNamesUsedSet.size > 0) {
+		warnAboutD1Names(Array.from(d1DatabaseNamesUsedSet.values()));
+	}
+
 	return {
 		kvNamespaces,
 		r2Buckets,
@@ -304,4 +317,17 @@ async function getMiniflareBindingOptions(
 		bindings: varBindings,
 		serviceBindings,
 	};
+}
+
+export function warnAboutD1Names(d1DatabaseNamesUsed: string[]): void {
+	console.warn(
+		`\n\x1b[33mWarning:\n  D1 databases can currently only be referenced by their IDs so if you specify\n  ` +
+			'a database name (`databaseName`) for a D1 binding that will be used as the database ID.\n  ' +
+			'To avoid this warning please specify the database using its actual ID instead (`databaseId`).\n\n  ' +
+			`The following database names have been used as IDs:\n${[
+				...d1DatabaseNamesUsed,
+			]
+				.map(dbName => `   - ${dbName}`)
+				.join('\n')}\x1b[0m\n\n`,
+	);
 }
