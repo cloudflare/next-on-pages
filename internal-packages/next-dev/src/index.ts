@@ -324,7 +324,7 @@ export function warnAboutD1Names(d1DatabaseNamesUsed: string[]): void {
 		`\n\x1b[33mWarning:\n  D1 databases can currently only be referenced by their IDs so if you specify\n  ` +
 			'a database name (`databaseName`) for a D1 binding that will be used as the database ID.\n  ' +
 			'To avoid this warning please specify the database using its actual ID instead (`databaseId`).\n\n  ' +
-			`The following database names have been used as IDs:\n ${[
+			`The following database names have been used as IDs:\n${[
 				...d1DatabaseNamesUsed,
 			]
 				.map(dbName => `   - ${dbName}`)
