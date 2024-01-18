@@ -50,7 +50,8 @@ export type DevBindingsOptions = {
 export type Binding =
 	| { type: 'kv'; id: string }
 	| { type: 'r2'; bucketName: string }
-	| { type: 'd1'; databaseName: string; databaseId?: string }
+	| { type: 'd1'; databaseName: string }
+	| { type: 'd1'; databaseId: string }
 	| { type: 'durable-object'; className: string; service: ServiceDesignator }
 	| { type: 'service'; service: ServiceDesignator }
 	| { type: 'var'; value: string | Json };
@@ -262,8 +263,10 @@ async function getMiniflareBindingOptions(
 					};
 				}
 				if (bindingDetails.type === 'd1') {
-					let databaseId = bindingDetails.databaseId;
-					if (!databaseId) {
+					let databaseId: string;
+					if ('databaseId' in bindingDetails) {
+						databaseId = bindingDetails.databaseId;
+					} else {
 						databaseId = bindingDetails.databaseName;
 						d1DatabaseNamesUsedSet.add(bindingDetails.databaseName);
 					}
@@ -318,9 +321,9 @@ async function getMiniflareBindingOptions(
 
 export function warnAboutD1Names(d1DatabaseNamesUsed: string[]): void {
 	console.warn(
-		`\n\x1b[33mWarning:\n  D1 databases can currently only be referenced by their IDs so if you only specify\n  ` +
-			'a database name for a D1 binding that will be used as the database ID.\n  ' +
-			'To avoid this warning please provide both a database name and id for your D1 bindings.\n\n  ' +
+		`\n\x1b[33mWarning:\n  D1 databases can currently only be referenced by their IDs so if you specify\n  ` +
+			'a database name (`databaseName`) for a D1 binding that will be used as the database ID.\n  ' +
+			'To avoid this warning please specify the database using its actual ID instead (`databaseId`).\n\n  ' +
 			`The following database names have been used as IDs:\n ${[
 				...d1DatabaseNamesUsed,
 			]
