@@ -6,15 +6,36 @@ IMPORTANT: As mentioned above the module allows you to run the standard Next.js 
 
 ## How to use the module
 
-The module is part of the `@cloudflare/next-on-pages` package so it does not need installation, it exports the `setupDevBindings` function which you need to import and call in your `next.config.mjs` file to declare what bindings your application is using and need to be made available in the development server.
+The module is part of the `@cloudflare/next-on-pages` package so it does not need installation, it exports the `setupDevBindings` function which you need to import and call in your `next.config.mjs` file. The utility will read your [`wrangler.toml`](https://developers.cloudflare.com/workers/wrangler/configuration/) file and gather the binding definitions from it, afterwards such bindings will be made available in your application in the development server.
 
-After having added the `setupDevBindings` call to the `next.config.mjs` you can simply run `next dev` and inside your edge routes you will be able to access your bindings via `process.env` in the exact same way as you would in your production code.
+After having created an appropriate `wrangler.toml` file and added the `setupDevBindings` call to the `next.config.mjs` you can simply run `next dev` and inside your edge routes you will be able to access your bindings via `process.env` in the exact same way as you would in your production code.
 
 ### Example
 
 Let's see an example of how to use the utility, in a Next.js application built in TypeScript using the App router.
 
-Firstly we need to update the `next.config.mjs` file:
+Firstly let's define a simple `wrangler.toml` file which only declares bindings:
+
+```toml
+[[kv_namespaces]]
+binding = "MY_KV_1"
+id = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+
+[[kv_namespaces]]
+binding = "MY_KV_2"
+id = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+
+[[durable_objects.bindings]]
+name = "MY_DO"
+script_name = "do-worker"
+class_name = "DurableObjectClass"
+
+# [[r2_buckets]]
+# binding = "MY_R2"
+# bucket_name = "my-bucket"
+```
+
+Then we need update the `next.config.mjs` file:
 
 ```js
 // file: next.config.mjs
@@ -30,31 +51,8 @@ if (process.env.NODE_ENV === 'development') {
 	// we import the utility from the next-dev submodule
 	const { setupDevBindings } = require('@cloudflare/next-on-pages/next-dev');
 
-	// we call the utility with the bindings we want to have access to
-	setupDevBindings({
-		bindings: {
-			MY_KV_1: {
-				type: 'kv',
-				id: 'MY_KV_1',
-			},
-			MY_KV_2: {
-				type: 'kv',
-				id: 'MY_KV_2',
-			},
-			MY_DO: {
-				type: 'durable-object',
-				service: {
-					name: 'do-worker',
-				},
-				className: 'DurableObjectClass',
-			},
-			MY_R2: {
-				type: 'r2',
-				bucketName: 'MY_R2',
-			},
-			// ...
-		},
-	});
+	// we simply need to call the utility
+	setupDevBindings();
 }
 ```
 
@@ -99,9 +97,8 @@ export async function GET(request: NextRequest) {
 When developing a next-on-pages application, this is the development workflow that we recommend:
 
 - **Develop using the standard Next.js dev server**\
-  In order to have a very fast and polished dev experience the standard dev server provided by Next.js is the best available option. So use it to quickly make changes and iterate over them, while still having access to your Cloudflare bindings thanks to the
-  `next-dev` submodule.
+  In order to have a very fast and polished dev experience the standard dev server provided by Next.js is the best available option. So use it to quickly make changes and iterate over them, while still having access to your Cloudflare bindings thanks to the `next-dev` submodule.
 - **Build and preview your worker locally**\
-  In order to make sure that your application is being built in a manner that is fully compatible with Cloudflare Pages, before deploying it, or whenever you're comfortable checking the correctness of the application during your development process, build your worker by using `@cloudflare/next-on-pages` and preview it locally via `wrangler pages dev .vercel/output/static`, this is the only way to locally make sure that every is working as you expect it to.
+  In order to make sure that your application is being built in a manner that is fully compatible with Cloudflare Pages, before deploying it, or whenever you're comfortable checking the correctness of the application during your development process, build your worker by using `@cloudflare/next-on-pages` and preview it locally via `wrangler pages dev .vercel/output/static --compatibility-flag nodejs_compat`, this is the only way to locally make sure that every is working as you expect it to.
 - **Deploy your app and iterate**\
   Once you've previewed your application locally then you can deploy it to Cloudflare Pages (both via direct uploads or git integration) and iterate over the process to make new changes.
