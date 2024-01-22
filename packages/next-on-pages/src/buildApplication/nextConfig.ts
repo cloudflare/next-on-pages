@@ -9,11 +9,13 @@ import * as os from 'os';
  * version of it which includes just what we need in next-on-pages.
  */
 export type NextConfig = Record<string, unknown> & {
-	experimental?: {
-		incrementalCacheHandlerPath?: string;
-		allowedRevalidateHeaderKeys?: string[];
-		fetchCacheKeyPrefix?: string;
-	};
+	experimental?: NextConfigExperimental;
+};
+
+export type NextConfigExperimental = {
+	incrementalCacheHandlerPath?: string;
+	allowedRevalidateHeaderKeys?: string[];
+	fetchCacheKeyPrefix?: string;
 };
 
 /**
