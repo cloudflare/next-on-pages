@@ -17,36 +17,34 @@ export async function buildCacheFiles(
 ): Promise<void> {
 	const outputCacheDir = join(nopDistDir, 'cache');
 
-	const customCacheHandlerBuilt = await buildCustomIncrementalCacheHandler(
-		outputCacheDir,
-		minify,
-	);
-
-	if (!customCacheHandlerBuilt) {
-		await buildBuiltInCacheHandlers(templatesDir, outputCacheDir, minify);
-	}
-}
-
-/**
- * Builds the file implementing the custom cache handler provided by the user, if one was provided.
- *
- * @param outputCacheDir path to the directory in which to write the file
- * @param minify flag indicating wether minification should be applied to the cache files
- * @returns true if the file was built, false otherwise (meaning that the user has not provided a custom cache handler)
- */
-async function buildCustomIncrementalCacheHandler(
-	outputCacheDir: string,
-	minify: boolean,
-): Promise<boolean> {
 	const nextConfig = await getNextConfig();
 
 	const incrementalCacheHandlerPath =
 		nextConfig?.experimental?.incrementalCacheHandlerPath;
 
-	if (!incrementalCacheHandlerPath) {
-		return false;
+	if (incrementalCacheHandlerPath) {
+		await buildCustomIncrementalCacheHandler(
+			incrementalCacheHandlerPath,
+			outputCacheDir,
+			minify,
+		);
+	} else {
+		await buildBuiltInCacheHandlers(templatesDir, outputCacheDir, minify);
 	}
+}
 
+/**
+ * Builds the file implementing the custom cache handler provided by the user.
+ *
+ * @param incrementalCacheHandlerPath path to the user defined incremental cache handler
+ * @param outputCacheDir path to the directory in which to write the file
+ * @param minify flag indicating wether minification should be applied to the output file
+ */
+async function buildCustomIncrementalCacheHandler(
+	incrementalCacheHandlerPath: string,
+	outputCacheDir: string,
+	minify: boolean,
+): Promise<void> {
 	try {
 		await build({
 			entryPoints: [incrementalCacheHandlerPath],
@@ -61,7 +59,6 @@ async function buildCustomIncrementalCacheHandler(
 			`Failed to build custom incremental cache handler from the following provided path: ${incrementalCacheHandlerPath}`,
 		);
 	}
-	return true;
 }
 
 /**
