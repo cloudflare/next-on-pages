@@ -5,7 +5,8 @@
 		"simplePagesStaticRoutesAndAssets",
 		"pagesMiddleware",
 		"pagesRouting",
-		"pagesConfigsRewritesRedirectsHeaders"
+		"pagesConfigsRewritesRedirectsHeaders",
+		"pagesWasm"
 	],
 	"localSetup": "npm install",
 	"buildConfig": {

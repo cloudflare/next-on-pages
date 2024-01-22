@@ -1,6 +1,6 @@
 {
 	"features": [
-		"pages-issue-578"
+		"pagesIssue578"
 	],
 	"localSetup": "./setup.sh",
 	"buildConfig": {

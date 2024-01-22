@@ -7,7 +7,9 @@
 		"appRouting",
 		"appRoutingSsrDynamicCatchAll",
 		"appConfigsTrailingSlashFalse",
-		"appConfigsRewritesRedirectsHeaders"
+		"appConfigsRewritesRedirectsHeaders",
+		"appWasm",
+		"appServerActions"
 	],
 	"localSetup": "./setup.sh",
 	"buildConfig": {
@@ -15,6 +17,12 @@
 		"buildOutputDirectory": ".vercel/output/static"
 	},
 	"deploymentConfig": {
-		"compatibilityFlags": ["nodejs_compat"]
+		"compatibilityFlags": ["nodejs_compat"],
+		"kvNamespaces": {
+			"MY_KV": {
+				"production": {"id": "00000000000000000000000000000000"},
+				"staging": {"id": "00000000000000000000000000000000"}
+			}
+		}
 	}
 }
