@@ -19,12 +19,11 @@ export async function buildCacheFiles(
 
 	const nextConfig = await getNextConfig();
 
-	const incrementalCacheHandlerPath =
-		nextConfig?.experimental?.incrementalCacheHandlerPath;
+	const cacheHandlerPath = nextConfig?.cacheHandler;
 
-	if (incrementalCacheHandlerPath) {
+	if (cacheHandlerPath) {
 		await buildCustomIncrementalCacheHandler(
-			incrementalCacheHandlerPath,
+			cacheHandlerPath,
 			outputCacheDir,
 			minify,
 		);
@@ -36,18 +35,18 @@ export async function buildCacheFiles(
 /**
  * Builds the file implementing the custom cache handler provided by the user.
  *
- * @param incrementalCacheHandlerPath path to the user defined incremental cache handler
+ * @param cacheHandlerPath path to the user defined incremental cache handler
  * @param outputCacheDir path to the directory in which to write the file
  * @param minify flag indicating wether minification should be applied to the output file
  */
 async function buildCustomIncrementalCacheHandler(
-	incrementalCacheHandlerPath: string,
+	cacheHandlerPath: string,
 	outputCacheDir: string,
 	minify: boolean,
 ): Promise<void> {
 	try {
 		await build({
-			entryPoints: [incrementalCacheHandlerPath],
+			entryPoints: [cacheHandlerPath],
 			bundle: true,
 			target: 'es2022',
 			platform: 'neutral',
@@ -56,7 +55,7 @@ async function buildCustomIncrementalCacheHandler(
 		});
 	} catch {
 		throw new Error(
-			`Failed to build custom incremental cache handler from the following provided path: ${incrementalCacheHandlerPath}`,
+			`Failed to build custom incremental cache handler from the following provided path: ${cacheHandlerPath}`,
 		);
 	}
 }

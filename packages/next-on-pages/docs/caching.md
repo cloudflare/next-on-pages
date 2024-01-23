@@ -22,4 +22,4 @@ To use this option all you need to to is to add a binding to your Pages project 
 
 ## Custom Cache Handler
 
-In case a custom solution is needed (for example in order to integrate with a third party storage solution or integrate with different [Cloudflare Bindings](https://developers.cloudflare.com/pages/functions/bindings/)) you will need to implement your own logic and register it via the Next.js [incrementalCacheHandlerPath](https://nextjs.org/docs/app/api-reference/next-config-js/incrementalCacheHandlerPath) option.
+In case a custom solution is needed (for example in order to integrate with a third party storage solution or integrate with different [Cloudflare Bindings](https://developers.cloudflare.com/pages/functions/bindings/)) you will need to implement your own logic and register it via the Next.js [cacheHandler](https://nextjs.org/docs/app/api-reference/next-config-js/incrementalCacheHandlerPath) option.

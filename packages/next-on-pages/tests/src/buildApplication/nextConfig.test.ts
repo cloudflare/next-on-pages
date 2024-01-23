@@ -34,18 +34,14 @@ describe('getNextConfigJs', () => {
 		mocks.nextConfigMjsFileExists = false;
 		vi.doMock('next.config.js', () => ({
 			default: {
-				experimental: {
-					incrementalCacheHandlerPath: 'my/incrementalCacheHandler/path',
-				},
+				cacheHandlerPath: 'my/incrementalCacheHandler/path',
 			},
 		}));
 
 		const config = await getNextConfig();
 
 		expect(config).toEqual({
-			experimental: {
-				incrementalCacheHandlerPath: 'my/incrementalCacheHandler/path',
-			},
+			cacheHandlerPath: 'my/incrementalCacheHandler/path',
 		});
 	});
 
@@ -114,9 +110,9 @@ describe('extractBuildMetadataConfig', () => {
 	test('extract only the desired data', async () => {
 		expect(
 			extractBuildMetadataConfig({
+				cacheHandlerPath: '../../../test',
 				experimental: {
 					allowedRevalidateHeaderKeys: ['123'],
-					incrementalCacheHandlerPath: '../../../test',
 				},
 				trailingSlash: true,
 				eslint: {
