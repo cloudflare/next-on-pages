@@ -48,7 +48,7 @@ Then you can deploy to Cloudflare Pages via the [automatic Git integration](http
 
 Next, in the [Cloudflare Dashboard](https://dash.cloudflare.com/?to=/:account/pages), create a new Pages project:
 
-- Navigate to the project creation pages (_Your account Home_ > _Pages_ > _Create a project_ > _Connect to Git_).
+- Navigate to the project creation pages (_Your account Home_ > _Workers & Pages_ > _Create application_ > _Pages_ > _Connect to Git_).
 - Select the GitHub/GitLab repository you pushed your code to.
 - Choose a project name and your production branch.
 - Select _Next.js_ as the _Framework preset_ and provide the following options:
