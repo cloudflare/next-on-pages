@@ -8,7 +8,7 @@ await copyWorkspaceAssets();
 
 const { WORKSPACE_DIR } = process.env;
 
-const nextConfigJsPath = join(WORKSPACE_DIR, 'next.config.js');
+const nextConfigJsPath = join(WORKSPACE_DIR, 'next.config.mjs');
 
 const nextConfigJsSource = await readFile(nextConfigJsPath, 'utf-8');
 

@@ -2,7 +2,7 @@ import { getAssertVisible } from '@features-utils/getAssertVisible';
 import { runWithHardNavigationsChecking } from '@features-utils/runWithHardNavigationsChecking';
 import { describe, test } from 'vitest';
 
-describe('next.config.js Rewrites', () => {
+describe('next.config.mjs Rewrites', () => {
 	// Note: in next you can have basic rewrites or rewrites categorized under "beforeFiles", "afterFiles"
 	//       and "fallbacks", since you can have both and categorized rewrites here we choose to test
 	//       categorized ones (if this works it should imply that also t he basic ones do)
