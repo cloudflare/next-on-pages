@@ -30,7 +30,7 @@ At the start of the routing process, there is typically a series of source route
 
 During this phase, a number of events may happen. Some of the Next.js features that it handles are as follows.
 
-- `next.config.js`
+- `next.config.mjs`
   - Applying [`headers`](https://nextjs.org/docs/pages/api-reference/next-config-js/headers).
   - Applying [`redirects`](https://nextjs.org/docs/pages/api-reference/next-config-js/redirects).
   - Applying `beforeFiles` [`rewrites`](https://nextjs.org/docs/pages/api-reference/next-config-js/rewrites).
@@ -43,7 +43,7 @@ When checking that routes exist in the build output, it only looks for static as
 
 If a file is not found in the build output at the start of routing (after the `none` phase), the system enters the `filesystem` phase. Here, it will handle another Next.js feature.
 
-- `next.config.js`
+- `next.config.mjs`
   - Applying `afterFiles` [`rewrites`](https://nextjs.org/docs/pages/api-reference/next-config-js/rewrites).
 
 The only routes checked in the build output with this phase are those that result from `afterFiles` `rewrites`.
@@ -69,7 +69,7 @@ This could be considered the penultimate stage in the routing system, as it is t
 
 The `resource` phase handles any remaining user-specified rewrites, and then checks the build output for any remaining routes. Further, it sets the status to 404 for any other routes that have not had a match yet.
 
-- `next.config.js`
+- `next.config.mjs`
   - Applying `fallback` [`rewrites`](https://nextjs.org/docs/pages/api-reference/next-config-js/rewrites).
 
 ### `miss`
