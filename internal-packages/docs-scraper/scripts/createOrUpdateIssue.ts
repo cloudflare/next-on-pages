@@ -52,7 +52,7 @@ void (async function (): Promise<void> {
 			owner: context.repo.owner,
 			repo: context.repo.repo,
 			labels: [label],
-			title: '⚠️📄 The `next.config.js` supported doc is out of date 📄⚠️',
+			title: '⚠️📄 The `next.config.mjs` supported doc is out of date 📄⚠️',
 			body: issueBody,
 		});
 	} else {
@@ -74,18 +74,18 @@ function generateIssueBody(
 	documentedNonNextConfigs: string[],
 ): string {
 	let issueBody =
-		'### The next-on-pages documentation of the next.config.js options is out of date\n';
+		'### The next-on-pages documentation of the next.config.mjs options is out of date\n';
 
 	if (undocumentedNextConfigs.length > 0) {
 		issueBody += `\n\n${generateMdList(
-			'The following next.config.js configs are not documented in our supported doc',
+			'The following next.config.mjs configs are not documented in our supported doc',
 			undocumentedNextConfigs,
 		)}`;
 	}
 
 	if (documentedNonNextConfigs.length > 0) {
 		issueBody += `\n\n${generateMdList(
-			'The following configs present in our supported doc are not present in the next.config.js documentation pages',
+			'The following configs present in our supported doc are not present in the next.config.mjs documentation pages',
 			documentedNonNextConfigs,
 		)}`;
 	}
