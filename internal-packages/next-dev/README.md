@@ -6,9 +6,9 @@ IMPORTANT: As mentioned above the module allows you to run the standard Next.js 
 
 ## How to use the module
 
-The module is part of the `@cloudflare/next-on-pages` package so it does not need installation, it exports the `setupDevBindings` function which you need to import and call in your `next.config.mjs` file. The utility will read your [`wrangler.toml`](https://developers.cloudflare.com/workers/wrangler/configuration/) file and gather the binding definitions from it, afterwards such bindings will be made available in your application in the development server.
+The module is part of the `@cloudflare/next-on-pages` package so it does not need installation, it exports the `setupDevPlatform` function which you need to import and call in your `next.config.mjs` file. The utility will read your [`wrangler.toml`](https://developers.cloudflare.com/workers/wrangler/configuration/) file and gather the binding definitions from it, afterwards such bindings will be made available in your application in the development server.
 
-After having created an appropriate `wrangler.toml` file and added the `setupDevBindings` call to the `next.config.mjs` you can simply run `next dev` and inside your edge routes you will be able to access your bindings via `process.env` in the exact same way as you would in your production code.
+After having created an appropriate `wrangler.toml` file and added the `setupDevPlatform` call to the `next.config.mjs` you can simply run `next dev` and inside your edge routes you will be able to access your bindings via `process.env` in the exact same way as you would in your production code.
 
 ### Example
 
@@ -49,10 +49,10 @@ export default nextConfig;
 // (note: this check is recommended but completely optional)
 if (process.env.NODE_ENV === 'development') {
 	// we import the utility from the next-dev submodule
-	const { setupDevBindings } = require('@cloudflare/next-on-pages/next-dev');
+	const { setupDevPlatform } = require('@cloudflare/next-on-pages/next-dev');
 
 	// we simply need to call the utility
-	setupDevBindings();
+	setupDevPlatform();
 }
 ```
 

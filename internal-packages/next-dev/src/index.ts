@@ -9,7 +9,7 @@ import { getBindingsProxy, type GetBindingsProxyOptions } from 'wrangler';
  *
  * @param options options indicating what bindings need to be available and where/if to persist them
  */
-export async function setupDevBindings(
+export async function setupDevPlatform(
 	options: GetBindingsProxyOptions,
 ): Promise<void> {
 	const continueSetup = shouldSetupContinue();
