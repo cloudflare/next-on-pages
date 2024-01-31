@@ -15,14 +15,18 @@ declare const __BUILD_OUTPUT__: VercelBuildOutput;
 
 declare const __BUILD_METADATA__: NextOnPagesBuildMetadata;
 
-declare const __ENV_ALS_PROMISE__: Promise<null | AsyncLocalStorage<unknown>>;
+declare const __ALSes_PROMISE__: Promise<null | {
+	envAsyncLocalStorage: AsyncLocalStorage<unknown>;
+	requestContextAsyncLocalStorage: AsyncLocalStorage<unknown>;
+}>;
 
 export default {
 	async fetch(request, env, ctx) {
 		patchFetch();
 
-		const envAsyncLocalStorage = await __ENV_ALS_PROMISE__;
-		if (!envAsyncLocalStorage) {
+		const asyncLocalStorages = await __ALSes_PROMISE__;
+
+		if (!asyncLocalStorages) {
 			const reqUrl = new URL(request.url);
 			const noNodeJsCompatStaticPageRequest = await env.ASSETS.fetch(
 				`${reqUrl.protocol}//${reqUrl.host}/cdn-cgi/errors/no-nodejs_compat.html`,
@@ -33,30 +37,38 @@ export default {
 			return new Response(responseBody, { status: 503 });
 		}
 
+		const { envAsyncLocalStorage, requestContextAsyncLocalStorage } =
+			asyncLocalStorages;
+
 		return envAsyncLocalStorage.run(
 			// NOTE: The `SUSPENSE_CACHE_URL` is used to tell the Next.js Fetch Cache where to send requests.
 			{ ...env, NODE_ENV: __NODE_ENV__, SUSPENSE_CACHE_URL },
 			async () => {
-				const url = new URL(request.url);
-				if (url.pathname.startsWith('/_next/image')) {
-					return handleImageResizingRequest(request, {
-						buildOutput: __BUILD_OUTPUT__,
-						assetsFetcher: env.ASSETS,
-						imagesConfig: __CONFIG__.images,
-					});
-				}
+				return requestContextAsyncLocalStorage.run(
+					{ env, ctx, cf: request.cf },
+					async () => {
+						const url = new URL(request.url);
+						if (url.pathname.startsWith('/_next/image')) {
+							return handleImageResizingRequest(request, {
+								buildOutput: __BUILD_OUTPUT__,
+								assetsFetcher: env.ASSETS,
+								imagesConfig: __CONFIG__.images,
+							});
+						}
 
-				const adjustedRequest = adjustRequestForVercel(request);
+						const adjustedRequest = adjustRequestForVercel(request);
 
-				return handleRequest(
-					{
-						request: adjustedRequest,
-						ctx,
-						assetsFetcher: env.ASSETS,
+						return handleRequest(
+							{
+								request: adjustedRequest,
+								ctx,
+								assetsFetcher: env.ASSETS,
+							},
+							__CONFIG__,
+							__BUILD_OUTPUT__,
+							__BUILD_METADATA__,
+						);
 					},
-					__CONFIG__,
-					__BUILD_OUTPUT__,
-					__BUILD_METADATA__,
 				);
 			},
 		);

@@ -6,7 +6,7 @@ describe('generateGlobalJs', async () => {
 		test('should generate a promise for the AsyncLocalStorage import', async () => {
 			const globalJs = generateGlobalJs();
 			expect(globalJs).toContain(
-				"const __ENV_ALS_PROMISE__ = import('node:async_hooks')",
+				"const __ALSes_PROMISE__ = import('node:async_hooks')",
 			);
 		});
 
@@ -33,7 +33,7 @@ describe('generateGlobalJs', async () => {
 			);
 
 			const proxyRegexMatch = globalJs.match(
-				/globalThis.process = {[\S\s]*Proxy\(([\s\S]+)\)[\s\S]+}/,
+				/globalThis.process = {[\S\s]*?new Proxy\(([\s\S]+)\)[\s\S]+}/,
 			);
 
 			expect(proxyRegexMatch?.length).toBe(2);
@@ -44,6 +44,27 @@ describe('generateGlobalJs', async () => {
 			);
 			expect(proxyBody).toContain(
 				'Reflect.set(envAsyncLocalStorage.getStore()',
+			);
+		});
+
+		test('create an AsyncLocalStorage and set it as a proxy to the global cloudflare request context variable', async () => {
+			const globalJs = generateGlobalJs();
+			expect(globalJs).toContain(
+				'const requestContextAsyncLocalStorage = new AsyncLocalStorage()',
+			);
+
+			const proxyRegexMatch = globalJs.match(
+				/globalThis\[Symbol\.for\('__cloudflare-request-context__'\)\] = [\S\s]*?new Proxy\(([\s\S]+)\)[\s\S]+/,
+			);
+
+			expect(proxyRegexMatch?.length).toBe(2);
+
+			const proxyBody = proxyRegexMatch?.[1];
+			expect(proxyBody).toContain(
+				'Reflect.get(requestContextAsyncLocalStorage.getStore()',
+			);
+			expect(proxyBody).toContain(
+				'Reflect.set(requestContextAsyncLocalStorage.getStore()',
 			);
 		});
 	});

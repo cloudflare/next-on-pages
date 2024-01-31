@@ -40,13 +40,13 @@ export async function setupDevBindings(
 
 	await buildWranglerJson(options.bindings);
 
-	const { bindings } = await getBindingsProxy({
-		...options,
-		configPath: tmpWranglerJsonPath,
-		experimentalJsonConfig: true,
-	});
-
-	monkeyPatchVmModule(bindings);
+	monkeyPatchVmModule(
+		await getBindingsProxy({
+			...options,
+			configPath: tmpWranglerJsonPath,
+			experimentalJsonConfig: true,
+		}),
+	);
 }
 
 /**
