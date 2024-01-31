@@ -22,7 +22,7 @@
 		"typescript": "5.1.6"
 	},
 	"devDependencies": {
-		"vercel": "^32.4.1",
+		"vercel": "latest",
 		"wrangler": "^3.19.0"
 	}
 }
