@@ -6,7 +6,6 @@
 		"pagesMiddleware",
 		"pagesRouting",
 		"pagesRoutingSsrDynamicCatchAll",
-		"pagesConfigsRewritesRedirectsHeaders",
 		"pagesWasm"
 	],
 	"localSetup": "./setup.sh",

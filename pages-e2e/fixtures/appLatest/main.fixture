@@ -7,7 +7,6 @@
 		"appRouting",
 		"appRoutingSsrDynamicCatchAll",
 		"appConfigsTrailingSlashFalse",
-		"appConfigsRewritesRedirectsHeaders",
 		"appWasm",
 		"appServerActions"
 	],
