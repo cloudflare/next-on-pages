@@ -7,9 +7,6 @@ const config: ESLint.Plugin = {
 	rules: {
 		'no-nodejs-runtime': noNodeJsRuntime,
 		'no-unsupported-configs': noUnsupportedConfigs,
-		// the following rule is no longer needed/applicable, it has been converted into a noop (so that it doesn't introduce a breaking change)
-		// it should be removed in the next package major release
-		'no-app-not-found-runtime': () => ({}),
 	},
 	configs: {
 		recommended: {
