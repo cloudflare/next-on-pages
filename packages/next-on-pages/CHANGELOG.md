@@ -1,5 +1,28 @@
 # @cloudflare/next-on-pages
 
+## 1.8.6
+
+### Patch Changes
+
+- 0b1af18: add assertions for making sure that the required `setupDevBindings` options are provided
+- bb18e8a: fix: ensure Durable Object stub proxies fetch Durable Objects and not their containing Worker
+
+  Previously, calling `DurableObjectStub#fetch()` would dispatch a `fetch` event to the Worker containing the target Durable Object, not the Durable Object itself. This change ensures the `fetch` event is dispatched directly to the Durable Object.
+
+- 3dd1f20: indent `setupDevBindings` warnings
+- 519c6cc: add `databaseId` variant for D1s to the `setupDevBindings` D1 binding type
+
+  D1 databases can only be referenced by their ID and not name, the current implementation
+  wrongly accepts the database name and uses it as the database id, in order to amend this
+  without introducing a breaking change we add a variant of the D1 binding type that accepts
+  a `databaseId` field instead of the `databaseName` for the binding and we present a warning
+  to users if the `databaseName` is used instead.
+
+  When a better more stable/clear API will be decided for D1 bindings we can revisit this API.
+
+- 05b6256: remove the invalid stringification of var bindings in `next-dev`
+- bb18e8a: chore: bump to `miniflare@3.20231218.1`
+
 ## 1.8.5
 
 ### Patch Changes
