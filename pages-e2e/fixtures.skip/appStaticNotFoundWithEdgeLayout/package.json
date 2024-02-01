@@ -1,0 +1,28 @@
+{
+	"name": "not-found-nop-test",
+	"version": "0.1.0",
+	"private": true,
+	"scripts": {
+		"dev": "next dev",
+		"build": "next build",
+		"start": "next start",
+		"lint": "next lint",
+		"pages:build": "npx @cloudflare/next-on-pages -s",
+		"pages:deploy": "npm run pages:build && wrangler pages deploy .vercel/output/static",
+		"pages:watch": "npx @cloudflare/next-on-pages --watch",
+		"pages:dev": "npx wrangler pages dev .vercel/output/static --compatibility-flag=nodejs_compat"
+	},
+	"dependencies": {
+		"@types/node": "20.4.5",
+		"@types/react": "18.2.18",
+		"@types/react-dom": "18.2.7",
+		"next": "14.0.0",
+		"react": "18.2.0",
+		"react-dom": "18.2.0",
+		"typescript": "5.1.6"
+	},
+	"devDependencies": {
+		"vercel": "^32.4.1",
+		"wrangler": "^3.19.0"
+	}
+}
