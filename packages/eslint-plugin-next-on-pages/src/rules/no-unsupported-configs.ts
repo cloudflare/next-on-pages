@@ -204,7 +204,7 @@ function checkConfigPropsRecursively(
 }
 
 /**
- * Gets the name of the config variable defined in next.config.js
+ * Gets the name of the config variable defined in next.config.mjs
  *
  * It does that by trying two different strategies:
  *  - First it tries to take the config's name from the `module.exports = ...` line

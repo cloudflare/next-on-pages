@@ -1,6 +1,6 @@
 # `next-on-pages/no-unsupported-configs`
 
-`@cloudflare/next-on-pages` doesn't support all config options that are supported by Next in their `next.config.js` file.
+`@cloudflare/next-on-pages` doesn't support all config options that are supported by Next in their `next.config.mjs` file.
 
 As documented in the [support documentation](https://github.com/cloudflare/next-on-pages/blob/main/docs/supported.md#nextconfigjs-properties) there are config options that: we support, we don't currently support, we support and don't plan to.
 
@@ -20,14 +20,14 @@ This rule helps you making sure that your code is not using config options that 
 "next-on-pages/no-unsupported-configs": "error"
 
 
-// next.config.js
+// next.config.mjs
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   compress: true,
   ~~~~~~~~
 }
 
-module.exports = nextConfig
+export default nextConfig
 ```
 
 ```js
@@ -35,14 +35,14 @@ module.exports = nextConfig
 "next-on-pages/no-unsupported-configs": "error"
 
 
-// next.config.js
+// next.config.mjs
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   trailingSlash: true,
   ~~~~~~~~~~~~~
 }
 
-module.exports = nextConfig
+export default nextConfig
 ```
 
 ```js
@@ -52,14 +52,14 @@ module.exports = nextConfig
 ]
 
 
-// next.config.js
+// next.config.mjs
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   nonExistingConfig: 'test',
   ~~~~~~~~~~~~~~~~~
 }
 
-module.exports = nextConfig
+export default nextConfig
 ```
 
 ## ✅ Valid Code
@@ -69,13 +69,13 @@ module.exports = nextConfig
 "next-on-pages/no-unsupported-configs": "error"
 
 
-// next.config.js
+// next.config.mjs
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   pageExtensions: ['page.tsx'],
 }
 
-module.exports = nextConfig
+export default nextConfig
 ```
 
 ```js
@@ -85,13 +85,13 @@ module.exports = nextConfig
 ]
 
 
-// next.config.js
+// next.config.mjs
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   trailingSlash: true,
 }
 
-module.exports = nextConfig
+export default nextConfig
 ```
 
 ```js
@@ -99,11 +99,11 @@ module.exports = nextConfig
 "next-on-pages/no-unsupported-configs": "error"
 
 
-// next.config.js
+// next.config.mjs
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   nonExistingConfig: 'test',
 }
 
-module.exports = nextConfig
+export default nextConfig
 ```

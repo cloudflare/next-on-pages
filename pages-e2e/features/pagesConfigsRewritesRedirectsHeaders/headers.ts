@@ -5,11 +5,11 @@ export function headers() {
 			headers: [
 				{
 					key: 'x-custom-configs-header',
-					value: 'my custom header value (from next.config.js)',
+					value: 'my custom header value (from next.config.mjs)',
 				},
 				{
 					key: 'x-another-custom-configs-header',
-					value: 'my other custom header value (from next.config.js)',
+					value: 'my other custom header value (from next.config.mjs)',
 				},
 			],
 		},

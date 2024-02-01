@@ -20,7 +20,7 @@ const pages = {
 	},
 } as const;
 
-describe('Pages next.config.js i18n', () => {
+describe('Pages next.config i18n', () => {
 	Object.values(pages).forEach(({ path, pageName }) => {
 		it(`should view the "${pageName}" page on the default locale`, async () => {
 			const page = await BROWSER.newPage();

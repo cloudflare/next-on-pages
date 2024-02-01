@@ -1,5 +1,5 @@
 /** @type {import('next').NextConfig} */
-module.exports = {
+const nextConfig = {
 	reactStrictMode: true,
 	experimental: {
 		runtime: 'experimental-edge',
@@ -9,3 +9,5 @@ module.exports = {
 		frameworkVersion: '12.3.0',
 	},
 };
+
+export default nextConfig;

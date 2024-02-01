@@ -6,23 +6,23 @@ IMPORTANT: As mentioned above the module allows you to run the standard Next.js 
 
 ## How to use the module
 
-The module is part of the `@cloudflare/next-on-pages` package so it does not need installation, it exports the `setupDevBindings` function which you need to import and call in your `next.config.js` file to declare what bindings your application is using and need to be made available in the development server.
+The module is part of the `@cloudflare/next-on-pages` package so it does not need installation, it exports the `setupDevBindings` function which you need to import and call in your `next.config.mjs` file to declare what bindings your application is using and need to be made available in the development server.
 
-After having added the `setupDevBindings` call to the `next.config.js` you can simply run `next dev` and inside your edge routes you will be able to access your bindings via `process.env` in the exact same way as you would in your production code.
+After having added the `setupDevBindings` call to the `next.config.mjs` you can simply run `next dev` and inside your edge routes you will be able to access your bindings via `process.env` in the exact same way as you would in your production code.
 
 ### Example
 
 Let's see an example of how to use the utility, in a Next.js application built in TypeScript using the App router.
 
-Firstly we need to update the `next.config.js` file:
+Firstly we need to update the `next.config.mjs` file:
 
 ```js
-// file: next.config.js
+// file: next.config.mjs
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {};
 
-module.exports = nextConfig;
+export default nextConfig;
 
 // we only need to use the utility during development so we can check NODE_ENV
 // (note: this check is recommended but completely optional)

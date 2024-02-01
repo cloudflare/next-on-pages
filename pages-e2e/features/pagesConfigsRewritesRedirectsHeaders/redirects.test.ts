@@ -1,6 +1,6 @@
 import { describe, test } from 'vitest';
 
-describe('next.config.js Redirects', () => {
+describe('next.config.mjs Redirects', () => {
 	test('basic non-permanent redirects', async ({ expect }) => {
 		const response = await fetch(
 			`${DEPLOYMENT_URL}/permanent-config-redirect`,

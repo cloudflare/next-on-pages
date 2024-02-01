@@ -1,6 +1,6 @@
 import { describe, test } from 'vitest';
 
-describe('next.config.js Headers', () => {
+describe('next.config.mjs Headers', () => {
 	test('addition of headers to api response', async ({ expect }) => {
 		const response = await fetch(
 			`${DEPLOYMENT_URL}/api/configs-headers/to-apply/some-route`,
@@ -9,10 +9,10 @@ describe('next.config.js Headers', () => {
 			'api/configs-headers/to-apply/some-route route',
 		);
 		expect(response.headers.get('x-custom-configs-header')).toEqual(
-			'my custom header value (from next.config.js)',
+			'my custom header value (from next.config.mjs)',
 		);
 		expect(response.headers.get('x-another-custom-configs-header')).toEqual(
-			'my other custom header value (from next.config.js)',
+			'my other custom header value (from next.config.mjs)',
 		);
 	});
 
