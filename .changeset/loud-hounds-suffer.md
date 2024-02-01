@@ -7,7 +7,7 @@ replace `setupDevBindings` with `setupDevPlatform`
 Previously developers would provide their bindings as inline options passed to
 the `setupDevBindings` function (see: https://github.com/cloudflare/next-on-pages/tree/main/internal-packages/next-dev#how-to-use-the-module)
 
-Such function has been renamed to `setDevPlatform` (a more generic name for future proofing) and of
+Such function has been renamed to `setupDevPlatform` (a more generic name for future proofing) and of
 requiring users to use inline options these changes make it so that `setupDevBindings` reads and gathers
 the binding definitions from the user's `wrangler.toml` file instead, this is:
 
