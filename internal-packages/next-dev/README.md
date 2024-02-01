@@ -32,9 +32,9 @@ name = "MY_DO"
 script_name = "do-worker"
 class_name = "DurableObjectClass"
 
-# [[r2_buckets]]
-# binding = "MY_R2"
-# bucket_name = "my-bucket"
+[[r2_buckets]]
+binding = "MY_R2"
+bucket_name = "my-bucket"
 ```
 
 Then we need update the `next.config.mjs` file:
