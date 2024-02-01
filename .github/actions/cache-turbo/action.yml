@@ -9,7 +9,7 @@ runs:
   steps:
     - name: Cache turbo
       id: turbo-cache
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: ./turbo-cache
         key: cache-turbo-${{ github.workflow }}-${{ github.job }}-${{ inputs.script }}-${{ github.base_ref }}-${{ github.ref_name }}-${{ github.sha }}
