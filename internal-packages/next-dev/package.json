@@ -21,8 +21,7 @@
 	],
 	"dependencies": {
 		"wrangler": "^3.25.0",
-		"miniflare": "^3.20231218.1",
-		"node-fetch": "^3.3.2"
+		"miniflare": "^3.20231218.1"
 	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "4.20231002.0",
