@@ -8,10 +8,10 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Setup Node.js 20.x
+    - name: Setup Node.js 20.5.1
       uses: actions/setup-node@v4
       with:
-        node-version: 20.x
+        node-version: 20.5.1
 
     - name: Get current node version
       id: node-version
