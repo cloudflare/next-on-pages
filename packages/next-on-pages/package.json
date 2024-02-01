@@ -79,7 +79,7 @@
 		"p-limit": "^4.0.0",
 		"prettier": "^2.8.4",
 		"typescript": "^5.0.4",
-		"vitest": "^0.32.2",
+		"vitest": "0.32.4",
 		"vitest-environment-miniflare": "^2.13.0"
 	}
 }
