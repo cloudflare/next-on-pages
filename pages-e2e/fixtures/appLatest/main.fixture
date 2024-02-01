@@ -12,7 +12,7 @@
 	],
 	"localSetup": "./setup.sh",
 	"buildConfig": {
-		"buildCommand": "npx --force ../../../packages/next-on-pages",
+		"buildCommand": "node ../../../packages/next-on-pages/bin/index.js",
 		"buildOutputDirectory": ".vercel/output/static"
 	},
 	"deploymentConfig": {
