@@ -492,6 +492,16 @@ function fixFunctionContents(contents: string): string {
 		';let{originalRequest:$1=$2}=$2;',
 	);
 
+	// This adds the `cf` object back to the `request` object used in API routes.
+	contents = contents.replace(
+		/(ip:(\w+)\.request\.ip)/gm,
+		'$1,cf:$2.request.cf',
+	);
+	contents = contents.replace(
+		/(ip:\w+\((\w+)\.headers,\w+\.Ip\))/gm,
+		'$1,cf:$2.cf',
+	);
+
 	return contents;
 }
 
