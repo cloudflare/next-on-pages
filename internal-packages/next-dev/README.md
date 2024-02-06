@@ -99,8 +99,8 @@ export async function GET(request: NextRequest) {
 When developing a next-on-pages application, this is the development workflow that we recommend:
 
 - **Develop using the standard Next.js dev server**\
-  In order to have a very fast and polished dev experience the standard dev server provided by Next.js is the best available option. So use it to quickly make changes and iterate over them, while still having access to your Cloudflare bindings thanks to the `next-dev` submodule.
+  In order to have a very fast and polished dev experience, the standard dev server provided by Next.js is the best available option. So use it to quickly make changes and iterate over them, while still having access to your Cloudflare bindings thanks to the `next-dev` submodule.
 - **Build and preview your worker locally**\
-  In order to make sure that your application is being built in a manner that is fully compatible with Cloudflare Pages, before deploying it, or whenever you're comfortable checking the correctness of the application during your development process, build your worker by using `@cloudflare/next-on-pages` and preview it locally via `wrangler pages dev .vercel/output/static --compatibility-flag nodejs_compat`, this is the only way to locally make sure that every is working as you expect it to.
+  In order to make sure that your application is being built in a manner that is fully compatible with Cloudflare Pages, before deploying it, or whenever you're comfortable checking the correctness of the application during your development process, build your worker by using `@cloudflare/next-on-pages` and preview it locally via `wrangler pages dev .vercel/output/static --compatibility-flag nodejs_compat`. This is the only way to locally make sure that every is working as you expect it to.
 - **Deploy your app and iterate**\
   Once you've previewed your application locally then you can deploy it to Cloudflare Pages (both via direct uploads or git integration) and iterate over the process to make new changes.
