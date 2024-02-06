@@ -3,10 +3,14 @@
 	"version": "1.8.6",
 	"bin": "./bin/index.js",
 	"exports": {
+		".": "./dist/api/index.js",
 		"./next-dev": "./dist/next-dev/index.cjs"
 	},
 	"typesVersions": {
 		"*": {
+			".": [
+				"./dist/api/index.d.ts"
+			],
 			"next-dev": [
 				"./dist/next-dev/index.d.ts"
 			]
@@ -15,11 +19,12 @@
 	"scripts": {
 		"lint": "eslint src templates",
 		"types-check": "tsc --noEmit",
-		"build": "esbuild --bundle --platform=node ./src/index.ts --external:esbuild --external:chokidar --outfile=./dist/index.js",
+		"build:types": "tsc -p tsconfig.api.json",
+		"build": "esbuild --bundle --platform=node ./src/index.ts ./src/api/index.ts --external:esbuild --external:chokidar --external:server-only --outdir=./dist",
 		"build:watch": "npm run build -- --watch=forever",
 		"build:no-nodejs-compat-error-page": "node ./build-no-nodejs-compat-flag-static-error-page.mjs",
 		"build:next-dev": "npm run build --workspace @cloudflare/next-on-pages-next-dev && rm -rf ./dist/next-dev && cp -R ../../internal-packages/next-dev/dist ./dist/next-dev",
-		"postbuild": "npm run build:no-nodejs-compat-error-page && npm run build:next-dev",
+		"postbuild": "npm run build:types && npm run build:no-nodejs-compat-error-page && npm run build:next-dev",
 		"prepare": "npm run build",
 		"test:unit": "npx vitest --config vitest.config.ts"
 	},

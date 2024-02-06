@@ -1,0 +1,10 @@
+{
+	"extends": "@cloudflare/next-on-pages-tsconfig/tsconfig.json",
+	"include": ["src/api"],
+	"compilerOptions": {
+		"emitDeclarationOnly": true,
+		"declaration": true,
+		"declarationMap": true,
+		"outDir": "dist/api"
+	}
+}
