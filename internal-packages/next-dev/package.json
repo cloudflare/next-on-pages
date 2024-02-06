@@ -5,7 +5,7 @@
 	"scripts": {
 		"lint": "eslint src",
 		"types-check": "tsc --noEmit",
-		"build:js": "esbuild --bundle --format=cjs ./src/index.ts --external:miniflare --outfile=./dist/index.cjs --platform=node",
+		"build:js": "esbuild --bundle --format=cjs ./src/index.ts --external:miniflare --external:wrangler --external:@cspotcode/source-map-support --outfile=./dist/index.cjs --platform=node",
 		"build:types": "tsc --emitDeclarationOnly --declaration --outDir ./dist",
 		"build:js:watch": "npm run build:js -- --watch=forever",
 		"build:types:watch": "npm run build:types -- --watch",
@@ -20,8 +20,8 @@
 		"devBindingsOptions.ts"
 	],
 	"dependencies": {
-		"miniflare": "^3.20231218.1",
-		"node-fetch": "^3.3.2"
+		"wrangler": "^3.25.0",
+		"miniflare": "^3.20231218.1"
 	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "4.20231002.0",
