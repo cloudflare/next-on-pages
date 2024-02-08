@@ -9,7 +9,8 @@
 		"appConfigsTrailingSlashFalse",
 		"appConfigsRewritesRedirectsHeaders",
 		"appWasm",
-		"appServerActions"
+		"appServerActions",
+		"appGetRequestContext"
 	],
 	"localSetup": "./setup.sh",
 	"buildConfig": {

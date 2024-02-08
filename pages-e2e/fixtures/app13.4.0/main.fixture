@@ -7,7 +7,8 @@
 		"appRouting",
 		"appConfigsTrailingSlashFalse",
 		"appConfigsRewritesRedirectsHeaders",
-		"appWasm"
+		"appWasm",
+		"appGetRequestContext"
 	],
 	"localSetup": "npm install",
 	"buildConfig": {

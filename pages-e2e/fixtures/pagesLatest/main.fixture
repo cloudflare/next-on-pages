@@ -7,7 +7,8 @@
 		"pagesRouting",
 		"pagesRoutingSsrDynamicCatchAll",
 		"pagesConfigsRewritesRedirectsHeaders",
-		"pagesWasm"
+		"pagesWasm",
+		"pagesGetRequestContext"
 	],
 	"localSetup": "./setup.sh",
 	"buildConfig": {

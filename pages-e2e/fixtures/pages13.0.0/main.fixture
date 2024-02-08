@@ -6,7 +6,8 @@
 		"pagesMiddleware",
 		"pagesRouting",
 		"pagesConfigsRewritesRedirectsHeaders",
-		"pagesWasm"
+		"pagesWasm",
+		"pagesGetRequestContext"
 	],
 	"localSetup": "npm install",
 	"buildConfig": {
