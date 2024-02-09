@@ -71,26 +71,49 @@ Next, in the [Cloudflare Dashboard](https://dash.cloudflare.com/?to=/:account/pa
 
 You can develop your application locally by simply using the [standard Next.js development server](https://nextjs.org/docs/app/api-reference/next-cli#development) you'd normally use.
 
-If your application uses Cloudflare bindings to make them available in the standard dev server use the [`@cloudflare/next-on-pages/next-dev`](https://github.com/cloudflare/next-on-pages/tree/main/internal-packages/next-dev) submodule.
-
-> **Warning**
-> Please note however that the standard Next.js dev server does not work with a Cloudflare Pages compatible application/output, so it does not provide any reassurance that your application once built with `@cloudflare/next-on-pages` will actually correctly run, in order to make sure it does the only option (besides simply deploying it and hoping for the best) is to locally preview the application as described below.
+> **Warning**: Please note however that the standard Next.js dev server does not work with a Cloudflare Pages compatible application/output, so it does not provide any reassurance that your application once built with `@cloudflare/next-on-pages` will actually correctly run, in order to make sure it does the only option (besides simply deploying it and hoping for the best) is to locally preview the application as described below.
 
 ### Local preview
 
 To preview locally your Cloudflare Pages application, simply run:
 
 ```sh
-npx @cloudflare/next-on-pages [--watch]
+npx @cloudflare/next-on-pages
 ```
 
-This command will build your Next.js application and produce a `.vercel/output/static` directory which you can then use with Wrangler:
+This command will build your Next.js application and produce a `.vercel/output/static` directory which you can then supply to Wrangler:
 
 ```sh
 npx wrangler pages dev .vercel/output/static --compatibility-flag=nodejs_compat
 ```
 
 Running `npx @cloudflare/next-on-pages --help` will display a useful help message which will detail the various additional options the CLI offers.
+
+## Cloudflare Platform Integration
+
+Next.js applications built using `@cloudflare/next-on-pages` get access to resources and information only available or relevant on the Cloudflare platform, such are:
+
+- [Bindings (`env`)](https://developers.cloudflare.com/pages/platform/functions/bindings/), which allows you to take advantage of Cloudflare specific resources.
+- [Cloudflare properties (`cf`)](https://developers.cloudflare.com/workers/runtime-apis/request/#incomingrequestcfproperties), object containing information about the request provided by Cloudflare’s global network.
+- [Lifecycle methods (`ctx`)](https://developers.cloudflare.com/workers/runtime-apis/handlers/fetch/#lifecycle-methods), methods to augment or control how the request is handled.
+
+Such can be accessed by calling the `getRequestContext` function in server only code.
+
+For example:
+
+```ts
+import { getRequestContext } from '@cloudflare/next-on-pages';
+
+// ...
+
+const { env, cf, ctx } = getRequestContext();
+```
+
+> **Warning**: The function cannot be called in code from components using the Pages router.
+
+> **Note**: In order to make the function work in development mode (using the standard Next.js dev server) use the [`@cloudflare/next-on-pages/next-dev`](https://github.com/cloudflare/next-on-pages/tree/main/internal-packages/next-dev) submodule.
+
+> **TypeScript Env Type**: the `env` object returned by `getRequestContext` implements the `CloudflareEnv` interface, add your binding types to such interface in order for get a correctly typed `env` object.
 
 ## Examples
 
