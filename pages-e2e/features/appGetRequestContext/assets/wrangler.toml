@@ -1,0 +1,6 @@
+[vars]
+MY_TOML_VAR = "my var from wrangler.toml"
+
+[[kv_namespaces]]
+binding = "MY_TOML_KV"
+id = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"

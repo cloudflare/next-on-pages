@@ -9,13 +9,13 @@
 		"lint": "next lint"
 	},
 	"dependencies": {
+		"@cloudflare/next-on-pages": "../../../packages/next-on-pages",
 		"@types/node": "20.4.0",
 		"@types/react": "18.2.14",
 		"@types/react-dom": "18.2.6",
 		"next": "13.5.4",
 		"react": "18.2.0",
 		"react-dom": "18.2.0",
-		"typescript": "5.1.6",
-		"@cloudflare/next-on-pages": "*"
+		"typescript": "5.1.6"
 	}
 }

@@ -17,7 +17,5 @@ export async function setupDevPlatform(
 	const continueSetup = shouldSetupContinue();
 	if (!continueSetup) return;
 
-	const { bindings } = await getBindingsProxy(options);
-
-	monkeyPatchVmModule(bindings);
+	monkeyPatchVmModule(await getBindingsProxy(options));
 }
