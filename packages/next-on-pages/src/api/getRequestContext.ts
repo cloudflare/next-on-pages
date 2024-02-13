@@ -18,10 +18,10 @@ const cloudflareRequestContextSymbol = Symbol.for(
 	'__cloudflare-request-context__',
 );
 
-export function getRequestContext<
+export function getOptionalRequestContext<
 	CfProperties extends Record<string, unknown> = IncomingRequestCfProperties,
 	Context = ExecutionContext,
->(): RequestContext<CfProperties, Context> {
+>(): undefined | RequestContext<CfProperties, Context> {
 	const cloudflareRequestContext = (
 		globalThis as unknown as {
 			[cloudflareRequestContextSymbol]:
@@ -30,21 +30,21 @@ export function getRequestContext<
 		}
 	)[cloudflareRequestContextSymbol];
 
+	return cloudflareRequestContext;
+}
+
+export function getRequestContext<
+	CfProperties extends Record<string, unknown> = IncomingRequestCfProperties,
+	Context = ExecutionContext,
+>(): RequestContext<CfProperties, Context> {
+	const cloudflareRequestContext = getOptionalRequestContext<
+		CfProperties,
+		Context
+	>();
+
 	if (!cloudflareRequestContext) {
 		throw new Error('Error: failed to retrieve the Cloudflare request context');
 	}
 
 	return cloudflareRequestContext;
-}
-
-export function getOptionalRequestContext<
-	CfProperties extends Record<string, unknown> = IncomingRequestCfProperties,
-	Context = ExecutionContext,
->(): RequestContext<CfProperties, Context> | null {
-	try {
-		const cloudflareRequestContext = getRequestContext<CfProperties, Context>();
-		return cloudflareRequestContext;
-	} catch {
-		return null;
-	}
 }
