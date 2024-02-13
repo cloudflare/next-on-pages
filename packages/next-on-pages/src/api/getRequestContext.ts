@@ -36,3 +36,15 @@ export function getRequestContext<
 
 	return cloudflareRequestContext;
 }
+
+export function getOptionalRequestContext<
+	CfProperties extends Record<string, unknown> = IncomingRequestCfProperties,
+	Context = ExecutionContext,
+>(): RequestContext<CfProperties, Context> | null {
+	try {
+		const cloudflareRequestContext = getRequestContext<CfProperties, Context>();
+		return cloudflareRequestContext;
+	} catch {
+		return null;
+	}
+}
