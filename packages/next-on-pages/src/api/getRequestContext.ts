@@ -34,7 +34,5 @@ export function getRequestContext<
 		throw new Error('Error: failed to retrieve the Cloudflare request context');
 	}
 
-	return {
-		...cloudflareRequestContext,
-	};
+	return cloudflareRequestContext;
 }
