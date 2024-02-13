@@ -62,12 +62,13 @@ Next (optional but highly recommended) we create a [TypeScript declaration file]
 
 ```ts
 // file: env.d.ts
-
-interface CloudflareEnv {
-	MY_KV_1: KVNamespace;
-	MY_KV_2: KVNamespace;
-	MY_R2: R2Bucket;
-	MY_DO: DurableObjectNamespace;
+declare global {
+	interface CloudflareEnv {
+		MY_KV_1: KVNamespace;
+		MY_KV_2: KVNamespace;
+		MY_R2: R2Bucket;
+		MY_DO: DurableObjectNamespace;
+	}
 }
 ```
 
