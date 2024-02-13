@@ -1,5 +1,50 @@
 # @cloudflare/next-on-pages
 
+## 1.9.0
+
+### Minor Changes
+
+- 5712c57: Add new `getRequestContext` utility
+
+  Introduce a new `getRequestContext` utility that allows developer to get access not only
+  to their Cloudflare `env` but also to their `cf` and `ctx` objects
+
+  The utility can only be used in server-only code (meaning that it is incompatible with
+  Pages-router components).
+
+  Usage example:
+
+  ```ts
+  // app/api/hello/route.js
+
+  import { getRequestContext } from '@cloudflare/next-on-pages';
+
+  export const runtime = 'edge';
+
+  export async function GET(request) {
+    const {
+      env,
+      cf,
+      ctx: { waitUntil },
+    } = getRequestContext();
+    // ...
+  }
+  ```
+
+- 06de52e: add new `setupDevPlatform` while deprecating `setupDevBindings`
+
+  Previously developers would provide their bindings as inline options passed to
+  the `setupDevBindings` function (see: https://github.com/cloudflare/next-on-pages/tree/main/internal-packages/next-dev#how-to-use-the-module)
+
+  Such function has been deprecated and the new `setupDevPlatform` has been added instead as its replacement, the latter does not
+  require users to use inline options but it reads and gathers the binding definitions from the user's `wrangler.toml` file instead,
+  this is:
+
+  - consistent with the newly introduced `getBindingsProxy` utility (which is actually being used here under the hood)
+    (https://developers.cloudflare.com/workers/wrangler/api/#getbindingsproxy)
+  - more convenient for users, since `wrangler pages dev` is also going to read the `wrangler.toml` file, making users
+    only need to declare the bindings at most once for local development instead of twice
+
 ## 1.8.6
 
 ### Patch Changes
