@@ -115,6 +115,8 @@ const { env, cf, ctx } = getRequestContext();
 
 > **TypeScript Env Type**: the `env` object returned by `getRequestContext` implements the `CloudflareEnv` interface, add your binding types to such interface in order for get a correctly typed `env` object.
 
+> **Note**: `getRequestContext` throws an error if invoked when the request context is not available, if you prefer to receive `undefined` in such cases use `getOptionalRequestContext` instead, the latter is identical to `getRequestContext` except from the fact that it returns `undefined` when the context is not available.
+
 ## Examples
 
 To see some examples on how to use Next.js features with `@cloudflare/next-on-pages`, see the [Examples document](https://github.com/cloudflare/next-on-pages/blob/main/packages/next-on-pages/docs/examples.md).
