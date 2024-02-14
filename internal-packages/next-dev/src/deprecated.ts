@@ -1,7 +1,7 @@
 // This file contains deprecated code and it should be deleted in the next major release
 
 import type { Json } from 'miniflare';
-import { getBindingsProxy } from 'wrangler';
+import { getPlatformProxy } from 'wrangler';
 import { resolve, dirname } from 'node:path';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { monkeyPatchVmModule } from './shared';
@@ -41,7 +41,7 @@ export async function setupDevBindings(
 	await buildWranglerJson(options.bindings);
 
 	monkeyPatchVmModule(
-		await getBindingsProxy({
+		await getPlatformProxy({
 			...options,
 			configPath: tmpWranglerJsonPath,
 			experimentalJsonConfig: true,
