@@ -10,7 +10,7 @@ The module is part of the `@cloudflare/next-on-pages` package so it does not nee
 
 After having created an appropriate `wrangler.toml` file and added the `setupDevPlatform` call to the Next.js config file you can simply run `next dev` and inside your edge routes you will be able to access your bindings via `getRequestContext` in the exact same way as you would in your production code.
 
-`setupDevPlatform` uses wrangler's `getBindingsProxy` utility under the hood, it accepts the same exact arguments and supports bindings in the same exact manner, for more details please refer to the official [`getBindingsProxy` documentation](https://developers.cloudflare.com/workers/wrangler/api/#getbindingsproxy).
+`setupDevPlatform` uses wrangler's `getPlatformProxy` utility under the hood, it accepts the same exact arguments and supports bindings in the same exact manner, for more details please refer to the official [`getPlatformProxy` documentation](https://developers.cloudflare.com/workers/wrangler/api/#getplatformproxy).
 
 ### Example
 

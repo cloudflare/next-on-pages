@@ -20,7 +20,7 @@
 		"devBindingsOptions.ts"
 	],
 	"dependencies": {
-		"wrangler": "^3.28.0",
+		"wrangler": "^3.28.2",
 		"miniflare": "^3.20231218.1"
 	},
 	"devDependencies": {

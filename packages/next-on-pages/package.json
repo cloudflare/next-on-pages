@@ -85,7 +85,7 @@
 	},
 	"peerDependencies": {
 		"vercel": ">=30.0.0",
-		"wrangler": "^3.28.0",
+		"wrangler": "^3.28.2",
 		"@cloudflare/workers-types": "^4.20240208.0"
 	},
 	"peerDependenciesMeta": {

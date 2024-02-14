@@ -11,14 +11,14 @@ const cloudflareRequestContextSymbol = Symbol.for(
  * miniflare binding proxies can be added to the runtime context's `process.env` before the actual edge
  * functions are evaluated.
  *
- * @param patchData object containing the `bindings`, `ctx` and `cf` to add to the runtime context's `globalThis` and `process.env`
+ * @param patchData object containing the `env`, `ctx` and `cf` to add to the runtime context's `globalThis` and `process.env`
  */
 export function monkeyPatchVmModule({
-	bindings,
+	env,
 	ctx,
 	cf,
 }: {
-	bindings: Record<string, unknown>;
+	env: Record<string, unknown>;
 	ctx: ExecutionContext;
 	cf: IncomingRequestCfProperties;
 }) {
@@ -45,12 +45,12 @@ export function monkeyPatchVmModule({
 
 		if (!runtimeContext[cloudflareRequestContextSymbol]) {
 			runtimeContext[cloudflareRequestContextSymbol] = {
-				env: bindings,
+				env,
 				ctx,
 				cf,
 			};
 			if (runtimeContext.process?.env) {
-				for (const [name, binding] of Object.entries(bindings)) {
+				for (const [name, binding] of Object.entries(env)) {
 					runtimeContext.process.env[name] = binding;
 				}
 			}
