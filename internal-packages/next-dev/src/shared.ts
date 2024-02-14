@@ -1,3 +1,5 @@
+import type { PlatformProxy } from 'wrangler';
+
 const cloudflareRequestContextSymbol = Symbol.for(
 	'__cloudflare-request-context__',
 );
@@ -11,17 +13,9 @@ const cloudflareRequestContextSymbol = Symbol.for(
  * miniflare binding proxies can be added to the runtime context's `process.env` before the actual edge
  * functions are evaluated.
  *
- * @param patchData object containing the `env`, `ctx` and `cf` to add to the runtime context's `globalThis` and `process.env`
+ * @param platformProxy platform proxy obtained via wrangler's getPlatformProxy utility
  */
-export function monkeyPatchVmModule({
-	env,
-	ctx,
-	cf,
-}: {
-	env: Record<string, unknown>;
-	ctx: ExecutionContext;
-	cf: IncomingRequestCfProperties;
-}) {
+export function monkeyPatchVmModule({ env, cf, ctx, caches }: PlatformProxy) {
 	// eslint-disable-next-line @typescript-eslint/no-var-requires
 	const vmModule = require('vm');
 
@@ -54,6 +48,8 @@ export function monkeyPatchVmModule({
 					runtimeContext.process.env[name] = binding;
 				}
 			}
+
+			runtimeContext['caches'] = caches;
 
 			runtimeContext['Request'] = new Proxy(Request, {
 				construct(target, args, newTarget) {
