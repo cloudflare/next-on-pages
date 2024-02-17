@@ -54,7 +54,8 @@ export default nextConfig;
 // (note: this check is recommended but completely optional)
 if (process.env.NODE_ENV === 'development') {
 	// we simply need to call the utility
-	setupDevPlatform();
+	// (`await`ing the call is not mandatory but recommended)
+	await setupDevPlatform();
 }
 ```
 
