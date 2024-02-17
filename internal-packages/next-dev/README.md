@@ -54,7 +54,10 @@ export default nextConfig;
 // (note: this check is recommended but completely optional)
 if (process.env.NODE_ENV === 'development') {
 	// we simply need to call the utility
-	// (`await`ing the call is not mandatory but recommended)
+	// (`await`ing the call helps making sure that the setup has succeeded,
+	//  it is not mandatory but recommended. In config files using the
+	//  cjs format, where top level awaits are not supported you can
+	//  safely simply call the function and omit the `await`)
 	await setupDevPlatform();
 }
 ```
