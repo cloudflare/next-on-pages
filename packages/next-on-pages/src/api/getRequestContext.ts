@@ -1,4 +1,5 @@
 import 'server-only';
+import dedent from 'dedent-tabs';
 
 declare global {
 	// eslint-disable-next-line @typescript-eslint/no-empty-interface
@@ -43,7 +44,24 @@ export function getRequestContext<
 	>();
 
 	if (!cloudflareRequestContext) {
-		throw new Error('Error: failed to retrieve the Cloudflare request context');
+		let errorMessage = 'Failed to retrieve the Cloudflare request context.';
+
+		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+		// @ts-ignore
+		if (process.env.NODE_ENV === 'development') {
+			errorMessage +=
+				'\n\n' +
+				dedent`
+					For local development (using the Next.js dev server) remember to include
+					a call to the \`setupDevPlatform\` function in your config file.
+
+					For more details visit:
+					  https://github.com/cloudflare/next-on-pages/tree/3846730c/internal-packages/next-dev
+				` +
+				'\n\n';
+		}
+
+		throw new Error(errorMessage);
 	}
 
 	return cloudflareRequestContext;
