@@ -1,7 +1,8 @@
-import { join } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
 import type { CollectedFunctions } from './configs';
 import { formatRoutePath, stripIndexRoute, validateFile } from '../../utils';
-import { cliWarn } from '../../cli';
+import { cliError, cliWarn } from '../../cli';
+import { mkdir, symlink } from 'node:fs/promises';
 
 /**
  * Processes the Edge function routes found in the Vercel build output.
@@ -75,6 +76,38 @@ export async function processEdgeFunctions(
 	}
 
 	await tryToFixInvalidFunctions(collectedFunctions, tempFunctionsMap);
+
+	await ensureBundledAssetsExist(collectedFunctions);
+}
+
+/**
+ * Checks for bundled assets that are stored at a different location and referenced in the function config.
+ *
+ * If an asset exists, it is symlinked to the function's directory, so that the asset can be found when
+ * deduping the edge functions.
+ *
+ * This is necessary because the Vercel build process may not copy the bundled assets to the function's
+ * directory and instead leave them in the Next.js output directory.
+ *
+ * @param collectedFunctions Collected functions from the Vercel build output.
+ */
+async function ensureBundledAssetsExist({ edgeFunctions }: CollectedFunctions) {
+	for (const [path, { config }] of edgeFunctions) {
+		const assetsObj = Object.entries(config.filePathMap ?? {});
+
+		for (const [relativeAssetPath, assetLocation] of assetsObj) {
+			const currentAssetPath = resolve(assetLocation);
+			const newAssetPath = join(path, relativeAssetPath);
+
+			if (!(await validateFile(currentAssetPath))) {
+				cliError(`Could not find bundled asset file: ${assetLocation}`);
+				process.exit(1);
+			}
+
+			await mkdir(dirname(newAssetPath), { recursive: true });
+			await symlink(currentAssetPath, newAssetPath, 'file');
+		}
+	}
 }
 
 /**
