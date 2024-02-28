@@ -99,13 +99,16 @@ async function ensureBundledAssetsExist({ edgeFunctions }: CollectedFunctions) {
 			const currentAssetPath = resolve(assetLocation);
 			const newAssetPath = join(path, relativeAssetPath);
 
-			if (!(await validateFile(currentAssetPath))) {
-				cliError(`Could not find bundled asset file: ${assetLocation}`);
-				process.exit(1);
-			}
+			// only create the symlink when no file exists at the expected path
+			if (!(await validateFile(newAssetPath))) {
+				if (!(await validateFile(currentAssetPath))) {
+					cliError(`Could not find bundled asset file: ${assetLocation}`);
+					process.exit(1);
+				}
 
-			await mkdir(dirname(newAssetPath), { recursive: true });
-			await symlink(currentAssetPath, newAssetPath, 'file');
+				await mkdir(dirname(newAssetPath), { recursive: true });
+				await symlink(currentAssetPath, newAssetPath, 'file');
+			}
 		}
 	}
 }
