@@ -59,12 +59,7 @@ jobs:
         with:
           max_attempts: 3
           timeout_minutes: 10
-          command:
-            # cleanup all e2e auxiliary files potentially left from previous run
-            rm -rf ./test-workspaces ./workspaces
-
-            # run the e2e tests
-            npm run test:e2e -- -- --log-timestamp
+          command: rm -rf ./test-workspaces ./workspaces && npm run test:e2e -- -- --log-timestamp
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
