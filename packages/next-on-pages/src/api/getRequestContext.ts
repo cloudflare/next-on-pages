@@ -31,6 +31,18 @@ export function getOptionalRequestContext<
 		}
 	)[cloudflareRequestContextSymbol];
 
+	if (inferRuntime() === 'nodejs') {
+		// no matter what, we want to throw if either
+		// `getRequestContext` or `getOptionalRequestContext`
+		// is run in the Node.js runtime
+		throw new Error(dedent`
+			\`getRequestContext\` and \`getOptionalRequestContext\` can only be run
+			inside the edge runtime, so please make sure to have included
+			\`export const runtime = 'edge'\` in all the routes using such functions
+			(regardless of whether they are used directly or indirectly through imports).
+		`);
+	}
+
 	return cloudflareRequestContext;
 }
 
@@ -65,4 +77,22 @@ export function getRequestContext<
 	}
 
 	return cloudflareRequestContext;
+}
+
+/**
+ * detects what runtime this code is running in
+ *
+ * @returns 'edge' if the edge runtime is detected, 'node' if the node.js runtime is
+ */
+function inferRuntime(): 'edge' | 'nodejs' {
+	// process.release.name always equals 'node' inside the node.js runtime
+	// (see: https://nodejs.org/docs/latest/api/process.html#processrelease)
+	// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+	// @ts-ignore
+	if (process?.release?.name === 'node') {
+		return 'nodejs';
+	}
+
+	// if the runtime is not node it must be edge
+	return 'edge';
 }
