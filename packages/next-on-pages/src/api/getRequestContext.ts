@@ -85,7 +85,7 @@ export function getRequestContext<
  * @returns 'edge' if the edge runtime is detected, 'node' if the node.js runtime is
  */
 function inferRuntime(): 'edge' | 'nodejs' {
-	// process.release.node always equals 'node' inside the node.js runtime
+	// process.release.name always equals 'node' inside the node.js runtime
 	// (see: https://nodejs.org/docs/latest/api/process.html#processrelease)
 	// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 	// @ts-ignore
