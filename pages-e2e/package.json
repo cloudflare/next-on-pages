@@ -2,8 +2,6 @@
 	"name": "pages-e2e",
 	"private": true,
 	"scripts": {
-		"e2e-cleanup": "rm -rf ./test-workspaces ./workspaces",
-		"pretest:e2e": "e2e-cleanup",
 		"//test:e2e 1": "we start with npm i because this fixes an existing bug in the pages-e2e-test-runner-cli",
 		"//test:e2e 2": "which fails to detect test suites in the files after any run of the test-runner cli",
 		"//": "",
