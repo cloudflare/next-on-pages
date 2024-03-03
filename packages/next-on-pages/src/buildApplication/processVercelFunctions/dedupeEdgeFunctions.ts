@@ -504,6 +504,10 @@ function fixFunctionContents(contents: string): string {
 		/;let{originalRequest:([\w$]+)}=([\w$]+);/gm,
 		';let{originalRequest:$1=$2}=$2;',
 	);
+	contents = contents.replace(
+		/const { originalRequest } = ([\w$]+);/gm,
+		'const { originalRequest = $1 } = $1;',
+	);
 
 	return contents;
 }
