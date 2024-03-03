@@ -1,7 +1,7 @@
 import { parse } from 'acorn';
 import type * as AST from 'ast-types/gen/kinds';
 import { appendFile, mkdir, readFile, stat, writeFile } from 'node:fs/promises';
-import { dirname, join, relative } from 'node:path';
+import { dirname, join, relative, resolve } from 'node:path';
 import type { ProcessVercelFunctionsOpts } from '.';
 import type { CollectedFunctions, FunctionInfo } from './configs';
 import type {
@@ -103,7 +103,7 @@ async function processFunctionIdentifiers(
 				// Dedupe and update collected imports.
 				const { updatedContents } = await processImportIdentifier(
 					{ type, identifier, start, end, importPath, info: identifierInfo },
-					{ fileContents, entrypoint, newFnLocation },
+					{ fileContents, entrypoint, newFnLocation, fnConfig: fnInfo.config },
 					opts,
 				);
 
@@ -277,7 +277,12 @@ async function prependWasmImportsToCodeBlocks(
  */
 async function processImportIdentifier(
 	ident: RawIdentifierWithImport<IdentifierType> & { info: IdentifierInfo },
-	{ fileContents, entrypoint, newFnLocation }: ProcessImportIdentifierOpts,
+	{
+		fileContents,
+		entrypoint,
+		newFnLocation,
+		fnConfig,
+	}: ProcessImportIdentifierOpts,
 	{ nopDistDir, workerJsDir }: ProcessVercelFunctionsOpts,
 ): Promise<{ updatedContents: string }> {
 	const { type, identifier, start, end, importPath, info } = ident;
@@ -286,17 +291,24 @@ async function processImportIdentifier(
 	const codeBlock = updatedContents.slice(start, end);
 
 	if (!info.newDest) {
-		const importPathWithoutType = importPath
+		const importPathWithoutLeadingDots = importPath
 			// Remove leading `../`s from import path.
-			.replace(/^(\.\.\/)+/, '')
+			.replace(/^(\.\.\/)+/, '');
+		const importPathWithoutType = importPathWithoutLeadingDots
 			// Remove `type` directory from import path if it starts with it.
 			.replace(new RegExp(`^/${type}/`), '/');
 
 		const oldPath = join(dirname(entrypoint), importPath);
+		const originalFilePath = resolve(
+			// The Vercel function config does not use leading slashes in the file path map.
+			fnConfig.filePathMap?.[importPathWithoutLeadingDots.replace(/^\//, '')] ??
+				oldPath,
+		);
+
 		const newPath = join(nopDistDir, type, importPathWithoutType);
 		info.newDest = normalizePath(relative(workerJsDir, newPath));
 
-		await copyFileWithDir(oldPath, newPath);
+		await copyFileWithDir(originalFilePath, newPath);
 
 		const { size } = await stat(newPath);
 		info.byteLength = size;
@@ -322,6 +334,7 @@ type ProcessImportIdentifierOpts = {
 	fileContents: string;
 	entrypoint: string;
 	newFnLocation: string;
+	fnConfig: VercelFunctionConfig;
 };
 
 /**
@@ -520,7 +533,9 @@ async function processBundledAssets(
 ): Promise<void> {
 	for (const [functionPath, { relativePath, config }] of edgeFunctions) {
 		for (const { name, path } of config.assets ?? []) {
-			const originalFile = join(functionPath, path);
+			const originalFile = resolve(
+				config.filePathMap?.[path] ?? join(functionPath, path),
+			);
 			const destFile = `${join(nopDistDir, 'assets', name)}.bin`;
 			const relativeName = join(relativePath, path);
 

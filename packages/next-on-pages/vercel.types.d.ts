@@ -12,6 +12,7 @@ type VercelFunctionConfig = {
 	assets?: { name: string; path: string }[];
 	regions?: string | string[];
 	framework?: { slug: string; version?: string };
+	filePathMap?: { [key: string]: string };
 };
 
 type VercelPrerenderConfig = {
