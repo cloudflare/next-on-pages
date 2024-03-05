@@ -525,7 +525,10 @@ export class RoutesMatcher {
 				// When in the `miss` phase, enter `filesystem` if the file is not in the build output. This
 				// avoids rewrites in `none` that do the opposite of those in `miss`, and would cause infinite
 				// loops (e.g. i18n). If it is in the build output, remove a potentially applied `404` status.
-				if (!(this.path in this.output)) {
+				if (
+					!(this.path in this.output) &&
+					!(this.path.replace(/\/$/, '') in this.output)
+				) {
 					return this.checkPhase('filesystem');
 				}
 
