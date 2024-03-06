@@ -35,7 +35,7 @@ export function monkeyPatchVmModule({ env, cf, ctx, caches }: PlatformProxy) {
 
 	const originalRunInContext = vmModule.runInContext.bind(vmModule);
 
-	vmModule.runInContext = (...args: [string, RuntimeContext, ...[unknown]]) => {
+	vmModule.runInContext = (...args: [string, RuntimeContext, ...unknown[]]) => {
 		const runtimeContext = args[1];
 
 		runtimeContext[cloudflareRequestContextSymbol] ??= {
