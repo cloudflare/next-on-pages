@@ -59,7 +59,7 @@ function monkeyPatchProcessEnv(
 		runtimeContext.process?.env &&
 		!runtimeContext.process.env[processEnvIsPatched]
 	) {
-		if (runtimeContext.process?.env) {
+		if (runtimeContext.process.env) {
 			for (const [name, binding] of Object.entries(env)) {
 				runtimeContext.process.env[name] = binding;
 			}
