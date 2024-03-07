@@ -4,6 +4,20 @@ const cloudflareRequestContextSymbol = Symbol.for(
 	'__cloudflare-request-context__',
 );
 
+const processEnvIsPatched = Symbol('PROCESS.ENV_IS_PATCHED');
+
+const globalsArePatched = Symbol('GLOBALS_ARE_PATCHED');
+
+type RuntimeContext = Record<string, unknown> & {
+	process?: { env?: Record<string | symbol, unknown> };
+	[cloudflareRequestContextSymbol]?: {
+		env: unknown;
+		ctx: unknown;
+		cf: unknown;
+	};
+	[globalsArePatched]?: boolean;
+};
+
 /**
  * Next.js uses the Node.js vm module's `runInContext()` function to evaluate the edge functions
  * in a runtime context that tries to simulate as accurately as possible the actual production runtime
@@ -21,54 +35,62 @@ export function monkeyPatchVmModule({ env, cf, ctx, caches }: PlatformProxy) {
 
 	const originalRunInContext = vmModule.runInContext.bind(vmModule);
 
-	vmModule.runInContext = (
-		...args: [
-			string,
-			Record<string, unknown> & {
-				process?: { env?: Record<string, unknown> };
-				[cloudflareRequestContextSymbol]?: {
-					env: unknown;
-					ctx: unknown;
-					cf: unknown;
-				};
-			},
-			...[unknown],
-		]
-	) => {
+	vmModule.runInContext = (...args: [string, RuntimeContext, ...unknown[]]) => {
 		const runtimeContext = args[1];
 
-		if (!runtimeContext[cloudflareRequestContextSymbol]) {
-			runtimeContext[cloudflareRequestContextSymbol] = {
-				env,
-				ctx,
-				cf,
-			};
-			if (runtimeContext.process?.env) {
-				for (const [name, binding] of Object.entries(env)) {
-					runtimeContext.process.env[name] = binding;
-				}
-			}
+		runtimeContext[cloudflareRequestContextSymbol] ??= {
+			env,
+			ctx,
+			cf,
+		};
 
-			runtimeContext['caches'] = caches;
-
-			runtimeContext['Request'] = new Proxy(Request, {
-				construct(target, args, newTarget) {
-					if (
-						args.length >= 2 &&
-						typeof args[1] === 'object' &&
-						args[1].duplex === undefined
-					) {
-						args[1].duplex = 'half';
-					}
-					return Reflect.construct(target, args, newTarget);
-				},
-			});
-			runtimeContext['Response'] = Response;
-			runtimeContext['Headers'] = Headers;
-		}
+		monkeyPatchProcessEnv(runtimeContext, env);
+		monkeyPatchAuxiliaryGlobals(runtimeContext, caches);
 
 		return originalRunInContext(...args);
 	};
+}
+
+function monkeyPatchProcessEnv(
+	runtimeContext: RuntimeContext,
+	env: Record<string, unknown>,
+) {
+	if (
+		runtimeContext.process?.env &&
+		!runtimeContext.process.env[processEnvIsPatched]
+	) {
+		if (runtimeContext.process.env) {
+			for (const [name, binding] of Object.entries(env)) {
+				runtimeContext.process.env[name] = binding;
+			}
+		}
+		runtimeContext.process.env[processEnvIsPatched] = true;
+	}
+}
+
+function monkeyPatchAuxiliaryGlobals(
+	runtimeContext: RuntimeContext,
+	caches: PlatformProxy['caches'],
+) {
+	if (!runtimeContext[globalsArePatched]) {
+		runtimeContext['caches'] = caches;
+		runtimeContext['Request'] = new Proxy(Request, {
+			construct(target, args, newTarget) {
+				if (
+					args.length >= 2 &&
+					typeof args[1] === 'object' &&
+					args[1].duplex === undefined
+				) {
+					args[1].duplex = 'half';
+				}
+				return Reflect.construct(target, args, newTarget);
+			},
+		});
+		runtimeContext['Response'] = Response;
+		runtimeContext['Headers'] = Headers;
+
+		runtimeContext[globalsArePatched] = true;
+	}
 }
 
 /**
