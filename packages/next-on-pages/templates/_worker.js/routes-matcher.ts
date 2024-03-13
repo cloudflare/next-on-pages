@@ -547,6 +547,13 @@ export class RoutesMatcher {
 			return 'done';
 		}
 
+		// If the route is a redirect then we're actually done
+		const isRedirect =
+			route.status && route.status >= 300 && route.status <= 399;
+		if (isRedirect) {
+			return 'done';
+		}
+
 		return 'next';
 	}
 
