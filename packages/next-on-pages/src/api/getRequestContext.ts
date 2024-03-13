@@ -56,6 +56,21 @@ export function getRequestContext<
 	>();
 
 	if (!cloudflareRequestContext) {
+		const isPrerendering =
+			// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+			// @ts-ignore
+			process?.env?.['NEXT_PHASE'] === 'phase-production-build';
+
+		if (isPrerendering) {
+			// `getRequestContext` is called during prerendering only when it is being called at
+			// the top level of a route file, we do not have a clear/clean way to deal with this
+			// so we simply forbid such calls altogether
+			throw new Error(dedent`
+				\n\`getRequestContext\` is being called at the top level of a route file, this is not supported
+				for more details see https://developers.cloudflare.com/pages/framework-guides/nextjs/deploy-a-nextjs-site/#top-level-getrequestcontext \n
+			`);
+		}
+
 		let errorMessage = 'Failed to retrieve the Cloudflare request context.';
 
 		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
