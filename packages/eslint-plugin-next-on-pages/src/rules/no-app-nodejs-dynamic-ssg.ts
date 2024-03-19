@@ -63,7 +63,7 @@ const rule: Rule.RuleModule = {
 					if (!exportRuntimeEdgeFound && !dynamicParamsFalseFound) {
 						context.report({
 							message:
-								'`generateStaticParams` cannot be used without opting in to the edge runtime or opting out from the Dynamic segment handling',
+								'`generateStaticParams` cannot be used without opting in to the edge runtime or opting out of Dynamic segment handling',
 							node: declaration.id,
 						});
 					}
