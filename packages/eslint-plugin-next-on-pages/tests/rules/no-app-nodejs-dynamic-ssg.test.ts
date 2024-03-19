@@ -9,7 +9,7 @@ const tester = new RuleTester({
 
 const error = {
 	message:
-		'`generateStaticParams` cannot be used without opting in to the edge runtime or opting out from the Dynamic segment handling',
+		'`generateStaticParams` cannot be used without opting in to the edge runtime or opting out of Dynamic segment handling',
 };
 
 describe('no-app-nodejs-dynamic-ssg', () => {
