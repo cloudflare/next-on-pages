@@ -167,6 +167,27 @@ describe('getResizingProperties', () => {
 		});
 	});
 
+	describe('protocol relative (potentially another origin) image', () => {
+		test('image with valid request options succeeds', () => {
+			const url = new URL(
+				`${baseUrl}%2F%2Fvia.placeholder.com%2Fimage.jpg&w=640`,
+			);
+			const req = new Request(url);
+			const result = getResizingProperties(req, baseConfig);
+			expect(result).toEqual({
+				isRelative: false,
+				imageUrl: new URL('https://via.placeholder.com/image.jpg'),
+				options: { format: undefined, width: 640, quality: 75 },
+			});
+		});
+
+		test('image with disallowed domain fails', () => {
+			const url = new URL(`${baseUrl}%2F%2Finvalid.com%2Fimage.jpg&w=640`);
+			const req = new Request(url);
+			expect(getResizingProperties(req, baseConfig)).toEqual(undefined);
+		});
+	});
+
 	describe('external image', () => {
 		test('external image fails with disallowed domain', () => {
 			const url = new URL(
