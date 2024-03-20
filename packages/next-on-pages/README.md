@@ -121,9 +121,9 @@ const { env, cf, ctx } = getRequestContext();
 
 To see some examples on how to use Next.js features with `@cloudflare/next-on-pages`, see the [Examples document](https://github.com/cloudflare/next-on-pages/blob/main/packages/next-on-pages/docs/examples.md).
 
-## Gotchas
+## Troubleshooting
 
-There are a few gotchas that might trip developers over, please familiarize yourself with the [Gotchas document](https://github.com/cloudflare/next-on-pages/blob/main/packages/next-on-pages/docs/gotchas.md) in order to avoid such pitfalls.
+If you find yourself hitting some issues with `@cloudflare/next-on-pages` please check out our [official troubleshooting documentation](https://developers.cloudflare.com/pages/framework-guides/nextjs/deploy-a-nextjs-site/#troubleshooting).
 
 ## More Information
 
