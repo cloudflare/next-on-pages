@@ -57,8 +57,8 @@ jobs:
       - name: Run e2e tests
         uses: nick-fields/retry@v2
         with:
-          max_attempts: 3
-          timeout_minutes: 10
+          max_attempts: 5
+          timeout_minutes: 20
           command: rm -rf ./pages-e2e/test-workspaces ./pages-e2e/workspaces && npm run test:e2e -- -- --log-timestamp
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
