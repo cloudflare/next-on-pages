@@ -66,10 +66,8 @@ export function getResizingProperties(
 		return undefined;
 	}
 
-	const isProtocolRelative =
-		rawUrl.startsWith('//') || rawUrl.startsWith('%2F%2F');
-	const isRelative =
-		(rawUrl.startsWith('/') || rawUrl.startsWith('%2F')) && !isProtocolRelative;
+	const isProtocolRelative = rawUrl.startsWith('//');
+	const isRelative = rawUrl.startsWith('/') && !isProtocolRelative;
 
 	if (
 		// Relative URL means same origin as deployment and is allowed.
