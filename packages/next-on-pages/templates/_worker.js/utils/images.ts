@@ -158,12 +158,12 @@ export async function handleImageResizingRequest(
 
 	// TODO: implement proper image resizing
 
-	const imageResp =
+	const imgFetch =
 		isRelative && imageUrl.pathname in buildOutput
-			? await assetsFetcher.fetch(
-					new Request(imageUrl, { headers: request.headers }),
-			  )
-			: await fetch(imageUrl);
+			? assetsFetcher.fetch.bind(assetsFetcher)
+			: fetch;
+
+	const imageResp = await imgFetch(imageUrl);
 
 	return formatResp(imageResp, imageUrl, imagesConfig);
 }
