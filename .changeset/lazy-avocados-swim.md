@@ -2,4 +2,4 @@
 '@cloudflare/next-on-pages': patch
 ---
 
-don't pass the original request headers when fetching external images
+make sure that the original request headers are not passed along when fetching external images
