@@ -11,6 +11,8 @@
 		"resolveJsonModule": true,
 		"checkJs": false,
 
-		"exactOptionalPropertyTypes": false
+		"exactOptionalPropertyTypes": false,
+
+		"outDir": "dist"
 	}
 }
