@@ -1,5 +1,21 @@
 # eslint-plugin-next-on-pages
 
+## 1.11.0
+
+### Minor Changes
+
+- 702f601: add new `no-app-nodejs-dynamic-ssg` rule
+
+  add the new `no-app-nodejs-dynamic-ssg` rule that makes sure that
+  developers using `generateStaticParams` also export either the `runtime`
+  variable set to `edge` or the `dynamicParams` one set to `false`
+
+- 82aa1a4: add new `no-pages-nodejs-dynamic-ssg` rule
+
+  add the new `no-pages-nodejs-dynamic-ssg` rule that makes sure that
+  developers using `getStaticPaths` set the `fallback` property to `false`
+  or opt in into the `edge` runtime
+
 ## 1.10.0
 
 ## 1.9.0
