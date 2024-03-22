@@ -132,6 +132,21 @@ describe('getResizingProperties', () => {
 			});
 		});
 
+		['/', '%2f', '%2F'].forEach(char => {
+			test(`image with valid request options succeeds (using '${char}'s)`, () => {
+				const baseValidUrl = `${baseUrl}${char}images${char}1.jpg`;
+				const url = new URL(`${baseValidUrl}&w=640`);
+				const req = new Request(url);
+
+				const result = getResizingProperties(req, baseConfig);
+				expect(result).toEqual({
+					isRelative: true,
+					imageUrl: new URL('https://localhost/images/1.jpg'),
+					options: { format: undefined, width: 640, quality: 75 },
+				});
+			});
+		});
+
 		test('svg image fails when config disallows svgs', () => {
 			const url = new URL(`${baseValidUrl.replace('jpg', 'svg')}&w=640`);
 			const req = new Request(url);
@@ -163,6 +178,33 @@ describe('getResizingProperties', () => {
 				isRelative: true,
 				imageUrl: new URL('https://localhost/images/1.svg'),
 				options: { format: undefined, width: 640, quality: 75 },
+			});
+		});
+	});
+
+	describe('protocol relative (potentially another origin) image', () => {
+		const protocolRelativePrefixes = ['%2F%2F', '//', '%2f%2f', '%2f/', '/%2f'];
+
+		protocolRelativePrefixes.forEach(prefix => {
+			test(`image with valid request options succeeds (with ${prefix} prefix)`, () => {
+				const url = new URL(
+					`${baseUrl}${prefix}via.placeholder.com%2Fimage.jpg&w=640`,
+				);
+				const req = new Request(url);
+				const result = getResizingProperties(req, baseConfig);
+				expect(result).toEqual({
+					isRelative: false,
+					imageUrl: new URL('https://via.placeholder.com/image.jpg'),
+					options: { format: undefined, width: 640, quality: 75 },
+				});
+			});
+		});
+
+		protocolRelativePrefixes.forEach(prefix => {
+			test(`image with disallowed domain fails (with "${prefix}" prefix)`, () => {
+				const url = new URL(`${baseUrl}${prefix}invalid.com%2Fimage.jpg&w=640`);
+				const req = new Request(url);
+				expect(getResizingProperties(req, baseConfig)).toEqual(undefined);
 			});
 		});
 	});
