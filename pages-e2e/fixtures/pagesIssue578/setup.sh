@@ -1,2 +1,1 @@
-# Install next-on-pages
-npm i ../../../packages/next-on-pages
+# No setup required

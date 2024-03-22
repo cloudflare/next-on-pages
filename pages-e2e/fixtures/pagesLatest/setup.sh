@@ -17,6 +17,3 @@ rm -rf application
 
 # Delete the pages/api/hello.ts as it is a default nodejs one (as we do recreate an edge version of it anyways)
 rm -rf ./pages/api/hello.ts
-
-# Install next-on-pages
-npm i ../../../packages/next-on-pages

@@ -10,9 +10,9 @@
 		"appWasm",
 		"appGetRequestContext"
 	],
-	"localSetup": "npm install && npm i ../../../packages/next-on-pages",
+	"localSetup": "npm install",
 	"buildConfig": {
-		"buildCommand": "npx @cloudflare/next-on-pages",
+		"buildCommand": "npx --force ../../../packages/next-on-pages",
 		"buildOutputDirectory": ".vercel/output/static"
 	},
 	"deploymentConfig": {
