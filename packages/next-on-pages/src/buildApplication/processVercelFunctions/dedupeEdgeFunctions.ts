@@ -501,11 +501,11 @@ function fixFunctionContents(contents: string): string {
 	// This resolves a critical issue in Next.js 14.0.2 that breaks edge runtime rendering due to the assumption
 	// that the the passed internal request is of type `NodeNextRequest` and never `WebNextRequest`.
 	contents = contents.replace(
-		/;let{originalRequest:([\w$]+)}=([\w$]+);/gm,
+		/;let{originalRequest:([\w$]+)}=([\w$]+)[,;]/gm,
 		';let{originalRequest:$1=$2}=$2;',
 	);
 	contents = contents.replace(
-		/const { originalRequest } = ([\w$]+);/gm,
+		/const { originalRequest } = ([\w$]+)[,;]/gm,
 		'const { originalRequest = $1 } = $1;',
 	);
 
