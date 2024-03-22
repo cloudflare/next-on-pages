@@ -1,5 +1,21 @@
 # @cloudflare/next-on-pages
 
+## 1.11.0
+
+### Patch Changes
+
+- 555b4a7: fix `trailingSlash` set to `true` alongside `i18n` enabled causing incorrect `404`s
+- 8da9da2: Make sure protocol relative URLs are not treated as actual relative URLs
+- 60eb0ae: fix issue in which redirect responses become rewrites when a middleware is involved
+- c3fb67b: make sure that the original request headers are not passed along when fetching external images
+- 9900517: fix `process.env` not giving access to bindings during local development (in `next-dev`)
+- 869cee0: Throw a user friendly error message when `getRequestContext` is called during prerendering
+- 53cb762: fix applications using Next.js v.14.2.0-canary.18 and up
+
+  In v.14.2.0-canary.18 a simple upstream change in Next.js changes the code that
+  next-on-pages receives, nullifying a find-and-replace regex that next-on-pages
+  is currently relying on, update such regex so that it can handle the new code
+
 ## 1.10.0
 
 ### Minor Changes
