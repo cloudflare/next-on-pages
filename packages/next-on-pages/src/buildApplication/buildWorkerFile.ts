@@ -6,6 +6,8 @@ import { generateGlobalJs } from './generateGlobalJs';
 import type { ProcessedVercelOutput } from './processVercelOutput';
 import { getNodeEnv } from '../utils/getNodeEnv';
 import { normalizePath } from '../utils';
+import { buildCacheFiles } from './buildCacheFiles';
+import { extractBuildMetadataConfig, getNextConfig } from './nextConfig';
 
 /**
  * Construct a record for the build output map.
@@ -61,6 +63,14 @@ export async function buildWorkerFile(
 
 	const outputFile = join(workerJsDir, 'index.js');
 
+	const nextConfig = await getNextConfig();
+
+	const buildMetadataConfig = nextConfig
+		? {
+				config: extractBuildMetadataConfig(nextConfig),
+		  }
+		: {};
+
 	await build({
 		entryPoints: [join(templatesDir, '_worker.js')],
 		banner: {
@@ -76,22 +86,14 @@ export async function buildWorkerFile(
 			__NODE_ENV__: JSON.stringify(getNodeEnv()),
 			__BUILD_METADATA__: JSON.stringify({
 				collectedLocales: collectLocales(vercelConfig.routes),
+				...buildMetadataConfig,
 			}),
 		},
 		outfile: outputFile,
 		minify,
 	});
 
-	await build({
-		entryPoints: ['adaptor.ts', 'cache-api.ts', 'kv.ts'].map(fileName =>
-			join(templatesDir, 'cache', fileName),
-		),
-		bundle: false,
-		target: 'es2022',
-		platform: 'neutral',
-		outdir: join(nopDistDir, 'cache'),
-		minify,
-	});
+	await buildCacheFiles(nopDistDir, minify, templatesDir);
 
 	return relative('.', outputFile);
 }

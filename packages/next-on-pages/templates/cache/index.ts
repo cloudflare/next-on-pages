@@ -1,1 +1,1 @@
-export * from './adaptor';
+export * from './builtInCacheHandler';

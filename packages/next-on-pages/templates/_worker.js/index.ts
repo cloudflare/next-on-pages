@@ -41,8 +41,13 @@ export default {
 			asyncLocalStorages;
 
 		return envAsyncLocalStorage.run(
-			// NOTE: The `SUSPENSE_CACHE_URL` is used to tell the Next.js Fetch Cache where to send requests.
-			{ ...env, NODE_ENV: __NODE_ENV__, SUSPENSE_CACHE_URL },
+			{
+				...env,
+				NODE_ENV: __NODE_ENV__,
+				// NOTE: The `SUSPENSE_CACHE_URL` is used to tell the Next.js Fetch Cache where to send requests.
+				SUSPENSE_CACHE_URL,
+				__BUILD_METADATA__,
+			},
 			async () => {
 				return requestContextAsyncLocalStorage.run(
 					{ env, ctx, cf: request.cf },
