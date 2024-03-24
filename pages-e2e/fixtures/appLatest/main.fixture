@@ -14,7 +14,7 @@
 	],
 	"localSetup": "./setup.sh",
 	"buildConfig": {
-		"buildCommand": "npx --force ../../../packages/next-on-pages",
+		"buildCommand": "npx @cloudflare/next-on-pages",
 		"buildOutputDirectory": ".vercel/output/static"
 	},
 	"deploymentConfig": {
