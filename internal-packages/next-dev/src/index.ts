@@ -12,7 +12,7 @@ export * from './deprecated';
  * @param options options how the function should operate and if/where to persist the platform data
  */
 export async function setupDevPlatform(
-	options: GetPlatformProxyOptions,
+	options?: GetPlatformProxyOptions,
 ): Promise<void> {
 	const continueSetup = shouldSetupContinue();
 	if (!continueSetup) return;
