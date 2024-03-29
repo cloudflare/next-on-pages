@@ -3,17 +3,14 @@
 	"version": "1.11.0",
 	"bin": "./bin/index.js",
 	"exports": {
-		".": "./dist/api/index.js",
-		"./next-dev": "./dist/next-dev/index.cjs"
-	},
-	"typesVersions": {
-		"*": {
-			".": [
-				"./dist/api/index.d.ts"
-			],
-			"next-dev": [
-				"./dist/next-dev/index.d.ts"
-			]
+		".": {
+			"import": "./dist/api/index.js",
+			"types": "./dist/api/index.d.ts"
+		},
+		"./next-dev": {
+			"import": "./dist/next-dev/index.cjs",
+			"require": "./dist/next-dev/index.cjs",
+			"types": "./dist/next-dev/index.d.ts"
 		}
 	},
 	"scripts": {
