@@ -12,6 +12,7 @@ import {
 	runOrFetchBuildOutputItem,
 } from './utils';
 import type { RequestContext } from '../../src/utils/requestContext';
+import { normalizeMultiSegmentsPath } from './utils/path';
 
 export type CheckRouteStatus = 'skip' | 'next' | 'done' | 'error';
 export type CheckPhaseStatus = Extract<CheckRouteStatus, 'error' | 'done'>;
@@ -336,6 +337,8 @@ export class RoutesMatcher {
 		}
 
 		this.path = applyPCREMatches(processedDest, srcMatch, captureGroupKeys);
+
+		this.path = normalizeMultiSegmentsPath(this.path);
 
 		// NOTE: Special handling for `/index` RSC routes. Sometimes the Vercel build output config
 		// has a record to rewrite `^/` to `/index.rsc`, however, this will hit requests to pages
