@@ -32,7 +32,7 @@ export async function buildFile(
 		platform: 'neutral',
 		outfile: filePath,
 		bundle: true,
-		external: ['node:*', `${relativeNopDistPath}/*`, '*.wasm'],
+		external: ['node:*', `${relativeNopDistPath}/*`, '*.wasm', 'cloudflare:*'],
 		minify: true,
 		plugins: [nodeBuiltInModulesPlugin],
 	});
