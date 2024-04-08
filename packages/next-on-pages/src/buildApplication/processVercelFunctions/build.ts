@@ -95,8 +95,8 @@ export const builtInModulesPlugin: Plugin = {
 	setup(build) {
 		build.onResolve({ filter: /^(node|cloudflare):/ }, ({ kind, path }) => {
 			/**
-			 * This plugin converts `require("prefix:*")` calls, those are the only ones that need
-			 * updating (esm imports to "prefix:*" are totally valid), so here we tag with the
+			 * This plugin converts `require("<PREFIX>:*")` calls, those are the only ones that need
+			 * updating (esm imports to "<PREFIX>:*" are totally valid), so here we tag with the
 			 * built-in-modules namespace only imports that are require calls.
 			 */
 			return kind === 'require-call'
@@ -106,7 +106,7 @@ export const builtInModulesPlugin: Plugin = {
 
 		/**
 		 * We convert the imports we tagged with the built-in-modules namespace so that instead of
-		 * `require("prefix:*")` they import from `export * from "prefix:*";`
+		 * `require("<PREFIX>:*")` they import from `export * from "<PREFIX>:*";`
 		 */
 		build.onLoad(
 			{ filter: /.*/, namespace: 'built-in-modules' },
