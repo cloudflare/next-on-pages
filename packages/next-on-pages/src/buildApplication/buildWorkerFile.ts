@@ -70,7 +70,7 @@ export async function buildWorkerFile(
 		inject: [functionsFile],
 		target: 'es2022',
 		platform: 'neutral',
-		external: ['node:*', './__next-on-pages-dist__/*'],
+		external: ['node:*', './__next-on-pages-dist__/*', 'cloudflare:*'],
 		define: {
 			__CONFIG__: JSON.stringify(vercelConfig),
 			__NODE_ENV__: JSON.stringify(getNodeEnv()),

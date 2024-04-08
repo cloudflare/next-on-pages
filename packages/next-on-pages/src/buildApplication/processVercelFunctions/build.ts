@@ -32,9 +32,9 @@ export async function buildFile(
 		platform: 'neutral',
 		outfile: filePath,
 		bundle: true,
-		external: ['node:*', `${relativeNopDistPath}/*`, '*.wasm'],
+		external: ['node:*', `${relativeNopDistPath}/*`, '*.wasm', 'cloudflare:*'],
 		minify: true,
-		plugins: [nodeBuiltInModulesPlugin],
+		plugins: [builtInModulesPlugin],
 	});
 }
 
@@ -83,24 +83,33 @@ type RelativePathOpts = {
 	relativeTo?: string;
 };
 
-// Chunks can contain `require("node:*")`, this is not allowed and breaks at runtime
-// the following fixes this by updating the require to a standard esm import from "node:*"
-export const nodeBuiltInModulesPlugin: Plugin = {
-	name: 'node:built-in:modules',
+/**
+ * Chunks can contain dynamic require statements for built-in modules. This is not allowed and
+ * breaks at runtime. The following fixes this by updating the dynamic require to a standard esm
+ * import from the built-in module.
+ *
+ * This applies to `require("node:*")` and `require("cloudflare:*")`.
+ */
+export const builtInModulesPlugin: Plugin = {
+	name: 'built-in:modules',
 	setup(build) {
-		build.onResolve({ filter: /^node:/ }, ({ kind, path }) => {
-			// this plugin converts `require("node:*")` calls, those are the only ones that
-			// need updating (esm imports to "node:*" are totally valid), so here we tag with the
-			// node-buffer namespace only imports that are require calls
+		build.onResolve({ filter: /^(node|cloudflare):/ }, ({ kind, path }) => {
+			/**
+			 * This plugin converts `require("<PREFIX>:*")` calls, those are the only ones that need
+			 * updating (esm imports to "<PREFIX>:*" are totally valid), so here we tag with the
+			 * built-in-modules namespace only imports that are require calls.
+			 */
 			return kind === 'require-call'
-				? { path, namespace: 'node-built-in-modules' }
+				? { path, namespace: 'built-in-modules' }
 				: undefined;
 		});
 
-		// we convert the imports we tagged with the node-built-in-modules namespace so that instead of `require("node:*")`
-		// they import from `export * from "node:*";`
+		/**
+		 * We convert the imports we tagged with the built-in-modules namespace so that instead of
+		 * `require("<PREFIX>:*")` they import from `export * from "<PREFIX>:*";`
+		 */
 		build.onLoad(
-			{ filter: /.*/, namespace: 'node-built-in-modules' },
+			{ filter: /.*/, namespace: 'built-in-modules' },
 			({ path }) => {
 				return {
 					contents: `export * from '${path}'`,
