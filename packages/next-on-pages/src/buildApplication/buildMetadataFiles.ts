@@ -34,11 +34,11 @@ async function buildNextStaticHeaders(
 
 	const hitRoutes = getPhaseRoutes(vercelConfig.routes ?? [], 'hit');
 
+	const nextStaticPath = getNextStaticDirPath(opts);
 	const nextStaticRoute = hitRoutes.find(route =>
-		route.src?.includes('/_next/static/'),
+		route.src?.startsWith(nextStaticPath),
 	);
 	const nextStaticHeaders = (nextStaticRoute as VercelSource)?.headers;
-	const nextStaticPath = getNextStaticDirPath(opts);
 
 	if (nextStaticHeaders) {
 		await writeFile(
