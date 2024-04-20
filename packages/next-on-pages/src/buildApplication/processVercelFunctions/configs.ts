@@ -28,7 +28,7 @@ export async function collectFunctionConfigsRecursively(
 	const dirs = await readDirectories(baseDir);
 
 	for (const { path } of dirs) {
-		if (path.endsWith('.func')) {
+		if (path.endsWith('.func') && !path.endsWith('.action.func')) {
 			const configPath = join(path, '.vc-config.json');
 			const config = await readJsonFile<VercelFunctionConfig>(configPath);
 

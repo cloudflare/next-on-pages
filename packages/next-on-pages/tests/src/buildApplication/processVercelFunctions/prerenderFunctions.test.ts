@@ -69,6 +69,26 @@ describe('processPrerenderFunctions', () => {
 		expect(invalidFunctions.size).toEqual(0);
 	});
 
+	test('excludes action.func folders', async () => {
+		const { collectedFunctions, restoreFsMock } = await collectFunctionsFrom({
+			functions: {
+				'index.func': prerenderFuncDir,
+				'index.action.func': prerenderFuncDir,
+				'index.prerender-config.json': mockPrerenderConfigFile('index'),
+				'index.prerender-fallback.html': '',
+			},
+		});
+
+		await processPrerenderFunctions(collectedFunctions, {
+			functionsDir,
+			outputDir,
+		});
+		restoreFsMock();
+
+		const { invalidFunctions } = collectedFunctions;
+		expect(invalidFunctions.size).toEqual(0);
+	})
+
 	test('succeeds for prerendered favicon', async () => {
 		const { collectedFunctions, restoreFsMock } = await collectFunctionsFrom({
 			functions: {
