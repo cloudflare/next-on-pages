@@ -112,7 +112,7 @@ When we receive a request, the router looks for matches in the different phases,
 
 For every single source route in a phase, we check to see whether the route is a match, and process the relevant details (for more details on source checking see the [Checking Source Routes section](#checking-source-routes)). When we receive a response from the route checker, if we encountered an error — normally from running middleware — we break out of the routing process and return the error response. Otherwise, the only other time we disable the continuation of routing is if the route checker returns a final match.
 
-After all the source routes in the current phase have been checked, we move on to determine what will happen next. If the current phase is the `hit` phase, or the route has at some point been rewritten to an URL, the routing is complete and we're ready to server the the response.
+After all the source routes in the current phase have been checked, we move on to determine what will happen next. If the current phase is the `hit` phase, or the route has at some point been rewritten to an URL, the routing is complete and we're ready to serve the response.
 
 If the current phase is `miss`, we check the build output, if there is no file matching the requested one we set the status code to 404. Afterwards, if a file was found in the output, or the current phase is `error`, we move on to the `hit` phase. It is important that the `hit` phase is run every time a match is found in the build output or when the current phase is `miss` or `error`, because this allows us to update the headers for the response with the current matched path.
 
@@ -163,7 +163,7 @@ One of the edge cases that we have to deal with when internationalization is ena
 
 #### Middleware
 
-Next up, any middleware is run. Middleware occurs during the `none` phase, at the very start of the routing process. The response headers from the middleware and taken and applied to the request and the response object, where appropriate.
+Next up, any middleware is run. Middleware occurs during the `none` phase, at the very start of the routing process. The response headers from the middleware are taken and applied to the request and the response object, where appropriate.
 
 Additionally, it is important to check whether the middleware was a rewrite, so that the current path can be updated.
 
