@@ -28,7 +28,7 @@ export async function collectFunctionConfigsRecursively(
 	const dirs = await readDirectories(baseDir);
 
 	for (const { path } of dirs) {
-		if (path.endsWith('.func') && !path.endsWith('.action.func')) {
+		if (path.endsWith('.func')) {
 			const configPath = join(path, '.vc-config.json');
 			const config = await readJsonFile<VercelFunctionConfig>(configPath);
 
@@ -36,7 +36,10 @@ export async function collectFunctionConfigsRecursively(
 				normalizePath(relative(configs.functionsDir, path)),
 			);
 
-			if (config?.operationType?.toLowerCase() === 'isr') {
+			if (
+				config?.operationType?.toLowerCase() === 'isr' &&
+				!path.endsWith('.action.func')
+			) {
 				configs.prerenderedFunctions.set(path, { relativePath, config });
 			} else if (config?.runtime?.toLowerCase() === 'edge') {
 				const formattedPathName = formatRoutePath(relativePath);

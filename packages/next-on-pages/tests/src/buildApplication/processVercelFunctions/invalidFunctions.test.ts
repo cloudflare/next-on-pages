@@ -7,6 +7,8 @@ import {
 	nodejsFuncDir,
 	getRouteInfo,
 	createPrerenderedRoute,
+	prerenderFuncDir,
+	mockPrerenderConfigFile,
 } from '../../../_helpers';
 import { resolve } from 'path';
 import { processEdgeFunctions } from '../../../../src/buildApplication/processVercelFunctions/edgeFunctions';
@@ -176,5 +178,46 @@ describe('checkInvalidFunctions', () => {
 		expect(ignoredFunctions.has(resolve(functionsDir, 'foo.func'))).toEqual(
 			true,
 		);
+	});
+
+	test('should ignore .action.func functions', async () => {
+		const { collectedFunctions, restoreFsMock } = await collectFunctionsFrom({
+			functions: {
+				'index.func': prerenderFuncDir,
+				'index.action.func': prerenderFuncDir,
+				'index.prerender-config.json': mockPrerenderConfigFile('index'),
+				'index.prerender-fallback.html': '',
+			},
+		});
+
+		const opts = {
+			functionsDir,
+			outputDir: resolve('.vercel/output/static'),
+			vercelConfig: { version: 3 as const },
+		};
+
+		await processEdgeFunctions(collectedFunctions);
+		await processPrerenderFunctions(collectedFunctions, opts);
+		await checkInvalidFunctions(collectedFunctions, opts);
+		restoreFsMock();
+
+		const { prerenderedFunctions, invalidFunctions, ignoredFunctions } =
+			collectedFunctions;
+
+		expect(prerenderedFunctions.size).toEqual(1);
+		expect(getRouteInfo(prerenderedFunctions, 'index.func')).toEqual({
+			path: '/index.html',
+			overrides: ['/index', '/'],
+			headers: {
+				vary: 'RSC, Next-Router-State-Tree, Next-Router-Prefetch',
+			},
+		});
+
+		expect(invalidFunctions.size).toEqual(0);
+
+		expect(ignoredFunctions.size).toEqual(1);
+		expect(
+			ignoredFunctions.has(resolve(functionsDir, 'index.action.func')),
+		).toEqual(true);
 	});
 });

@@ -39,6 +39,8 @@ export async function checkInvalidFunctions(
 		await fixAppRouterInvalidErrorFunctions(collectedFunctions);
 	}
 
+	await fixActionInvalidFuncFunctions(collectedFunctions);
+
 	await tryToFixI18nFunctions(collectedFunctions, opts);
 
 	await tryToFixInvalidFuncsWithValidIndexAlternative(collectedFunctions);
@@ -110,6 +112,24 @@ async function tryToFixAppRouterNotFoundFunction({
 
 		if (invalidNotFound) {
 			break;
+		}
+	}
+}
+
+/**
+ * TODO: ADD PROPER COMMENT HERE
+ */
+async function fixActionInvalidFuncFunctions({
+	invalidFunctions,
+	ignoredFunctions,
+}: CollectedFunctions): Promise<void> {
+	for (const [fullPath, fnInfo] of invalidFunctions.entries()) {
+		if (fullPath.endsWith('.action.func')) {
+			ignoredFunctions.set(fullPath, {
+				reason: 'invalid .actions.func functions are ignored',
+				...fnInfo,
+			});
+			invalidFunctions.delete(fullPath);
 		}
 	}
 }
