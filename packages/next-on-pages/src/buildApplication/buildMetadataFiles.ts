@@ -35,8 +35,8 @@ async function buildNextStaticHeaders(
 	const hitRoutes = getPhaseRoutes(vercelConfig.routes ?? [], 'hit');
 
 	const nextStaticPath = getNextStaticDirPath(opts);
-	const nextStaticRoute = hitRoutes.find(route =>
-		route.src?.startsWith(nextStaticPath),
+	const nextStaticRoute = hitRoutes.find(
+		route => route.src?.startsWith(nextStaticPath),
 	);
 	const nextStaticHeaders = (nextStaticRoute as VercelSource)?.headers;
 
