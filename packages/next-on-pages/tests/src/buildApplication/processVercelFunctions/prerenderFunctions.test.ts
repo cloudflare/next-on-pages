@@ -87,7 +87,7 @@ describe('processPrerenderFunctions', () => {
 
 		const { invalidFunctions } = collectedFunctions;
 		expect(invalidFunctions.size).toEqual(0);
-	})
+	});
 
 	test('succeeds for prerendered favicon', async () => {
 		const { collectedFunctions, restoreFsMock } = await collectFunctionsFrom({
