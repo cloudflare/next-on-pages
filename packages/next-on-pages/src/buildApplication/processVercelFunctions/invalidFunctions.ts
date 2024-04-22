@@ -117,7 +117,7 @@ async function tryToFixAppRouterNotFoundFunction({
 }
 
 /**
- * TODO: ADD PROPER COMMENT HERE
+ * Ignore folders that end with `.action.func` as it's currently unused in next.js
  */
 async function fixActionInvalidFuncFunctions({
 	invalidFunctions,
