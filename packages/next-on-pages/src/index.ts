@@ -65,6 +65,9 @@ function runBuild(options: CliOptions) {
 		const errorMessage =
 			error instanceof Error ? error.message : JSON.stringify(error);
 		cliError(`Unexpected error: ${errorMessage}`);
+		if (!options.watch) {
+			process.exit(1);
+		}
 	});
 }
 
