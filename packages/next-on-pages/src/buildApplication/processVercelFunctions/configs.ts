@@ -36,7 +36,10 @@ export async function collectFunctionConfigsRecursively(
 				normalizePath(relative(configs.functionsDir, path)),
 			);
 
-			if (config?.operationType?.toLowerCase() === 'isr') {
+			if (
+				config?.operationType?.toLowerCase() === 'isr' &&
+				!path.endsWith('.action.func')
+			) {
 				configs.prerenderedFunctions.set(path, { relativePath, config });
 			} else if (config?.runtime?.toLowerCase() === 'edge') {
 				const formattedPathName = formatRoutePath(relativePath);
