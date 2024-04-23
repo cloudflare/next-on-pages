@@ -1,5 +1,15 @@
 # @cloudflare/next-on-pages
 
+## 1.11.1
+
+### Patch Changes
+
+- f7bf30b: Ignore the invalid `*.action.func` folders introduced in next.js 14.2.2
+- 446e9af: exit with exit status 1 on build unexpected errors (when watch mode is disabled)
+- 5170477: Respect next `basePath` when configuring `_next/static` headers.
+- ad4ca02: Convert dynamic requires for `cloudflare:*` built-ins to import statements.
+- ad4ca02: Mark `cloudflare:*` as external for esbuild.
+
 ## 1.11.0
 
 ### Patch Changes
