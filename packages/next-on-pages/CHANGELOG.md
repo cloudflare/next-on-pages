@@ -1,5 +1,17 @@
 # @cloudflare/next-on-pages
 
+## 1.11.2
+
+### Patch Changes
+
+- 31c2627: update `package.json` to properly export the typescript types
+
+  the current types are declared in the `package.json` via `typesVersions`
+  such don't seem to get picked up correctly by all package managers, to for
+  the types use the `package.json` `exports` field instead
+
+- 31c2627: fix the `setupDevPlatform`'s `options` parameter not being optional
+
 ## 1.11.1
 
 ### Patch Changes
