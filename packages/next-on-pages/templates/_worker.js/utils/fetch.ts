@@ -23,7 +23,10 @@ function applyPatch() {
 		let response = await handleInlineAssetRequest(request);
 		if (response) return response;
 
-		response = await handleSuspenseCacheRequest(request);
+		response = await handleSuspenseCacheRequest(
+			request,
+			process.env.__BUILD_METADATA__,
+		);
 		if (response) return response;
 
 		setRequestUserAgentIfNeeded(request);
