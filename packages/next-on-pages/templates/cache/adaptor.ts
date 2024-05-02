@@ -203,7 +203,13 @@ export class CacheAdaptor {
 	 * @returns The fully-formed cache key for the suspense cache.
 	 */
 	public buildCacheKey(key: string) {
-		return `https://${SUSPENSE_CACHE_URL}/entry/${key}`;
+		// Note: we use the pages commit sha if present so that caches from
+		//       a previous deployment are not reused for new ones
+		return `https://${SUSPENSE_CACHE_URL}${
+			process.env.CF_PAGES_COMMIT_SHA
+				? `/${process.env.CF_PAGES_COMMIT_SHA}`
+				: ''
+		}/entry/${key}`;
 	}
 }
 

@@ -4,6 +4,7 @@ declare global {
 			NODE_ENV?: string;
 			npm_config_user_agent?: string;
 			CF_PAGES?: string;
+			CF_PAGES_COMMIT_SHA?: string;
 			SHELL?: string;
 			__NEXT_ON_PAGES__KV_SUSPENSE_CACHE?: KVNamespace;
 			[key: string]: string | Fetcher;
