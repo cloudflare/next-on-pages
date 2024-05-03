@@ -3,7 +3,7 @@
 `@cloudflare/next-on-pages` comes with support for data revalidation and caching for fetch requests. This is done in our router and acts as an extension to Next.js' built-in functionality.
 
 > [!NOTE]
-> This cache is persisted across deployments inline with the standard behaviour. You are responsible for revalidating/purging this cache. It is not handled for you by `@cloudflare/next-on-pages` or Cloudflare Pages.
+> This cache is persisted across deployments inline with what the [Next.js documentation states](https://nextjs.org/docs/app/building-your-application/caching#data-cache). You are responsible for revalidating/purging this cache. It is not handled for you by `@cloudflare/next-on-pages` or Cloudflare Pages.
 > If you wish to opt-out of this caching pelease see: https://nextjs.org/docs/app/building-your-application/caching#opting-out-1
 
 ## Storage Options
