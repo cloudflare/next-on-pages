@@ -17,8 +17,11 @@ export function patchFetch(): void {
 function applyPatch() {
 	const originalFetch = globalThis.fetch;
 
-	globalThis.fetch = async (...args) => {
-		const request = new Request(...args);
+	globalThis.fetch = async (input, requestInit) => {
+		// @ts-expect-error - `cache` exists on `RequestInit` in Node.js, but not workerd.
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
+		const { cache, ...init } = requestInit ?? {};
+		const request = new Request(input, init);
 
 		let response = await handleInlineAssetRequest(request);
 		if (response) return response;

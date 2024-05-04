@@ -491,10 +491,25 @@ function fixFunctionContents(contents: string): string {
 
 	// The workers runtime does not implement `cache` on RequestInit. This is used in Next.js' patched fetch.
 	// Due to this, we remove the `cache` property from those that Next.js adds to RequestInit.
-	// https://github.com/vercel/next.js/blob/269114b5cc583f0c91e687c1aeb61503ef681b91/packages/next/src/server/lib/patch-fetch.ts#L304
+	// https://github.com/vercel/next.js/blob/9ec37c12/packages/next/src/server/lib/patch-fetch.ts#L504
 	contents = contents.replace(
 		/"cache",("credentials","headers","integrity","keepalive","method","mode","redirect","referrer")/gm,
 		'$1',
+	);
+
+	// React's server code creates new Request objects that can contain the `cache` property in RequestInit.
+	// This is not supported on workerd, so we need to replace their ternary statement with a way to strip
+	// the `cache` property from the `RequestInit` object.
+	// https://github.com/vercel/next.js/blob/9ec37c12/packages/next/src/compiled/react/cjs/react.react-server.production.js#L87
+	contents = contents.replace(
+		/([\w$]+) instanceof URL\?new Request\([\w$]+,([\w$]+)\):[\w$]+;/gm,
+		`(() => {
+			if ($1 instanceof URL) {
+				const { cache, ...init } = $2 ?? {};
+				return new Request($1, init);
+			}
+			return $1;
+		})();`,
 	);
 
 	// TODO: Remove once https://github.com/vercel/next.js/issues/58265 is fixed.
