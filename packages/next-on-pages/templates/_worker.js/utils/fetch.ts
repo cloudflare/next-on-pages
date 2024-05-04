@@ -5,13 +5,13 @@ import { handleSuspenseCacheRequest } from './cache';
  * to work
  */
 export function patchFetch(): void {
-	const alreadyPatched = (globalThis.fetch as Fetch)[patchFlagSymbol];
+	const alreadyPatched = (globalThis as GlobalWithPatchSymbol)[patchFlagSymbol];
 
 	if (alreadyPatched) return;
 
 	applyPatch();
 
-	(globalThis.fetch as Fetch)[patchFlagSymbol] = true;
+	(globalThis as GlobalWithPatchSymbol)[patchFlagSymbol] = true;
 }
 
 function applyPatch() {
@@ -117,4 +117,4 @@ function setRequestUserAgentIfNeeded(
 
 const patchFlagSymbol = Symbol.for('next-on-pages fetch patch');
 
-type Fetch = typeof globalThis.fetch & { [patchFlagSymbol]: boolean };
+type GlobalWithPatchSymbol = typeof globalThis & { [patchFlagSymbol]: boolean };
