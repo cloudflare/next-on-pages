@@ -75,6 +75,7 @@ export class CacheAdaptor {
 			}
 		}
 
+        // Make sure the cache has been updated before returning
 		await updateOp;
 	}
 
@@ -92,7 +93,7 @@ export class CacheAdaptor {
 		// Get entry from the cache.
 		const entryPromise = this.retrieve(key);
 
-		// And start loading the tags manifest.
+		// Start loading the tags manifest.
 		const tagsManifestLoad = this.loadTagsManifest();
 
 		const entry = await entryPromise;
