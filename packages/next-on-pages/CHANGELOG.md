@@ -1,5 +1,11 @@
 # @cloudflare/next-on-pages
 
+## 1.11.3
+
+### Patch Changes
+
+- 317e872: Fix hanging promise caused by fetch patch symbol
+
 ## 1.11.2
 
 ### Patch Changes
