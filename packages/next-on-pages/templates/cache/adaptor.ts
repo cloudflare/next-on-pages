@@ -15,8 +15,6 @@ export class CacheAdaptor {
 	public tagsManifestKey = 'tags-manifest';
 	/** Promise that resolves when tags manifest is loaded */
 	public tagsManifestPromise: Promise<void> | undefined;
-	/** Records the last successful load time of the tags manifest */
-	public lastTagsManifestLoad: number | undefined;
 
 	/**
 	 * @param ctx The incremental cache context from Next.js. NOTE: This is not currently utilised in NOP.
@@ -75,7 +73,7 @@ export class CacheAdaptor {
 			}
 		}
 
-        // Make sure the cache has been updated before returning
+		// Make sure the cache has been updated before returning
 		await updateOp;
 	}
 
@@ -156,25 +154,19 @@ export class CacheAdaptor {
 	 * @param force Whether to force a reload of the tags manifest.
 	 */
 	public async loadTagsManifest(force = false): Promise<void> {
-		// Refresh tags manifest after 1 second or if not loaded.
-		const shouldLoad =
-			force ||
-			!this.tagsManifest ||
-			!this.lastTagsManifestLoad ||
-			Date.now() - this.lastTagsManifestLoad > 1000;
+		// Load tags manifest if missing or refresh if forced.
+		const shouldLoad = force || !this.tagsManifest;
 
 		if (!shouldLoad) {
 			return;
 		}
 
 		// If the tags manifest is not already being loaded, kickstart the retrieval.
-		let loadPromise: Promise<void> | undefined;
 		if (!this.tagsManifestPromise) {
-			loadPromise = this.loadTagsManifestInternal();
-			this.tagsManifestPromise = loadPromise;
+			this.tagsManifestPromise = this.loadTagsManifestInternal();
 		}
 
-		await loadPromise;
+		await this.tagsManifestPromise;
 	}
 
 	/**
@@ -191,7 +183,6 @@ export class CacheAdaptor {
 		}
 
 		this.tagsManifest ??= { version: 1, items: {} };
-		this.lastTagsManifestLoad = Date.now();
 		this.tagsManifestPromise = undefined;
 	}
 
