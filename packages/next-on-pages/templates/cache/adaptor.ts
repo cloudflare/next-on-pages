@@ -13,6 +13,8 @@ export class CacheAdaptor {
 	public tagsManifest: TagsManifest | undefined;
 	/** The key used for the tags manifest in the cache. */
 	public tagsManifestKey = 'tags-manifest';
+	/** Promise that resolves when tags manifest is loaded */
+	public tagsManifestPromise: Promise<void> | undefined;
 
 	/**
 	 * @param ctx The incremental cache context from Next.js. NOTE: This is not currently utilised in NOP.
@@ -52,7 +54,7 @@ export class CacheAdaptor {
 		};
 
 		// Update the cache entry.
-		await this.update(key, JSON.stringify(newEntry));
+		const updateOp = this.update(key, JSON.stringify(newEntry));
 
 		switch (newEntry.value?.kind) {
 			case 'FETCH': {
@@ -70,6 +72,9 @@ export class CacheAdaptor {
 				);
 			}
 		}
+
+		// Make sure the cache has been updated before returning
+		await updateOp;
 	}
 
 	/**
@@ -84,7 +89,12 @@ export class CacheAdaptor {
 		{ softTags }: { softTags?: string[] },
 	): Promise<CacheHandlerValue | null> {
 		// Get entry from the cache.
-		const entry = await this.retrieve(key);
+		const entryPromise = this.retrieve(key);
+
+		// Start loading the tags manifest.
+		const tagsManifestLoad = this.loadTagsManifest();
+
+		const entry = await entryPromise;
 		if (!entry) return null;
 
 		let data: CacheHandlerValue;
@@ -97,8 +107,8 @@ export class CacheAdaptor {
 
 		switch (data.value?.kind) {
 			case 'FETCH': {
-				// Load the tags manifest.
-				await this.loadTagsManifest();
+				// Await for the tags manifest to end loading.
+				await tagsManifestLoad;
 
 				// Check if the cache entry is stale or fresh based on the tags.
 				const tags = getTagsFromEntry(data);
@@ -140,8 +150,29 @@ export class CacheAdaptor {
 
 	/**
 	 * Loads the tags manifest from the suspense cache.
+	 *
+	 * @param force Whether to force a reload of the tags manifest.
 	 */
-	public async loadTagsManifest(): Promise<void> {
+	public async loadTagsManifest(force = false): Promise<void> {
+		// Load tags manifest if missing or refresh if forced.
+		const shouldLoad = force || !this.tagsManifest;
+
+		if (!shouldLoad) {
+			return;
+		}
+
+		// If the tags manifest is not already being loaded, kickstart the retrieval.
+		if (!this.tagsManifestPromise) {
+			this.tagsManifestPromise = this.loadTagsManifestInternal();
+		}
+
+		await this.tagsManifestPromise;
+	}
+
+	/**
+	 * Internal method to load the tags manifest from the suspense cache.
+	 */
+	private async loadTagsManifestInternal(): Promise<void> {
 		try {
 			const rawManifest = await this.retrieve(this.tagsManifestKey);
 			if (rawManifest) {
@@ -152,6 +183,7 @@ export class CacheAdaptor {
 		}
 
 		this.tagsManifest ??= { version: 1, items: {} };
+		this.tagsManifestPromise = undefined;
 	}
 
 	/**
@@ -174,7 +206,7 @@ export class CacheAdaptor {
 		tags: string[],
 		{ cacheKey, revalidatedAt }: { cacheKey?: string; revalidatedAt?: number },
 	): Promise<void> {
-		await this.loadTagsManifest();
+		await this.loadTagsManifest(true);
 
 		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 		const tagsManifest = this.tagsManifest!;
