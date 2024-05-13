@@ -504,11 +504,16 @@ function fixFunctionContents(contents: string): string {
 	contents = contents.replace(
 		/([\w$]+) instanceof URL\?new Request\([\w$]+,([\w$]+)\):[\w$]+;/gm,
 		`((rawUrl, rawInit) => {
-			if (rawUrl instanceof URL) {
-				const { cache, ...init } = rawInit ?? {};
-				return new Request(rawUrl, init);
+			if (!(rawUrl instanceof URL)) {
+				return rawUrl;
 			}
-			return rawUrl;
+
+			if (!rawInit || rawInit instanceof Request) {
+				return new Request(rawUrl, rawInit);
+			}
+
+			const { cache, ...init } = rawInit ?? {};
+			return new Request(rawUrl, init);
 		})($1, $2);`,
 	);
 
