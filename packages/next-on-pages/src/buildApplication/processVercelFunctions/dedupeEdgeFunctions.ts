@@ -503,13 +503,13 @@ function fixFunctionContents(contents: string): string {
 	// https://github.com/vercel/next.js/blob/9ec37c12/packages/next/src/compiled/react/cjs/react.react-server.production.js#L87
 	contents = contents.replace(
 		/([\w$]+) instanceof URL\?new Request\([\w$]+,([\w$]+)\):[\w$]+;/gm,
-		`(() => {
-			if ($1 instanceof URL) {
-				const { cache, ...init } = $2 ?? {};
-				return new Request($1, init);
+		`((rawUrl, rawInit) => {
+			if (rawUrl instanceof URL) {
+				const { cache, ...init } = rawInit ?? {};
+				return new Request(rawUrl, init);
 			}
-			return $1;
-		})();`,
+			return rawUrl;
+		})($1, $2);`,
 	);
 
 	// TODO: Remove once https://github.com/vercel/next.js/issues/58265 is fixed.
