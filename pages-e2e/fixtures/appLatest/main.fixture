@@ -10,7 +10,8 @@
 		"appConfigsRewritesRedirectsHeaders",
 		"appWasm",
 		"appServerActions",
-		"appGetRequestContext"
+		"appGetRequestContext",
+		"appFetchCache"
 	],
 	"localSetup": "./setup.sh",
 	"buildConfig": {
@@ -21,8 +22,12 @@
 		"compatibilityFlags": ["nodejs_compat"],
 		"kvNamespaces": {
 			"MY_KV": {
-				"production": {"id": "00000000000000000000000000000000"},
-				"staging": {"id": "00000000000000000000000000000000"}
+				"production": { "id": "00000000000000000000000000000000" },
+				"staging": { "id": "00000000000000000000000000000000" }
+			},
+			"__NEXT_ON_PAGES__KV_SUSPENSE_CACHE": {
+				"production": { "id": "00000000000000000000000000000000" },
+				"staging": { "id": "00000000000000000000000000000000" }
 			}
 		}
 	}
