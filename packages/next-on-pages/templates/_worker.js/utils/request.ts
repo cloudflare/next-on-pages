@@ -10,7 +10,7 @@ export function adjustRequestForVercel(request: Request): Request {
 	const adjustedHeaders = new Headers(request.headers);
 
 	if (request.cf) {
-		adjustedHeaders.set('x-vercel-ip-city', request.cf.city as string);
+		adjustedHeaders.set('x-vercel-ip-city', encodeURIComponent(request.cf.city as string));
 		adjustedHeaders.set('x-vercel-ip-country', request.cf.country as string);
 		adjustedHeaders.set(
 			'x-vercel-ip-country-region',
