@@ -1,6 +1,6 @@
 import { beforeAll, describe, it } from 'vitest';
 
-describe('Simple Pages API Routes', () => {
+describe('Simple App server API route with fetch caching', () => {
 	it('should return a cached fetch response from the suspense cache', async ({
 		expect,
 	}) => {

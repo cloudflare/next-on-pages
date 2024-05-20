@@ -53,7 +53,7 @@ export async function handleSuspenseCacheRequest(request: Request) {
 				if (!data) return new Response(null, { status: 404 });
 
 				return new Response(
-					JSON.stringify(formatCacheValueForResponse(data.value)),
+					JSON.stringify(adjustCacheValueForResponse(data.value)),
 					{
 						status: 200,
 						headers: {
@@ -130,7 +130,7 @@ function getTagsFromHeader(req: Request, key: string): string[] | undefined {
 	return req.headers.get(key)?.split(',')?.filter(Boolean);
 }
 
-function formatCacheValueForResponse(value: IncrementalCacheValue | null) {
+function adjustCacheValueForResponse(value: IncrementalCacheValue | null) {
 	switch (value?.kind) {
 		case 'FETCH':
 			return {
