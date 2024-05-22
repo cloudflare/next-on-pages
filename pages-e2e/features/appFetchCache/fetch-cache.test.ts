@@ -1,4 +1,4 @@
-import { beforeAll, describe, it } from 'vitest';
+import { describe, it } from 'vitest';
 
 describe('Simple App server API route with fetch caching', () => {
 	it('should return a cached fetch response from the suspense cache', async ({
@@ -11,6 +11,9 @@ describe('Simple App server API route with fetch caching', () => {
 		expect(initialRespJson.headers).toEqual(
 			expect.not.objectContaining({ 'cf-next-suspense-cache': 'HIT' }),
 		);
+
+		// artificial delay to ensure cache entry updates
+		await new Promise(res => setTimeout(res, 3000));
 
 		const cachedResp = await fetch(`${DEPLOYMENT_URL}/api/cache`);
 		const cachedRespJson = await cachedResp.json();
