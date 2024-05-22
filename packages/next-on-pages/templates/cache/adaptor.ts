@@ -37,8 +37,12 @@ export class CacheAdaptor {
 	 * @param key Key for the item.
 	 * @param value The value to update.
 	 */
-	public async update(key: string, value: string): Promise<void> {
-		throw new Error(`Method not implemented - ${key}, ${value}`);
+	public async update(
+		key: string,
+		value: string,
+		revalidate?: number,
+	): Promise<void> {
+		throw new Error(`Method not implemented - ${key}, ${value}, ${revalidate}`);
 	}
 
 	/**
@@ -54,7 +58,11 @@ export class CacheAdaptor {
 		};
 
 		// Update the cache entry.
-		const updateOp = this.update(key, JSON.stringify(newEntry));
+		const updateOp = this.update(
+			key,
+			JSON.stringify(newEntry),
+			value.revalidate,
+		);
 
 		switch (newEntry.value?.kind) {
 			case 'FETCH': {
