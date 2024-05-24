@@ -361,6 +361,9 @@ export class RoutesMatcher {
 			this.path = this.path.replace(/\.rsc/i, '');
 		}
 
+		// Prevent `//` in path names.
+		this.path = this.path.replace(/\/\//g, '/')
+
 		// Merge search params for later use when serving a response.
 		const destUrl = new URL(this.path, this.url);
 		applySearchParams(this.searchParams, destUrl.searchParams);
