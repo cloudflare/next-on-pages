@@ -33,6 +33,10 @@ Extra references you might be interested in:
 
   Cloudflare guide on how to create and deploy a Next.js application. The application can be either static (and deployed as simple static assets) or dynamic using the edge runtime (using `@cloudflare/next-on-pages`).
 
+- [Caching and Data Revalidation](./packages/next-on-pages/docs/caching.md)
+
+  Documentation on how the caching and data revalidation for applications built using `@cloudflare/next-on-pages` works.
+
 - [Technical Documentation](./docs/technical)
 
   Explanations and insights into how `@cloudflare/next-on-pages` works, design decisions behind different aspects, and how it handles different Next.js features.
