@@ -65,31 +65,36 @@ Next, in the [Cloudflare Dashboard](https://dash.cloudflare.com/?to=/:account/pa
 > **Note**:
 > When deploying via the Git integration, for better compatibility with tools such as `yarn` and `pnpm` we recommend using the Build system version 2 (that is the default so no action is required).
 
-## Local development
+## Recommended development workflow
 
-### Standard Next.js development
+When developing a `next-on-pages` application, this is the development workflow that Cloudflare recommends:
 
-You can develop your application locally by simply using the [standard Next.js development server](https://nextjs.org/docs/app/api-reference/next-cli#development) you'd normally use.
+### Develop using the standard Next.js dev server
 
-Note that the standard Next.js dev server does not work with Cloudflare Pages applications, therefore to manually validate and ensure that your application is ready to be deployed as a Cloudflare Pages one please follow the steps described in the next section.
+The [standard development server provided by Next.js](https://nextjs.org/docs/getting-started/installation#run-the-development-server) is the best available option for a fast and polished development experience. The `next-dev` submodule makes it possible to use Next.js' standard development server while still having access to your Cloudflare bindings.
 
-### Local manual validation
+### Build and preview your application locally
 
-To ensure that your application is ready to be deployed as Cloudflare Pages one, you can manually validate it by building it and then previewing it using the `wrangler` CLI.
+To ensure that your application is being built in a manner that is fully compatible with Cloudflare Pages, before deploying it, or whenever you are comfortable checking the correctness of the application during your development process, you will want to build and preview it locally using Cloudflare's `workerd` JavaScript runtime.
 
-To build the application simply run:
+Do this by running:
 
 ```sh
 npx @cloudflare/next-on-pages
 ```
 
-This command will build your Next.js application and produce a `.vercel/output/static` directory which you can then supply to Wrangler:
+And preview your project by running:
 
 ```sh
-npx wrangler pages dev .vercel/output/static --compatibility-flag=nodejs_compat
+npx wrangler pages dev .vercel/output/static
 ```
 
-Running `npx @cloudflare/next-on-pages --help` will display a useful help message which will detail the various additional options the CLI offers.
+> [!NOTE]
+> The [`wrangler pages dev`](/workers/wrangler/commands/#dev-1) command needs to run the application using the [`nodejs_compat`](/workers/configuration/compatibility-dates/#nodejs-compatibility-flag) compatibility flag. The `nodejs_compat` flag can be specified in either your project's `wrangler.toml` file or provided to the command as an inline argument: `--compatibility-flag=nodejs_compat`.
+
+### Deploy your application and iterate
+
+After you have previewed your application locally, you can deploy it to Cloudflare Pages (both via [Direct Uploads](/pages/get-started/direct-upload/) or [Git integration](/pages/configuration/git-integration/)) and iterate over the process to make new changes.
 
 ## Cloudflare Platform Integration
 
