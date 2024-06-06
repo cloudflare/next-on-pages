@@ -71,11 +71,13 @@ Next, in the [Cloudflare Dashboard](https://dash.cloudflare.com/?to=/:account/pa
 
 You can develop your application locally by simply using the [standard Next.js development server](https://nextjs.org/docs/app/api-reference/next-cli#development) you'd normally use.
 
-Note that the standard Next.js dev server is however not suited for previewing Cloudflare Pages applications, therefore it is highly recommended not to use it for such purpose. To ensure that your application is ready to be deployed as a Cloudflare Pages one please follow the steps described in the next section.
+Note that the standard Next.js dev server does not work with Cloudflare Pages applications, therefore to manually validate and ensure that your application is ready to be deployed as a Cloudflare Pages one please follow the steps described in the next section.
 
-### Local preview
+### Local manual validation
 
-To preview locally your Cloudflare Pages application, simply run:
+To ensure that your application is ready to be deployed as Cloudflare Pages one, you can manually validate it by building it and then previewing it using the `wrangler` CLI.
+
+To build the application simply run:
 
 ```sh
 npx @cloudflare/next-on-pages
