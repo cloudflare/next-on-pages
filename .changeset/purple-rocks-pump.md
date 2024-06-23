@@ -2,4 +2,4 @@
 '@cloudflare/next-on-pages': minor
 ---
 
-Invalidate fetch/suspense cache with next revalidate fetch options
+add support for the `revalidate` option in fetch
