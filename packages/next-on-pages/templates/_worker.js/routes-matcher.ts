@@ -217,6 +217,9 @@ export class RoutesMatcher {
 			this.status = resp.status;
 		}
 
+		// copy to the request object the headers that have been set by the middleware
+		applyHeaders(this.reqCtx.request.headers, resp.headers);
+
 		applyHeaders(this.headers.normal, resp.headers);
 		this.headers.middlewareLocation = resp.headers.get('location');
 	}
