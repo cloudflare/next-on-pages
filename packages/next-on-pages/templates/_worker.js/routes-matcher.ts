@@ -214,11 +214,11 @@ export class RoutesMatcher {
 			// We should set the final response body and status to the middleware's if it does not want
 			// to continue and did not rewrite/redirect the URL.
 			this.body = resp.body;
-			this.status = resp.status;
 		}
 
 		applyHeaders(this.headers.normal, resp.headers);
 		this.headers.middlewareLocation = resp.headers.get('location');
+		this.status = resp.status;
 	}
 
 	/**
