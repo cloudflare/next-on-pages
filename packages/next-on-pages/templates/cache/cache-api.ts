@@ -16,12 +16,14 @@ export default class CacheApiAdaptor extends CacheAdaptor {
 		return response ? response.text() : null;
 	}
 
-	public override async update(key: string, value: string) {
+	public override async update(
+		key: string,
+		value: string,
+		revalidate?: number,
+	) {
 		const cache = await caches.open(this.cacheName);
 
-		// The max-age to use for the cache entry.
-		const maxAge = '31536000'; // 1 year
-
+		const maxAge = revalidate ?? '31536000'; // 1 year
 		const response = new Response(value, {
 			headers: new Headers({
 				'cache-control': `max-age=${maxAge}`,

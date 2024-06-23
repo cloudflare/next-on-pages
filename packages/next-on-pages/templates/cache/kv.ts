@@ -14,10 +14,21 @@ export default class KVAdaptor extends CacheAdaptor {
 		return value ?? null;
 	}
 
-	public override async update(key: string, value: string) {
+	public override async update(
+		key: string,
+		value: string,
+		revalidate?: number,
+	) {
+		const expiry = revalidate
+			? {
+					expirationTtl: revalidate,
+			  }
+			: {};
+
 		await process.env.__NEXT_ON_PAGES__KV_SUSPENSE_CACHE?.put(
 			this.buildCacheKey(key),
 			value,
+			expiry,
 		);
 	}
 }
