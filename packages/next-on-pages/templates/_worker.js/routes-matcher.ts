@@ -211,7 +211,7 @@ export class RoutesMatcher {
 		if (middlewareNextHeader) {
 			resp.headers.delete(middlewareNextKey);
 		} else if (!rewriteHeader && !resp.headers.has('location')) {
-			// We should set the final response body and status to the middleware's if it does not want
+			// We should set the final response body to the middleware's if it does not want
 			// to continue and did not rewrite/redirect the URL.
 			this.body = resp.body;
 		}
