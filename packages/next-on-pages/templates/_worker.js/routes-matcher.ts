@@ -215,6 +215,12 @@ export class RoutesMatcher {
 			// to continue and did not rewrite/redirect the URL.
 			this.body = resp.body;
 			this.status = resp.status;
+		} else if (
+			resp.headers.has('location') &&
+			resp.status >= 300 &&
+			resp.status < 400
+		) {
+			this.status = resp.status;
 		}
 
 		applyHeaders(this.headers.normal, resp.headers);
