@@ -211,14 +211,16 @@ export class RoutesMatcher {
 		if (middlewareNextHeader) {
 			resp.headers.delete(middlewareNextKey);
 		} else if (!rewriteHeader && !resp.headers.has('location')) {
-			// We should set the final response body to the middleware's if it does not want
+			// We should set the final response body and status to the middleware's if it does not want
 			// to continue and did not rewrite/redirect the URL.
 			this.body = resp.body;
+			this.status = resp.status;
+		} else if (resp.headers.has('location') && resp.status >= 300 && resp.status < 400) {
+			this.status = resp.status;
 		}
 
 		applyHeaders(this.headers.normal, resp.headers);
 		this.headers.middlewareLocation = resp.headers.get('location');
-		this.status = resp.status;
 	}
 
 	/**
