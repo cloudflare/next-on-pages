@@ -2,7 +2,6 @@
 	"extends": "./tsconfig-base.json",
 	"include": ["./test-types.d.ts", "./**/*.test.ts", "vitest.config.ts"],
 	"compilerOptions": {
-		"types": ["vitest"],
 		"paths": {
 			"@features-utils/*": ["./features/_utils/*"]
 		}
