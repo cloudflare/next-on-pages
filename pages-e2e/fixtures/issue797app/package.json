@@ -25,7 +25,7 @@
 		"@types/react": "^18",
 		"@types/react-dom": "^18",
 		"typescript": "^5",
-		"vercel": "^34.2.4",
+		"vercel": "^34.2.8",
 		"wrangler": "^3.58.0"
 	}
 }
