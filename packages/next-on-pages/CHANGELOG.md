@@ -1,5 +1,11 @@
 # @cloudflare/next-on-pages
 
+## 1.12.1
+
+### Patch Changes
+
+- 9dd9fe4: make sure headers set in middlewares are accessibly by layouts and pages
+
 ## 1.12.0
 
 ### Minor Changes
