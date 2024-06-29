@@ -22,6 +22,19 @@ declare const __ALSes_PROMISE__: Promise<null | {
 
 export default {
 	async fetch(request, env, ctx) {
+		const semaphore = './__next-on-pages-dist__/auxiliary-semaphore.js';
+		const { run, done } = await import(semaphore);
+
+		const workerId = crypto.randomUUID();
+		let canRun = run(workerId);
+		while(!canRun) {
+			canRun = await new Promise<boolean>((resolve) => {
+				setTimeout(() => {
+					resolve(run(workerId));
+				}, 500)
+			})
+		}
+
 		patchFetch();
 
 		const asyncLocalStorages = await __ALSes_PROMISE__;
@@ -58,7 +71,7 @@ export default {
 
 						const adjustedRequest = adjustRequestForVercel(request);
 
-						return handleRequest(
+						const response = await handleRequest(
 							{
 								request: adjustedRequest,
 								ctx,
@@ -68,6 +81,8 @@ export default {
 							__BUILD_OUTPUT__,
 							__BUILD_METADATA__,
 						);
+						done(workerId);
+						return response;
 					},
 				);
 			},

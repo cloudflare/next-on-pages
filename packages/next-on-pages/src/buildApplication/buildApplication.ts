@@ -1,6 +1,6 @@
 import { exit } from 'process';
 import { join, resolve } from 'path';
-import { cp } from 'fs/promises';
+import { cp, copyFile } from 'fs/promises';
 import { getPackageManager } from 'package-manager-manager';
 import type { CliOptions } from '../cli';
 import { cliError, cliLog, cliSuccess, cliWarn } from '../cli';
@@ -8,7 +8,7 @@ import { getVercelConfig } from './getVercelConfig';
 import { buildWorkerFile } from './buildWorkerFile';
 import { buildVercelOutput } from './buildVercelOutput';
 import { buildMetadataFiles } from './buildMetadataFiles';
-import { validateDir } from '../utils';
+import { copyFileWithDir, validateDir } from '../utils';
 import {
 	getVercelStaticAssets,
 	processVercelOutput,
@@ -117,6 +117,9 @@ async function prepareAndBuildWorker(
 	const workerJsDir = join(outputDir, '_worker.js');
 	const nopDistDir = join(workerJsDir, '__next-on-pages-dist__');
 	const templatesDir = join(__dirname, '..', 'templates');
+
+	// await copyFile(join(templatesDir, 'auxiliary-semaphore.js'), join(nopDistDir, 'auxiliary-semaphore.js'));
+	await copyFileWithDir(join(templatesDir, 'auxiliary-semaphore.js'), join(nopDistDir, 'auxiliary-semaphore.js'));
 
 	if (!(await validateDir(functionsDir))) {
 		cliLog(
