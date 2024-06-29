@@ -20,8 +20,30 @@ declare const __ALSes_PROMISE__: Promise<null | {
 	requestContextAsyncLocalStorage: AsyncLocalStorage<unknown>;
 }>;
 
+import type { run } from '../in-memory-mutex';
+
+type MutexRunFn = typeof run;
+
+/** Timeout that indicates how long the worker should wait before re-checking to see if a locked in-memory mutex has been released */
+const inMemoryMutexSleepTimeout = 25;
+
 export default {
 	async fetch(request, env, ctx) {
+		const inMemoryMutexPath = './__next-on-pages-dist__/in-memory-mutex.js';
+		const { run } = (await import(inMemoryMutexPath)) as { run: MutexRunFn };
+
+		const workerId = crypto.randomUUID();
+		let done = run(workerId);
+		let canRun = !!done;
+		while (!canRun) {
+			done = await new Promise<ReturnType<MutexRunFn>>(resolve => {
+				setTimeout(() => {
+					resolve(run(workerId));
+				}, inMemoryMutexSleepTimeout);
+			});
+			canRun = !!done;
+		}
+
 		patchFetch();
 
 		const asyncLocalStorages = await __ALSes_PROMISE__;
@@ -58,7 +80,7 @@ export default {
 
 						const adjustedRequest = adjustRequestForVercel(request);
 
-						return handleRequest(
+						const response = await handleRequest(
 							{
 								request: adjustedRequest,
 								ctx,
@@ -68,6 +90,8 @@ export default {
 							__BUILD_OUTPUT__,
 							__BUILD_METADATA__,
 						);
+						done?.();
+						return response;
 					},
 				);
 			},
