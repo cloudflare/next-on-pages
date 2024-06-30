@@ -83,6 +83,15 @@ export async function buildWorkerFile(
 	});
 
 	await build({
+		entryPoints: [join(templatesDir, 'in-memory-mutex.ts')],
+		bundle: false,
+		target: 'es2022',
+		platform: 'neutral',
+		outdir: join(nopDistDir),
+		minify,
+	});
+
+	await build({
 		entryPoints: ['adaptor.ts', 'cache-api.ts', 'kv.ts'].map(fileName =>
 			join(templatesDir, 'cache', fileName),
 		),
