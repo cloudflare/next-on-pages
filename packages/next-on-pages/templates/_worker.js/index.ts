@@ -80,17 +80,28 @@ export default {
 
 						const adjustedRequest = adjustRequestForVercel(request);
 
-						const response = await handleRequest(
-							{
-								request: adjustedRequest,
-								ctx,
-								assetsFetcher: env.ASSETS,
-							},
-							__CONFIG__,
-							__BUILD_OUTPUT__,
-							__BUILD_METADATA__,
-						);
-						done?.();
+						let response: Response;
+						try {
+							response = await handleRequest(
+								{
+									request: adjustedRequest,
+									ctx,
+									assetsFetcher: env.ASSETS,
+								},
+								__CONFIG__,
+								__BUILD_OUTPUT__,
+								__BUILD_METADATA__,
+							);
+						} catch (e) {
+							const errorMessage = e instanceof Error ? e.message : JSON.stringify(e);
+							response = new Response(
+								`An internal server error occurred when handling the request: ${errorMessage}`,
+								{ status: 500 },
+							);
+						} finally {
+							// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+							done!();
+						}
 						return response;
 					},
 				);
