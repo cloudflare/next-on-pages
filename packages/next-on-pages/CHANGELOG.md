@@ -108,9 +108,7 @@
 
   export async function GET(request) {
     const {
-      env,
-      cf,
-      ctx: { waitUntil },
+      env, cf, ctx,
     } = getRequestContext();
     // ...
   }
