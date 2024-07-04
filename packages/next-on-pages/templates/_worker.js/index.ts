@@ -93,7 +93,8 @@ export default {
 								__BUILD_METADATA__,
 							);
 						} catch (e) {
-							const errorMessage = e instanceof Error ? e.message : JSON.stringify(e);
+							const errorMessage =
+								e instanceof Error ? e.message : JSON.stringify(e);
 							response = new Response(
 								`An internal server error occurred when handling the request: ${errorMessage}`,
 								{ status: 500 },
