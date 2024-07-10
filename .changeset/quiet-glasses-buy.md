@@ -1,5 +1,5 @@
 ---
-'@cloudflare/next-on-pages': minor
+'@cloudflare/next-on-pages': patch
 ---
 
 Support for pre-rendered `API` functions.

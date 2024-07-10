@@ -69,10 +69,12 @@ export async function collectFunctionConfigsRecursively(
 }
 
 function checkPrerenderConfigExists(funcPath: string, files: PathInfo[]) {
-	return files.find(
-		({ path }) =>
-			path === funcPath.replace(/\.func$/, '.prerender-config.json'),
+	const prerenderConfigPath = funcPath.replace(
+		/\.func$/,
+		'.prerender-config.json',
 	);
+
+	return files.find(({ path }) => path === prerenderConfigPath);
 }
 
 export type CollectedFunctions = {
