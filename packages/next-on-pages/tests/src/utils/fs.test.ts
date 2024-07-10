@@ -3,7 +3,7 @@ import {
 	copyFileWithDir,
 	getFileHash,
 	normalizePath,
-	readDirectories,
+	readFilesAndDirectories,
 	readJsonFile,
 	readPathsRecursively,
 	validateDir,
@@ -183,7 +183,7 @@ describe('copyFileWithDir', () => {
 	});
 });
 
-describe('readDirectories', () => {
+describe('readFilesAndDirectories', () => {
 	beforeAll(() => {
 		mockFs({
 			root: {
@@ -193,6 +193,7 @@ describe('readDirectories', () => {
 					},
 					'index.func': { 'index.js': 'index-js-code' },
 					'home.func': { 'index.js': 'home-js-code' },
+					'test.js': 'test-js-code',
 				},
 			},
 		});
@@ -200,32 +201,39 @@ describe('readDirectories', () => {
 
 	afterAll(() => mockFs.restore());
 
-	test('should read all directories inside the provided folder', async () => {
-		const dirs = await readDirectories('root/functions');
+	test('should read all files and directories inside the provided folder', async () => {
+		const dirs = await readFilesAndDirectories('root/functions');
 
-		expect(dirs.length).toEqual(3);
-		expect(dirs[0]).toEqual({
-			name: '(route-group)',
-			path: 'root/functions/(route-group)',
-			isDirectory: true,
-			isSymbolicLink: false,
-		});
-		expect(dirs[1]).toEqual({
-			name: 'home.func',
-			path: 'root/functions/home.func',
-			isDirectory: true,
-			isSymbolicLink: false,
-		});
-		expect(dirs[2]).toEqual({
-			name: 'index.func',
-			path: 'root/functions/index.func',
-			isDirectory: true,
-			isSymbolicLink: false,
-		});
+		expect(dirs).toEqual([
+			{
+				name: '(route-group)',
+				path: 'root/functions/(route-group)',
+				isDirectory: true,
+				isSymbolicLink: false,
+			},
+			{
+				name: 'home.func',
+				path: 'root/functions/home.func',
+				isDirectory: true,
+				isSymbolicLink: false,
+			},
+			{
+				name: 'index.func',
+				path: 'root/functions/index.func',
+				isDirectory: true,
+				isSymbolicLink: false,
+			},
+			{
+				name: 'test.js',
+				path: 'root/functions/test.js',
+				isDirectory: false,
+				isSymbolicLink: false,
+			},
+		]);
 	});
 
 	test('invalid directory returns empty array', async () => {
-		const dirs = await readDirectories('invalid-root/functions');
+		const dirs = await readFilesAndDirectories('invalid-root/functions');
 
 		expect(dirs).toEqual([]);
 	});

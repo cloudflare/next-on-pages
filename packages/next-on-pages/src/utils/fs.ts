@@ -129,18 +129,18 @@ export async function copyFileWithDir(sourceFile: string, destFile: string) {
 }
 
 /**
- * Reads all directories in a directory.
+ * Reads all files and directories in a directory.
  *
- * @param path Path to read directories from.
- * @returns Array of all directories in a directory.
+ * @param path Path to read from.
+ * @returns Array of all files and directories in a directory.
  */
-export async function readDirectories(
+export async function readFilesAndDirectories(
 	basePath: string,
-): Promise<DirectoryInfo[]> {
+): Promise<PathInfo[]> {
 	try {
 		const files = await readdir(basePath, { withFileTypes: true });
 
-		const dirs = await Promise.all(
+		const paths = await Promise.all(
 			files.map(async file => {
 				const path = normalizePath(join(basePath, file.name));
 				const isSymbolicLink = file.isSymbolicLink();
@@ -151,13 +151,13 @@ export async function readDirectories(
 			}),
 		);
 
-		return dirs.filter(file => file.isDirectory);
+		return paths;
 	} catch {
 		return [];
 	}
 }
 
-type DirectoryInfo = {
+export type PathInfo = {
 	name: string;
 	path: string;
 	isDirectory: boolean;
