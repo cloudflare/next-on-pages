@@ -1,10 +1,11 @@
 import { join, relative } from 'node:path';
+import type { PathInfo } from '../../utils';
 import {
 	addLeadingSlash,
 	formatRoutePath,
 	getRouteOverrides,
 	normalizePath,
-	readDirectories,
+	readFilesAndDirectories,
 	readJsonFile,
 } from '../../utils';
 
@@ -25,7 +26,9 @@ export async function collectFunctionConfigsRecursively(
 		ignoredFunctions: new Map(),
 	},
 ): Promise<CollectedFunctions> {
-	const dirs = await readDirectories(baseDir);
+	const paths = await readFilesAndDirectories(baseDir);
+	const dirs = paths.filter(path => path.isDirectory);
+	const files = paths.filter(path => !path.isDirectory);
 
 	for (const { path } of dirs) {
 		if (path.endsWith('.func')) {
@@ -36,10 +39,14 @@ export async function collectFunctionConfigsRecursively(
 				normalizePath(relative(configs.functionsDir, path)),
 			);
 
-			if (
+			const isPrerenderedIsrFunc =
 				config?.operationType?.toLowerCase() === 'isr' &&
-				!path.endsWith('.action.func')
-			) {
+				!path.endsWith('.action.func');
+			const isPrerenderedApiFunc =
+				config?.operationType?.toLowerCase() === 'api' &&
+				checkPrerenderConfigExists(path, files);
+
+			if (isPrerenderedIsrFunc || isPrerenderedApiFunc) {
 				configs.prerenderedFunctions.set(path, { relativePath, config });
 			} else if (config?.runtime?.toLowerCase() === 'edge') {
 				const formattedPathName = formatRoutePath(relativePath);
@@ -59,6 +66,15 @@ export async function collectFunctionConfigsRecursively(
 	}
 
 	return configs;
+}
+
+function checkPrerenderConfigExists(funcPath: string, files: PathInfo[]) {
+	const prerenderConfigPath = funcPath.replace(
+		/\.func$/,
+		'.prerender-config.json',
+	);
+
+	return files.find(({ path }) => path === prerenderConfigPath);
 }
 
 export type CollectedFunctions = {
