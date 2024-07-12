@@ -7,6 +7,10 @@
 			"import": "./dist/api/index.js",
 			"types": "./dist/api/index.d.ts"
 		},
+		"./fetch-handler": {
+			"import": "./dist/fetch-handler/index.js",
+			"types": "./dist/fetch-handler/index.d.ts"
+		},
 		"./next-dev": {
 			"import": "./dist/next-dev/index.cjs",
 			"require": "./dist/next-dev/index.cjs",
@@ -16,8 +20,8 @@
 	"scripts": {
 		"lint": "eslint src templates",
 		"types-check": "tsc --noEmit",
-		"build:types": "tsc -p tsconfig.api.json",
-		"build": "esbuild --bundle --platform=node ./src/index.ts ./src/api/index.ts --external:esbuild --external:chokidar --external:server-only --outdir=./dist",
+		"build:types": "tsc -p tsconfig.api.json -p tsconfig.fetch-handler.json",
+		"build": "esbuild --bundle --platform=node ./src/index.ts ./src/api/index.ts ./src/fetch-handler/index.ts --external:esbuild --external:chokidar --external:server-only --outdir=./dist",
 		"build:watch": "npm run build -- --watch=forever",
 		"build:no-nodejs-compat-error-page": "node ./build-no-nodejs-compat-flag-static-error-page.mjs",
 		"build:next-dev": "npm run build --workspace @cloudflare/next-on-pages-next-dev && rm -rf ./dist/next-dev && cp -R ../../internal-packages/next-dev/dist ./dist/next-dev",

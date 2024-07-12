@@ -6,6 +6,7 @@ import { generateGlobalJs } from './generateGlobalJs';
 import type { ProcessedVercelOutput } from './processVercelOutput';
 import { getNodeEnv } from '../utils/getNodeEnv';
 import { normalizePath } from '../utils';
+import { cliLog } from '../cli';
 
 /**
  * Construct a record for the build output map.
@@ -47,8 +48,8 @@ export async function buildWorkerFile(
 		nopDistDir,
 		templatesDir,
 		customWorkerEntrypoint,
+		minify,
 	}: BuildWorkerFileOpts,
-	minify: boolean,
 ): Promise<string> {
 	const functionsFile = join(
 		tmpdir(),
@@ -65,19 +66,19 @@ export async function buildWorkerFile(
 			.join(',')}};`,
 	);
 
-	const nopOutputFileName = 'next-on-pages.js';
-
-	const sharedBuildOpts = {
+	const defaultBuildOpts = {
 		target: 'es2022',
 		platform: 'neutral',
+		bundle: false,
 		minify,
 	} as const;
 
+	const outputFile = join(workerJsDir, 'index.js');
+
 	await build({
+		...defaultBuildOpts,
 		entryPoints: [join(templatesDir, '_worker.js')],
-		banner: {
-			js: generateGlobalJs(),
-		},
+		banner: { js: generateGlobalJs() },
 		bundle: true,
 		inject: [functionsFile],
 		external: ['node:*', './__next-on-pages-dist__/*', 'cloudflare:*'],
@@ -88,32 +89,39 @@ export async function buildWorkerFile(
 				collectedLocales: collectLocales(vercelConfig.routes),
 			}),
 		},
-		outfile: join(workerJsDir, nopOutputFileName),
-		...sharedBuildOpts,
+		outfile: outputFile,
 	});
 
 	await build({
+		...defaultBuildOpts,
 		entryPoints: ['adaptor.ts', 'cache-api.ts', 'kv.ts'].map(fileName =>
 			join(templatesDir, 'cache', fileName),
 		),
-		bundle: false,
 		outdir: join(nopDistDir, 'cache'),
-		...sharedBuildOpts,
 	});
 
-	const outputFile = join(workerJsDir, 'index.js');
+	if (customWorkerEntrypoint) {
+		cliLog(`Using custom worker entrypoint '${customWorkerEntrypoint}'`);
 
-	await build({
-		entryPoints: [
-			customWorkerEntrypoint ||
-				join(templatesDir, '_worker.js', 'default-worker-entrypoint.js'),
-		],
-		banner: {
-			js: `import __NEXT_ON_PAGES__ from './${nopOutputFileName}';`,
-		},
-		outfile: outputFile,
-		...sharedBuildOpts,
-	});
+		await build({
+			...defaultBuildOpts,
+			entryPoints: [customWorkerEntrypoint],
+			outfile: outputFile,
+			allowOverwrite: true,
+			bundle: true,
+			plugins: [
+				{
+					name: 'custom-worker-entrypoint-import-plugin',
+					setup(build) {
+						build.onResolve(
+							{ filter: /^@cloudflare\/next-on-pages\/fetch-handler$/ },
+							() => ({ path: outputFile }),
+						);
+					},
+				},
+			],
+		});
+	}
 
 	return relative('.', outputFile);
 }
@@ -124,6 +132,7 @@ type BuildWorkerFileOpts = {
 	nopDistDir: string;
 	templatesDir: string;
 	customWorkerEntrypoint?: string;
+	minify?: boolean;
 };
 
 /**

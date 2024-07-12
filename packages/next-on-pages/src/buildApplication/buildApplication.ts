@@ -149,17 +149,14 @@ async function prepareAndBuildWorker(
 		processedFunctions?.collectedFunctions?.edgeFunctions,
 	);
 
-	const outputtedWorkerPath = await buildWorkerFile(
-		processedVercelOutput,
-		{
-			outputDir,
-			workerJsDir,
-			nopDistDir,
-			templatesDir,
-			customWorkerEntrypoint,
-		},
-		!disableWorkerMinification,
-	);
+	const outputtedWorkerPath = await buildWorkerFile(processedVercelOutput, {
+		outputDir,
+		workerJsDir,
+		nopDistDir,
+		templatesDir,
+		customWorkerEntrypoint,
+		minify: !disableWorkerMinification,
+	});
 
 	await buildMetadataFiles(outputDir, { staticAssets });
 
