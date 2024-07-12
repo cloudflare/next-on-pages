@@ -15,7 +15,7 @@
 	],
 	"localSetup": "./setup.sh",
 	"buildConfig": {
-		"buildCommand": "npx --force ../../../packages/next-on-pages --custom-worker-entrypoint=./custom-entrypoint.js",
+		"buildCommand": "npx --force ../../../packages/next-on-pages --custom-worker-entrypoint=./custom-entrypoint.ts",
 		"buildOutputDirectory": ".vercel/output/static"
 	},
 	"deploymentConfig": {
