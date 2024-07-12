@@ -8,4 +8,4 @@ export default {
 
 		return response;
 	},
-};
+} as ExportedHandler<{ ASSETS: Fetcher }>;
