@@ -58,6 +58,10 @@ program
 		'Sets the directory to output the worker and static assets to',
 		join('.vercel', 'output', 'static'),
 	)
+	.option(
+		'--custom-worker-entrypoint <path>',
+		'Wrap the generated worker for your application in a custom worker entrypoint',
+	)
 	.enablePositionalOptions(false)
 	.version(
 		nextOnPagesVersion,
@@ -74,6 +78,7 @@ export type CliOptions = {
 	noColor?: boolean;
 	info?: boolean;
 	outdir: string;
+	customWorkerEntrypoint?: string;
 };
 
 export function parseCliArgs(): CliOptions {

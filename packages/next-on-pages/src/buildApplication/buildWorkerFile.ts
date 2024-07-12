@@ -41,7 +41,13 @@ export function constructBuildOutputRecord(
 
 export async function buildWorkerFile(
 	{ vercelConfig, vercelOutput }: ProcessedVercelOutput,
-	{ outputDir, workerJsDir, nopDistDir, templatesDir }: BuildWorkerFileOpts,
+	{
+		outputDir,
+		workerJsDir,
+		nopDistDir,
+		templatesDir,
+		customWorkerEntrypoint,
+	}: BuildWorkerFileOpts,
 	minify: boolean,
 ): Promise<string> {
 	const functionsFile = join(
@@ -59,7 +65,13 @@ export async function buildWorkerFile(
 			.join(',')}};`,
 	);
 
-	const outputFile = join(workerJsDir, 'index.js');
+	const nopOutputFileName = 'next-on-pages.js';
+
+	const sharedBuildOpts = {
+		target: 'es2022',
+		platform: 'neutral',
+		minify,
+	} as const;
 
 	await build({
 		entryPoints: [join(templatesDir, '_worker.js')],
@@ -68,8 +80,6 @@ export async function buildWorkerFile(
 		},
 		bundle: true,
 		inject: [functionsFile],
-		target: 'es2022',
-		platform: 'neutral',
 		external: ['node:*', './__next-on-pages-dist__/*', 'cloudflare:*'],
 		define: {
 			__CONFIG__: JSON.stringify(vercelConfig),
@@ -78,8 +88,8 @@ export async function buildWorkerFile(
 				collectedLocales: collectLocales(vercelConfig.routes),
 			}),
 		},
-		outfile: outputFile,
-		minify,
+		outfile: join(workerJsDir, nopOutputFileName),
+		...sharedBuildOpts,
 	});
 
 	await build({
@@ -87,10 +97,22 @@ export async function buildWorkerFile(
 			join(templatesDir, 'cache', fileName),
 		),
 		bundle: false,
-		target: 'es2022',
-		platform: 'neutral',
 		outdir: join(nopDistDir, 'cache'),
-		minify,
+		...sharedBuildOpts,
+	});
+
+	const outputFile = join(workerJsDir, 'index.js');
+
+	await build({
+		entryPoints: [
+			customWorkerEntrypoint ||
+				join(templatesDir, '_worker.js', 'default-worker-entrypoint.js'),
+		],
+		banner: {
+			js: `import __NEXT_ON_PAGES__ from './${nopOutputFileName}';`,
+		},
+		outfile: outputFile,
+		...sharedBuildOpts,
 	});
 
 	return relative('.', outputFile);
@@ -101,6 +123,7 @@ type BuildWorkerFileOpts = {
 	workerJsDir: string;
 	nopDistDir: string;
 	templatesDir: string;
+	customWorkerEntrypoint?: string;
 };
 
 /**
