@@ -29,7 +29,7 @@ export async function buildApplication({
 	disableWorkerMinification,
 	watch,
 	outdir: outputDir,
-	customWorkerEntrypoint,
+	customEntrypoint,
 }: Pick<
 	CliOptions,
 	| 'skipBuild'
@@ -37,7 +37,7 @@ export async function buildApplication({
 	| 'disableWorkerMinification'
 	| 'watch'
 	| 'outdir'
-	| 'customWorkerEntrypoint'
+	| 'customEntrypoint'
 >) {
 	const pm = await getPackageManager();
 
@@ -86,7 +86,7 @@ export async function buildApplication({
 	await prepareAndBuildWorker(outputDir, {
 		disableChunksDedup,
 		disableWorkerMinification,
-		customWorkerEntrypoint,
+		customEntrypoint,
 	});
 
 	const totalBuildTime = ((Date.now() - buildStartTime) / 1000).toFixed(2);
@@ -98,12 +98,10 @@ async function prepareAndBuildWorker(
 	{
 		disableChunksDedup,
 		disableWorkerMinification,
-		customWorkerEntrypoint,
+		customEntrypoint,
 	}: Pick<
 		CliOptions,
-		| 'disableChunksDedup'
-		| 'disableWorkerMinification'
-		| 'customWorkerEntrypoint'
+		'disableChunksDedup' | 'disableWorkerMinification' | 'customEntrypoint'
 	>,
 ): Promise<void> {
 	let vercelConfig: VercelConfig;
@@ -154,7 +152,7 @@ async function prepareAndBuildWorker(
 		workerJsDir,
 		nopDistDir,
 		templatesDir,
-		customWorkerEntrypoint,
+		customEntrypoint,
 		minify: !disableWorkerMinification,
 	});
 

@@ -4,7 +4,7 @@ export default {
 	async fetch(...args) {
 		const response = await nextOnPagesHandler.fetch(...args);
 
-		response.headers.set('custom-worker-entrypoint', '1');
+		response.headers.set('custom-entrypoint', '1');
 
 		return response;
 	},

@@ -11,11 +11,11 @@
 		"appWasm",
 		"appServerActions",
 		"appGetRequestContext",
-		"customWorkerEntrypoint"
+		"customEntrypoint"
 	],
 	"localSetup": "./setup.sh",
 	"buildConfig": {
-		"buildCommand": "npx --force ../../../packages/next-on-pages --custom-worker-entrypoint=./custom-entrypoint.ts",
+		"buildCommand": "npx --force ../../../packages/next-on-pages --custom-entrypoint=./custom-entrypoint.ts",
 		"buildOutputDirectory": ".vercel/output/static"
 	},
 	"deploymentConfig": {

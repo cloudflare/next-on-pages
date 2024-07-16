@@ -47,7 +47,7 @@ export async function buildWorkerFile(
 		workerJsDir,
 		nopDistDir,
 		templatesDir,
-		customWorkerEntrypoint,
+		customEntrypoint,
 		minify,
 	}: BuildWorkerFileOpts,
 ): Promise<string> {
@@ -100,18 +100,18 @@ export async function buildWorkerFile(
 		outdir: join(nopDistDir, 'cache'),
 	});
 
-	if (customWorkerEntrypoint) {
-		cliLog(`Using custom worker entrypoint '${customWorkerEntrypoint}'`);
+	if (customEntrypoint) {
+		cliLog(`Using custom worker entrypoint '${customEntrypoint}'`);
 
 		await build({
 			...defaultBuildOpts,
-			entryPoints: [customWorkerEntrypoint],
+			entryPoints: [customEntrypoint],
 			outfile: outputFile,
 			allowOverwrite: true,
 			bundle: true,
 			plugins: [
 				{
-					name: 'custom-worker-entrypoint-import-plugin',
+					name: 'custom-entrypoint-import-plugin',
 					setup(build) {
 						build.onResolve(
 							{ filter: /^@cloudflare\/next-on-pages\/fetch-handler$/ },
@@ -131,7 +131,7 @@ type BuildWorkerFileOpts = {
 	workerJsDir: string;
 	nopDistDir: string;
 	templatesDir: string;
-	customWorkerEntrypoint?: string;
+	customEntrypoint?: string;
 	minify?: boolean;
 };
 

@@ -5,6 +5,7 @@
 Add support for custom worker entrypoints.
 
 Example:
+
 ```ts
 import nextOnPagesHandler from '@cloudflare/next-on-pages/fetch-handler';
 
@@ -19,3 +20,4 @@ export default {
 		return response;
 	},
 } as ExportedHandler<{ ASSETS: Fetcher }>;
+```

@@ -59,7 +59,7 @@ program
 		join('.vercel', 'output', 'static'),
 	)
 	.option(
-		'--custom-worker-entrypoint <path>',
+		'--custom-entrypoint <path>',
 		'Wrap the generated worker for your application in a custom worker entrypoint',
 	)
 	.enablePositionalOptions(false)
@@ -78,7 +78,7 @@ export type CliOptions = {
 	noColor?: boolean;
 	info?: boolean;
 	outdir: string;
-	customWorkerEntrypoint?: string;
+	customEntrypoint?: string;
 };
 
 export function parseCliArgs(): CliOptions {

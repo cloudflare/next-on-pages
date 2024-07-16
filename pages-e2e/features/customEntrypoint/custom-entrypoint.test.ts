@@ -7,6 +7,6 @@ describe('Custom Entrypoint', () => {
 		const response = await fetch(`${DEPLOYMENT_URL}/api/hello`);
 
 		await expect(response.text()).resolves.toEqual('Hello world');
-		expect(response.headers.get('custom-worker-entrypoint')).toEqual('1');
+		expect(response.headers.get('custom-entrypoint')).toEqual('1');
 	});
 });
