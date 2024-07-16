@@ -6,20 +6,21 @@ Certain use cases may require the ability the control what happens in your Pages
 
 All of these would require modifying the worker to add some code before and/or after next-on-pages' logic runs.
 
-To achieve this, next-on-pages exposes an option to use your own worker entrypoint. Within it, you can decide when you want to run the worker that next-on-pages generates by importing our fetch handler.
+To achieve this, next-on-pages exposes an option to use your own worker entrypoint. Within it, you can directly import and use the next-on-pages fetch handler.
 
 1. Create a handler in your project.
 
 ```ts
+// file: ./custom-entrypoint.ts
 import nextOnPagesHandler from '@cloudflare/next-on-pages/fetch-handler';
 
 export default {
 	async fetch(request, env, ctx) {
-		// Do something before running the next-on-pages handler.
+		// do something before running the next-on-pages handler
 
 		const response = await nextOnPagesHandler.fetch(request, env, ctx);
 
-		// Do something after running the next-on-pages handler.
+		// do something after running the next-on-pages handler
 
 		return response;
 	},

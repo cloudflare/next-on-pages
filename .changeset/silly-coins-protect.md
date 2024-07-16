@@ -2,4 +2,20 @@
 '@cloudflare/next-on-pages': minor
 ---
 
-Support for custom worker entrypoints. See the [advanced usage docs](https://github.com/cloudflare/next-on-pages/blob/main/packages/next-on-pages/docs/advanced-usage.md) for information on how to get started.
+Add support for custom worker entrypoints.
+
+Example:
+```ts
+import nextOnPagesHandler from '@cloudflare/next-on-pages/fetch-handler';
+
+export default {
+	async fetch(request, env, ctx) {
+		// do something before running the next-on-pages handler
+
+		const response = await nextOnPagesHandler.fetch(request, env, ctx);
+
+		// do something after running the next-on-pages handler
+
+		return response;
+	},
+} as ExportedHandler<{ ASSETS: Fetcher }>;
