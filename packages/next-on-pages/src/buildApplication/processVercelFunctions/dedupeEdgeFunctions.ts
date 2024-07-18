@@ -147,17 +147,14 @@ async function processFunctionIdentifiers(
 				let fileContents = await readFile(path, 'utf8');
 				fileContents = `const namedExports = {};${fileContents}`;
 				fileContents = fileContents.replace(/export const (\S+) =/g, 'namedExports["$1"] =');
-				// TODO: path is a filesystem absolute one, so it's not ok to use that here in this way
-				//       this should be improved by splitting the path and taking the last bits
 				fileContents = `
-					const proxy = globalThis.__nextOnPagesRouteIsolation.getProxyFor('${path}');
-					export const namedExports = ((self, globalThis, global) => {
+					export const getNamedExports = ((self, globalThis, global) => {
 						${
 							fileContents
 						}
 
 						return namedExports;
-					})(proxy, proxy, proxy);
+					});
 				`;
 				return buildFile(fileContents, path);
 			}
@@ -221,15 +218,14 @@ async function buildFunctionFile(
 			join(relativeImportPath, addLeadingSlash(path)),
 		);
 
-		const namedExportsId = `namedExports_${i++}`;
+		const namedExportsId = `getNamedExports_${i++}`;
 		chunksMap.set(namedExportsId, new Set([...keys.split(',')]));
-		functionImports += `import { namedExports as ${namedExportsId} } from '${importPath}';\n`;
+		functionImports += `import { getNamedExports as ${namedExportsId} } from '${importPath}';\n`;
 	});
 
 	fnInfo.outputPath = relative(workerJsDir, newFnPath);
 
 	const wrappedContent = `
-		const proxy = globalThis.__nextOnPagesRouteIsolation.getProxyFor('${fnInfo.route?.path ?? ''}');
 		export default ((self, globalThis, global) => {
 			${
 				fileContents
@@ -242,11 +238,15 @@ async function buildFunctionFile(
 	`;
 
 	const finalFileContents = `${functionImports}
+
+			const proxy = globalThis.__nextOnPagesRouteIsolation.getProxyFor('${fnInfo.route?.path ?? ''}');
+
 			${
-				[...chunksMap].map(([namedExportsId, keys]) => {
-					return [...keys].map(
-						key => `const ${key} = ${namedExportsId}["${key}"]`
-					).join(';')
+				[...chunksMap].map(([getNamedExportsId, keys]) => {
+					return `const exportsOf${getNamedExportsId} = ${getNamedExportsId}(proxy, proxy, proxy);
+					${[...keys].map(
+						key => `const ${key} = exportsOf${getNamedExportsId}["${key}"]`
+					).join(';')}`
 				}).join(';')
 			}
 	${wrappedContent}`;
