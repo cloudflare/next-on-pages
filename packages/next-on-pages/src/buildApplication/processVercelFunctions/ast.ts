@@ -218,6 +218,7 @@ function extractWasm(
  * @param statement The AST statement to check.
  * @returns The manifest identifier information.
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function extractManifest(
 	statement: AST.StatementKind,
 ): RawIdentifier<'manifest'> | null {

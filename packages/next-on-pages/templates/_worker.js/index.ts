@@ -22,6 +22,7 @@ declare const __ALSes_PROMISE__: Promise<null | {
 
 export default {
 	async fetch(request, env, ctx) {
+		setupRouteIsolationMap();
 		patchFetch();
 
 		const asyncLocalStorages = await __ALSes_PROMISE__;
@@ -74,3 +75,53 @@ export default {
 		);
 	},
 } as ExportedHandler<{ ASSETS: Fetcher }>;
+
+type RouteIsolation = {
+	_map: Map<string, unknown>;
+	getProxyFor: (route: string) => unknown;
+}
+
+function setupRouteIsolationMap() {
+	const g = globalThis as {__nextOnPagesRouteIsolation?: RouteIsolation};
+	g.__nextOnPagesRouteIsolation ??= {
+		_map: new Map(),
+		getProxyFor: (route: string) => {
+			let proxy = g.__nextOnPagesRouteIsolation!._map.get(route);
+
+			if(proxy) {
+				return proxy;
+			}
+
+			const overrides = new Map<string|symbol, unknown>();
+
+			proxy = new Proxy(
+				globalThis,
+				{
+					get: (_, property) => {
+						let result: unknown;
+						if(overrides.has(property)) {
+							result = overrides.get(property);
+						} else {
+							result = Reflect.get(globalThis, property);
+						}
+						console.log(`--- (${overrides.has(property)}) ======> get (${property.toString()}) = ${result}`);
+						return result;
+					},
+					set: (_, property, value) => {
+						if(typeof property === 'string' && property.startsWith('webpackChunk_')){
+							Reflect.set(globalThis, property, value);
+							return true;
+						}
+						console.log(`---======> set (${property.toString()}) to ${value}`);
+						overrides.set(property, value);
+						return true;
+					},
+				}
+			);
+
+			g.__nextOnPagesRouteIsolation!._map.set(route, proxy);
+
+			return proxy;
+		},
+	};
+}

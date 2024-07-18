@@ -143,8 +143,24 @@ async function processFunctionIdentifiers(
 
 		// Build the identifier files before building the function's file.
 		await Promise.all(
-			[...identifierPathsToBuild].map(async path =>
-				buildFile(await readFile(path, 'utf8'), path),
+			[...identifierPathsToBuild].map(async path => {
+				let fileContents = await readFile(path, 'utf8');
+				fileContents = `const namedExports = {};${fileContents}`;
+				fileContents = fileContents.replace(/export const (\S+) =/g, 'namedExports["$1"] =');
+				// TODO: path is a filesystem absolute one, so it's not ok to use that here in this way
+				//       this should be improved by splitting the path and taking the last bits
+				fileContents = `
+					const proxy = globalThis.__nextOnPagesRouteIsolation.getProxyFor('${path}');
+					export const namedExports = ((self, globalThis, global) => {
+						${
+							fileContents
+						}
+
+						return namedExports;
+					})(proxy, proxy, proxy);
+				`;
+				return buildFile(fileContents, path);
+			}
 			),
 		);
 
@@ -193,6 +209,9 @@ async function buildFunctionFile(
 		return acc;
 	}, new Map<string, string>());
 
+	let i = 0;
+	const chunksMap = new Map<string, Set<string>>();
+
 	groupedImports.forEach((keys, path) => {
 		const relativeImportPath = getRelativePathToAncestor({
 			from: newFnLocation,
@@ -202,12 +221,36 @@ async function buildFunctionFile(
 			join(relativeImportPath, addLeadingSlash(path)),
 		);
 
-		functionImports += `import { ${keys} } from '${importPath}';\n`;
+		const namedExportsId = `namedExports_${i++}`;
+		chunksMap.set(namedExportsId, new Set([...keys.split(',')]));
+		functionImports += `import { namedExports as ${namedExportsId} } from '${importPath}';\n`;
 	});
 
 	fnInfo.outputPath = relative(workerJsDir, newFnPath);
 
-	const finalFileContents = `${functionImports}${fileContents}`;
+	const wrappedContent = `
+		const proxy = globalThis.__nextOnPagesRouteIsolation.getProxyFor('${fnInfo.route?.path ?? ''}');
+		export default ((self, globalThis, global) => {
+			${
+				fileContents
+					// we have to update all the _ENTIRES direct usages with globalThis._ENTRIES (otherwise the proxying won't take effect)
+					.replace(/([^.])_ENTRIES/g, '$1globalThis._ENTRIES')
+					// the default export becomes the return of the iife, which is then re-exported as default
+					.replace(`export default `, 'return ')
+			}
+		})(proxy, proxy, proxy);
+	`;
+
+	const finalFileContents = `${functionImports}
+			${
+				[...chunksMap].map(([namedExportsId, keys]) => {
+					return [...keys].map(
+						key => `const ${key} = ${namedExportsId}["${key}"]`
+					).join(';')
+				}).join(';')
+			}
+	${wrappedContent}`;
+
 	const buildPromise = buildFile(finalFileContents, newFnPath, {
 		relativeTo: nopDistDir,
 	}).then(async () => {
