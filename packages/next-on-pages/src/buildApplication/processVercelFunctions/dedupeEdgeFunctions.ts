@@ -101,13 +101,20 @@ async function processFunctionIdentifiers(
 
 			if (importPath) {
 				// Dedupe and update collected imports.
-				const { updatedContents } = await processImportIdentifier(
-					{ type, identifier, start, end, importPath, info: identifierInfo },
-					{ fileContents, entrypoint, newFnLocation, fnConfig: fnInfo.config },
-					opts,
-				);
+				const { updatedContents, newImportToPrepend } =
+					await processImportIdentifier(
+						{ type, identifier, start, end, importPath, info: identifierInfo },
+						{
+							fileContents,
+							entrypoint,
+							newFnLocation,
+							fnConfig: fnInfo.config,
+						},
+						opts,
+					);
 
 				fileContents = updatedContents;
+				importsToPrepend.push(newImportToPrepend);
 			} else if (identifierInfo.consumers.length > 1) {
 				// Only dedupe code blocks if there are multiple consumers.
 				const { updatedContents, newFilePath, newImport, wasmImports } =
@@ -143,9 +150,10 @@ async function processFunctionIdentifiers(
 
 		// Build the identifier files before building the function's file.
 		await Promise.all(
-			[...identifierPathsToBuild].map(async path =>
-				buildFile(await readFile(path, 'utf8'), path),
-			),
+			[...identifierPathsToBuild].map(async path => {
+				const fileContents = await functionifyFileContent(path);
+				return buildFile(fileContents, path);
+			}),
 		);
 
 		// If wasm identifier is used in code block, prepend the import to the code block's file.
@@ -166,6 +174,32 @@ async function processFunctionIdentifiers(
 
 	// Wait for all functions to be built.
 	await Promise.all(functionBuildPromises);
+}
+
+/**
+ * Given a standard ESM file (without imports) it converts it to a function call that returns
+ * an object with the various exports set as its fields
+ *
+ * The function allows us to override global symbols such as `self`, `globalThis` and `global`
+ * (which are used as the function's parameter names)
+ *
+ * @param path the path of the ESM file
+ * @returns the converted file content
+ */
+async function functionifyFileContent(path: string) {
+	let fileContents = await readFile(path, 'utf8');
+	fileContents = `const namedExports = {};${fileContents}`;
+	fileContents = fileContents.replace(
+		/export const (\S+) =/g,
+		'namedExports["$1"] =',
+	);
+	fileContents = `
+		export const getNamedExports = ((self, globalThis, global) => {
+			${fileContents};
+			return namedExports;
+		});
+	`;
+	return fileContents;
 }
 
 /**
@@ -193,7 +227,16 @@ async function buildFunctionFile(
 		return acc;
 	}, new Map<string, string>());
 
+	let chunkMapIdx = 0;
+	const chunksExportsMap = new Map<string, Set<string>>();
+
 	groupedImports.forEach((keys, path) => {
+		if (path.endsWith('.wasm')) {
+			// we don't need/want to apply any code transformation for wasm imports
+			functionImports += `import ${keys} from "${path}"`;
+			return;
+		}
+
 		const relativeImportPath = getRelativePathToAncestor({
 			from: newFnLocation,
 			relativeTo: nopDistDir,
@@ -202,12 +245,19 @@ async function buildFunctionFile(
 			join(relativeImportPath, addLeadingSlash(path)),
 		);
 
-		functionImports += `import { ${keys} } from '${importPath}';\n`;
+		const namedExportsId = `getNamedExports_${chunkMapIdx++}`;
+		chunksExportsMap.set(namedExportsId, new Set([...keys.split(',')]));
+		functionImports += `import { getNamedExports as ${namedExportsId} } from '${importPath}';\n`;
 	});
 
 	fnInfo.outputPath = relative(workerJsDir, newFnPath);
 
-	const finalFileContents = `${functionImports}${fileContents}`;
+	const finalFileContents = iffefyFunctionFile(
+		fileContents,
+		functionImports,
+		fnInfo,
+		chunksExportsMap,
+	);
 	const buildPromise = buildFile(finalFileContents, newFnPath, {
 		relativeTo: nopDistDir,
 	}).then(async () => {
@@ -224,6 +274,53 @@ type BuildFunctionFileOpts = {
 	newFnLocation: string;
 	newFnPath: string;
 };
+
+/**
+ * Given the content of a function file it converts/wraps it into an iife that overrides the function's contents with an iffe call that
+ * overrides global symbols with route-specific proxies (for more details see: templates/_worker.js/routesIsolation.ts)
+ *
+ * @param fileContents the function file's contents
+ * @param functionImports the imports that need to be added to the file
+ * @param fnInfo the function's information
+ * @param chunksExportsMap a map containing getters and chunks identifiers being used by the function
+ * @returns the updated/iifefied file content
+ */
+function iffefyFunctionFile(
+	fileContents: string,
+	functionImports: string,
+	fnInfo: FunctionInfo,
+	chunksExportsMap: Map<string, Set<string>>,
+): string {
+	const wrappedContent = `
+		export default ((self, globalThis, global) => {
+			${fileContents
+				// it looks like there can be direct references to _ENTRIES (i.e. `_ENTRIES` instead of `globalThis._ENTRIES` etc...)
+				// we have to update all such references otherwise our proxying won't take effect on those
+				.replace(/([^.])_ENTRIES/g, '$1globalThis._ENTRIES')
+				// the default export needs to become the return value of the iife, which is then re-exported as default
+				.replace(/export default /g, 'return ')}
+		})(proxy, proxy, proxy);
+	`;
+
+	const proxyCall = `const proxy = globalThis.__nextOnPagesRoutesIsolation.getProxyFor('${
+		fnInfo.route?.path ?? ''
+	}');`;
+
+	const chunksExtraction = [...chunksExportsMap].flatMap(
+		([getNamedExportsId, keys]) => {
+			return [
+				`const exportsOf${getNamedExportsId} = ${getNamedExportsId}(proxy, proxy, proxy);`,
+				...[...keys].map(
+					key => `const ${key} = exportsOf${getNamedExportsId}["${key}"]`,
+				),
+			];
+		},
+	);
+
+	return [functionImports, proxyCall, ...chunksExtraction, wrappedContent].join(
+		';',
+	);
+}
 
 /**
  * Prepends Wasm imports to a code block's built file.
@@ -268,12 +365,13 @@ async function prependWasmImportsToCodeBlocks(
  * Processes an import path identifier.
  *
  * - Moves the imported file to the new location if it doesn't exist.
- * - Updates the file contents to import from the new location.
+ * - Updates the file contents to remove the import.
+ * - Returns the information for the new import.
  *
  * @param ident The import path identifier to process.
  * @param processOpts Contents of the function's file, the function's entrypoint, and the new path.
  * @param opts Options for processing the function.
- * @returns The updated file contents.
+ * @returns The updated file contents alongside the new import information.
  */
 async function processImportIdentifier(
 	ident: RawIdentifierWithImport<IdentifierType> & { info: IdentifierInfo },
@@ -284,7 +382,7 @@ async function processImportIdentifier(
 		fnConfig,
 	}: ProcessImportIdentifierOpts,
 	{ nopDistDir, workerJsDir }: ProcessVercelFunctionsOpts,
-): Promise<{ updatedContents: string }> {
+): Promise<{ updatedContents: string; newImportToPrepend: NewImportInfo }> {
 	const { type, identifier, start, end, importPath, info } = ident;
 	let updatedContents = fileContents;
 
@@ -320,14 +418,20 @@ async function processImportIdentifier(
 	});
 	const newImportPath = normalizePath(join(relativeImportPath, info.newDest));
 
-	const newVal = `import ${identifier} from "${newImportPath}";`;
+	// let's remove the original import since it will be re-added later when appropriate
 	updatedContents = replaceLastSubstringInstance(
 		updatedContents,
 		codeBlock,
-		newVal,
+		'',
 	);
 
-	return { updatedContents };
+	return {
+		updatedContents,
+		newImportToPrepend: {
+			key: identifier,
+			path: newImportPath,
+		},
+	};
 }
 
 type ProcessImportIdentifierOpts = {
