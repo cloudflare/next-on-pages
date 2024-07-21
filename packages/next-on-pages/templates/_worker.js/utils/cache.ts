@@ -8,6 +8,8 @@ const NEXT_CACHE_SOFT_TAGS_HEADER = 'x-next-cache-soft-tags';
 
 const REQUEST_CONTEXT_KEY = Symbol.for('__cloudflare-request-context__');
 
+const CF_NEXT_SUSPENSE_CACHE_HEADER = 'cf-next-suspense-cache';
+
 /**
  * Handles an internal request to the suspense cache.
  *
@@ -50,14 +52,17 @@ export async function handleSuspenseCacheRequest(request: Request) {
 				const data = await cache.get(cacheKey, { softTags });
 				if (!data) return new Response(null, { status: 404 });
 
-				return new Response(JSON.stringify(data.value), {
-					status: 200,
-					headers: {
-						'Content-Type': 'application/json',
-						'x-vercel-cache-state': 'fresh',
-						age: `${(Date.now() - (data.lastModified ?? Date.now())) / 1000}`,
+				return new Response(
+					JSON.stringify(adjustCacheValueForResponse(data.value)),
+					{
+						status: 200,
+						headers: {
+							'Content-Type': 'application/json',
+							'x-vercel-cache-state': 'fresh',
+							age: `${(Date.now() - (data.lastModified ?? Date.now())) / 1000}`,
+						},
 					},
-				});
+				);
 			}
 			case 'POST': {
 				// Retrieve request context.
@@ -123,4 +128,22 @@ async function getInternalCacheAdaptor(
 
 function getTagsFromHeader(req: Request, key: string): string[] | undefined {
 	return req.headers.get(key)?.split(',')?.filter(Boolean);
+}
+
+function adjustCacheValueForResponse(value: IncrementalCacheValue | null) {
+	switch (value?.kind) {
+		case 'FETCH':
+			return {
+				...value,
+				data: {
+					...value.data,
+					headers: {
+						...value.data.headers,
+						[CF_NEXT_SUSPENSE_CACHE_HEADER]: 'HIT',
+					},
+				},
+			};
+		default:
+			return value;
+	}
 }
