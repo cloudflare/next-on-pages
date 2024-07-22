@@ -77,7 +77,7 @@ describe('processPrerenderFunctions', () => {
 				'favicon.ico.func': prerenderFuncDir,
 				'favicon.ico.prerender-config.json': mockPrerenderConfigFile(
 					'favicon.ico',
-					'body',
+					{ ext: 'body' },
 				),
 				'favicon.ico.prerender-fallback.body': 'favicon.ico',
 			},
@@ -123,7 +123,7 @@ describe('processPrerenderFunctions', () => {
 						'data.json.func': prerenderFuncDir,
 						'data.json.prerender-config.json': mockPrerenderConfigFile(
 							'data.json',
-							'json',
+							{ ext: 'json' },
 						),
 						'data.json.prerender-fallback.json': 'data.json',
 					},

@@ -46,6 +46,7 @@ export async function processPrerenderFunctions(
 				headers: config.initialHeaders,
 				overrides: getRouteOverrides(destRoute),
 			};
+			fnInfo.sourcePath = config.sourcePath;
 		} else {
 			invalidFunctions.set(path, fnInfo);
 			prerenderedFunctions.delete(path);

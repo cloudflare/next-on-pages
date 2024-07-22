@@ -178,3 +178,13 @@ export function getFileHash(path: string): Buffer | undefined {
 		return undefined;
 	}
 }
+
+/**
+ * Add a trailing slash to a path name if it doesn't already have one.
+ *
+ * @param path Path name to add a trailing slash to.
+ * @returns Path name with a trailing slash added.
+ */
+export function addTrailingSlash(path: string) {
+	return path.endsWith('/') ? path : `${path}/`;
+}
