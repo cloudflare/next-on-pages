@@ -6,6 +6,7 @@ import { generateGlobalJs } from './generateGlobalJs';
 import type { ProcessedVercelOutput } from './processVercelOutput';
 import { getNodeEnv } from '../utils/getNodeEnv';
 import { normalizePath } from '../utils';
+import { cliLog } from '../cli';
 
 /**
  * Construct a record for the build output map.
@@ -41,8 +42,14 @@ export function constructBuildOutputRecord(
 
 export async function buildWorkerFile(
 	{ vercelConfig, vercelOutput }: ProcessedVercelOutput,
-	{ outputDir, workerJsDir, nopDistDir, templatesDir }: BuildWorkerFileOpts,
-	minify: boolean,
+	{
+		outputDir,
+		workerJsDir,
+		nopDistDir,
+		templatesDir,
+		customEntrypoint,
+		minify,
+	}: BuildWorkerFileOpts,
 ): Promise<string> {
 	const functionsFile = join(
 		tmpdir(),
@@ -59,17 +66,21 @@ export async function buildWorkerFile(
 			.join(',')}};`,
 	);
 
+	const defaultBuildOpts = {
+		target: 'es2022',
+		platform: 'neutral',
+		bundle: false,
+		minify,
+	} as const;
+
 	const outputFile = join(workerJsDir, 'index.js');
 
 	await build({
+		...defaultBuildOpts,
 		entryPoints: [join(templatesDir, '_worker.js')],
-		banner: {
-			js: generateGlobalJs(),
-		},
+		banner: { js: generateGlobalJs() },
 		bundle: true,
 		inject: [functionsFile],
-		target: 'es2022',
-		platform: 'neutral',
 		external: ['node:*', './__next-on-pages-dist__/*', 'cloudflare:*'],
 		define: {
 			__CONFIG__: JSON.stringify(vercelConfig),
@@ -79,19 +90,38 @@ export async function buildWorkerFile(
 			}),
 		},
 		outfile: outputFile,
-		minify,
 	});
 
 	await build({
+		...defaultBuildOpts,
 		entryPoints: ['adaptor.ts', 'cache-api.ts', 'kv.ts'].map(fileName =>
 			join(templatesDir, 'cache', fileName),
 		),
-		bundle: false,
-		target: 'es2022',
-		platform: 'neutral',
 		outdir: join(nopDistDir, 'cache'),
-		minify,
 	});
+
+	if (customEntrypoint) {
+		cliLog(`Using custom worker entrypoint '${customEntrypoint}'`);
+
+		await build({
+			...defaultBuildOpts,
+			entryPoints: [customEntrypoint],
+			outfile: outputFile,
+			allowOverwrite: true,
+			bundle: true,
+			plugins: [
+				{
+					name: 'custom-entrypoint-import-plugin',
+					setup(build) {
+						build.onResolve(
+							{ filter: /^@cloudflare\/next-on-pages\/fetch-handler$/ },
+							() => ({ path: outputFile }),
+						);
+					},
+				},
+			],
+		});
+	}
 
 	return relative('.', outputFile);
 }
@@ -101,6 +131,8 @@ type BuildWorkerFileOpts = {
 	workerJsDir: string;
 	nopDistDir: string;
 	templatesDir: string;
+	customEntrypoint?: string;
+	minify?: boolean;
 };
 
 /**

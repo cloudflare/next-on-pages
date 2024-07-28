@@ -10,19 +10,20 @@
 		"appConfigsRewritesRedirectsHeaders",
 		"appWasm",
 		"appServerActions",
-		"appGetRequestContext"
+		"appGetRequestContext",
+		"customEntrypoint"
 	],
 	"localSetup": "./setup.sh",
 	"buildConfig": {
-		"buildCommand": "npx --force ../../../packages/next-on-pages",
+		"buildCommand": "npx --force ../../../packages/next-on-pages --custom-entrypoint=./custom-entrypoint.ts",
 		"buildOutputDirectory": ".vercel/output/static"
 	},
 	"deploymentConfig": {
 		"compatibilityFlags": ["nodejs_compat"],
 		"kvNamespaces": {
 			"MY_KV": {
-				"production": {"id": "00000000000000000000000000000000"},
-				"staging": {"id": "00000000000000000000000000000000"}
+				"production": { "id": "00000000000000000000000000000000" },
+				"staging": { "id": "00000000000000000000000000000000" }
 			}
 		}
 	}
