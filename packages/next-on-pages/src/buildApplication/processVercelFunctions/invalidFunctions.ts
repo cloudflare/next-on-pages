@@ -44,6 +44,7 @@ export async function checkInvalidFunctions(
 	await tryToFixI18nFunctions(collectedFunctions, opts);
 
 	await tryToFixInvalidFuncsWithValidIndexAlternative(collectedFunctions);
+	await tryToFixInvalidDynamicISRFuncs(collectedFunctions);
 
 	if (collectedFunctions.invalidFunctions.size > 0) {
 		await printInvalidFunctionsErrorMessage(
@@ -306,6 +307,52 @@ async function tryToFixInvalidFuncsWithValidIndexAlternative({
 				...fnInfo,
 			});
 			invalidFunctions.delete(fullPath);
+		}
+	}
+}
+
+/**
+ * Tries to fix invalid dynamic ISR functions that have valid prerendered children.
+ *
+ * The Vercel CLI might not generated a prerender config for a dynamic ISR function, depending
+ * on the Vercel CLI version. Therefore, we also check if valid prerendered routes were created
+ * for the dynamic route to determine if the function can be ignored.
+ *
+ * @param collectedFunctions Collected functions from the Vercel build output.
+ */
+async function tryToFixInvalidDynamicISRFuncs({
+	prerenderedFunctions,
+	invalidFunctions,
+	ignoredFunctions,
+}: CollectedFunctions) {
+	if (invalidFunctions.size === 0) {
+		return;
+	}
+
+	const prerenderedFunctionEntries = [...prerenderedFunctions.values()];
+
+	for (const [fullPath, fnInfo] of invalidFunctions.entries()) {
+		const fnPathWithoutRscOrFuncExt = fnInfo.relativePath.replace(
+			/(\.rsc)?\.func$/,
+			'',
+		);
+
+		const isDynamicISRFunc =
+			fnInfo.config.operationType === 'ISR' &&
+			/\/\[[\w-]+\]$/.test(fnPathWithoutRscOrFuncExt);
+
+		if (isDynamicISRFunc) {
+			const matchingPrerenderedChildFunc = prerenderedFunctionEntries.find(
+				fnInfo => fnInfo.sourcePath === fnPathWithoutRscOrFuncExt,
+			);
+
+			if (matchingPrerenderedChildFunc) {
+				ignoredFunctions.set(fullPath, {
+					reason: 'invalid dynamic isr route with valid prerendered children',
+					...fnInfo,
+				});
+				invalidFunctions.delete(fullPath);
+			}
 		}
 	}
 }

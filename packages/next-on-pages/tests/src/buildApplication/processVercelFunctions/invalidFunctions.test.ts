@@ -220,4 +220,125 @@ describe('checkInvalidFunctions', () => {
 			ignoredFunctions.has(resolve(functionsDir, 'index.action.func')),
 		).toEqual(true);
 	});
+
+	test('should ignore dynamic isr routes with prerendered children', async () => {
+		const mockedConsoleWarn = mockConsole('warn');
+
+		const { collectedFunctions, restoreFsMock } = await collectFunctionsFrom({
+			functions: {
+				'[dynamic-1].func': prerenderFuncDir,
+				'[dynamic-1].rsc.func': prerenderFuncDir,
+				'dynamic-1-child.func': prerenderFuncDir,
+				'dynamic-1-child.prerender-config.json': mockPrerenderConfigFile(
+					'dynamic-1-child',
+					{ sourcePath: '/[dynamic-1]' },
+				),
+				'dynamic-1-child.prerender-fallback.html': '',
+				nested: {
+					'[dynamic-2].func': prerenderFuncDir,
+					'dynamic-2-child.func': prerenderFuncDir,
+					'dynamic-2-child.prerender-config.json': mockPrerenderConfigFile(
+						'dynamic-2-child',
+						{ sourcePath: '/nested/[dynamic-2]' },
+					),
+					'dynamic-2-child.prerender-fallback.html': '',
+				},
+			},
+		});
+
+		const opts = {
+			functionsDir,
+			outputDir: resolve('.vercel/output/static'),
+			vercelConfig: { version: 3 as const },
+		};
+
+		await processEdgeFunctions(collectedFunctions);
+		await processPrerenderFunctions(collectedFunctions, opts);
+		await checkInvalidFunctions(collectedFunctions, opts);
+		restoreFsMock();
+
+		const { prerenderedFunctions, invalidFunctions, ignoredFunctions } =
+			collectedFunctions;
+
+		expect(prerenderedFunctions.size).toEqual(2);
+		expect(invalidFunctions.size).toEqual(0);
+		expect(ignoredFunctions.size).toEqual(3);
+
+		expect(getRouteInfo(prerenderedFunctions, 'dynamic-1-child.func')).toEqual({
+			path: '/dynamic-1-child.html',
+			overrides: ['/dynamic-1-child'],
+			headers: { vary: 'RSC, Next-Router-State-Tree, Next-Router-Prefetch' },
+		});
+		expect(
+			getRouteInfo(prerenderedFunctions, 'nested/dynamic-2-child.func'),
+		).toEqual({
+			path: '/nested/dynamic-2-child.html',
+			overrides: ['/nested/dynamic-2-child'],
+			headers: { vary: 'RSC, Next-Router-State-Tree, Next-Router-Prefetch' },
+		});
+
+		expect([...ignoredFunctions.keys()]).toEqual([
+			resolve(functionsDir, '[dynamic-1].func'),
+			resolve(functionsDir, '[dynamic-1].rsc.func'),
+			resolve(functionsDir, 'nested/[dynamic-2].func'),
+		]);
+
+		mockedConsoleWarn.restore();
+	});
+
+	test('should not ignore dynamic isr routes when there are no prerendered children', async () => {
+		const processExitMock = vi
+			.spyOn(process, 'exit')
+			.mockImplementation(async () => undefined as never);
+		const mockedConsoleWarn = mockConsole('warn');
+		const mockedConsoleError = mockConsole('error');
+
+		const { collectedFunctions, restoreFsMock } = await collectFunctionsFrom({
+			functions: {
+				'[dynamic-1].func': prerenderFuncDir,
+				'edge-route.func': edgeFuncDir,
+			},
+		});
+
+		const opts = {
+			functionsDir,
+			outputDir: resolve('.vercel/output/static'),
+			vercelConfig: { version: 3 as const },
+		};
+
+		await processEdgeFunctions(collectedFunctions);
+		await processPrerenderFunctions(collectedFunctions, opts);
+		await checkInvalidFunctions(collectedFunctions, opts);
+		restoreFsMock();
+
+		const {
+			edgeFunctions,
+			prerenderedFunctions,
+			invalidFunctions,
+			ignoredFunctions,
+		} = collectedFunctions;
+
+		expect(edgeFunctions.size).toEqual(1);
+		expect(prerenderedFunctions.size).toEqual(0);
+		expect(invalidFunctions.size).toEqual(1);
+		expect(ignoredFunctions.size).toEqual(0);
+
+		expect(getRouteInfo(edgeFunctions, 'edge-route.func')).toEqual({
+			path: '/edge-route',
+			overrides: [],
+		});
+
+		expect([...invalidFunctions.keys()]).toEqual([
+			resolve(functionsDir, '[dynamic-1].func'),
+		]);
+
+		expect(processExitMock).toHaveBeenCalledWith(1);
+		mockedConsoleError.expectCalls([
+			/The following routes were not configured to run with the Edge Runtime(?:.|\n)+- \/\[dynamic-1\]/,
+		]);
+
+		processExitMock.mockRestore();
+		mockedConsoleError.restore();
+		mockedConsoleWarn.restore();
+	});
 });
