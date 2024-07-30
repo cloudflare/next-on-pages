@@ -19,7 +19,6 @@ async function assertVisible(
 	page: Page,
 	...[selector, options]: Parameters<Page['locator']>
 ): Promise<Locator | never> {
-	let isVisible = false;
 	for (const _attempt of [0, 1, 2, 3, 4, 5]) {
 		const locator = page.locator(selector, options);
 		try {
