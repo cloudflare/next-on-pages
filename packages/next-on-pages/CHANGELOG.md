@@ -1,5 +1,11 @@
 # @cloudflare/next-on-pages
 
+## 1.13.1
+
+### Patch Changes
+
+- 8c04184: fix typescript declaration files not getting properly built
+
 ## 1.13.0
 
 ### Minor Changes
