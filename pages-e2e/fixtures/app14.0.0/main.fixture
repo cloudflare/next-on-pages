@@ -4,7 +4,6 @@
 		"appRouting",
 		"appConfigsTrailingSlashTrue",
 		"appWasm",
-		"appServerActions",
 		"appGetRequestContext"
 	],
 	"localSetup": "npm install",
