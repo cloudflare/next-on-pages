@@ -20,7 +20,9 @@
 	"scripts": {
 		"lint": "eslint src templates",
 		"types-check": "tsc --noEmit",
-		"build:types": "tsc -p tsconfig.api.json -p tsconfig.fetch-handler.json",
+		"build:types:api": "tsc -p tsconfig.api.json",
+		"build:types:fetch-handler": "tsc -p tsconfig.api.json",
+		"build:types": "npm run build:types:api && npm run build:types:fetch-handler",
 		"build": "esbuild --bundle --platform=node ./src/index.ts ./src/api/index.ts --external:esbuild --external:chokidar --external:server-only --outdir=./dist",
 		"build:watch": "npm run build -- --watch=forever",
 		"build:no-nodejs-compat-error-page": "node ./build-no-nodejs-compat-flag-static-error-page.mjs",
