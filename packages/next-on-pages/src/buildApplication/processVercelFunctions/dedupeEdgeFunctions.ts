@@ -187,19 +187,19 @@ async function processFunctionIdentifiers(
  * @returns the converted file content
  */
 async function functionifyFileContent(path: string) {
-	let fileContents = await readFile(path, 'utf8');
-	fileContents = `const namedExports = {};${fileContents}`;
-	fileContents = fileContents.replace(
-		/export\s+const\s+(\S+)\s*=/g,
-		'namedExports["$1"] =',
-	);
-	fileContents = `
+	const originalFileContents = await readFile(path, 'utf8');
+	return `
+		const namedExports = {};
 		export const getNamedExports = ((self, globalThis, global) => {
-			${fileContents};
+			${
+				originalFileContents.replace(
+					/export\s+const\s+(\S+)\s*=/g,
+					'namedExports["$1"] =',
+				)
+			}
 			return namedExports;
 		});
 	`;
-	return fileContents;
 }
 
 /**
