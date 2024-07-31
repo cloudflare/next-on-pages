@@ -190,7 +190,7 @@ async function functionifyFileContent(path: string) {
 	let fileContents = await readFile(path, 'utf8');
 	fileContents = `const namedExports = {};${fileContents}`;
 	fileContents = fileContents.replace(
-		/export const (\S+) =/g,
+		/export\s+const\s+(\S+)\s*=/g,
 		'namedExports["$1"] =',
 	);
 	fileContents = `
