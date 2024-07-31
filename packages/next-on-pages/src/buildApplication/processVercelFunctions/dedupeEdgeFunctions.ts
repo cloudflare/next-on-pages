@@ -233,7 +233,7 @@ async function buildFunctionFile(
 	groupedImports.forEach((keys, path) => {
 		if (path.endsWith('.wasm')) {
 			// we don't need/want to apply any code transformation for wasm imports
-			functionImports += `import ${keys} from "${path}"`;
+			functionImports += `import ${keys} from "${path}";`;
 			return;
 		}
 
