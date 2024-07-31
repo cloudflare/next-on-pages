@@ -246,7 +246,7 @@ async function buildFunctionFile(
 		);
 
 		const namedExportsId = `getNamedExports_${chunkMapIdx++}`;
-		chunksExportsMap.set(namedExportsId, new Set([...keys.split(',')]));
+		chunksExportsMap.set(namedExportsId, new Set(keys.split(',')));
 		functionImports += `import { getNamedExports as ${namedExportsId} } from '${importPath}';\n`;
 	});
 
