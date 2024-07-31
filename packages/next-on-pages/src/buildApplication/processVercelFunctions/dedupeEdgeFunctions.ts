@@ -191,12 +191,10 @@ async function functionifyFileContent(path: string) {
 	return `
 		const namedExports = {};
 		export const getNamedExports = ((self, globalThis, global) => {
-			${
-				originalFileContents.replace(
-					/export\s+const\s+(\S+)\s*=/g,
-					'namedExports["$1"] =',
-				)
-			}
+			${originalFileContents.replace(
+				/export\s+const\s+(\S+)\s*=/g,
+				'namedExports["$1"] =',
+			)}
 			return namedExports;
 		});
 	`;
