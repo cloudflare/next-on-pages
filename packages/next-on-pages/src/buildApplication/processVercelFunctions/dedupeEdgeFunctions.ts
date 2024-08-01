@@ -193,7 +193,7 @@ async function functionifyFileContent(path: string) {
 			/* Note: we need to make sure that the named exports object is defined since that is used inside the file */ ''
 		}
 		const ${namedExportsObjectName} = {};
-		export const getNamedExports = ((self, globalThis, global) => { ${originalFileContents} return ${namedExportsObjectName}; });
+		export const ${getNamedExportsFunctionName} = ((self, globalThis, global) => { ${originalFileContents} return ${namedExportsObjectName}; });
 	`;
 }
 
@@ -243,11 +243,11 @@ async function buildFunctionFile(
 			return;
 		}
 
-		const namedExportsId = `getNamedExports_${chunkMapIdx++}`;
+		const getNamedExportsFunctionWithId = `${getNamedExportsFunctionName}_${chunkMapIdx++}`;
 		const exportKeys = exports.split(',');
-		chunksExportsMap.set(namedExportsId, new Set(exportKeys));
+		chunksExportsMap.set(getNamedExportsFunctionWithId, new Set(exportKeys));
 		functionImports.push(
-			`import { getNamedExports as ${namedExportsId} } from '${importPath}'`,
+			`import { ${getNamedExportsFunctionName} as ${getNamedExportsFunctionWithId} } from '${importPath}'`,
 		);
 	});
 
@@ -293,10 +293,6 @@ function iifefyFunctionFile(
 	chunksExportsMap: Map<string, Set<string>>,
 ): string {
 	const wrappedContent = `
-		${
-			/* Note: we need to make sure that the named exports object is defined since that is used inside the file */ ''
-		}
-		const ${namedExportsObjectName} = {};
 		export default ((self, globalThis, global) => {
 			${fileContents
 				// it looks like there can be direct references to _ENTRIES (i.e. `_ENTRIES` instead of `globalThis._ENTRIES` etc...)
@@ -312,11 +308,12 @@ function iifefyFunctionFile(
 	}');`;
 
 	const chunksExtraction = [...chunksExportsMap.entries()].flatMap(
-		([getNamedExportsId, keys]) => {
+		([getNamedExportsFunctionWithId, keys]) => {
+			const namedExportsObjectWithId = `__exportsOf${getNamedExportsFunctionWithId}`;
 			return [
-				`const exportsOf${getNamedExportsId} = ${getNamedExportsId}(proxy, proxy, proxy);`,
+				`const ${namedExportsObjectWithId} = ${getNamedExportsFunctionWithId}(proxy, proxy, proxy);`,
 				...[...keys.keys()].map(
-					key => `const ${key} = exportsOf${getNamedExportsId}["${key}"]`,
+					key => `const ${key} = ${namedExportsObjectWithId}["${key}"]`,
 				),
 			];
 		},
@@ -674,8 +671,12 @@ async function processBundledAssets(
  * When performing the various code tweaking we never introduce standard named ESM exports, since those would
  * be invalid anyways since each js file content gets wrapped into a function anyways.
  *
+ * Note: route function files don't have named exports to this is only needed for the other files such
+ *       as the manifest ones and the webpack chunks ones
+ *
  * Instead of standard named exports we simply set named exports onto an object which gets then returned by the
  * file wrapper function.
+ *
  *
  * Example:
  *   when introducing a new export, instead of introducing:
@@ -690,4 +691,18 @@ async function processBundledAssets(
  *
  * This is the name of the object used for such exports.
  */
-const namedExportsObjectName = '__nextOnPagesNamedExportsObject';
+const namedExportsObjectName = '__namedExportsObject';
+
+/**
+ * The strategy of exporting exports via an returned object relies on the fact that there is a function that returns such object.
+ *
+ * Example:
+ * ```
+ *  import { __getNamedExports } from '...';
+ *  const obj = __getNamedExports(...);
+ *  // obj contains the various exports as standard object properties
+ * ```
+ *
+ * This is the name of such function.
+ */
+const getNamedExportsFunctionName = '__getNamedExports';
