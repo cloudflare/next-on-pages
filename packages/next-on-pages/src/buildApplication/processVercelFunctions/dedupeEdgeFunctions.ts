@@ -190,13 +190,7 @@ async function functionifyFileContent(path: string) {
 	const originalFileContents = await readFile(path, 'utf8');
 	return `
 		const namedExports = {};
-		export const getNamedExports = ((self, globalThis, global) => {
-			${originalFileContents.replace(
-				/export\s+const\s+(\S+)\s*=/g,
-				'namedExports["$1"] =',
-			)}
-			return namedExports;
-		});
+		export const getNamedExports = ((self, globalThis, global) => { ${originalFileContents} return namedExports; });
 	`;
 }
 
@@ -296,6 +290,11 @@ function iffefyFunctionFile(
 	chunksExportsMap: Map<string, Set<string>>,
 ): string {
 	const wrappedContent = `
+		${
+			/* Note: we need to make sure that the namedExports object is defined since that is used inside the file contents instead
+			of standard ESM named exports */ ''
+		}
+		const namedExports = {};
 		export default ((self, globalThis, global) => {
 			${fileContents
 				// it looks like there can be direct references to _ENTRIES (i.e. `_ENTRIES` instead of `globalThis._ENTRIES` etc...)
@@ -497,7 +496,7 @@ async function processCodeBlockIdentifier(
 			.forEach(key => wasmImports.push(key));
 
 		const buffer = Buffer.from(
-			`export const ${identifierKey} = ${codeBlock}\n`,
+			`namedExports["${identifierKey}"] = ${codeBlock}\n`,
 			'utf8',
 		);
 
