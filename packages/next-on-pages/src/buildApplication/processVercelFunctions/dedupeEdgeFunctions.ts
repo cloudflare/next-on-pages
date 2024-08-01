@@ -296,7 +296,7 @@ function iffefyFunctionFile(
 				// we have to update all such references otherwise our proxying won't take effect on those
 				.replace(/([^.])_ENTRIES/g, '$1globalThis._ENTRIES')
 				// the default export needs to become the return value of the iife, which is then re-exported as default
-				.replace(/export default /g, 'return ')}
+				.replace(/export\s+default\s+/g, 'return ')}
 		})(proxy, proxy, proxy);
 	`;
 
