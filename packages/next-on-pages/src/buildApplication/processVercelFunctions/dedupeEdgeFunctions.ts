@@ -250,7 +250,7 @@ async function buildFunctionFile(
 
 	fnInfo.outputPath = relative(workerJsDir, newFnPath);
 
-	const finalFileContents = iffefyFunctionFile(
+	const finalFileContents = iifefyFunctionFile(
 		fileContents,
 		functionImports,
 		fnInfo,
@@ -283,7 +283,7 @@ type BuildFunctionFileOpts = {
  * @param chunksExportsMap a map containing getters and chunks identifiers being used by the function
  * @returns the updated/iifefied file content
  */
-function iffefyFunctionFile(
+function iifefyFunctionFile(
 	fileContents: string,
 	functionImports: string[],
 	fnInfo: FunctionInfo,
