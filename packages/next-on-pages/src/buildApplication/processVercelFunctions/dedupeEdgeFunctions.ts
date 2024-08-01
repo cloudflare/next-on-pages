@@ -189,8 +189,11 @@ async function processFunctionIdentifiers(
 async function functionifyFileContent(path: string) {
 	const originalFileContents = await readFile(path, 'utf8');
 	return `
-		const namedExports = {};
-		export const getNamedExports = ((self, globalThis, global) => { ${originalFileContents} return namedExports; });
+		${
+			/* Note: we need to make sure that the named exports object is defined since that is used inside the file */ ''
+		}
+		const ${namedExportsObjectName} = {};
+		export const getNamedExports = ((self, globalThis, global) => { ${originalFileContents} return ${namedExportsObjectName}; });
 	`;
 }
 
@@ -291,10 +294,9 @@ function iifefyFunctionFile(
 ): string {
 	const wrappedContent = `
 		${
-			/* Note: we need to make sure that the namedExports object is defined since that is used inside the file contents instead
-			of standard ESM named exports */ ''
+			/* Note: we need to make sure that the named exports object is defined since that is used inside the file */ ''
 		}
-		const namedExports = {};
+		const ${namedExportsObjectName} = {};
 		export default ((self, globalThis, global) => {
 			${fileContents
 				// it looks like there can be direct references to _ENTRIES (i.e. `_ENTRIES` instead of `globalThis._ENTRIES` etc...)
@@ -496,7 +498,7 @@ async function processCodeBlockIdentifier(
 			.forEach(key => wasmImports.push(key));
 
 		const buffer = Buffer.from(
-			`namedExports["${identifierKey}"] = ${codeBlock}\n`,
+			`${namedExportsObjectName}["${identifierKey}"] = ${codeBlock}\n`,
 			'utf8',
 		);
 
@@ -667,3 +669,25 @@ async function processBundledAssets(
 		}
 	}
 }
+
+/**
+ * When performing the various code tweaking we never introduce standard named ESM exports, since those would
+ * be invalid anyways since each js file content gets wrapped into a function anyways.
+ *
+ * Instead of standard named exports we simply set named exports onto an object which gets then returned by the
+ * file wrapper function.
+ *
+ * Example:
+ *   when introducing a new export, instead of introducing:
+ *   ```
+ *   export const a = ...
+ *   ```
+ *   we introduce something like:
+ *   ```
+ *   NAMED_EXPORTS_OBJECT["a"] = ...
+ *   ```
+ *   and make sure that such <NAMED_EXPORTS_OBJECT> object is always declared and returned by the function wrapping the file's contents.
+ *
+ * This is the name of the object used for such exports.
+ */
+const namedExportsObjectName = '__next-on-pages-named_exports_object__';
