@@ -308,11 +308,11 @@ function iffefyFunctionFile(
 		fnInfo.route?.path ?? ''
 	}');`;
 
-	const chunksExtraction = [...chunksExportsMap].flatMap(
+	const chunksExtraction = [...chunksExportsMap.entries()].flatMap(
 		([getNamedExportsId, keys]) => {
 			return [
 				`const exportsOf${getNamedExportsId} = ${getNamedExportsId}(proxy, proxy, proxy);`,
-				...[...keys].map(
+				...[...keys.entries()].map(
 					key => `const ${key} = exportsOf${getNamedExportsId}["${key}"]`,
 				),
 			];
