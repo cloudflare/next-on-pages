@@ -314,7 +314,7 @@ function iffefyFunctionFile(
 		([getNamedExportsId, keys]) => {
 			return [
 				`const exportsOf${getNamedExportsId} = ${getNamedExportsId}(proxy, proxy, proxy);`,
-				...[...keys.entries()].map(
+				...[...keys.keys()].map(
 					key => `const ${key} = exportsOf${getNamedExportsId}["${key}"]`,
 				),
 			];
