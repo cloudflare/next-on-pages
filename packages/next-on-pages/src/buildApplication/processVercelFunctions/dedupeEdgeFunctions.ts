@@ -228,23 +228,27 @@ async function buildFunctionFile(
 	let chunkMapIdx = 0;
 	const chunksExportsMap = new Map<string, Set<string>>();
 
-	groupedImports.forEach((keys, path) => {
-		if (path.endsWith('.wasm')) {
-			// we don't need/want to apply any code transformation for wasm imports
-			functionImports += `import ${keys} from "${path}";`;
-			return;
-		}
+	const relativeImportPath = getRelativePathToAncestor({
+		from: newFnLocation,
+		relativeTo: nopDistDir,
+	});
 
-		const relativeImportPath = getRelativePathToAncestor({
-			from: newFnLocation,
-			relativeTo: nopDistDir,
-		});
+	groupedImports.forEach((exports, path) => {
 		const importPath = normalizePath(
 			join(relativeImportPath, addLeadingSlash(path)),
 		);
 
+		if (path.endsWith('.wasm')) {
+			// if we're dealing with a wasm file there is a single default export to deal with
+			const defaultExport = exports;
+			// we don't need/want to apply any code transformation for wasm imports
+			functionImports += `import ${defaultExport} from "${path}";`;
+			return;
+		}
+
 		const namedExportsId = `getNamedExports_${chunkMapIdx++}`;
-		chunksExportsMap.set(namedExportsId, new Set(keys.split(',')));
+		const exportKeys = exports.split(',');
+		chunksExportsMap.set(namedExportsId, new Set(exportKeys));
 		functionImports += `import { getNamedExports as ${namedExportsId} } from '${importPath}';\n`;
 	});
 
