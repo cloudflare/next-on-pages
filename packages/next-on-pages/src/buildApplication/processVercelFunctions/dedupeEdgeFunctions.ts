@@ -690,4 +690,4 @@ async function processBundledAssets(
  *
  * This is the name of the object used for such exports.
  */
-const namedExportsObjectName = '__next_on_pages__named_exports_object__';
+const namedExportsObjectName = '__nextOnPagesNamedExportsObject';
