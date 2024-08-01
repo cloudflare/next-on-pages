@@ -216,7 +216,7 @@ async function buildFunctionFile(
 	{ importsToPrepend }: { importsToPrepend: NewImportInfo[] },
 	{ workerJsDir, nopDistDir }: ProcessVercelFunctionsOpts,
 ): Promise<{ buildPromise: Promise<void> }> {
-	let functionImports = '';
+	const functionImports: string[] = [];
 
 	// Group the identifier imports by the keys for each path.
 	const groupedImports = importsToPrepend.reduce((acc, { key, path }) => {
@@ -242,14 +242,16 @@ async function buildFunctionFile(
 			// if we're dealing with a wasm file there is a single default export to deal with
 			const defaultExport = exports;
 			// we don't need/want to apply any code transformation for wasm imports
-			functionImports += `import ${defaultExport} from "${path}";`;
+			functionImports.push(`import ${defaultExport} from "${path}"`);
 			return;
 		}
 
 		const namedExportsId = `getNamedExports_${chunkMapIdx++}`;
 		const exportKeys = exports.split(',');
 		chunksExportsMap.set(namedExportsId, new Set(exportKeys));
-		functionImports += `import { getNamedExports as ${namedExportsId} } from '${importPath}';\n`;
+		functionImports.push(
+			`import { getNamedExports as ${namedExportsId} } from '${importPath}'`,
+		);
 	});
 
 	fnInfo.outputPath = relative(workerJsDir, newFnPath);
@@ -289,7 +291,7 @@ type BuildFunctionFileOpts = {
  */
 function iffefyFunctionFile(
 	fileContents: string,
-	functionImports: string,
+	functionImports: string[],
 	fnInfo: FunctionInfo,
 	chunksExportsMap: Map<string, Set<string>>,
 ): string {
@@ -319,9 +321,12 @@ function iffefyFunctionFile(
 		},
 	);
 
-	return [functionImports, proxyCall, ...chunksExtraction, wrappedContent].join(
-		';',
-	);
+	return [
+		...functionImports,
+		proxyCall,
+		...chunksExtraction,
+		wrappedContent,
+	].join(';');
 }
 
 /**
