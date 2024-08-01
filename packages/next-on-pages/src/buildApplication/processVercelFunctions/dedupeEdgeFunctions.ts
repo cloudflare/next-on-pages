@@ -350,7 +350,7 @@ async function prependWasmImportsToCodeBlocks(
 					relativeTo: nopDistDir,
 				});
 
-				let functionImports = '';
+				const functionImports: string[] = [];
 
 				for (const identifier of wasmImports) {
 					// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -358,11 +358,14 @@ async function prependWasmImportsToCodeBlocks(
 					const wasmImportPath = normalizePath(
 						join(relativeImportPath, newDest as string),
 					);
-					functionImports += `import ${identifier} from "${wasmImportPath}";\n`;
+					functionImports.push(`import ${identifier} from "${wasmImportPath}"`);
 				}
 
 				const oldContents = await readFile(filePath);
-				await writeFile(filePath, `${functionImports}${oldContents}`);
+				await writeFile(
+					filePath,
+					`${functionImports.join(';')};${oldContents}`,
+				);
 			},
 		),
 	);
