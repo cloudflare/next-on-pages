@@ -282,14 +282,14 @@ type BuildFunctionFileOpts = {
  *
  * @param fileContents the function file's contents
  * @param functionImports the imports that need to be added to the file
- * @param fnInfo the function's information
+ * @param functionInfo the function's information
  * @param chunksExportsMap a map containing getters and chunks identifiers being used by the function
  * @returns the updated/iifefied file content
  */
 function iifefyFunctionFile(
 	fileContents: string,
 	functionImports: string[],
-	fnInfo: FunctionInfo,
+	functionInfo: FunctionInfo,
 	chunksExportsMap: Map<string, Set<string>>,
 ): string {
 	const wrappedContent = `
@@ -307,7 +307,7 @@ function iifefyFunctionFile(
 	`;
 
 	const proxyCall = `const proxy = globalThis.__nextOnPagesRoutesIsolation.getProxyFor('${
-		fnInfo.route?.path ?? ''
+		functionInfo.route?.path ?? ''
 	}');`;
 
 	const chunksExtraction = [...chunksExportsMap.entries()].flatMap(
