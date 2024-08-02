@@ -1,5 +1,6 @@
 import { SUSPENSE_CACHE_URL } from '../cache';
 import { handleRequest } from './handleRequest';
+import { setupRoutesIsolation } from './routesIsolation';
 import {
 	adjustRequestForVercel,
 	handleImageResizingRequest,
@@ -22,6 +23,7 @@ declare const __ALSes_PROMISE__: Promise<null | {
 
 export default {
 	async fetch(request, env, ctx) {
+		setupRoutesIsolation();
 		patchFetch();
 
 		const asyncLocalStorages = await __ALSes_PROMISE__;
