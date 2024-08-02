@@ -239,7 +239,7 @@ async function buildFunctionFile(
 			// if we're dealing with a wasm file there is a single default export to deal with
 			const defaultExport = exports;
 			// we don't need/want to apply any code transformation for wasm imports
-			functionImports.push(`import ${defaultExport} from "${path}"`);
+			functionImports.push(`import ${defaultExport} from '${path}';`);
 			return;
 		}
 
@@ -247,7 +247,7 @@ async function buildFunctionFile(
 		const exportKeys = exports.split(',');
 		chunksExportsMap.set(getNamedExportsFunctionWithId, new Set(exportKeys));
 		functionImports.push(
-			`import { ${getNamedExportsFunctionName} as ${getNamedExportsFunctionWithId} } from '${importPath}'`,
+			`import { ${getNamedExportsFunctionName} as ${getNamedExportsFunctionWithId} } from '${importPath}';`,
 		);
 	});
 
@@ -316,7 +316,7 @@ function iifefyFunctionFile(
 			return [
 				`const ${namedExportsObjectWithId} = ${getNamedExportsFunctionWithId}(proxy, proxy, proxy);`,
 				...[...keys.keys()].map(
-					key => `const ${key} = ${namedExportsObjectWithId}["${key}"]`,
+					key => `const ${key} = ${namedExportsObjectWithId}["${key}"];`,
 				),
 			];
 		},
@@ -327,7 +327,7 @@ function iifefyFunctionFile(
 		proxyCall,
 		...chunksExtraction,
 		wrappedContent,
-	].join(';');
+	].join('\n');
 }
 
 /**
