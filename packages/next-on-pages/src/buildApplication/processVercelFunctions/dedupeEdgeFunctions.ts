@@ -297,7 +297,10 @@ function iifefyFunctionFile(
 			${fileContents
 				// it looks like there can be direct references to _ENTRIES (i.e. `_ENTRIES` instead of `globalThis._ENTRIES` etc...)
 				// we have to update all such references otherwise our proxying won't take effect on those
-				.replace(/([^.])_ENTRIES/g, '$1globalThis._ENTRIES')
+				// (note: older versions of the Vercel CLI (v31 and older) used to declare _ENTRIES as "let _ENTRIES = {};", so we do
+				// need to make sure that we don't add `globalThis.` in these cases (if we were to drop support for those older versions
+				// the below line to: ".replace(/([^.])_ENTRIES/g, '$1globalThis._ENTRIES')")
+				.replace(/(?<!(let)\s*)([^.]|^)_ENTRIES/g, '$2globalThis._ENTRIES')
 				// the default export needs to become the return value of the iife, which is then re-exported as default
 				.replace(/export\s+default\s+/g, 'return ')}
 		})(proxy, proxy, proxy);
