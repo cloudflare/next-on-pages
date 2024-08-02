@@ -65,7 +65,8 @@
 		"miniflare": "^3.20231218.1",
 		"package-manager-manager": "^0.2.0",
 		"pcre-to-regexp": "^1.1.0",
-		"semver": "^7.5.2"
+		"semver": "^7.5.2",
+		"recast": "^0.23.4"
 	},
 	"devDependencies": {
 		"@changesets/cli": "^2.26.0",

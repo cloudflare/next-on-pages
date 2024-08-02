@@ -23,6 +23,8 @@ import {
 } from '../../utils';
 import { copyAssetFile } from './prerenderFunctions';
 import { cliError } from '../../cli';
+import * as recast from 'recast';
+import * as recastParser from 'recast/parsers/babel';
 
 /**
  * Dedupes edge functions that were found in the build output.
@@ -253,7 +255,7 @@ async function buildFunctionFile(
 
 	fnInfo.outputPath = relative(workerJsDir, newFnPath);
 
-	const finalFileContents = iifefyFunctionFile(
+	const finalFileContents = await iifefyFunctionFile(
 		fileContents,
 		functionImports,
 		fnInfo,
@@ -286,24 +288,17 @@ type BuildFunctionFileOpts = {
  * @param chunksExportsMap a map containing getters and chunks identifiers being used by the function
  * @returns the updated/iifefied file content
  */
-function iifefyFunctionFile(
+async function iifefyFunctionFile(
 	fileContents: string,
 	functionImports: string[],
 	functionInfo: FunctionInfo,
 	chunksExportsMap: Map<string, Set<string>>,
-): string {
+): Promise<string> {
+	const preparedFileContents =
+		prepareFunctionFileContentForIifeConversion(fileContents);
+
 	const wrappedContent = `
-		export default ((self, globalThis, global) => {
-			${fileContents
-				// it looks like there can be direct references to _ENTRIES (i.e. `_ENTRIES` instead of `globalThis._ENTRIES` etc...)
-				// we have to update all such references otherwise our proxying won't take effect on those
-				// (note: older versions of the Vercel CLI (v31 and older) used to declare _ENTRIES as "let _ENTRIES = {};", so we do
-				// need to make sure that we don't add `globalThis.` in these cases (if we were to drop support for those older versions
-				// the below line to: ".replace(/([^.])_ENTRIES/g, '$1globalThis._ENTRIES')")
-				.replace(/(?<!(let)\s*)([^.]|^)_ENTRIES/g, '$2globalThis._ENTRIES')
-				// the default export needs to become the return value of the iife, which is then re-exported as default
-				.replace(/export\s+default\s+/g, 'return ')}
-		})(proxy, proxy, proxy);
+		export default ((self, globalThis, global) => {${preparedFileContents}})(proxy, proxy, proxy);
 	`;
 
 	const proxyCall = `const proxy = globalThis.__nextOnPagesRoutesIsolation.getProxyFor('${
@@ -328,6 +323,79 @@ function iifefyFunctionFile(
 		...chunksExtraction,
 		wrappedContent,
 	].join('\n');
+}
+
+/**
+ * iifefyFunctionFile converts a function file's content into an iife (so that we can apply global proxies to
+ * it), this function is used to prepare the file's content so that it is ready to be embedded into an iife
+ *
+ * @param fileContents the original file contents
+ * @returns the file contents updated and ready to be embedded into an iife
+ */
+function prepareFunctionFileContentForIifeConversion(fileContents: string) {
+	const ast = recast.parse(fileContents, {
+		parser: recastParser,
+	});
+
+	let containsEntriesDeclaration = false;
+
+	recast.visit(ast, {
+		visitVariableDeclaration: function (path) {
+			const declarations = (path.value.declarations ??
+				[]) as AST.VariableDeclaratorKind[];
+			const contains = declarations.some(d => {
+				return d.id.type === 'Identifier' && d.id.name === '_ENTRIES';
+			});
+			if (contains) {
+				containsEntriesDeclaration = true;
+				// we don't need to traverse the ast anymore, returning false informs react of this
+				return false;
+			}
+			return this.traverse(path);
+		},
+	});
+
+	recast.visit(ast, {
+		// it looks like there can be direct references to _ENTRIES (i.e. `_ENTRIES` instead of `globalThis._ENTRIES` etc...)
+		// we have to update all such references otherwise our proxying won't take effect on those
+		// (note: older versions of the Vercel CLI (v31 and older) used to declare _ENTRIES as a module scoped object, that is
+		// why only apply the logic below if we didn't find a declaration for `_ENTRIES` (because if there was an `_ENTRIES`
+		// declaration updating it would just be incorrect and would break the js)
+		visitIdentifier: containsEntriesDeclaration
+			? undefined
+			: function (path) {
+					const value = path.value as AST.IdentifierKind;
+					if (!value.name.startsWith('_ENTRIES')) {
+						// we're only interested in modifying _ENTRIES identifiers
+						return this.traverse(path);
+					}
+					if (path.name === 'property') {
+						// if _ENTRIES is already accessed as a property bail
+						// i.e. if we encounter X._ENTRIES we don't want to modify it
+						return this.traverse(path);
+					}
+					path.value.name = `globalThis.${path.value.name}`;
+					this.traverse(path);
+			  },
+		visitProgram: function (path) {
+			// function files export as their default a function (i.e. `export default (() => {...})`)
+			// since we're moving the function file's logic inside an iife we need to convert such
+			// export in a return statement (i.e. `return () => {...}`)
+			const body = path.value.body as AST.StatementKind[];
+			const defaultExportIndex = body.findIndex(
+				statement => statement.type === 'ExportDefaultDeclaration',
+			);
+			if (defaultExportIndex >= 0) {
+				path.value.body[defaultExportIndex] =
+					recast.types.builders.returnStatement(
+						path.value.body[defaultExportIndex].declaration,
+					);
+			}
+			this.traverse(path);
+		},
+	});
+
+	return recast.print(ast).code;
 }
 
 /**
