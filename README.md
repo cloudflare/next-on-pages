@@ -6,11 +6,11 @@
 
 - [Getting Started Guide](https://developers.cloudflare.com/pages/framework-guides/nextjs/deploy-a-nextjs-site/)
 
-## Packages
+## Components
 
-- [`@cloudflare/next-on-pages`](https://github.com/cloudflare/next-on-pages/tree/main/packages/next-on-pages#cloudflarenext-on-pages)
-- [`eslint-plugin-next-on-pages`](https://github.com/cloudflare/next-on-pages/tree/main/packages/eslint-plugin-next-on-pages#eslint-plugin-next-on-pages)
-- [`@cloudflare/next-on-pages/next-dev`](https://github.com/cloudflare/next-on-pages/tree/main/internal-packages/next-dev) (submodule, included with next-on-pages)
+- [`@cloudflare/next-on-pages`](https://github.com/cloudflare/next-on-pages/tree/main/packages/next-on-pages#cloudflarenext-on-pages) — a CLI that runs `next build`, then transforms its output to run on Cloudflare Pages.
+- [`@cloudflare/next-on-pages/next-dev`](https://github.com/cloudflare/next-on-pages/tree/main/internal-packages/next-dev) — lets you access [bindings](https://developers.cloudflare.com/workers/runtime-apis/bindings/) in local development of your Next.js app.
+- [`eslint-plugin-next-on-pages`](https://github.com/cloudflare/next-on-pages/tree/main/packages/eslint-plugin-next-on-pages#eslint-plugin-next-on-pages) — lints your Next.js app to ensure it is configured to work on Cloudflare Pages.
 
 ## Contributing
 
