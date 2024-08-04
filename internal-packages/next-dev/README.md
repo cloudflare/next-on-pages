@@ -7,7 +7,6 @@
 [`next.config.mjs`](https://nextjs.org/docs/app/api-reference/next-config-js):
 
 ```js
-
 import { setupDevPlatform } from '@cloudflare/next-on-pages/next-dev';
 
 const nextConfig = {};
@@ -28,7 +27,6 @@ id = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 ```
 
 A route in your Next.js app:
-
 
 ```ts
 export const runtime = 'edge';
