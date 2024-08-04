@@ -12,7 +12,7 @@ body:
 
          - There isn't already an existing issue covering the same bug, if there is, please add a comment there instead.
 
-         - If the issue concerns a missing Next.js feature, such is not already present in our [Supported Versions and Features document](https://github.com/cloudflare/next-on-pages/blob/main/docs/supported.md).
+         - If the issue concerns a missing Next.js feature, such is not already present in our [Supported Versions and Features document](https://github.com/cloudflare/next-on-pages/blob/main/packages/next-on-pages/docs/supported.md).
 
         > ℹ️ Please try to provide as much details as you can, the more details you can include the more likely it is for the issue to get quickly addressed.
 
