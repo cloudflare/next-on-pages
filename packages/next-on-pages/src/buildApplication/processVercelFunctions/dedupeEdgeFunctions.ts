@@ -293,7 +293,7 @@ function iifefyFunctionFile(
 	chunksExportsMap: Map<string, Set<string>>,
 ): string {
 	const fileContentsContainEntriesDeclaration =
-		/(let|var|const)\s+_ENTRIES\s*=/g.test(fileContents);
+		/(let|var|const)\s+_ENTRIES\s*=/.test(fileContents);
 
 	// it looks like there can be direct references to _ENTRIES (i.e. `_ENTRIES` instead of `globalThis._ENTRIES` etc...)
 	// we have to update all such references otherwise our proxying won't take effect on those, but only if the file doesn't
