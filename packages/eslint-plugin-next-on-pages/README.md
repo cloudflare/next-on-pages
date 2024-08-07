@@ -1,24 +1,18 @@
 # `eslint-plugin-next-on-pages`
 
-`eslint-plugin-next-on-pages` is an ESlint plugin intended to support developers developing Next.js application via `@cloudflare/next-on-pages`.
+`eslint-plugin-next-on-pages` lints your Next.js app to ensure it is configured to work on Cloudflare Pages.
 
 ## Setup
 
 To install the plugin run:
 
 ```sh
- npm i --save-dev eslint-plugin-next-on-pages@V
+ npm i --save-dev eslint-plugin-next-on-pages
 ```
 
-where `V` indicates the version of your `@cloudflare/next-on-pages` package.
-
-> **Note**
-> The `eslint-plugin-next-on-pages` package is versioned identically to `@cloudflare/next-on-pages`, this can be used to ensure that the two packages are in sync with each other. For best results make sure that the versions of the two packages are always the same.
-
-Then simply register the plugin in your eslintrc file. As part of this we suggest to also extend the recommended configuration. After that you can also further tweak the available rules:
+Add the plugin to your `.eslintrc.json`:
 
 ```diff
-// .eslintrc.json
 {
   "plugins": [
 +    "next-on-pages"
@@ -36,4 +30,7 @@ Then simply register the plugin in your eslintrc file. As part of this we sugges
 
 ## Rules
 
-For more details check out the [rules documentation](https://github.com/cloudflare/next-on-pages/tree/main/packages/eslint-plugin-next-on-pages/docs/rules).
+- [`next-on-pages/no-app-nodejs-dynamic-ssg`](https://github.com/cloudflare/next-on-pages/tree/main/packages/eslint-plugin-next-on-pages/docs/rules/no-app-nodejs-dynamic-ssg)
+- [`next-on-pages/no-nodejs-runtime`](https://github.com/cloudflare/next-on-pages/tree/main/packages/eslint-plugin-next-on-pages/docs/rules/no-app-nodejs-runtime)
+- [`next-on-pages/no-pages-nodejs-dynamic-ssg`](https://github.com/cloudflare/next-on-pages/tree/main/packages/eslint-plugin-next-on-pages/docs/rules/no-pages-nodejs-dynamic-ssg)
+- [`next-on-pages/no-unsupported-configs`](https://github.com/cloudflare/next-on-pages/tree/main/packages/eslint-plugin-next-on-pages/docs/rules/no-unsupported-configs)
