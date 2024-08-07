@@ -56,7 +56,7 @@ ${Object.entries(nextStaticHeaders)
 
 	try {
 		// Vercel hard links the static files directory:
-		// https://github.com/vercel/vercel/blob/8e20fed2769ff0169179d2d40fcc97cfd07a8bfe/packages/cli/src/util/build/write-build-result.ts#L336
+		// https://github.com/vercel/vercel/blob/8e20fed/packages/cli/src/util/build/write-build-result.ts#L336
 		// So we need to unlink before we append data, otherwise we will mutate
 		// the original file found in the public directory.
 		const stats = await stat(headersPath);
