@@ -169,8 +169,8 @@ In case the Vercel build process generates prerendered pages for your applicatio
 
 For more details see:
 
-- [troubleshooting `generateStaticParams`](https://developers.cloudflare.com/pages/framework-guides/nextjs/deploy-a-nextjs-site/#generatestaticparams)
-- [troubleshooting `getStaticPaths` ](https://developers.cloudflare.com/pages/framework-guides/nextjs/deploy-a-nextjs-site/#getstaticpaths)
+- [troubleshooting `generateStaticParams`](https://developers.cloudflare.com/pages/framework-guides/nextjs/ssr/troubleshooting/#generatestaticparams)
+- [troubleshooting `getStaticPaths` ](https://developers.cloudflare.com/pages/framework-guides/nextjs/ssr/troubleshooting/#getstaticpaths)
 
 #### Caching and Data Revalidation
 
