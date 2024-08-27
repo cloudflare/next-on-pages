@@ -14,7 +14,7 @@ import { isUsingAppRouter, isUsingPagesRouter } from '../getVercelConfig';
 type InvalidFunctionsOpts = Pick<
 	ProcessVercelFunctionsOpts,
 	'functionsDir' | 'vercelConfig'
->;
+> & { ignoreInvalidFunctions?: boolean };
 
 /**
  * Checks if there are any invalid functions from the Vercel build output.
@@ -46,7 +46,10 @@ export async function checkInvalidFunctions(
 	await tryToFixInvalidFuncsWithValidIndexAlternative(collectedFunctions);
 	await tryToFixInvalidDynamicISRFuncs(collectedFunctions);
 
-	if (collectedFunctions.invalidFunctions.size > 0) {
+	if (
+		collectedFunctions.invalidFunctions.size > 0 &&
+		!opts.ignoreInvalidFunctions
+	) {
 		await printInvalidFunctionsErrorMessage(
 			collectedFunctions.invalidFunctions,
 		);
