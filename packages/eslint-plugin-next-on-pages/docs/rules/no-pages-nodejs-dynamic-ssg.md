@@ -7,7 +7,7 @@ When using [`getStaticPaths`](https://nextjs.org/docs/pages/api-reference/functi
 
 This rule makes sure that if you're using `getStaticPaths` at least one of the two aforementioned conditions is met.
 
-For more details refer to the [official Cloudflare Next.js docs](https://developers.cloudflare.com/pages/framework-guides/nextjs/deploy-a-nextjs-site/#generatestaticparams).
+For more details refer to the [official Cloudflare Next.js docs](https://developers.cloudflare.com/pages/framework-guides/nextjs/ssr/troubleshooting/#generatestaticparams).
 
 ## ❌ Invalid Code
 

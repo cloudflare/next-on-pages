@@ -130,7 +130,7 @@ To see some examples on how to use Next.js features with `@cloudflare/next-on-pa
 
 ## Troubleshooting
 
-If you find yourself hitting some issues with `@cloudflare/next-on-pages` please check out our [official troubleshooting documentation](https://developers.cloudflare.com/pages/framework-guides/nextjs/deploy-a-nextjs-site/#troubleshooting).
+If you find yourself hitting some issues with `@cloudflare/next-on-pages` please check out our [official troubleshooting documentation](https://developers.cloudflare.com/pages/framework-guides/nextjs/ssr/troubleshooting/).
 
 ## More Information
 

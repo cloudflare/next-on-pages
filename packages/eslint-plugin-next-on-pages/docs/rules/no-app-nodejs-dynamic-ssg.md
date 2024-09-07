@@ -7,7 +7,7 @@ When using [`generateStaticParams`](https://nextjs.org/docs/app/api-reference/fu
 
 This rule makes sure that if you're using `generateStaticParams` at least one of the two export is present.
 
-For more details refer to the [official Cloudflare Next.js docs](https://developers.cloudflare.com/pages/framework-guides/nextjs/deploy-a-nextjs-site/#generatestaticparams).
+For more details refer to the [official Cloudflare Next.js docs](https://developers.cloudflare.com/pages/framework-guides/nextjs/ssr/troubleshooting/#generatestaticparams).
 
 ## ❌ Invalid Code
 

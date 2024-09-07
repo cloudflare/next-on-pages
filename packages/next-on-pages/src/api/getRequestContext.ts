@@ -67,7 +67,7 @@ export function getRequestContext<
 			// so we simply forbid such calls altogether
 			throw new Error(dedent`
 				\n\`getRequestContext\` is being called at the top level of a route file, this is not supported
-				for more details see https://developers.cloudflare.com/pages/framework-guides/nextjs/deploy-a-nextjs-site/#top-level-getrequestcontext \n
+				for more details see https://developers.cloudflare.com/pages/framework-guides/nextjs/ssr/troubleshooting/#top-level-getrequestcontext \n
 			`);
 		}
 
