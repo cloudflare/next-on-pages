@@ -94,7 +94,7 @@ npx wrangler pages dev .vercel/output/static
 
 ### Deploy your application and iterate
 
-After you have previewed your application locally, you can deploy it to Cloudflare Pages (both via [Direct Uploads](/pages/get-started/direct-upload/) or [Git integration](/pages/configuration/git-integration/)) and iterate over the process to make new changes.
+After you have previewed your application locally, you can deploy it to Cloudflare Pages (both via [Direct Uploads](https://developers.cloudflare.com/pages/get-started/direct-upload/) or [Git integration](https://developers.cloudflare.com/pages/configuration/git-integration/)) and iterate over the process to make new changes.
 
 ## Cloudflare Platform Integration
 
