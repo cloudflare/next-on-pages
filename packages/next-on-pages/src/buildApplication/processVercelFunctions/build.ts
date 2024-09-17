@@ -1,6 +1,6 @@
 import type { Plugin } from 'esbuild';
 import { build } from 'esbuild';
-import { mkdir } from 'node:fs/promises';
+import { mkdir, readFile } from 'node:fs/promises';
 import { dirname, join, relative, resolve } from 'node:path';
 import { normalizePath } from '../../utils';
 
@@ -25,6 +25,10 @@ export async function buildFile(
 		),
 	);
 
+	// Since Next 14.2.8 / https://github.com/vercel/next.js/pull/65426
+	// functions expect the build ID to be available as env var __NEXT_BUILD_ID.
+	const nextBuildID = await readFile(resolve('.next', 'BUILD_ID'), 'utf8');
+
 	await mkdir(dirname(filePath), { recursive: true });
 	await build({
 		stdin: { contents },
@@ -35,6 +39,9 @@ export async function buildFile(
 		external: ['node:*', `${relativeNopDistPath}/*`, '*.wasm', 'cloudflare:*'],
 		minify: true,
 		plugins: [builtInModulesPlugin],
+		define: {
+			'process.env.__NEXT_BUILD_ID': JSON.stringify(nextBuildID),
+		},
 	});
 }
 
