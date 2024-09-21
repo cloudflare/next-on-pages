@@ -30,7 +30,7 @@ jobs:
         run: npm pack
 
       - name: Upload packaged next-on-pages artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: npm-package-next-on-pages-${{ github.event.number }} # encode the PR number into the artifact name
           path: ./packages/next-on-pages/cloudflare-next-on-pages-*.tgz
@@ -40,7 +40,7 @@ jobs:
         run: npm pack
 
       - name: Upload packaged eslint-plugin-next-on-pages artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: npm-package-eslint-plugin-next-on-pages-${{ github.event.number }} # encode the PR number into the artifact name
           path: ./packages/eslint-plugin-next-on-pages/eslint-plugin-next-on-pages-*.tgz
