@@ -1,5 +1,12 @@
 # @cloudflare/next-on-pages
 
+## 1.13.3
+
+### Patch Changes
+
+- d1dce9e: Fix prerendered dynamic ISR functions with catch-all segments
+- e890632: Provide \_\_NEXT_BUILD_ID env var to functions, making them compatible with Next v14.2.8 and newer.
+
 ## 1.13.2
 
 ### Patch Changes
