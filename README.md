@@ -5,7 +5,7 @@
 </p>
 
 > [!NOTE]
-> You may want to consider using [`@opennextjs/cloudflare`](https://opennext.js.org/cloudflare), which allows you to build and deploy Next.js apps to [Cloudflare Workers](https://developers.cloudflare.com/workers/static-assets/), use [Node.js APIs](https://developers.cloudflare.com/workers/runtime-apis/nodejs/) that Cloudflare Workers supports, and supports additional Next.js features.
+> You may want to consider using [`@opennextjs/cloudflare`](https://opennext.js.org/cloudflare), which allows you to build and deploy Next.js apps to [Cloudflare Workers](https://developers.cloudflare.com/workers/static-assets/), use [Node.js APIs](https://developers.cloudflare.com/workers/runtime-apis/nodejs/) that Cloudflare Workers supports, and enables additional Next.js features like Incremental Static Regeneration.
 
 `@cloudflare/next-on-pages` is a CLI tool that you can use to build and develop [Next.js](https://nextjs.org/) applications so that they can run on the [Cloudflare Pages](https://pages.cloudflare.com/) platform.
 
