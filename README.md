@@ -4,6 +4,9 @@
   <p align="center">Build, develop, and deploy Next.js apps for Cloudflare Pages.</p>
 </p>
 
+> [!NOTE]
+> You may want to consider using [`@opennextjs/cloudflare`](https://opennext.js.org/cloudflare), which allows you to build and deploy Next.js apps to [Cloudflare Workers](https://developers.cloudflare.com/workers/static-assets/), use [Node.js APIs](https://developers.cloudflare.com/workers/runtime-apis/nodejs/) that Cloudflare Workers supports, and supports more Next.js features.
+
 `@cloudflare/next-on-pages` is a CLI tool that you can use to build and develop [Next.js](https://nextjs.org/) applications so that they can run on the [Cloudflare Pages](https://pages.cloudflare.com/) platform.
 
 Alongside the `@cloudflare/next-on-pages` there is an additional package `eslint-plugin-next-on-pages` implementing an Eslint plugin which aim is to aid developers at using the `@cloudflare/next-on-pages` more efficiently and improve their overall developer experience when working with it.
