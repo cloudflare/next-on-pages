@@ -230,8 +230,8 @@ function applyVercelOverrides(
 			const assetPath = addLeadingSlash(rawAssetPath);
 			const servedPath = addLeadingSlash(rawServedPath ?? '');
 
-			const newValue: BuildOutputStaticOverride = {
-				type: 'override',
+			const newValue: BuildOutputStaticAsset = {
+				type: 'static',
 				path: assetPath,
 				headers: contentType ? { 'content-type': contentType } : undefined,
 			};
@@ -270,14 +270,14 @@ function applyPrerenderedRoutes(
 		const path = route?.path ?? stripFuncExtension(relativePath);
 
 		vercelOutput.set(path, {
-			type: 'override',
+			type: 'static',
 			path,
 			headers: route?.headers,
 		});
 
 		route?.overrides?.forEach(overridenPath => {
 			vercelOutput.set(overridenPath, {
-				type: 'override',
+				type: 'static',
 				path,
 				headers: route?.headers,
 			});
