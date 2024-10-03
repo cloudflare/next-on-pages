@@ -1,5 +1,11 @@
 # @cloudflare/next-on-pages
 
+## 1.13.4
+
+### Patch Changes
+
+- 18e0e46: Fix the Webpack chunk deduplication when Sentry is used, as it changes the AST node structure for Webpack chunks.
+
 ## 1.13.3
 
 ### Patch Changes
