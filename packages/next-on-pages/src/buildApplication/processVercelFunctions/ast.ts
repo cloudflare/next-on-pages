@@ -269,32 +269,39 @@ function extractManifest(
 function extractWebpack(
 	statement: AST.StatementKind,
 ): RawIdentifier<'webpack'>[] {
+	if (statement.type !== 'ExpressionStatement') return [];
+
+	const expr =
+		statement.expression.type === 'SequenceExpression'
+			? statement.expression.expressions.find(
+					expr => expr.type === 'CallExpression',
+			  )
+			: statement.expression;
+
 	if (
-		statement.type !== 'ExpressionStatement' ||
-		statement.expression.type !== 'CallExpression' ||
-		statement.expression.callee.type !== 'MemberExpression' ||
-		statement.expression.callee.property.type !== 'Identifier' ||
-		statement.expression.callee.property.name !== 'push' ||
-		statement.expression.callee.object.type !== 'AssignmentExpression' ||
-		!isSelfWebpackChunk_N_E(statement.expression.callee.object.left) ||
-		statement.expression.callee.object.right.type !== 'LogicalExpression' ||
-		!isSelfWebpackChunk_N_E(statement.expression.callee.object.right.left) ||
-		statement.expression.callee.object.right.right.type !== 'ArrayExpression' ||
-		statement.expression.callee.object.right.right.elements.length !== 0 ||
-		statement.expression.arguments[0]?.type !== 'ArrayExpression' ||
-		statement.expression.arguments[0].elements[1]?.type !== 'ObjectExpression'
+		expr?.type !== 'CallExpression' ||
+		expr.callee.type !== 'MemberExpression' ||
+		expr.callee.property.type !== 'Identifier' ||
+		expr.callee.property.name !== 'push' ||
+		expr.callee.object.type !== 'AssignmentExpression' ||
+		!isSelfWebpackChunk_N_E(expr.callee.object.left) ||
+		expr.callee.object.right.type !== 'LogicalExpression' ||
+		!isSelfWebpackChunk_N_E(expr.callee.object.right.left) ||
+		expr.callee.object.right.right.type !== 'ArrayExpression' ||
+		expr.callee.object.right.right.elements.length !== 0 ||
+		expr.arguments[0]?.type !== 'ArrayExpression' ||
+		expr.arguments[0].elements[1]?.type !== 'ObjectExpression'
 	) {
 		return [];
 	}
 
-	const properties =
-		statement.expression.arguments[0].elements[1].properties.filter(
-			p =>
-				p.type === 'Property' &&
-				p.key.type === 'Literal' &&
-				typeof p.key.value === 'number' &&
-				p.value.type === 'ArrowFunctionExpression',
-		) as AST.PropertyKind[];
+	const properties = expr.arguments[0].elements[1].properties.filter(
+		p =>
+			p.type === 'Property' &&
+			p.key.type === 'Literal' &&
+			typeof p.key.value === 'number' &&
+			p.value.type === 'ArrowFunctionExpression',
+	) as AST.PropertyKind[];
 
 	return properties.map(chunk => ({
 		type: 'webpack',
