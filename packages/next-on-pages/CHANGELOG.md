@@ -1,5 +1,13 @@
 # @cloudflare/next-on-pages
 
+## 1.13.5
+
+### Patch Changes
+
+- 930a79f: fix: webpack chunks not deduping with sentry (#886)
+
+  (duplicated changeset needed because the 1.13.4 npm release doesn't properly work)
+
 ## 1.13.4
 
 ### Patch Changes
