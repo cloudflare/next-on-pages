@@ -1,12 +1,13 @@
 import { SUSPENSE_CACHE_URL } from '../cache';
-import { handleRequest } from './handleRequest';
 import { setupRoutesIsolation } from './routesIsolation';
 import {
 	adjustRequestForVercel,
+	getAssetsHandler,
 	handleImageResizingRequest,
 	patchFetch,
 } from './utils';
 import type { AsyncLocalStorage } from 'node:async_hooks';
+import { Router } from 'build-output-router';
 
 declare const __NODE_ENV__: string;
 
@@ -20,6 +21,11 @@ declare const __ALSes_PROMISE__: Promise<null | {
 	envAsyncLocalStorage: AsyncLocalStorage<unknown>;
 	requestContextAsyncLocalStorage: AsyncLocalStorage<unknown>;
 }>;
+
+const router = new Router(__CONFIG__.routes, {
+	locales: new Set(__BUILD_METADATA__.collectedLocales),
+	wildcardConfig: __CONFIG__.wildcard,
+});
 
 export default {
 	async fetch(request, env, ctx) {
@@ -60,16 +66,13 @@ export default {
 
 						const adjustedRequest = adjustRequestForVercel(request);
 
-						return handleRequest(
-							{
-								request: adjustedRequest,
-								ctx,
-								assetsFetcher: env.ASSETS,
-							},
-							__CONFIG__,
-							__BUILD_OUTPUT__,
-							__BUILD_METADATA__,
-						);
+						const assets = getAssetsHandler(__BUILD_OUTPUT__, {
+							request: adjustedRequest,
+							ctx,
+							assetsFetcher: env.ASSETS,
+						});
+
+						return router.fetch({ request: adjustedRequest, ctx, assets });
 					},
 				);
 			},
