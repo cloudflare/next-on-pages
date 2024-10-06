@@ -62,6 +62,7 @@ program
 		'--custom-entrypoint <path>',
 		'Wrap the generated worker for your application in a custom worker entrypoint',
 	)
+	.option('-f, --force', 'Ignore checks for edge runtime compatibility', false)
 	.enablePositionalOptions(false)
 	.version(
 		nextOnPagesVersion,
@@ -79,6 +80,7 @@ export type CliOptions = {
 	info?: boolean;
 	outdir: string;
 	customEntrypoint?: string;
+	force: boolean;
 };
 
 export function parseCliArgs(): CliOptions {
