@@ -339,7 +339,7 @@ async function tryToFixInvalidDynamicISRFuncs({
 
 		const isDynamicISRFunc =
 			fnInfo.config.operationType === 'ISR' &&
-			/\/\[(?:\.\.\.)?[\w-]+\]$/.test(fnPathWithoutRscOrFuncExt);
+			/\/\[(?:\.\.\.)?[\w-]+\]/.test(fnPathWithoutRscOrFuncExt);
 
 		if (isDynamicISRFunc) {
 			const matchingPrerenderedChildFunc = prerenderedFunctionEntries.find(
