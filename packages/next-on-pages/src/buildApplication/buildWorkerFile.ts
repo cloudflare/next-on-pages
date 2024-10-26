@@ -109,6 +109,7 @@ export async function buildWorkerFile(
 			outfile: outputFile,
 			allowOverwrite: true,
 			bundle: true,
+			external: ['node:*', 'cloudflare:*'],
 			plugins: [
 				{
 					name: 'custom-entrypoint-import-plugin',
