@@ -131,6 +131,9 @@ export async function runOrFetchBuildOutputItem(
 		return new Response('Internal Server Error', { status: 500 });
 	}
 
+	if (resp.status === 101) {
+		return resp;
+	}
 	return createMutableResponse(resp);
 }
 

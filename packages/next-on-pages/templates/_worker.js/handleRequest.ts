@@ -114,15 +114,17 @@ async function generateResponse(
 		});
 	}
 
-	const newHeaders = headers.normal;
-	applyHeaders(newHeaders, resp.headers);
-	applyHeaders(newHeaders, headers.important);
+	if (status || resp.status !== 101) {
+		const newHeaders = headers.normal;
+		applyHeaders(newHeaders, resp.headers);
+		applyHeaders(newHeaders, headers.important);
 
-	resp = new Response(resp.body, {
-		...resp,
-		status: status || resp.status,
-		headers: newHeaders,
-	});
+		resp = new Response(resp.body, {
+			...resp,
+			status: status || resp.status,
+			headers: newHeaders,
+		});
+	}
 
 	return resp;
 }
