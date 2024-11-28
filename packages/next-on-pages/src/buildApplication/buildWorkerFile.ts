@@ -81,7 +81,12 @@ export async function buildWorkerFile(
 		banner: { js: generateGlobalJs() },
 		bundle: true,
 		inject: [functionsFile],
-		external: ['node:*', './__next-on-pages-dist__/*', 'cloudflare:*'],
+		external: [
+			'node:*',
+			'async_hooks',
+			'./__next-on-pages-dist__/*',
+			'cloudflare:*',
+		],
 		define: {
 			__CONFIG__: JSON.stringify(vercelConfig),
 			__NODE_ENV__: JSON.stringify(getNodeEnv()),
