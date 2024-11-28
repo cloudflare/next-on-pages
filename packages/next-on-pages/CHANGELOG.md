@@ -1,5 +1,11 @@
 # @cloudflare/next-on-pages
 
+## 1.13.6
+
+### Patch Changes
+
+- d879acd: Mark `async_hooks` as external.
+
 ## 1.13.5
 
 ### Patch Changes
