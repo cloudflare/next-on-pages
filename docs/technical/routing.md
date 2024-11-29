@@ -124,13 +124,13 @@ In all other cases, we attempt to retrieve the next phase, based on the current 
 flowchart TD
     checkPhase[check phase] --for each route--> checkRoute
     checkRoute[check route] -->|error| checkPhase
-    checkRoute -->|done| phaseHitMiss{is phase\nhit or miss?}
+    checkRoute -->|done| phaseHitMiss{is phase<br><b>hit</b> or <b>miss</b>?}
     phaseHitMiss --> |phase == hit| matchingDone[matching done]
     phaseHitMiss --> |phase == miss| set404[set 404]
-    phaseHitMiss --> |phase not neither| nextPhaseIsWhat{path found\nor\nphase == miss/error}
-    set404 --> nextPhaseIsWhat{path found\nsuccessfully?}
-    nextPhaseIsWhat --> |yes\nset next phase to hit| checkPhase
-    nextPhaseIsWhat --> |no\nset next phase| checkPhase
+    phaseHitMiss --> |phase not neither| nextPhaseIsWhat{path found<br>or<br>phase == miss/error}
+    set404 --> nextPhaseIsWhat{path found<br>successfully?}
+    nextPhaseIsWhat --> |yes<br>set next phase to hit| checkPhase
+    nextPhaseIsWhat --> |no<br>set next phase| checkPhase
 ```
 
 ### Checking Source Routes
@@ -209,22 +209,22 @@ After all of the above has been completed, the final part to check for a (matchi
 flowchart TD
     checkRoute --> CheckSourceMatch{path matches source?}
     CheckSourceMatch -->|yes| ApplyOverrides[apply overrides]
-    CheckSourceMatch -->|no| EndRoutingSkip[`skip`]
-    ApplyOverrides --> ApplyInternationalization[apply internationalization\nredirects]
+    CheckSourceMatch -->|no| EndRoutingSkip[<b>skip</b>]
+    ApplyOverrides --> ApplyInternationalization[apply internationalization<br>redirects]
     ApplyInternationalization --> HasMiddleware{has middleware}
     HasMiddleware --> |yes| RunMiddlewareResult{run middleware}
-    HasMiddleware --> |no| ApplyHeadersStatusAndDestination[apply route headers\napply status code\napply destination]
-    RunMiddlewareResult --> |success| ApplyMiddlewareHeaders[apply middleware\nheaders]
-    RunMiddlewareResult --> |error| EndRoutingError[`error`]
+    HasMiddleware --> |no| ApplyHeadersStatusAndDestination[apply route headers<br>apply status code<br>apply destination]
+    RunMiddlewareResult --> |success| ApplyMiddlewareHeaders[apply middleware<br>headers]
+    RunMiddlewareResult --> |error| EndRoutingError[<b>error</b>]
     ApplyMiddlewareHeaders --> ApplyHeadersStatusAndDestination
     ApplyHeadersStatusAndDestination --> ShouldCheck{route.check == true}
-    ShouldCheck --> |yes| PathsEqual{current path\n==\nrewritten path}
-    PathsEqual --> |yes\n+\nphase = miss| Return404[set status to 404] --> ShouldContinue
-    PathsEqual --> |yes\n+\nphase != miss| checkNextPhase[check next phase]
-    PathsEqual --> |no| checkNonePhase[check `none` phase]
-    ShouldCheck --> |no| ShouldContinue{should continue\n and has no\nredirect}
-    ShouldContinue --> |yes| ReturnNext[`next`]
-    ShouldContinue --> |no| ReturnDone[`done`]
+    ShouldCheck --> |yes| PathsEqual{current path<br>==<br>rewritten path}
+    PathsEqual --> |yes<br><b>+</b><br>phase = <b>miss<b>| Return404[set status to 404] --> ShouldContinue
+    PathsEqual --> |yes<br><b>+</b><br>phase != <b>miss</b>| checkNextPhase[check <b>next</b> phase]
+    PathsEqual --> |no| checkNonePhase[check <b>none</b> phase]
+    ShouldCheck --> |no| ShouldContinue{should continue<br> and has no<br>redirect}
+    ShouldContinue --> |yes| ReturnNext[<b>next</b>]
+    ShouldContinue --> |no| ReturnDone[<b>done</b>]
 ```
 
 ### Serving Responses
@@ -243,11 +243,11 @@ Finally, we return the response.
 
 ```mermaid
 flowchart TD
-    serve --> checkRedirect{check for\n`location`\nheader}
+    serve --> checkRedirect{check for<br><b>location</b><br>header}
     checkRedirect --> |found| returnRedirect[return redirect response]
     checkRedirect --> |not found| fetchItemFromOutput[fetch item from build output]
     fetchItemFromOutput --> applySearchParams[apply search params to request]
-    applySearchParams --> retrieveResponseForItem{fetch item\nresponse}
+    applySearchParams --> retrieveResponseForItem{fetch item<br>response}
     retrieveResponseForItem --> |success| applyHeadersAndStatus[apply headers + status]
     retrieveResponseForItem --> |error| returnError[return error response]
     applyHeadersAndStatus --> returnResponse[return final response object]
