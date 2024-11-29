@@ -60,6 +60,12 @@ function monkeyPatchProcessEnv(
 		!runtimeContext.process.env[processEnvIsPatched]
 	) {
 		if (runtimeContext.process.env) {
+			for (const key of Object.keys(runtimeContext.process.env)) {
+				if (!(key in env)) {
+					delete runtimeContext.process.env[key];
+				}
+			}
+
 			for (const [name, binding] of Object.entries(env)) {
 				runtimeContext.process.env[name] = binding;
 			}
