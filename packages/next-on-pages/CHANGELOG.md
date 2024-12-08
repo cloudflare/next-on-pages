@@ -1,5 +1,12 @@
 # @cloudflare/next-on-pages
 
+## 1.13.7
+
+### Patch Changes
+
+- e1d65f4: fix Next.js calling a non-bound waitUntil function
+- edd4fea: Allow import of `node:*` and `cloudflare:*` in worker custom entrypoint
+
 ## 1.13.6
 
 ### Patch Changes
