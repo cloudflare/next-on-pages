@@ -6,6 +6,7 @@ import { generateGlobalJs } from './generateGlobalJs';
 import type { ProcessedVercelOutput } from './processVercelOutput';
 import { getNodeEnv } from '../utils/getNodeEnv';
 import { normalizePath } from '../utils';
+import { collectLocalesFromRoutes } from 'build-output-router/router';
 import { cliLog } from '../cli';
 
 /**
@@ -20,10 +21,6 @@ export function constructBuildOutputRecord(
 	outputDir: string,
 ) {
 	if (item.type === 'static') {
-		return `{ type: ${JSON.stringify(item.type)} }`;
-	}
-
-	if (item.type === 'override') {
 		return `{
 				type: ${JSON.stringify(item.type)},
 				path: ${item.path ? JSON.stringify(item.path) : undefined},
@@ -91,7 +88,7 @@ export async function buildWorkerFile(
 			__CONFIG__: JSON.stringify(vercelConfig),
 			__NODE_ENV__: JSON.stringify(getNodeEnv()),
 			__BUILD_METADATA__: JSON.stringify({
-				collectedLocales: collectLocales(vercelConfig.routes),
+				collectedLocales: [...collectLocalesFromRoutes(vercelConfig.routes)],
 			}),
 		},
 		outfile: outputFile,
@@ -140,22 +137,3 @@ type BuildWorkerFileOpts = {
 	customEntrypoint?: string;
 	minify?: boolean;
 };
-
-/**
- * Collects all the locales present in the processed Vercel routes
- *
- * @param routes The Vercel routes to collect the locales from
- * @returns an array containing all the found locales (without duplicates)
- */
-function collectLocales(routes: ProcessedVercelRoutes): string[] {
-	const locales = Object.values(routes)
-		.flat()
-		.flatMap(source => {
-			if (source.locale?.redirect) {
-				return Object.keys(source.locale.redirect);
-			}
-			return [];
-		})
-		.filter(Boolean);
-	return [...new Set(locales)];
-}
