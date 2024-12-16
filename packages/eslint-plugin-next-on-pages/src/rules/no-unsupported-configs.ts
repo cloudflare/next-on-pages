@@ -97,7 +97,7 @@ const ruleSchema = {
 const rule: Rule.RuleModule = {
 	create: context => {
 		const code = context.sourceCode;
-		const exportedConfigName = context.filename.match(/next\.config\.m?js$/)
+		const exportedConfigName = context.filename.match(/next\.config\.(js|cjs|mjs|ts|cts|mts)$/)
 			? getConfigVariableName(code)
 			: null;
 
