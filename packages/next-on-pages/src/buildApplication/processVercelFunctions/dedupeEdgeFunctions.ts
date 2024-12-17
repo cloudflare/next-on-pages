@@ -631,6 +631,14 @@ function fixFunctionContents(contents: string): string {
 		'const { originalRequest = $1 } = $1$3',
 	);
 
+	// Next.js calls `waitUntil` without binding is to the context object, triggering the following error: `TypeError: Illegal invocation: function called with incorrect `this` reference`
+	// We need to update it so that uses a `waitUntil` bound to our `ctx` object
+	// (source https://github.com/vercel/next.js/blob/b7c271d7/packages/next/src/server/web/spec-extension/fetch-event.ts#L21)
+	contents = contents.replace(
+		/this\[(.)\]=(\w)\?{kind:"external",function:\2}:{kind:"internal",promises:/gm,
+		`this[$1]=$2?{kind:"external",function:globalThis[Symbol.for('__cloudflare-request-context__')].ctx.waitUntil.bind(globalThis[Symbol.for('__cloudflare-request-context__')].ctx)}:{kind:"internal",promises:`,
+	);
+
 	return contents;
 }
 

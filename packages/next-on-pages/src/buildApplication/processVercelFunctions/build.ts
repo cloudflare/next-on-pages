@@ -36,7 +36,13 @@ export async function buildFile(
 		platform: 'neutral',
 		outfile: filePath,
 		bundle: true,
-		external: ['node:*', `${relativeNopDistPath}/*`, '*.wasm', 'cloudflare:*'],
+		external: [
+			'node:*',
+			'async_hooks',
+			`${relativeNopDistPath}/*`,
+			'*.wasm',
+			'cloudflare:*',
+		],
 		minify: true,
 		plugins: [builtInModulesPlugin],
 		define: {
@@ -95,21 +101,24 @@ type RelativePathOpts = {
  * breaks at runtime. The following fixes this by updating the dynamic require to a standard esm
  * import from the built-in module.
  *
- * This applies to `require("node:*")` and `require("cloudflare:*")`.
+ * This applies to `require("node:*")`, `require("cloudflare:*")`, and `require("async_hooks")`.
  */
 export const builtInModulesPlugin: Plugin = {
 	name: 'built-in:modules',
 	setup(build) {
-		build.onResolve({ filter: /^(node|cloudflare):/ }, ({ kind, path }) => {
-			/**
-			 * This plugin converts `require("<PREFIX>:*")` calls, those are the only ones that need
-			 * updating (esm imports to "<PREFIX>:*" are totally valid), so here we tag with the
-			 * built-in-modules namespace only imports that are require calls.
-			 */
-			return kind === 'require-call'
-				? { path, namespace: 'built-in-modules' }
-				: undefined;
-		});
+		build.onResolve(
+			{ filter: /^(node:|cloudflare:|async_hooks)/ },
+			({ kind, path }) => {
+				/**
+				 * This plugin converts `require("<PREFIX>:*")` calls, those are the only ones that need
+				 * updating (esm imports to "<PREFIX>:*" are totally valid), so here we tag with the
+				 * built-in-modules namespace only imports that are require calls.
+				 */
+				return kind === 'require-call'
+					? { path, namespace: 'built-in-modules' }
+					: undefined;
+			},
+		);
 
 		/**
 		 * We convert the imports we tagged with the built-in-modules namespace so that instead of
