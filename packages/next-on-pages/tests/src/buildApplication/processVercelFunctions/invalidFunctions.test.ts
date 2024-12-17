@@ -243,6 +243,18 @@ describe('checkInvalidFunctions', () => {
 					),
 					'dynamic-2-child.prerender-fallback.html': '',
 				},
+				'[dynamic-3]': {
+					'nested.func': prerenderFuncDir,
+					'nested.rsc.func': prerenderFuncDir,
+				},
+				'dynamic-3-child': {
+					'nested.func': prerenderFuncDir,
+					'nested.prerender-config.json': mockPrerenderConfigFile(
+						'nested',
+						{ sourcePath: '/[dynamic-3]/nested' },
+					),
+					'nested.prerender-fallback.html': '',
+				},
 			},
 		});
 
@@ -260,9 +272,9 @@ describe('checkInvalidFunctions', () => {
 		const { prerenderedFunctions, invalidFunctions, ignoredFunctions } =
 			collectedFunctions;
 
-		expect(prerenderedFunctions.size).toEqual(2);
+		expect(prerenderedFunctions.size).toEqual(3);
 		expect(invalidFunctions.size).toEqual(0);
-		expect(ignoredFunctions.size).toEqual(3);
+		expect(ignoredFunctions.size).toEqual(5);
 
 		expect(getRouteInfo(prerenderedFunctions, 'dynamic-1-child.func')).toEqual({
 			path: '/dynamic-1-child.html',
@@ -276,10 +288,17 @@ describe('checkInvalidFunctions', () => {
 			overrides: ['/nested/dynamic-2-child'],
 			headers: { vary: 'RSC, Next-Router-State-Tree, Next-Router-Prefetch' },
 		});
+		expect(getRouteInfo(prerenderedFunctions, 'dynamic-3-child/nested.func')).toEqual({
+			path: '/dynamic-3-child/nested.html',
+			overrides: ['/dynamic-3-child/nested'],
+			headers: { vary: 'RSC, Next-Router-State-Tree, Next-Router-Prefetch' },
+		});
 
 		expect([...ignoredFunctions.keys()]).toEqual([
 			resolve(functionsDir, '[dynamic-1].func'),
 			resolve(functionsDir, '[dynamic-1].rsc.func'),
+			resolve(functionsDir, '[dynamic-3]/nested.func'),
+			resolve(functionsDir, '[dynamic-3]/nested.rsc.func'),
 			resolve(functionsDir, 'nested/[dynamic-2].func'),
 		]);
 
