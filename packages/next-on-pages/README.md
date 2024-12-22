@@ -58,7 +58,7 @@ Next, in the [Cloudflare Dashboard](https://dash.cloudflare.com/?to=/:account/pa
   | Build output directory | `.vercel/output/static` |
 - In the _Environment variables (advanced)_ section, add a new variable named `NODE_VERSION` set to `16` or greater.
 - Click on _Save and Deploy_ to start the deployment (this first deployment won't be fully functional as the next step is also necessary).
-- Go to the Pages project settings page (_Settings_ > _Functions_ > _Compatibility Flags_), **add the `nodejs_compat` flag** for both production and preview, and make sure that the **Compatibility Date** for both production and preview is set to at least `2022-11-30`.
+- Go to the Pages project settings page (_Settings_ > _Runtime_ > _Compatibility Flags_), **add the `nodejs_compat` flag** for both production and preview, and make sure that the **Compatibility Date** for both production and preview is set to at least `2022-11-30`.
 
 > If you don't want to set up a Git repository, you can build your application (as indicated in [Local Development](#local-development)) and publish it manually via the [`wrangler pages publish` command](https://developers.cloudflare.com/workers/wrangler/commands/#publish-1) instead (you'll still need to set the **`nodejs_compat`** flag for your project in the Cloudflare dashboard).
 
