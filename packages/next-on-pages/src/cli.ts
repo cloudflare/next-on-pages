@@ -124,7 +124,7 @@ export function cliError(
 	);
 	if (showReport) {
 		cliError(
-			'Please report this at https://github.com/cloudflare/next-on-pages/issues.',
+			'Please report this at https://github.com/cloudflare/next-on-pages/issues/',
 			{ fromVercelCli },
 		);
 	}
