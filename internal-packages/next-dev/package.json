@@ -26,7 +26,7 @@
 	"devDependencies": {
 		"@cloudflare/workers-types": "4.20231002.0",
 		"@tsconfig/strictest": "^2.0.0",
-		"esbuild": "^0.15.3",
+		"esbuild": "^0.25.0",
 		"eslint": "^8.35.0",
 		"tsconfig": "*",
 		"typescript": "^5.0.4",
