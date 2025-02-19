@@ -49,8 +49,9 @@ async function handleInlineAssetRequest(request: Request) {
 	if (request.url.startsWith('blob:')) {
 		try {
 			const url = new URL(request.url);
+			const moduleName = `./__next-on-pages-dist__/assets/${url.pathname}.bin`
 			const binaryContent = (
-				await import(`./__next-on-pages-dist__/assets/${url.pathname}.bin`)
+				await import(moduleName)
 			).default;
 
 			// Note: we can't generate a real Response object here because this fetch might be called
