@@ -1,5 +1,11 @@
 # @cloudflare/next-on-pages
 
+## 1.13.8
+
+### Patch Changes
+
+- 52f0113: chore: Extract module name in dynamic imports
+
 ## 1.13.7
 
 ### Patch Changes
