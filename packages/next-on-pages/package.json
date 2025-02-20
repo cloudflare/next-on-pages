@@ -60,7 +60,7 @@
 		"chokidar": "^3.5.3",
 		"commander": "^11.1.0",
 		"cookie": "^0.5.0",
-		"esbuild": "^0.15.3",
+		"esbuild": "^0.25.0",
 		"js-yaml": "^4.1.0",
 		"miniflare": "^3.20231218.1",
 		"package-manager-manager": "^0.2.0",
