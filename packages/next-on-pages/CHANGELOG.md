@@ -1,5 +1,11 @@
 # @cloudflare/next-on-pages
 
+## 1.13.9
+
+### Patch Changes
+
+- 6b981ee: chore: Extract module name in dynamic imports so that esbuild doesn't minify them
+
 ## 1.13.8
 
 ### Patch Changes
