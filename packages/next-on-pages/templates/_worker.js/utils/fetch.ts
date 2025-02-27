@@ -1,4 +1,5 @@
 import { handleSuspenseCacheRequest } from './cache';
+import { doImport } from './doImport';
 
 /**
  * Patches the global fetch in ways necessary for Next.js (/next-on-pages) applications
@@ -50,7 +51,7 @@ async function handleInlineAssetRequest(request: Request) {
 		try {
 			const url = new URL(request.url);
 			const moduleName = `./__next-on-pages-dist__/assets/${url.pathname}.bin`;
-			const binaryContent = (await import(moduleName)).default;
+			const binaryContent = (await doImport(moduleName)).default;
 
 			// Note: we can't generate a real Response object here because this fetch might be called
 			//       at the top level of a dynamically imported module, and such cases produce the following
