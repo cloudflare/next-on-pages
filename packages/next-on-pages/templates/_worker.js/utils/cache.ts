@@ -108,6 +108,10 @@ export async function getSuspenseCacheAdaptor(): Promise<CacheAdaptor> {
 	return getInternalCacheAdaptor('cache-api');
 }
 
+async function doImport(m: string) {
+	return import(m);
+}
+
 /**
  * Gets an internal cache adaptor.
  *
@@ -118,7 +122,7 @@ async function getInternalCacheAdaptor(
 	type: 'kv' | 'cache-api',
 ): Promise<CacheAdaptor> {
 	const moduleName = `./__next-on-pages-dist__/cache/${type}.js`;
-	const adaptor = await import(moduleName);
+	const adaptor = await doImport(moduleName);
 	return new adaptor.default();
 }
 

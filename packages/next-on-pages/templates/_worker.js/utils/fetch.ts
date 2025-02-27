@@ -32,6 +32,10 @@ function applyPatch() {
 	};
 }
 
+async function doImport(m: string) {
+	return import(m);
+}
+
 /**
  * This function checks if a given request is trying to fetch an inline if it is it returns a response containing a stream for the asset,
  * otherwise returns null (signaling that the request hasn't been handled).
@@ -50,7 +54,7 @@ async function handleInlineAssetRequest(request: Request) {
 		try {
 			const url = new URL(request.url);
 			const moduleName = `./__next-on-pages-dist__/assets/${url.pathname}.bin`;
-			const binaryContent = (await import(moduleName)).default;
+			const binaryContent = (await doImport(moduleName)).default;
 
 			// Note: we can't generate a real Response object here because this fetch might be called
 			//       at the top level of a dynamically imported module, and such cases produce the following
