@@ -1,4 +1,5 @@
 import { handleSuspenseCacheRequest } from './cache';
+import { doImport } from './doImport';
 
 /**
  * Patches the global fetch in ways necessary for Next.js (/next-on-pages) applications
@@ -30,10 +31,6 @@ function applyPatch() {
 
 		return originalFetch(request);
 	};
-}
-
-async function doImport(m: string) {
-	return import(m);
 }
 
 /**
