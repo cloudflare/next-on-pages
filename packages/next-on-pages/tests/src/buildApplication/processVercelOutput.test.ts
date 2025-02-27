@@ -159,7 +159,7 @@ describe('processVercelOutput', () => {
 					{
 						headers: { 'content-type': 'text/html; charset=utf-8' },
 						path: '/404.html',
-						type: 'override',
+						type: 'static',
 					},
 				],
 				[
@@ -167,7 +167,7 @@ describe('processVercelOutput', () => {
 					{
 						headers: { 'content-type': 'text/html; charset=utf-8' },
 						path: '/500.html',
-						type: 'override',
+						type: 'static',
 					},
 				],
 				[
@@ -175,7 +175,7 @@ describe('processVercelOutput', () => {
 					{
 						headers: { 'content-type': 'text/html; charset=utf-8' },
 						path: '/index.html',
-						type: 'override',
+						type: 'static',
 					},
 				],
 				[
@@ -196,7 +196,7 @@ describe('processVercelOutput', () => {
 					{
 						headers: { 'content-type': 'text/html; charset=utf-8' },
 						path: '/404.html',
-						type: 'override',
+						type: 'static',
 					},
 				],
 				[
@@ -204,7 +204,7 @@ describe('processVercelOutput', () => {
 					{
 						headers: { 'content-type': 'text/html; charset=utf-8' },
 						path: '/500.html',
-						type: 'override',
+						type: 'static',
 					},
 				],
 				[
@@ -212,7 +212,7 @@ describe('processVercelOutput', () => {
 					{
 						headers: { 'content-type': 'text/html; charset=utf-8' },
 						path: '/index.html',
-						type: 'override',
+						type: 'static',
 					},
 				],
 				[
@@ -220,7 +220,7 @@ describe('processVercelOutput', () => {
 					{
 						headers: { 'content-type': 'text/html; charset=utf-8' },
 						path: '/index.html',
-						type: 'override',
+						type: 'static',
 					},
 				],
 			]),
@@ -342,7 +342,7 @@ describe('processVercelOutput', () => {
 					{
 						headers: { 'content-type': 'text/html; charset=utf-8' },
 						path: '/404.html',
-						type: 'override',
+						type: 'static',
 					},
 				],
 				[
@@ -350,7 +350,7 @@ describe('processVercelOutput', () => {
 					{
 						headers: { 'content-type': 'text/html; charset=utf-8' },
 						path: '/500.html',
-						type: 'override',
+						type: 'static',
 					},
 				],
 				[
@@ -360,7 +360,7 @@ describe('processVercelOutput', () => {
 							vary: 'RSC, Next-Router-State-Tree, Next-Router-Prefetch',
 						},
 						path: '/index.html',
-						type: 'override',
+						type: 'static',
 					},
 				],
 				[
@@ -371,7 +371,7 @@ describe('processVercelOutput', () => {
 							vary: 'RSC, Next-Router-State-Tree, Next-Router-Prefetch',
 						},
 						path: '/index.rsc',
-						type: 'override',
+						type: 'static',
 					},
 				],
 				[
@@ -381,7 +381,7 @@ describe('processVercelOutput', () => {
 							vary: 'RSC, Next-Router-State-Tree, Next-Router-Prefetch',
 						},
 						path: '/nested/(route-group)/foo.html',
-						type: 'override',
+						type: 'static',
 					},
 				],
 				[
@@ -396,7 +396,7 @@ describe('processVercelOutput', () => {
 					{
 						headers: { 'content-type': 'text/html; charset=utf-8' },
 						path: '/404.html',
-						type: 'override',
+						type: 'static',
 					},
 				],
 				[
@@ -404,7 +404,7 @@ describe('processVercelOutput', () => {
 					{
 						headers: { 'content-type': 'text/html; charset=utf-8' },
 						path: '/500.html',
-						type: 'override',
+						type: 'static',
 					},
 				],
 				[
@@ -414,7 +414,7 @@ describe('processVercelOutput', () => {
 							vary: 'RSC, Next-Router-State-Tree, Next-Router-Prefetch',
 						},
 						path: '/index.html',
-						type: 'override',
+						type: 'static',
 					},
 				],
 				[
@@ -424,7 +424,7 @@ describe('processVercelOutput', () => {
 							vary: 'RSC, Next-Router-State-Tree, Next-Router-Prefetch',
 						},
 						path: '/index.html',
-						type: 'override',
+						type: 'static',
 					},
 				],
 				[
@@ -434,7 +434,7 @@ describe('processVercelOutput', () => {
 							vary: 'RSC, Next-Router-State-Tree, Next-Router-Prefetch',
 						},
 						path: '/nested/(route-group)/foo.html',
-						type: 'override',
+						type: 'static',
 					},
 				],
 				[
@@ -444,7 +444,7 @@ describe('processVercelOutput', () => {
 							vary: 'RSC, Next-Router-State-Tree, Next-Router-Prefetch',
 						},
 						path: '/nested/(route-group)/foo.html',
-						type: 'override',
+						type: 'static',
 					},
 				],
 			]),

@@ -173,10 +173,6 @@ function constructBuildOutputRecord(
 	workerJsDir: string,
 ): VercelBuildOutputItem {
 	if (item.type === 'static') {
-		return { type: item.type };
-	}
-
-	if (item.type === 'override') {
 		return {
 			type: item.type,
 			path: item.path,
@@ -248,7 +244,7 @@ export async function createRouterTestData(
 
 			const item = buildOutput[path];
 			const contentType =
-				(item?.type === 'override' && item.headers?.['content-type']) ||
+				(item?.type === 'static' && item.headers?.['content-type']) ||
 				'text/plain;charset=UTF-8';
 
 			const fsPath = join(resolve('.vercel', 'output', 'static'), path);

@@ -174,13 +174,11 @@ type ProcessedVercelConfig = Override<
 	ProcessedVercelRoutes
 >;
 
-type BuildOutputStaticAsset = { type: 'static' };
-type BuildOutputStaticOverride = {
-	type: 'override';
-	path: string;
+type BuildOutputStaticAsset = {
+	type: 'static' | 'override'; // keep `override` for backwards compatibility
+	path?: string;
 	headers?: Record<string, string>;
 };
-type BuildOutputStaticItem = BuildOutputStaticAsset | BuildOutputStaticOverride;
 
 type BuildOutputFunction = {
 	type: 'function' | 'middleware';
@@ -204,7 +202,7 @@ type AdjustedBuildOutputFunction = Override<
 >;
 type VercelBuildOutputItem =
 	| AdjustedBuildOutputFunction
-	| BuildOutputStaticItem;
+	| BuildOutputStaticAsset;
 
 type VercelBuildOutput = {
 	[key: string]: VercelBuildOutputItem;
