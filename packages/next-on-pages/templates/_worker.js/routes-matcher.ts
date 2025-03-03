@@ -204,6 +204,9 @@ export class RoutesMatcher {
 			applySearchParams(this.searchParams, newUrl.searchParams);
 
 			resp.headers.delete(rewriteKey);
+
+			// Honor the status code set by the middleware.
+			this.status = resp.status;
 		}
 
 		const middlewareNextKey = 'x-middleware-next';
