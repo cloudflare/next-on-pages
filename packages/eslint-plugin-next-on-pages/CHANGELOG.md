@@ -1,5 +1,7 @@
 # eslint-plugin-next-on-pages
 
+## 1.13.10
+
 ## 1.13.9
 
 ## 1.13.8

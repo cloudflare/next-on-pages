@@ -1,5 +1,11 @@
 # @cloudflare/next-on-pages
 
+## 1.13.10
+
+### Patch Changes
+
+- 5778900: Allow Wrangler v4 as a peer dependency
+
 ## 1.13.9
 
 ### Patch Changes
