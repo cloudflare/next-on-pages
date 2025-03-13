@@ -37,6 +37,7 @@ export type ProcessVercelFunctionsOpts = {
 	nopDistDir: string;
 	disableChunksDedup?: boolean;
 	vercelConfig: VercelConfig;
+	ignoreInvalidFunctions: boolean;
 };
 
 export type ProcessedVercelFunctions = {
