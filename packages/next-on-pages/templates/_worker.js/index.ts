@@ -47,6 +47,40 @@ const patchedDefineProperty = (
 global.Object.defineProperty =
 	patchedDefineProperty as typeof global.Object.defineProperty;
 
+global.AbortController = class PatchedAbortController extends AbortController {
+	constructor() {
+		try {
+			super();
+		} catch (e) {
+			if (
+				e instanceof Error &&
+				e.message.includes('Disallowed operation called within global scope')
+			) {
+				// Next.js attempted to create an AbortController in the global scope
+				// let's return something that looks like an AbortController but with
+				// noop functionalities
+				return {
+					signal: {
+						aborted: false,
+						reason: null,
+						onabort: () => {
+							/* empty */
+						},
+						throwIfAborted: () => {
+							/* empty */
+						},
+					} as unknown as AbortSignal,
+					abort() {
+						/* empty */
+					},
+				};
+			} else {
+				throw e;
+			}
+		}
+	}
+};
+
 export default {
 	async fetch(request, env, ctx) {
 		setupRoutesIsolation();
