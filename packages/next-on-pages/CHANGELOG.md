@@ -1,5 +1,13 @@
 # @cloudflare/next-on-pages
 
+## 1.13.11
+
+### Patch Changes
+
+- 95951ac: fix Next.js re-defining global `__import_unsupported`
+- 95951ac: fix `AbortController`s being created in the global scope
+- 181fad6: Update readme to call out @opennextjs/cloudflare
+
 ## 1.13.10
 
 ### Patch Changes
