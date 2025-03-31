@@ -4,6 +4,9 @@
   <p align="center">Build, develop, and deploy Next.js apps for Cloudflare Pages.</p>
 </p>
 
+> [!NOTE]  
+> The best way to run Next.js apps on Cloudflare is to use [`@opennextjs/cloudflare`](https://opennext.js.org/cloudflare). If you're coming from Vercel, you can migrate your Next.js app easily using [Diverce](https://github.com/ygwyg/diverce), which can also help you migrate from `@cloudflare/next-on-pages`
+
 `@cloudflare/next-on-pages` is a CLI tool that you can use to build and develop [Next.js](https://nextjs.org/) applications so that they can run on the [Cloudflare Pages](https://pages.cloudflare.com/) platform.
 
 Alongside the `@cloudflare/next-on-pages` there is an additional package `eslint-plugin-next-on-pages` implementing an Eslint plugin which aim is to aid developers at using the `@cloudflare/next-on-pages` more efficiently and improve their overall developer experience when working with it.
