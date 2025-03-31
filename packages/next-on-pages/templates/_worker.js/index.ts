@@ -21,6 +21,32 @@ declare const __ALSes_PROMISE__: Promise<null | {
 	requestContextAsyncLocalStorage: AsyncLocalStorage<unknown>;
 }>;
 
+const originalDefineProperty = Object.defineProperty;
+
+const patchedDefineProperty = (
+	...args: Parameters<typeof Object.defineProperty<unknown>>
+) => {
+	const target = args[0];
+	const key = args[1];
+	// Next.js defined an __import_unsupported global property as non configurable
+	// with next-on-pages this apps try to re-define this property multiple times,
+	// so here we patch `defineProperty` to just ignore re-definition of such property
+	const importUnsupportedKey = '__import_unsupported';
+	if (key === importUnsupportedKey) {
+		if (
+			typeof target === 'object' &&
+			target !== null &&
+			importUnsupportedKey in target
+		) {
+			return;
+		}
+	}
+	return originalDefineProperty(...args);
+};
+
+global.Object.defineProperty =
+	patchedDefineProperty as typeof global.Object.defineProperty;
+
 export default {
 	async fetch(request, env, ctx) {
 		setupRoutesIsolation();
