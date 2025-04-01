@@ -1,5 +1,11 @@
 # @cloudflare/next-on-pages
 
+## 1.13.12
+
+### Patch Changes
+
+- 3d651bc: fix internal usage of `global` instead of `globalThis` (which causes some reference errors)
+
 ## 1.13.11
 
 ### Patch Changes
