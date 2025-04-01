@@ -47,7 +47,9 @@ const patchedDefineProperty = (
 globalThis.Object.defineProperty =
 	patchedDefineProperty as typeof globalThis.Object.defineProperty;
 
-globalThis.AbortController = class PatchedAbortController extends AbortController {
+globalThis.AbortController = class PatchedAbortController extends (
+	AbortController
+) {
 	constructor() {
 		try {
 			super();
