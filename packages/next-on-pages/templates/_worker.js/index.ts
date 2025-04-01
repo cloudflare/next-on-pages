@@ -44,10 +44,10 @@ const patchedDefineProperty = (
 	return originalDefineProperty(...args);
 };
 
-global.Object.defineProperty =
-	patchedDefineProperty as typeof global.Object.defineProperty;
+globalThis.Object.defineProperty =
+	patchedDefineProperty as typeof globalThis.Object.defineProperty;
 
-global.AbortController = class PatchedAbortController extends AbortController {
+globalThis.AbortController = class PatchedAbortController extends AbortController {
 	constructor() {
 		try {
 			super();
