@@ -497,4 +497,38 @@ describe('no-unsupported-configs', () => {
 			],
 		});
 	});
+
+	test('should work with .ts config file extension', () => {
+		tester.run('', rule, {
+			valid: [
+				{
+					filename: 'next.config.ts',
+					code: `
+						const nextConfig = {
+						}
+
+						export default nextConfig;
+					`,
+				},
+			],
+			invalid: [
+				{
+					filename: 'next.config.ts',
+					code: `
+						const nextConfig = {
+							compress: true,
+						}
+
+						export default nextConfig;
+					`,
+					errors: [
+						{
+							message:
+								'The "compress" configuration is not supported by next-on-pages (and is unlikely to be supported in the future).',
+						},
+					],
+				},
+			],
+		});
+	});
 });
