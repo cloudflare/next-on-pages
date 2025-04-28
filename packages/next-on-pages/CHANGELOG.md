@@ -1,5 +1,37 @@
 # @cloudflare/next-on-pages
 
+## 1.13.12
+
+### Patch Changes
+
+- 3d651bc: fix internal usage of `global` instead of `globalThis` (which causes some reference errors)
+
+## 1.13.11
+
+### Patch Changes
+
+- 95951ac: fix Next.js re-defining global `__import_unsupported`
+- 95951ac: fix `AbortController`s being created in the global scope
+- 181fad6: Update readme to call out @opennextjs/cloudflare
+
+## 1.13.10
+
+### Patch Changes
+
+- 5778900: Allow Wrangler v4 as a peer dependency
+
+## 1.13.9
+
+### Patch Changes
+
+- 6b981ee: chore: Extract module name in dynamic imports so that esbuild doesn't minify them
+
+## 1.13.8
+
+### Patch Changes
+
+- 52f0113: chore: Extract module name in dynamic imports
+
 ## 1.13.7
 
 ### Patch Changes

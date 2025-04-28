@@ -1,5 +1,6 @@
 import type { CacheAdaptor, IncrementalCacheValue } from '../../cache';
 import { SUSPENSE_CACHE_URL } from '../../cache';
+import { doImport } from './doImport';
 
 // https://github.com/vercel/next.js/blob/48a566bc/packages/next/src/server/lib/incremental-cache/fetch-cache.ts#L19
 const CACHE_TAGS_HEADER = 'x-vercel-cache-tags';
@@ -117,7 +118,8 @@ export async function getSuspenseCacheAdaptor(): Promise<CacheAdaptor> {
 async function getInternalCacheAdaptor(
 	type: 'kv' | 'cache-api',
 ): Promise<CacheAdaptor> {
-	const adaptor = await import(`./__next-on-pages-dist__/cache/${type}.js`);
+	const moduleName = `./__next-on-pages-dist__/cache/${type}.js`;
+	const adaptor = await doImport(moduleName);
 	return new adaptor.default();
 }
 

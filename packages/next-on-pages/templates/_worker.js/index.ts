@@ -21,6 +21,68 @@ declare const __ALSes_PROMISE__: Promise<null | {
 	requestContextAsyncLocalStorage: AsyncLocalStorage<unknown>;
 }>;
 
+const originalDefineProperty = Object.defineProperty;
+
+const patchedDefineProperty = (
+	...args: Parameters<typeof Object.defineProperty<unknown>>
+) => {
+	const target = args[0];
+	const key = args[1];
+	// Next.js defined an __import_unsupported global property as non configurable
+	// with next-on-pages this apps try to re-define this property multiple times,
+	// so here we patch `defineProperty` to just ignore re-definition of such property
+	const importUnsupportedKey = '__import_unsupported';
+	if (key === importUnsupportedKey) {
+		if (
+			typeof target === 'object' &&
+			target !== null &&
+			importUnsupportedKey in target
+		) {
+			return;
+		}
+	}
+	return originalDefineProperty(...args);
+};
+
+globalThis.Object.defineProperty =
+	patchedDefineProperty as typeof globalThis.Object.defineProperty;
+
+globalThis.AbortController = class PatchedAbortController extends (
+	AbortController
+) {
+	constructor() {
+		try {
+			super();
+		} catch (e) {
+			if (
+				e instanceof Error &&
+				e.message.includes('Disallowed operation called within global scope')
+			) {
+				// Next.js attempted to create an AbortController in the global scope
+				// let's return something that looks like an AbortController but with
+				// noop functionalities
+				return {
+					signal: {
+						aborted: false,
+						reason: null,
+						onabort: () => {
+							/* empty */
+						},
+						throwIfAborted: () => {
+							/* empty */
+						},
+					} as unknown as AbortSignal,
+					abort() {
+						/* empty */
+					},
+				};
+			} else {
+				throw e;
+			}
+		}
+	}
+};
+
 export default {
 	async fetch(request, env, ctx) {
 		setupRoutesIsolation();
