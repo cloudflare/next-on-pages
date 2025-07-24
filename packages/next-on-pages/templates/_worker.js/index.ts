@@ -21,6 +21,19 @@ declare const __ALSes_PROMISE__: Promise<null | {
 	requestContextAsyncLocalStorage: AsyncLocalStorage<unknown>;
 }>;
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+declare const __instrumentation:
+	| {
+			readonly module: unknown;
+			readonly error: unknown;
+			hasRegister: () => boolean;
+			hasOnRequestError: () => boolean;
+			ready: Promise<void>;
+			callRegisterWithEnv: () => Promise<void>;
+	  }
+	| null
+	| undefined;
+
 const originalDefineProperty = Object.defineProperty;
 
 const patchedDefineProperty = (
@@ -111,6 +124,10 @@ export default {
 				return requestContextAsyncLocalStorage.run(
 					{ env, ctx, cf: request.cf },
 					async () => {
+						// Call register() now that full request context is available
+						if (__instrumentation?.callRegisterWithEnv) {
+							await __instrumentation.callRegisterWithEnv();
+						}
 						const url = new URL(request.url);
 						if (url.pathname.startsWith('/_next/image')) {
 							return handleImageResizingRequest(request, {

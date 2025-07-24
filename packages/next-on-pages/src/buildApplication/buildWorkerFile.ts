@@ -49,6 +49,7 @@ export async function buildWorkerFile(
 		templatesDir,
 		customEntrypoint,
 		minify,
+		instrumentationPath,
 	}: BuildWorkerFileOpts,
 ): Promise<string> {
 	const functionsFile = join(
@@ -66,6 +67,16 @@ export async function buildWorkerFile(
 			.join(',')}};`,
 	);
 
+	// Create instrumentation loader file
+	const instrumentationFile = join(
+		tmpdir(),
+		`instrumentation-loader-${Math.random().toString(36).slice(2)}.js`,
+	);
+	await writeFile(
+		instrumentationFile,
+		generateInstrumentationLoader(instrumentationPath),
+	);
+
 	const defaultBuildOpts = {
 		target: 'es2022',
 		platform: 'neutral',
@@ -80,7 +91,7 @@ export async function buildWorkerFile(
 		entryPoints: [join(templatesDir, '_worker.js')],
 		banner: { js: generateGlobalJs() },
 		bundle: true,
-		inject: [functionsFile],
+		inject: [functionsFile, instrumentationFile],
 		external: [
 			'node:*',
 			'async_hooks',
@@ -95,6 +106,9 @@ export async function buildWorkerFile(
 			}),
 		},
 		outfile: outputFile,
+		format: 'esm',
+		splitting: false,
+		treeShaking: true,
 	});
 
 	await build({
@@ -139,6 +153,7 @@ type BuildWorkerFileOpts = {
 	templatesDir: string;
 	customEntrypoint?: string;
 	minify?: boolean;
+	instrumentationPath?: string | null;
 };
 
 /**
@@ -158,4 +173,79 @@ function collectLocales(routes: ProcessedVercelRoutes): string[] {
 		})
 		.filter(Boolean);
 	return [...new Set(locales)];
+}
+
+/**
+ * Generates the JavaScript code to load and initialize instrumentation.
+ *
+ * @param instrumentationPath Path to the compiled instrumentation module
+ * @returns JavaScript code that loads and initializes instrumentation
+ */
+function generateInstrumentationLoader(
+	instrumentationPath: string | null | undefined,
+): string {
+	if (!instrumentationPath) {
+		return `
+// No instrumentation detected
+export const __instrumentation = null;
+globalThis.__instrumentation = null;
+`;
+	}
+
+	return `
+// Instrumentation loader
+const __instrumentationState = {
+	module: null,
+	error: null,
+	registerPending: false,
+	registerCalled: false
+};
+
+// Initialize instrumentation in an async IIFE
+const __instrumentationPromise = (async () => {
+	try {
+		// Load the ESM instrumentation module
+		const module = await import('./__next-on-pages-dist__/instrumentation.js');
+		__instrumentationState.module = module;
+		
+		// Store the module but don't call register() yet - it will be called when env is available
+		if (typeof module.register === 'function') {
+			__instrumentationState.registerPending = true;
+			console.log('[next-on-pages] Instrumentation register() will be called upon first request');
+		}
+	} catch (error) {
+		console.error('[next-on-pages] Failed to load instrumentation module:', error);
+		__instrumentationState.error = error;
+	}
+})();
+
+// Function to call register() when environment is available
+const callRegisterWithEnv = async () => {
+	if (__instrumentationState.registerPending && !__instrumentationState.registerCalled && __instrumentationState.module) {
+		try {
+			__instrumentationState.registerCalled = true;
+			const result = __instrumentationState.module.register();
+			if (result && typeof result.then === 'function') {
+				await result;
+			}
+		} catch (error) {
+			console.error('[next-on-pages] instrumentation.register() threw an error:', error);
+			__instrumentationState.error = error;
+		}
+	}
+};
+
+// Export for use in the worker
+export const __instrumentation = {
+	get module() { return __instrumentationState.module; },
+	get error() { return __instrumentationState.error; },
+	hasRegister: () => __instrumentationState.module && typeof __instrumentationState.module.register === 'function',
+	hasOnRequestError: () => __instrumentationState.module && typeof __instrumentationState.module.onRequestError === 'function',
+	ready: __instrumentationPromise,
+	callRegisterWithEnv
+};
+
+// Also assign to globalThis for access in other modules
+globalThis.__instrumentation = __instrumentation;
+`;
 }
