@@ -30,7 +30,11 @@ type PrerenderFunctionsOpts = Pick<
  * @param opts Options for processing Vercel functions.
  */
 export async function processPrerenderFunctions(
-	{ invalidFunctions, prerenderedFunctions }: CollectedFunctions,
+	{
+		prerenderedFunctions,
+		invalidFunctions,
+		ignoredFunctions,
+	}: CollectedFunctions,
 	opts: PrerenderFunctionsOpts,
 ): Promise<void> {
 	for (const [path, fnInfo] of prerenderedFunctions) {
@@ -47,6 +51,20 @@ export async function processPrerenderFunctions(
 				overrides: getRouteOverrides(destRoute),
 			};
 			fnInfo.sourcePath = config.sourcePath;
+
+			// As of vercel@44.5.4 a incorrect lambda rsc functions get generated for
+			// prerendered routes (see: https://github.com/vercel/vercel/pull/13599)
+			// so if we there indeed is an (invalid) rsc variant for this prerendered
+			// routes, let's just ignore it
+			const rscVariantPath = path.replace(/\.func$/, '.rsc.func');
+			const rscInvalidVariant = invalidFunctions.get(rscVariantPath);
+			if (rscInvalidVariant) {
+				invalidFunctions.delete(rscVariantPath);
+				ignoredFunctions.set(rscVariantPath, {
+					...rscInvalidVariant,
+					reason: 'RSC invariant of a prerendered function',
+				});
+			}
 		} else {
 			invalidFunctions.set(path, fnInfo);
 			prerenderedFunctions.delete(path);
