@@ -224,7 +224,10 @@ const callRegisterWithEnv = async () => {
 	if (__instrumentationState.registerPending && !__instrumentationState.registerCalled && __instrumentationState.module) {
 		try {
 			__instrumentationState.registerCalled = true;
-			const result = __instrumentationState.module.register();
+			// Get the env from request context and pass it to register()
+			const requestContext = globalThis[Symbol.for('__cloudflare-request-context__')];
+			const env = requestContext?.env || {};
+			const result = __instrumentationState.module.register(env);
 			if (result && typeof result.then === 'function') {
 				await result;
 			}
