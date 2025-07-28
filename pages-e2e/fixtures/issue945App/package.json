@@ -1,0 +1,28 @@
+{
+	"name": "respect-middleware-status",
+	"version": "0.1.0",
+	"private": true,
+	"scripts": {
+		"dev": "next dev",
+		"build": "next build",
+		"start": "next start",
+		"lint": "next lint",
+		"pages:build": "npx @cloudflare/next-on-pages -m",
+		"pages:deploy": "npm run pages:build && wrangler pages deploy .vercel/output/static",
+		"pages:watch": "npx @cloudflare/next-on-pages --watch",
+		"pages:dev": "npx wrangler pages dev .vercel/output/static --compatibility-date=2023-11-21 --compatibility-flag=nodejs_compat"
+	},
+	"dependencies": {
+		"next": "14.0.4",
+		"react": "^18",
+		"react-dom": "^18"
+	},
+	"devDependencies": {
+		"@types/node": "^20",
+		"@types/react": "^18",
+		"@types/react-dom": "^18",
+		"eslint": "^8",
+		"eslint-config-next": "14.0.4",
+		"typescript": "^5"
+	}
+}
