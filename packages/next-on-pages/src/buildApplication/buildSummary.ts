@@ -143,7 +143,12 @@ export async function writeBuildInfo(
 			},
 		},
 	};
-	const buildLogText = JSON.stringify(buildLogObject, null, 2);
+	let buildLogText = ""
+	try{
+		buildLogText = JSON.stringify(buildLogObject, null, 2);
+	} catch(e) {
+		cliLog("Build log is too big, there fore it is not saved");
+	}
 
 	await mkdir(outputDir, { recursive: true });
 	await writeFile(buildLogFilePath, buildLogText);
