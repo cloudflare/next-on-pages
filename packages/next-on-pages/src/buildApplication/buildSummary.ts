@@ -147,7 +147,7 @@ export async function writeBuildInfo(
 	try{
 		buildLogText = JSON.stringify(buildLogObject, null, 2);
 	} catch(e) {
-		cliLog("Build log is too big, there fore it is not saved");
+		cliLog("Build log too large to save");
 	}
 
 	await mkdir(outputDir, { recursive: true });
