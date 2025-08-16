@@ -227,6 +227,13 @@ function applyVercelOverrides(
 ): void {
 	Object.entries(overrides ?? []).forEach(
 		([rawAssetPath, { path: rawServedPath, contentType }]) => {
+			// The Vercel CLI can create some overrides without a specified path, these are not
+			// conformant to the build output API and we don't know how to handled them, so we
+			// simply skip them
+			if (!rawServedPath) {
+				return;
+			}
+
 			const assetPath = addLeadingSlash(rawAssetPath);
 			const servedPath = addLeadingSlash(rawServedPath ?? '');
 
