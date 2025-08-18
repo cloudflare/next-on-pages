@@ -1,5 +1,11 @@
 # @cloudflare/next-on-pages
 
+## 1.13.14
+
+### Patch Changes
+
+- 2f21b3a: Fix the incorrect application of overrides without a specified path
+
 ## 1.13.13
 
 ### Patch Changes
