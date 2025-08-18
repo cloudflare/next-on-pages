@@ -227,6 +227,16 @@ function applyVercelOverrides(
 ): void {
 	Object.entries(overrides ?? []).forEach(
 		([rawAssetPath, { path: rawServedPath, contentType }]) => {
+			// The Vercel CLI can create some overrides without a specified path, usually for
+			// them we default to `/`, this is however problematic for the not-found.txt override
+			// which cases requests to `/` all to be redirected to the not found txt file, so we
+			// do want to skip those (PS: note that not including a path is not conformant to the
+			// build output API specs, so this is undocumented behavior that we deal with in a
+			// best effort manner)
+			if (!rawServedPath && rawAssetPath === '_next/static/not-found.txt') {
+				return;
+			}
+
 			const assetPath = addLeadingSlash(rawAssetPath);
 			const servedPath = addLeadingSlash(rawServedPath ?? '');
 
