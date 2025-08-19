@@ -2,7 +2,7 @@
 
 `@cloudflare/next-on-pages` doesn't support all config options that are supported by Next in their `next.config.mjs` file.
 
-As documented in the [support documentation](https://github.com/cloudflare/next-on-pages/blob/main/docs/supported.md#nextconfigjs-properties) there are config options that: we support, we don't currently support, we support and don't plan to.
+As documented in the [support documentation](https://github.com/cloudflare/next-on-pages/blob/main/packages/next-on-pages/docs/supported.md#nextconfigmjs-properties) there are config options that: we support, we don't currently support, we support and don't plan to.
 
 This rule helps you making sure that your code is not using config options that aren't supported by `@cloudflare/next-on-pages` (it always reports config options that we don't plan on supporting, other options can be set/unset using the rule's options).
 
