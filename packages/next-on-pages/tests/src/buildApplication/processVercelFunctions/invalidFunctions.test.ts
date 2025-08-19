@@ -341,4 +341,54 @@ describe('checkInvalidFunctions', () => {
 		mockedConsoleError.restore();
 		mockedConsoleWarn.restore();
 	});
+
+	test('should ignore invalid functions when opted in', async () => {
+		const processExitMock = vi
+			.spyOn(process, 'exit')
+			.mockImplementation(async () => undefined as never);
+
+		const { collectedFunctions, restoreFsMock } = await collectFunctionsFrom({
+			functions: {
+				'[dynamic-1].func': prerenderFuncDir,
+				'edge-route.func': edgeFuncDir,
+			},
+		});
+
+		const opts = {
+			functionsDir,
+			outputDir: resolve('.vercel/output/static'),
+			vercelConfig: { version: 3 as const },
+			ignoreInvalidFunctions: true,
+		};
+
+		await processEdgeFunctions(collectedFunctions);
+		await processPrerenderFunctions(collectedFunctions, opts);
+		await checkInvalidFunctions(collectedFunctions, opts);
+		restoreFsMock();
+
+		const {
+			edgeFunctions,
+			prerenderedFunctions,
+			invalidFunctions,
+			ignoredFunctions,
+		} = collectedFunctions;
+
+		expect(edgeFunctions.size).toEqual(1);
+		expect(prerenderedFunctions.size).toEqual(0);
+		expect(invalidFunctions.size).toEqual(1);
+		expect(ignoredFunctions.size).toEqual(0);
+
+		expect(getRouteInfo(edgeFunctions, 'edge-route.func')).toEqual({
+			path: '/edge-route',
+			overrides: [],
+		});
+
+		expect([...invalidFunctions.keys()]).toEqual([
+			resolve(functionsDir, '[dynamic-1].func'),
+		]);
+
+		expect(processExitMock).not.toBeCalled();
+
+		processExitMock.mockRestore();
+	});
 });
