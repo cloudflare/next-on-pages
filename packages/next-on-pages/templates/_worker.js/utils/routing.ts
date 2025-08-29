@@ -126,6 +126,51 @@ export async function runOrFetchBuildOutputItem(
 			}
 		}
 	} catch (e) {
+		// Call instrumentation onRequestError if available
+		const instrumentation = (globalThis as Record<string, unknown>)[
+			'__instrumentation'
+		] as
+			| {
+					hasOnRequestError?: () => boolean;
+					module?: {
+						onRequestError?: (
+							error: Error & { digest?: string },
+							req: unknown,
+							ctx: unknown,
+						) => Promise<void>;
+					};
+			  }
+			| null
+			| undefined;
+
+		if (
+			instrumentation?.hasOnRequestError?.() &&
+			instrumentation?.module?.onRequestError
+		) {
+			try {
+				const error = e as Error & { digest?: string };
+				const req = {
+					path: new URL(request.url).pathname,
+					method: request.method,
+					headers: Object.fromEntries(request.headers.entries()),
+				};
+				const context = {
+					routerKind: 'App Router' as const, // TODO: Detect actual router kind
+					routePath: path || '/',
+					routeType: 'render' as const, // TODO: Detect actual route type
+					renderSource: 'react-server-components' as const,
+				};
+
+				await instrumentation.module.onRequestError(error, req, context);
+			} catch (instrumentationError) {
+				// eslint-disable-next-line no-console
+				console.error(
+					'Error in instrumentation onRequestError:',
+					instrumentationError,
+				);
+			}
+		}
+
 		// eslint-disable-next-line no-console
 		console.error(e);
 		return new Response('Internal Server Error', { status: 500 });

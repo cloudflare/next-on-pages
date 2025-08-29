@@ -17,6 +17,7 @@ import {
 import { printBuildSummary, writeBuildInfo } from './buildSummary';
 import type { ProcessedVercelFunctions } from './processVercelFunctions';
 import { processVercelFunctions } from './processVercelFunctions';
+import { compileInstrumentation } from './compileInstrumentation';
 
 /**
  * Builds the _worker.js with static assets implementing the Next.js application
@@ -147,6 +148,12 @@ async function prepareAndBuildWorker(
 		processedFunctions?.collectedFunctions?.edgeFunctions,
 	);
 
+	// Compile instrumentation.ts if it exists
+	const instrumentationPath = await compileInstrumentation(
+		process.cwd(),
+		nopDistDir,
+	);
+
 	const outputtedWorkerPath = await buildWorkerFile(processedVercelOutput, {
 		outputDir,
 		workerJsDir,
@@ -154,6 +161,7 @@ async function prepareAndBuildWorker(
 		templatesDir,
 		customEntrypoint,
 		minify: !disableWorkerMinification,
+		instrumentationPath,
 	});
 
 	await buildMetadataFiles(outputDir, { staticAssets });
