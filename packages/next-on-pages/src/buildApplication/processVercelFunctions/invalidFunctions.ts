@@ -43,6 +43,8 @@ export async function checkInvalidFunctions(
 
 	await tryToFixI18nFunctions(collectedFunctions, opts);
 
+	await fixFaviconInvalidRSCFuncFunction(collectedFunctions);
+
 	await tryToFixInvalidFuncsWithValidIndexAlternative(collectedFunctions);
 	await tryToFixInvalidDynamicISRFuncs(collectedFunctions);
 
@@ -131,6 +133,28 @@ async function fixActionInvalidFuncFunctions({
 		if (fullPath.endsWith('.action.func')) {
 			ignoredFunctions.set(fullPath, {
 				reason: 'invalid .actions.func functions are ignored',
+				...fnInfo,
+			});
+			invalidFunctions.delete(fullPath);
+		}
+	}
+}
+
+/**
+ * Since 46.1.0 the Vercel CLI generates incorrect favicon RSC functions,
+ * they are safe to ignore without any downside, this functions makes sure
+ * that such favicon RSC functions do get ignored
+ *
+ * @param collectedFunctions Collected functions from the Vercel build output.
+ */
+async function fixFaviconInvalidRSCFuncFunction({
+	invalidFunctions,
+	ignoredFunctions,
+}: CollectedFunctions): Promise<void> {
+	for (const [fullPath, fnInfo] of invalidFunctions.entries()) {
+		if (fnInfo.relativePath === '/favicon.ico.rsc.func') {
+			ignoredFunctions.set(fullPath, {
+				reason: 'invalid favicon.ico.rsc.func functions are ignored',
 				...fnInfo,
 			});
 			invalidFunctions.delete(fullPath);
