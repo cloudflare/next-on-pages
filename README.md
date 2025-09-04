@@ -1,7 +1,7 @@
 > [!WARNING]
 >
 > <p align="center">⚠️ 🚧 ⚠️</p>
-> The next-on-pages package is deprecated, if you want to deploy a Next.js application on the Cloudflare network please use [OpenNext Cloudflare adapter](https://opennext.js.org/cloudflare) instead.
+> The next-on-pages package is deprecated, if you want to deploy a Next.js application on Cloudflare, please use the [OpenNext Cloudflare adapter](https://opennext.js.org/cloudflare) instead.
 > <p align="center">⚠️ 🚧 ⚠️</p>
 
 <p align="center">
