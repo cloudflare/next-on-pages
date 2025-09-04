@@ -1,9 +1,11 @@
 > [!WARNING]
 >
-> <p align="center">⚠️ 🚧 ⚠️</p>
+> > <p align="center">⚠️ 🚧 ⚠️</p>
+>
 > The next-on-pages package is deprecated, if you want to deploy a Next.js application on Cloudflare, please use the [OpenNext Cloudflare adapter](https://opennext.js.org/cloudflare) instead.
-> If you have a Next.js application that already uses next-on-pages the [OpenNext getting started guide for existing applications](https://opennext.js.org/cloudflare/get-started#existing-nextjs-apps) presents instructions on how to migrate to using the open-next adapter.
-> <p align="center">⚠️ 🚧 ⚠️</p>
+> If you have a Next.js application that already uses next-on-pages the [OpenNext getting started guide for existing applications](https://opennext.js.org/cloudflare/get-started#existing-nextjs-apps) presents instructions on how to migrate to the open-next adapter.
+>
+> > <p align="center">⚠️ 🚧 ⚠️</p>
 
 <p align="center">
   <h1 align="center">⚡▲ <code>@cloudflare/next-on-pages</code> ▲⚡</h1>
