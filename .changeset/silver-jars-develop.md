@@ -2,4 +2,4 @@
 '@cloudflare/next-on-pages': patch
 ---
 
-Pin `next` and `vercel` dependencies
+Deprecate package and pin `next` and `vercel` peer dependencies
