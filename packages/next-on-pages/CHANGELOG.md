@@ -1,5 +1,11 @@
 # @cloudflare/next-on-pages
 
+## 1.13.16
+
+### Patch Changes
+
+- 024b161: Deprecate package and pin `next` and `vercel` peer dependencies
+
 ## 1.13.15
 
 ### Patch Changes

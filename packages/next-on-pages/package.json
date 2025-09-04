@@ -1,6 +1,6 @@
 {
 	"name": "@cloudflare/next-on-pages",
-	"version": "1.13.15",
+	"version": "1.13.16",
 	"bin": "./bin/index.js",
 	"exports": {
 		".": {
