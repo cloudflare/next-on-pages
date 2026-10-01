@@ -2,8 +2,8 @@
 >
 > > <p align="center">⚠️ 🚧 ⚠️</p>
 >
-> The next-on-pages package is deprecated, if you want to deploy a Next.js application on Cloudflare, please use the [OpenNext Cloudflare adapter](https://opennext.js.org/cloudflare) instead.
-> If you have a Next.js application that already uses next-on-pages the [OpenNext getting started guide for existing applications](https://opennext.js.org/cloudflare/get-started#existing-nextjs-apps) presents instructions on how to migrate to the OpenNext adapter.
+> The `@cloudflare/next-on-pages` package is deprecated and this repository is archived. For new projects and migrations, see [vinext](https://vinext.dev/), Cloudflare's Vite-based implementation of the Next.js API with support for deploying to Cloudflare Workers.
+> Visit the [Cloudflare vinext repository](https://github.com/cloudflare/vinext) for source code, setup instructions, compatibility information, and migration guidance.
 >
 > > <p align="center">⚠️ 🚧 ⚠️</p>
 
@@ -14,7 +14,7 @@
 </p>
 
 > [!NOTE]
-> The best way to run Next.js apps on Cloudflare is to use [`@opennextjs/cloudflare`](https://opennext.js.org/cloudflare). If you're coming from Vercel, you can migrate your Next.js app easily using [Diverce](https://github.com/ygwyg/diverce), which can also help you migrate from `@cloudflare/next-on-pages`
+> For existing Next.js applications, start with the [vinext migration guide](https://github.com/cloudflare/vinext#migrating-an-existing-nextjs-project).
 
 `@cloudflare/next-on-pages` is a CLI tool that you can use to build and develop [Next.js](https://nextjs.org/) applications so that they can run on the [Cloudflare Pages](https://pages.cloudflare.com/) platform.
 
